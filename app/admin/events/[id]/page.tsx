@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Mail, Users, Download, Search, Send, Link as LinkIcon } from "lucide-react";
 import Link from "next/link";
 import { useToast } from "@/components/ui/use-toast";
+import { AddGuestDialog } from "@/components/add-guest-dialog";
 
 interface Guest {
   id: string;
@@ -219,10 +220,13 @@ export default function EventDetailsPage() {
                   Gérez vos invités et suivez leurs réponses
                 </CardDescription>
               </div>
-              <Button>
-                <Users className="h-4 w-4 mr-2" />
-                Importer CSV
-              </Button>
+              <div className="flex gap-2">
+                <AddGuestDialog eventId={eventId} onGuestAdded={fetchEvent} />
+                <Button variant="outline">
+                  <Users className="h-4 w-4 mr-2" />
+                  Importer CSV
+                </Button>
+              </div>
             </div>
           </CardHeader>
           <CardContent>
