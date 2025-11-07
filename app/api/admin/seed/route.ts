@@ -37,6 +37,12 @@ export async function POST() {
         city: 'Paris 75016',
         country: 'France',
         adminId: adminUser.id,
+        // Showcase defaults
+        showcaseEnabled: false,
+        showcaseTheme: 'weevup',
+        showcasePrimaryColor: '#004645',
+        showcaseSecondaryColor: '#FF4713',
+        showcaseSections: ['hero', 'description', 'details', 'cta'],
       },
     })
 
