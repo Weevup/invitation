@@ -217,7 +217,7 @@ export default function AdminDashboard() {
                     </div>
                     <Link href={`/admin/events/${event.id}`}>
                       <Button className="w-full" variant="outline">
-                        Gérer l'événement
+                        Gérer l&apos;événement
                       </Button>
                     </Link>
                   </CardContent>

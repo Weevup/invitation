@@ -253,7 +253,7 @@ export default function GuestPage() {
                     animate={{ opacity: 1, x: 0 }}
                     className="space-y-4"
                   >
-                    <Label className="text-lg">Participez-vous à l'événement ?</Label>
+                    <Label className="text-lg">Participez-vous à l&apos;événement ?</Label>
                     <RadioGroup
                       value={attending === null ? "" : attending.toString()}
                       onValueChange={(value) =>
@@ -263,7 +263,7 @@ export default function GuestPage() {
                       <div className="flex items-center space-x-2 p-4 border rounded-lg hover:bg-accent cursor-pointer">
                         <RadioGroupItem value="true" id="yes" />
                         <Label htmlFor="yes" className="cursor-pointer flex-1">
-                          ✓ J'accepte avec plaisir
+                          ✓ J&apos;accepte avec plaisir
                         </Label>
                       </div>
                       <div className="flex items-center space-x-2 p-4 border rounded-lg hover:bg-accent cursor-pointer">
@@ -291,7 +291,7 @@ export default function GuestPage() {
                     className="space-y-4"
                   >
                     <Label htmlFor="plusOnes" className="text-lg">
-                      Nombre d'accompagnants (max {event.maxPlusOnes})
+                      Nombre d&apos;accompagnants (max {event.maxPlusOnes})
                     </Label>
                     <Select
                       value={plusOnes.toString()}
@@ -375,7 +375,7 @@ export default function GuestPage() {
                     {event.enableAccessibility && (
                       <div className="space-y-2">
                         <Label htmlFor="accessibility">
-                          Besoins d'accessibilité
+                          Besoins d&apos;accessibilité
                         </Label>
                         <Textarea
                           id="accessibility"
@@ -398,7 +398,7 @@ export default function GuestPage() {
                     )}
                     {event.enableLodging && (
                       <div className="space-y-2">
-                        <Label htmlFor="lodging">Besoins d'hébergement</Label>
+                        <Label htmlFor="lodging">Besoins d&apos;hébergement</Label>
                         <Textarea
                           id="lodging"
                           value={lodgingNeeds}
@@ -439,8 +439,8 @@ export default function GuestPage() {
                           className="mt-1"
                         />
                         <Label htmlFor="photos" className="cursor-pointer">
-                          J'autorise la prise et l'utilisation de photographies durant
-                          l'événement à des fins de communication
+                          J&apos;autorise la prise et l&apos;utilisation de photographies durant
+                          l&apos;événement à des fins de communication
                         </Label>
                       </div>
                     )}
@@ -542,14 +542,14 @@ export default function GuestPage() {
               <CardContent className="space-y-6">
                 {attending && qrCode && (
                   <div>
-                    <p className="font-semibold mb-4">Votre QR code d'accès :</p>
+                    <p className="font-semibold mb-4">Votre QR code d&apos;accès :</p>
                     <img
                       src={qrCode}
                       alt="QR Code"
                       className="mx-auto max-w-[200px]"
                     />
                     <p className="text-sm text-gray-600 mt-2">
-                      Présentez ce code à l'entrée de l'événement
+                      Présentez ce code à l&apos;entrée de l&apos;événement
                     </p>
                   </div>
                 )}
@@ -557,7 +557,7 @@ export default function GuestPage() {
                   Un email de confirmation vous a été envoyé à {guest.email}
                 </p>
                 <Button onClick={() => router.push("/")} variant="outline">
-                  Retour à l'accueil
+                  Retour à l&apos;accueil
                 </Button>
               </CardContent>
             </Card>

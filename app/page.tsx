@@ -152,7 +152,7 @@ export default function HomePage() {
                 <QrCode className="h-12 w-12 text-primary mb-4" />
                 <CardTitle>QR Codes & Check-in</CardTitle>
                 <CardDescription>
-                  Simplifiez l'accueil avec des QR codes uniques pour chaque invité
+                  Simplifiez l&apos;accueil avec des QR codes uniques pour chaque invité
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -163,11 +163,11 @@ export default function HomePage() {
                   </li>
                   <li className="flex items-center">
                     <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                    Scan à l'entrée
+                    Scan à l&apos;entrée
                   </li>
                   <li className="flex items-center">
                     <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                    Feuille d'émargement
+                    Feuille d&apos;émargement
                   </li>
                 </ul>
               </CardContent>

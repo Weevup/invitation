@@ -100,7 +100,7 @@ export default function EventDetailsPage() {
           <CardHeader>
             <CardTitle>Événement introuvable</CardTitle>
             <CardDescription>
-              Cet événement n'existe pas ou a été supprimé
+              Cet événement n&apos;existe pas ou a été supprimé
             </CardDescription>
           </CardHeader>
           <CardContent>
