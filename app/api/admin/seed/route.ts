@@ -86,6 +86,84 @@ Au programme : cocktail dînatoire, DJ set, surprises et moments inoubliables da
             answer: 'Absolument ! Le cocktail dînatoire proposera une variété d\'options pour tous les régimes alimentaires. N\'hésitez pas à nous signaler vos restrictions.'
           },
         ],
+        showcaseSpeakers: [
+          {
+            name: 'Marie Dubois',
+            title: 'CEO & Fondatrice',
+            bio: 'Marie a fondé Weevup il y a 10 ans avec une vision: révolutionner la gestion d\'événements. Son leadership a permis à l\'entreprise de devenir un acteur majeur du secteur.',
+            photo: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop',
+          },
+          {
+            name: 'Thomas Martin',
+            title: 'CTO',
+            bio: 'Expert en technologies événementielles, Thomas pilote l\'innovation technique chez Weevup. Passionné par l\'IA et l\'automatisation.',
+            photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop',
+          },
+          {
+            name: 'Sophie Laurent',
+            title: 'Directrice Créative',
+            bio: 'Sophie transforme chaque événement en expérience mémorable. Son approche créative et son sens du détail font toute la différence.',
+            photo: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&h=400&fit=crop',
+          },
+        ],
+        showcaseSponsors: [
+          {
+            name: 'Tech Corp',
+            logo: 'https://images.unsplash.com/photo-1599305445671-ac291c95aaa9?w=200&h=100&fit=crop',
+            website: 'https://techcorp.example.com',
+            tier: 'platinum',
+          },
+          {
+            name: 'Digital Solutions',
+            logo: 'https://images.unsplash.com/photo-1560179707-f14e90ef3623?w=200&h=100&fit=crop',
+            website: 'https://digitalsolutions.example.com',
+            tier: 'gold',
+          },
+          {
+            name: 'Innovation Labs',
+            logo: 'https://images.unsplash.com/photo-1599305445671-ac291c95aaa9?w=200&h=100&fit=crop',
+            website: 'https://innovationlabs.example.com',
+            tier: 'gold',
+          },
+          {
+            name: 'Creative Studio',
+            logo: 'https://images.unsplash.com/photo-1572044162444-ad60f128bdea?w=200&h=100&fit=crop',
+            website: '',
+            tier: 'silver',
+          },
+        ],
+        showcaseTimeline: [
+          {
+            time: '18:30',
+            title: 'Accueil & Cocktail de bienvenue',
+            description: 'Arrivée des invités, remise des badges et cocktail de bienvenue dans le hall du Molitor',
+          },
+          {
+            time: '19:00',
+            title: 'Discours d\'ouverture',
+            description: 'Mot de bienvenue de Marie Dubois, CEO, et rétrospective des 10 ans de Weevup',
+          },
+          {
+            time: '19:30',
+            title: 'Cocktail dînatoire',
+            description: 'Buffet gastronomique avec animations culinaires et networking',
+          },
+          {
+            time: '21:00',
+            title: 'DJ Set & Dancefloor',
+            description: 'Ambiance musicale avec DJ résident et ouverture de la piste de danse',
+          },
+          {
+            time: '22:30',
+            title: 'Surprise anniversaire',
+            description: 'Animation spéciale pour célébrer ces 10 années',
+          },
+          {
+            time: '23:00',
+            title: 'Fin de la soirée',
+            description: 'Derniers échanges et départ des invités',
+          },
+        ],
       },
     })
 

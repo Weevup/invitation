@@ -25,6 +25,29 @@ import { Switch } from '@/components/ui/switch'
 import { Checkbox } from '@/components/ui/checkbox'
 import { GalleryEditor } from '@/components/showcase/gallery-editor'
 import { FAQEditor } from '@/components/showcase/faq-editor'
+import { SpeakersEditor } from '@/components/showcase/speakers-editor'
+import { SponsorsEditor } from '@/components/showcase/sponsors-editor'
+import { TimelineEditor } from '@/components/showcase/timeline-editor'
+
+interface Speaker {
+  name: string
+  title: string
+  bio: string
+  photo: string
+}
+
+interface Sponsor {
+  name: string
+  logo: string
+  website: string
+  tier: 'platinum' | 'gold' | 'silver' | 'bronze'
+}
+
+interface TimelineItem {
+  time: string
+  title: string
+  description: string
+}
 
 interface ShowcaseBuilderProps {
   eventId: string
@@ -44,6 +67,9 @@ interface ShowcaseBuilderProps {
     showcaseVideo?: string | null
     showcaseCountdown?: boolean
     showcaseSocialShare?: boolean
+    showcaseSpeakers?: Speaker[] | null
+    showcaseSponsors?: Sponsor[] | null
+    showcaseTimeline?: TimelineItem[] | null
   }
 }
 
@@ -54,6 +80,9 @@ const availableSections = [
   { id: 'description', label: '📝 Description', description: 'Présentation de l\'événement' },
   { id: 'program', label: '📅 Programme', description: 'Programme détaillé' },
   { id: 'details', label: '📍 Détails', description: 'Lieu, date, participants' },
+  { id: 'speakers', label: '🎤 Speakers', description: 'Intervenants et conférenciers' },
+  { id: 'sponsors', label: '🤝 Sponsors', description: 'Partenaires et sponsors' },
+  { id: 'timeline', label: '🕐 Timeline', description: 'Déroulé de l\'événement' },
   { id: 'gallery', label: '🖼️ Galerie', description: 'Galerie d\'images' },
   { id: 'faq', label: '❓ FAQ', description: 'Questions fréquentes' },
   { id: 'cta', label: '✨ Appel à l\'action', description: 'Call-to-action final' },
@@ -77,6 +106,11 @@ export function ShowcaseBuilder({ eventId, eventSlug, initialData }: ShowcaseBui
   const [videoUrl, setVideoUrl] = useState(initialData.showcaseVideo || '')
   const [countdown, setCountdown] = useState(initialData.showcaseCountdown ?? true)
   const [socialShare, setSocialShare] = useState(initialData.showcaseSocialShare ?? true)
+
+  // Nouveaux champs Phase 3
+  const [speakers, setSpeakers] = useState<Speaker[]>(initialData.showcaseSpeakers || [])
+  const [sponsors, setSponsors] = useState<Sponsor[]>(initialData.showcaseSponsors || [])
+  const [timeline, setTimeline] = useState<TimelineItem[]>(initialData.showcaseTimeline || [])
 
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
@@ -115,6 +149,9 @@ export function ShowcaseBuilder({ eventId, eventSlug, initialData }: ShowcaseBui
           showcaseVideo: videoUrl || null,
           showcaseCountdown: countdown,
           showcaseSocialShare: socialShare,
+          showcaseSpeakers: speakers.length > 0 ? speakers : null,
+          showcaseSponsors: sponsors.length > 0 ? sponsors : null,
+          showcaseTimeline: timeline.length > 0 ? timeline : null,
         }),
       })
 
@@ -475,6 +512,51 @@ export function ShowcaseBuilder({ eventId, eventSlug, initialData }: ShowcaseBui
             </CardHeader>
             <CardContent>
               <FAQEditor faqs={faq} onChange={setFaq} />
+            </CardContent>
+          </Card>
+
+          <Card className="border-[#9CD9F6]/30 bg-white/80 backdrop-blur">
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <Clock className="h-5 w-5 text-[#009197]" />
+                <div>
+                  <CardTitle className="text-[#004645]">Timeline de l&apos;événement</CardTitle>
+                  <CardDescription>Déroulé heure par heure</CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <TimelineEditor timeline={timeline} onChange={setTimeline} />
+            </CardContent>
+          </Card>
+
+          <Card className="border-[#9CD9F6]/30 bg-white/80 backdrop-blur">
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <Sparkles className="h-5 w-5 text-[#FF4713]" />
+                <div>
+                  <CardTitle className="text-[#004645]">Speakers & Intervenants</CardTitle>
+                  <CardDescription>Présentez vos speakers</CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <SpeakersEditor speakers={speakers} onChange={setSpeakers} />
+            </CardContent>
+          </Card>
+
+          <Card className="border-[#9CD9F6]/30 bg-white/80 backdrop-blur">
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <Sparkles className="h-5 w-5 text-[#004645]" />
+                <div>
+                  <CardTitle className="text-[#004645]">Sponsors & Partenaires</CardTitle>
+                  <CardDescription>Mettez en avant vos sponsors</CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <SponsorsEditor sponsors={sponsors} onChange={setSponsors} />
             </CardContent>
           </Card>
         </TabsContent>

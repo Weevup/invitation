@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
-import { Calendar, MapPin, Clock, Users, MessageCircle, Image as ImageIcon, Play } from 'lucide-react'
+import { Calendar, MapPin, Clock, Users, MessageCircle, Image as ImageIcon, Play, User, Building2, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { WeevupLogo } from '@/components/weevup-logo'
@@ -381,6 +381,179 @@ export default async function EventShowcasePage({ params }: PageProps) {
                   </Card>
                 )}
               </div>
+            )}
+
+            {/* Speakers Section */}
+            {sections.includes('speakers') && event.showcaseSpeakers && (event.showcaseSpeakers as Array<{name: string; title: string; bio: string; photo: string}>).length > 0 && (
+              <ScrollReveal>
+                <Card className="border-[#9CD9F6]/30 bg-white/80 backdrop-blur">
+                  <CardContent className="pt-6">
+                    <div className="flex items-center gap-3 mb-6">
+                      <User className="h-6 w-6" style={{ color: secondaryColor }} />
+                      <h2
+                        className="text-2xl font-bold"
+                        style={{
+                          fontFamily: "var(--font-abril)",
+                          color: primaryColor
+                        }}
+                      >
+                        Speakers & Intervenants
+                      </h2>
+                    </div>
+                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {(event.showcaseSpeakers as Array<{name: string; title: string; bio: string; photo: string}>).map((speaker, index) => (
+                        <div key={index} className="text-center">
+                          {speaker.photo ? (
+                            <img
+                              src={speaker.photo}
+                              alt={speaker.name}
+                              className="w-32 h-32 rounded-full object-cover mx-auto mb-4 border-4 border-[#9CD9F6]/30"
+                            />
+                          ) : (
+                            <div className="w-32 h-32 rounded-full bg-[#9CD9F6]/20 mx-auto mb-4 flex items-center justify-center">
+                              <User className="h-16 w-16 text-[#009197]" />
+                            </div>
+                          )}
+                          <h3 className="font-bold text-lg mb-1" style={{ color: primaryColor }}>
+                            {speaker.name}
+                          </h3>
+                          <p className="text-sm font-medium mb-2" style={{ color: secondaryColor }}>
+                            {speaker.title}
+                          </p>
+                          {speaker.bio && (
+                            <p className="text-sm text-left" style={{ color: `${primaryColor}99` }}>
+                              {speaker.bio}
+                            </p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              </ScrollReveal>
+            )}
+
+            {/* Timeline Section */}
+            {sections.includes('timeline') && event.showcaseTimeline && (event.showcaseTimeline as Array<{time: string; title: string; description: string}>).length > 0 && (
+              <ScrollReveal>
+                <Card className="border-[#9CD9F6]/30 bg-white/80 backdrop-blur">
+                  <CardContent className="pt-6">
+                    <div className="flex items-center gap-3 mb-6">
+                      <Clock className="h-6 w-6" style={{ color: secondaryColor }} />
+                      <h2
+                        className="text-2xl font-bold"
+                        style={{
+                          fontFamily: "var(--font-abril)",
+                          color: primaryColor
+                        }}
+                      >
+                        Déroulé de l&apos;événement
+                      </h2>
+                    </div>
+                    <div className="relative">
+                      <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-[#9CD9F6]" />
+                      <div className="space-y-6">
+                        {(event.showcaseTimeline as Array<{time: string; title: string; description: string}>)
+                          .sort((a, b) => a.time.localeCompare(b.time))
+                          .map((item, index) => (
+                            <div key={index} className="relative pl-12">
+                              <div
+                                className="absolute left-0 top-2 w-8 h-8 rounded-full flex items-center justify-center border-4 border-white"
+                                style={{ backgroundColor: secondaryColor }}
+                              >
+                                <Clock className="h-4 w-4 text-white" />
+                              </div>
+                              <div>
+                                <p className="font-bold mb-1" style={{ color: secondaryColor }}>
+                                  {item.time}
+                                </p>
+                                <h3 className="font-bold text-lg mb-1" style={{ color: primaryColor }}>
+                                  {item.title}
+                                </h3>
+                                {item.description && (
+                                  <p className="text-sm" style={{ color: `${primaryColor}99` }}>
+                                    {item.description}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </ScrollReveal>
+            )}
+
+            {/* Sponsors Section */}
+            {sections.includes('sponsors') && event.showcaseSponsors && (event.showcaseSponsors as Array<{name: string; logo: string; website: string; tier: string}>).length > 0 && (
+              <ScrollReveal>
+                <Card className="border-[#9CD9F6]/30 bg-white/80 backdrop-blur">
+                  <CardContent className="pt-6">
+                    <div className="flex items-center gap-3 mb-6">
+                      <Building2 className="h-6 w-6" style={{ color: secondaryColor }} />
+                      <h2
+                        className="text-2xl font-bold"
+                        style={{
+                          fontFamily: "var(--font-abril)",
+                          color: primaryColor
+                        }}
+                      >
+                        Nos Sponsors & Partenaires
+                      </h2>
+                    </div>
+                    {['platinum', 'gold', 'silver', 'bronze'].map(tier => {
+                      const tierSponsors = (event.showcaseSponsors as Array<{name: string; logo: string; website: string; tier: string}>).filter(s => s.tier === tier)
+                      if (tierSponsors.length === 0) return null
+
+                      const tierLabels: Record<string, string> = {
+                        platinum: 'Partenaires Platine',
+                        gold: 'Partenaires Or',
+                        silver: 'Partenaires Argent',
+                        bronze: 'Partenaires Bronze',
+                      }
+
+                      return (
+                        <div key={tier} className="mb-8 last:mb-0">
+                          <h3 className="text-lg font-semibold mb-4 text-center" style={{ color: primaryColor }}>
+                            {tierLabels[tier]}
+                          </h3>
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                            {tierSponsors.map((sponsor, index) => (
+                              <div key={index} className="flex flex-col items-center">
+                                {sponsor.website ? (
+                                  <a
+                                    href={sponsor.website}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="block w-full hover:scale-105 transition-transform"
+                                  >
+                                    <div className="aspect-video bg-white rounded-lg p-4 flex items-center justify-center border border-[#9CD9F6]/30">
+                                      {sponsor.logo ? (
+                                        <img src={sponsor.logo} alt={sponsor.name} className="max-w-full max-h-full object-contain" />
+                                      ) : (
+                                        <span className="text-center font-semibold" style={{ color: primaryColor }}>{sponsor.name}</span>
+                                      )}
+                                    </div>
+                                  </a>
+                                ) : (
+                                  <div className="aspect-video bg-white rounded-lg p-4 flex items-center justify-center border border-[#9CD9F6]/30">
+                                    {sponsor.logo ? (
+                                      <img src={sponsor.logo} alt={sponsor.name} className="max-w-full max-h-full object-contain" />
+                                    ) : (
+                                      <span className="text-center font-semibold" style={{ color: primaryColor }}>{sponsor.name}</span>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </CardContent>
+                </Card>
+              </ScrollReveal>
             )}
 
             {/* Call to Action */}
