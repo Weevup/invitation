@@ -1,9 +1,19 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Lato, Abril_Fatface } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 
-const inter = Inter({ subsets: ["latin"] });
+const lato = Lato({
+  subsets: ["latin"],
+  weight: ["100", "300", "400", "700", "900"],
+  variable: "--font-lato"
+});
+
+const abrilFatface = Abril_Fatface({
+  subsets: ["latin"],
+  weight: ["400"],
+  variable: "--font-abril"
+});
 
 export const metadata: Metadata = {
   title: "Invitation Manager - Gérez vos invitations en toute simplicité",
@@ -17,7 +27,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="fr">
-      <body className={inter.className}>
+      <body className={`${lato.variable} ${abrilFatface.variable} font-sans`}>
         {children}
         <Toaster />
       </body>
