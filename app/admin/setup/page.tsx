@@ -11,12 +11,15 @@ export default function SetupPage() {
   const [setupLoading, setSetupLoading] = useState(false);
   const [seedLoading, setSeedLoading] = useState(false);
   const [clearLoading, setClearLoading] = useState(false);
+  const [migrateLoading, setMigrateLoading] = useState(false);
   const [setupResult, setSetupResult] = useState<any>(null);
   const [seedResult, setSeedResult] = useState<any>(null);
   const [clearResult, setClearResult] = useState<any>(null);
+  const [migrateResult, setMigrateResult] = useState<any>(null);
   const [setupError, setSetupError] = useState<string>('');
   const [seedError, setSeedError] = useState<string>('');
   const [clearError, setClearError] = useState<string>('');
+  const [migrateError, setMigrateError] = useState<string>('');
   const [showClearConfirm, setShowClearConfirm] = useState(false);
 
   const handleSetup = async () => {
@@ -98,6 +101,31 @@ export default function SetupPage() {
     }
   };
 
+  const handleMigrate = async () => {
+    setMigrateLoading(true);
+    setMigrateError('');
+    setMigrateResult(null);
+
+    try {
+      const response = await fetch('/api/admin/migrate', {
+        method: 'POST',
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setMigrateResult(data);
+      } else {
+        setMigrateError(data.error || 'Erreur lors de la migration');
+      }
+    } catch (error) {
+      setMigrateError('Erreur de connexion');
+      console.error('Migration error:', error);
+    } finally {
+      setMigrateLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#9CD9F6] via-white to-[#9CD9F6]">
       {/* Lignes graphiques orange décoratives */}
@@ -172,8 +200,59 @@ export default function SetupPage() {
                   </p>
                 </div>
               </div>
+
+              <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-md">
+                <p className="text-sm text-blue-800 mb-3">
+                  <strong>⚠️ Migration manuelle requise :</strong> Si vous obtenez une erreur lors de la création des données de démo, cliquez sur ce bouton pour appliquer manuellement la migration Phase 2 (champs showcase).
+                </p>
+                <Button
+                  onClick={handleMigrate}
+                  disabled={migrateLoading || !!migrateResult}
+                  variant="outline"
+                  className="w-full border-blue-300 text-blue-700 hover:bg-blue-100"
+                >
+                  {migrateLoading ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Application de la migration...
+                    </>
+                  ) : migrateResult ? (
+                    <>
+                      <CheckCircle className="h-4 w-4 mr-2" />
+                      Migration appliquée
+                    </>
+                  ) : (
+                    <>
+                      <Database className="h-4 w-4 mr-2" />
+                      Appliquer la migration Phase 2
+                    </>
+                  )}
+                </Button>
+              </div>
+
+              {migrateError && (
+                <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-md flex items-start gap-2">
+                  <AlertCircle className="h-5 w-5 text-red-500 mt-0.5" />
+                  <div>
+                    <p className="font-medium text-red-800">Erreur</p>
+                    <p className="text-sm text-red-600">{migrateError}</p>
+                  </div>
+                </div>
+              )}
+
+              {migrateResult && (
+                <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-md flex items-start gap-2">
+                  <CheckCircle className="h-5 w-5 text-green-500 mt-0.5" />
+                  <div>
+                    <p className="font-medium text-green-800">Succès!</p>
+                    <p className="text-sm text-green-600">{migrateResult.message}</p>
+                    <p className="text-xs text-green-600 mt-1">Vous pouvez maintenant créer les données de démo (Étape 2)</p>
+                  </div>
+                </div>
+              )}
+
               <p className="mt-4 text-sm text-[#004645]/70">
-                💡 La configuration de la base de données se fait via le script <code className="bg-[#9CD9F6]/20 px-1 py-0.5 rounded">prisma db push</code> qui s&apos;exécute automatiquement lors du build.
+                💡 La configuration de la base de données se fait via le script <code className="bg-[#9CD9F6]/20 px-1 py-0.5 rounded">prisma migrate deploy</code> qui s&apos;exécute automatiquement lors du build.
               </p>
 
               {setupError && (
