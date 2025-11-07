@@ -1,0 +1,435 @@
+"use client"
+
+import { useState } from 'react'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import {
+  Sparkles,
+  Eye,
+  Save,
+  Loader2,
+  CheckCircle,
+  Palette,
+  Layout,
+  ExternalLink,
+  Image as ImageIcon,
+  MessageCircle,
+  Video,
+  Clock
+} from 'lucide-react'
+import { Switch } from '@/components/ui/switch'
+import { Checkbox } from '@/components/ui/checkbox'
+import { GalleryEditor } from '@/components/showcase/gallery-editor'
+import { FAQEditor } from '@/components/showcase/faq-editor'
+
+interface ShowcaseBuilderProps {
+  eventId: string
+  eventSlug: string
+  initialData: {
+    showcaseEnabled: boolean
+    showcaseTitle: string | null
+    showcaseSubtitle: string | null
+    showcaseBannerImage: string | null
+    showcaseTheme: string
+    showcaseSections: string[] | null
+    showcasePrimaryColor: string
+    showcaseSecondaryColor: string
+    showcaseCustomCSS: string | null
+    showcaseGallery?: string[] | null
+    showcaseFAQ?: Array<{question: string; answer: string}> | null
+    showcaseVideo?: string | null
+    showcaseCountdown?: boolean
+    showcaseSocialShare?: boolean
+  }
+}
+
+const availableSections = [
+  { id: 'hero', label: '🎯 Hero', description: 'Bannière principale avec titre' },
+  { id: 'countdown', label: '⏱️ Compte à rebours', description: 'Countdown avant l\'événement' },
+  { id: 'video', label: '🎥 Vidéo', description: 'Vidéo YouTube/Vimeo' },
+  { id: 'description', label: '📝 Description', description: 'Présentation de l\'événement' },
+  { id: 'program', label: '📅 Programme', description: 'Programme détaillé' },
+  { id: 'details', label: '📍 Détails', description: 'Lieu, date, participants' },
+  { id: 'gallery', label: '🖼️ Galerie', description: 'Galerie d\'images' },
+  { id: 'faq', label: '❓ FAQ', description: 'Questions fréquentes' },
+  { id: 'cta', label: '✨ Appel à l\'action', description: 'Call-to-action final' },
+]
+
+export function ShowcaseBuilder({ eventId, eventSlug, initialData }: ShowcaseBuilderProps) {
+  const [enabled, setEnabled] = useState(initialData.showcaseEnabled)
+  const [title, setTitle] = useState(initialData.showcaseTitle || '')
+  const [subtitle, setSubtitle] = useState(initialData.showcaseSubtitle || '')
+  const [bannerImage, setBannerImage] = useState(initialData.showcaseBannerImage || '')
+  const [primaryColor, setPrimaryColor] = useState(initialData.showcasePrimaryColor)
+  const [secondaryColor, setSecondaryColor] = useState(initialData.showcaseSecondaryColor)
+  const [sections, setSections] = useState<string[]>(
+    initialData.showcaseSections || ['hero', 'countdown', 'description', 'details', 'cta']
+  )
+  const [customCSS, setCustomCSS] = useState(initialData.showcaseCustomCSS || '')
+
+  // Nouveaux champs Phase 2
+  const [gallery, setGallery] = useState<string[]>(initialData.showcaseGallery || [])
+  const [faq, setFaq] = useState<Array<{question: string; answer: string}>>(initialData.showcaseFAQ || [])
+  const [videoUrl, setVideoUrl] = useState(initialData.showcaseVideo || '')
+  const [countdown, setCountdown] = useState(initialData.showcaseCountdown ?? true)
+  const [socialShare, setSocialShare] = useState(initialData.showcaseSocialShare ?? true)
+
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
+  const [error, setError] = useState('')
+
+  const handleSectionToggle = (sectionId: string) => {
+    setSections(prev =>
+      prev.includes(sectionId)
+        ? prev.filter(s => s !== sectionId)
+        : [...prev, sectionId]
+    )
+  }
+
+  const handleSave = async () => {
+    setSaving(true)
+    setError('')
+    setSaved(false)
+
+    try {
+      const response = await fetch(`/api/admin/events/${eventId}/showcase`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          showcaseEnabled: enabled,
+          showcaseTitle: title || null,
+          showcaseSubtitle: subtitle || null,
+          showcaseBannerImage: bannerImage || null,
+          showcasePrimaryColor: primaryColor,
+          showcaseSecondaryColor: secondaryColor,
+          showcaseSections: sections,
+          showcaseCustomCSS: customCSS || null,
+          showcaseGallery: gallery.length > 0 ? gallery : null,
+          showcaseFAQ: faq.length > 0 ? faq : null,
+          showcaseVideo: videoUrl || null,
+          showcaseCountdown: countdown,
+          showcaseSocialShare: socialShare,
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to save showcase settings')
+      }
+
+      setSaved(true)
+      setTimeout(() => setSaved(false), 3000)
+    } catch (err) {
+      setError('Erreur lors de la sauvegarde')
+      console.error('Save error:', err)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const showcaseUrl = `${window.location.origin}/event/${eventSlug}`
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <Card className="border-[#FF4713]/30 bg-gradient-to-br from-[#FF4713]/5 to-white/80 backdrop-blur">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Sparkles className="h-6 w-6 text-[#FF4713]" />
+              <div>
+                <CardTitle className="text-[#004645]" style={{ fontFamily: "var(--font-abril)" }}>
+                  Page Vitrine
+                </CardTitle>
+                <CardDescription className="text-[#004645]/70">
+                  Créez une page publique pour votre événement
+                </CardDescription>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              {enabled && (
+                <a
+                  href={showcaseUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm text-[#009197] hover:text-[#004645] flex items-center gap-1"
+                >
+                  <Eye className="h-4 w-4" />
+                  Voir la page
+                  <ExternalLink className="h-3 w-3" />
+                </a>
+              )}
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-between p-4 bg-white/80 rounded-lg border border-[#9CD9F6]/30">
+            <div>
+              <p className="font-medium text-[#004645]">Activer la page vitrine</p>
+              <p className="text-sm text-[#004645]/70">
+                Rendre la page accessible au public
+              </p>
+            </div>
+            <Switch
+              checked={enabled}
+              onCheckedChange={setEnabled}
+            />
+          </div>
+          {enabled && (
+            <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+              <p className="text-sm text-green-800">
+                <strong>URL publique:</strong>{' '}
+                <a
+                  href={showcaseUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline hover:text-green-600"
+                >
+                  {showcaseUrl}
+                </a>
+              </p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Content Settings */}
+      {enabled && (
+        <>
+          <Card className="border-[#9CD9F6]/30 bg-white/80 backdrop-blur">
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <Layout className="h-5 w-5 text-[#009197]" />
+                <CardTitle className="text-[#004645]">Contenu</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <Label htmlFor="showcase-title" className="text-[#004645]">
+                  Titre personnalisé
+                </Label>
+                <Input
+                  id="showcase-title"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="Laissez vide pour utiliser le nom de l'événement"
+                  className="border-[#9CD9F6]/30"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="showcase-subtitle" className="text-[#004645]">
+                  Sous-titre
+                </Label>
+                <Input
+                  id="showcase-subtitle"
+                  value={subtitle}
+                  onChange={(e) => setSubtitle(e.target.value)}
+                  placeholder="Un sous-titre accrocheur..."
+                  className="border-[#9CD9F6]/30"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="banner-image" className="text-[#004645]">
+                  Image de bannière (URL)
+                </Label>
+                <Input
+                  id="banner-image"
+                  value={bannerImage}
+                  onChange={(e) => setBannerImage(e.target.value)}
+                  placeholder="https://exemple.com/image.jpg"
+                  className="border-[#9CD9F6]/30"
+                />
+              </div>
+
+              <div>
+                <Label className="text-[#004645] mb-3 block">Sections à afficher</Label>
+                <div className="space-y-2">
+                  {availableSections.map((section) => (
+                    <div
+                      key={section.id}
+                      className="flex items-start space-x-3 p-3 rounded-lg border border-[#9CD9F6]/30 hover:bg-[#9CD9F6]/5 transition-colors"
+                    >
+                      <Checkbox
+                        id={`section-${section.id}`}
+                        checked={sections.includes(section.id)}
+                        onCheckedChange={() => handleSectionToggle(section.id)}
+                      />
+                      <div className="flex-1">
+                        <label
+                          htmlFor={`section-${section.id}`}
+                          className="text-sm font-medium text-[#004645] cursor-pointer"
+                        >
+                          {section.label}
+                        </label>
+                        <p className="text-xs text-[#004645]/70">{section.description}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Theme Settings */}
+          <Card className="border-[#9CD9F6]/30 bg-white/80 backdrop-blur">
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <Palette className="h-5 w-5 text-[#009197]" />
+                <CardTitle className="text-[#004645]">Couleurs</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="primary-color" className="text-[#004645]">
+                    Couleur principale
+                  </Label>
+                  <div className="flex gap-2 items-center mt-1">
+                    <Input
+                      id="primary-color"
+                      type="color"
+                      value={primaryColor}
+                      onChange={(e) => setPrimaryColor(e.target.value)}
+                      className="w-16 h-10 p-1 border-[#9CD9F6]/30"
+                    />
+                    <Input
+                      value={primaryColor}
+                      onChange={(e) => setPrimaryColor(e.target.value)}
+                      placeholder="#004645"
+                      className="flex-1 border-[#9CD9F6]/30"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="secondary-color" className="text-[#004645]">
+                    Couleur secondaire
+                  </Label>
+                  <div className="flex gap-2 items-center mt-1">
+                    <Input
+                      id="secondary-color"
+                      type="color"
+                      value={secondaryColor}
+                      onChange={(e) => setSecondaryColor(e.target.value)}
+                      className="w-16 h-10 p-1 border-[#9CD9F6]/30"
+                    />
+                    <Input
+                      value={secondaryColor}
+                      onChange={(e) => setSecondaryColor(e.target.value)}
+                      placeholder="#FF4713"
+                      className="flex-1 border-[#9CD9F6]/30"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex gap-2 flex-wrap">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setPrimaryColor('#004645')
+                    setSecondaryColor('#FF4713')
+                  }}
+                  className="text-xs"
+                >
+                  Weevup (défaut)
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setPrimaryColor('#1a1a1a')
+                    setSecondaryColor('#d4af37')
+                  }}
+                  className="text-xs"
+                >
+                  Élégant
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setPrimaryColor('#0066cc')
+                    setSecondaryColor('#ff6b35')
+                  }}
+                  className="text-xs"
+                >
+                  Moderne
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Advanced - Custom CSS */}
+          <Card className="border-[#9CD9F6]/30 bg-white/80 backdrop-blur">
+            <CardHeader>
+              <CardTitle className="text-[#004645]">Avancé</CardTitle>
+              <CardDescription className="text-[#004645]/70">
+                CSS personnalisé (pour utilisateurs avancés)
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Textarea
+                value={customCSS}
+                onChange={(e) => setCustomCSS(e.target.value)}
+                placeholder="/* Votre CSS personnalisé ici */"
+                className="font-mono text-sm min-h-[150px] border-[#9CD9F6]/30"
+              />
+            </CardContent>
+          </Card>
+
+          {/* Save Button */}
+          <div className="flex items-center justify-between gap-4">
+            {error && (
+              <p className="text-sm text-red-600">{error}</p>
+            )}
+            {saved && (
+              <div className="flex items-center gap-2 text-sm text-green-600">
+                <CheckCircle className="h-4 w-4" />
+                <span>Modifications enregistrées</span>
+              </div>
+            )}
+            <div className="flex gap-2 ml-auto">
+              {enabled && (
+                <a href={showcaseUrl} target="_blank" rel="noopener noreferrer">
+                  <Button variant="outline" className="border-[#009197] text-[#009197] hover:bg-[#009197]/10">
+                    <Eye className="h-4 w-4 mr-2" />
+                    Prévisualiser
+                  </Button>
+                </a>
+              )}
+              <Button
+                onClick={handleSave}
+                disabled={saving}
+                className="bg-gradient-to-r from-[#004645] to-[#009197] hover:from-[#006C51] hover:to-[#009197] text-white"
+              >
+                {saving ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Enregistrement...
+                  </>
+                ) : (
+                  <>
+                    <Save className="h-4 w-4 mr-2" />
+                    Enregistrer
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
