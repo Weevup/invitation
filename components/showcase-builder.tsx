@@ -198,17 +198,26 @@ export function ShowcaseBuilder({ eventId, eventSlug, initialData }: ShowcaseBui
         </CardContent>
       </Card>
 
-      {/* Content Settings */}
+      {/* Builder avec Tabs */}
       {enabled && (
         <>
-          <Card className="border-[#9CD9F6]/30 bg-white/80 backdrop-blur">
-            <CardHeader>
-              <div className="flex items-center gap-3">
-                <Layout className="h-5 w-5 text-[#009197]" />
-                <CardTitle className="text-[#004645]">Contenu</CardTitle>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
+        <Tabs defaultValue="content" className="w-full">
+          <TabsList className="grid w-full grid-cols-5 bg-[#9CD9F6]/20 mb-6">
+            <TabsTrigger value="content">📝 Contenu</TabsTrigger>
+            <TabsTrigger value="sections">🎯 Sections</TabsTrigger>
+            <TabsTrigger value="theme">🎨 Thème</TabsTrigger>
+            <TabsTrigger value="media">🎬 Média</TabsTrigger>
+            <TabsTrigger value="advanced">⚙️ Avancé</TabsTrigger>
+          </TabsList>
+
+          {/* Tab: Contenu */}
+          <TabsContent value="content" className="space-y-4">
+            <Card className="border-[#9CD9F6]/30 bg-white/80 backdrop-blur">
+              <CardHeader>
+                <CardTitle className="text-[#004645]">Contenu Principal</CardTitle>
+                <CardDescription>Personnalisez le titre et la bannière</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
               <div>
                 <Label htmlFor="showcase-title" className="text-[#004645]">
                   Titre personnalisé
@@ -248,8 +257,38 @@ export function ShowcaseBuilder({ eventId, eventSlug, initialData }: ShowcaseBui
                 />
               </div>
 
+              <div className="flex items-center justify-between p-4 bg-[#9CD9F6]/5 rounded-lg border border-[#9CD9F6]/30">
+                <div className="flex items-center space-x-2">
+                  <Clock className="h-4 w-4 text-[#FF4713]" />
+                  <div>
+                    <Label htmlFor="countdown-toggle" className="text-[#004645] cursor-pointer">Compte à rebours</Label>
+                    <p className="text-xs text-[#004645]/70">Afficher le compte à rebours avant l'événement</p>
+                  </div>
+                </div>
+                <Switch id="countdown-toggle" checked={countdown} onCheckedChange={setCountdown} />
+              </div>
+
+              <div className="flex items-center justify-between p-4 bg-[#9CD9F6]/5 rounded-lg border border-[#9CD9F6]/30">
+                <div>
+                  <Label htmlFor="social-toggle" className="text-[#004645] cursor-pointer">Partage social</Label>
+                  <p className="text-xs text-[#004645]/70">Boutons de partage Facebook, Twitter, LinkedIn</p>
+                </div>
+                <Switch id="social-toggle" checked={socialShare} onCheckedChange={setSocialShare} />
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Tab: Sections */}
+        <TabsContent value="sections" className="space-y-4">
+          <Card className="border-[#9CD9F6]/30 bg-white/80 backdrop-blur">
+            <CardHeader>
+              <CardTitle className="text-[#004645]">Sections de la page</CardTitle>
+              <CardDescription>Choisissez les sections à afficher sur la page vitrine</CardDescription>
+            </CardHeader>
+            <CardContent>
               <div>
-                <Label className="text-[#004645] mb-3 block">Sections à afficher</Label>
+                <Label className="text-[#004645] mb-3 block">Sections disponibles</Label>
                 <div className="space-y-2">
                   {availableSections.map((section) => (
                     <div
@@ -276,13 +315,18 @@ export function ShowcaseBuilder({ eventId, eventSlug, initialData }: ShowcaseBui
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
 
-          {/* Theme Settings */}
+        {/* Tab: Theme */}
+        <TabsContent value="theme" className="space-y-4">
           <Card className="border-[#9CD9F6]/30 bg-white/80 backdrop-blur">
             <CardHeader>
               <div className="flex items-center gap-3">
                 <Palette className="h-5 w-5 text-[#009197]" />
-                <CardTitle className="text-[#004645]">Couleurs</CardTitle>
+                <div>
+                  <CardTitle className="text-[#004645]">Couleurs</CardTitle>
+                  <CardDescription>Personnalisez les couleurs de votre page vitrine</CardDescription>
+                </div>
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -330,8 +374,10 @@ export function ShowcaseBuilder({ eventId, eventSlug, initialData }: ShowcaseBui
                 </div>
               </div>
 
-              <div className="flex gap-2 flex-wrap">
-                <Button
+              <div>
+                <Label className="text-[#004645] mb-2 block">Thèmes prédéfinis</Label>
+                <div className="flex gap-2 flex-wrap">
+                  <Button
                   type="button"
                   variant="outline"
                   size="sm"
@@ -367,68 +413,137 @@ export function ShowcaseBuilder({ eventId, eventSlug, initialData }: ShowcaseBui
                 >
                   Moderne
                 </Button>
+                </div>
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
 
-          {/* Advanced - Custom CSS */}
+        {/* Tab: Média */}
+        <TabsContent value="media" className="space-y-4">
           <Card className="border-[#9CD9F6]/30 bg-white/80 backdrop-blur">
             <CardHeader>
-              <CardTitle className="text-[#004645]">Avancé</CardTitle>
+              <div className="flex items-center gap-3">
+                <Video className="h-5 w-5 text-[#FF4713]" />
+                <div>
+                  <CardTitle className="text-[#004645]">Vidéo</CardTitle>
+                  <CardDescription>Intégrez une vidéo YouTube ou Vimeo</CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <Label htmlFor="video-url" className="text-[#004645]">
+                URL de la vidéo
+              </Label>
+              <Input
+                id="video-url"
+                value={videoUrl}
+                onChange={(e) => setVideoUrl(e.target.value)}
+                placeholder="https://www.youtube.com/watch?v=..."
+                className="border-[#9CD9F6]/30"
+              />
+              <p className="text-xs text-[#004645]/70 mt-2">
+                Formats supportés: YouTube, Vimeo
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="border-[#9CD9F6]/30 bg-white/80 backdrop-blur">
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <ImageIcon className="h-5 w-5 text-[#009197]" />
+                <div>
+                  <CardTitle className="text-[#004645]">Galerie d'images</CardTitle>
+                  <CardDescription>Ajoutez des photos pour créer une galerie</CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <GalleryEditor images={gallery} onChange={setGallery} />
+            </CardContent>
+          </Card>
+
+          <Card className="border-[#9CD9F6]/30 bg-white/80 backdrop-blur">
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <MessageCircle className="h-5 w-5 text-[#FF4713]" />
+                <div>
+                  <CardTitle className="text-[#004645]">FAQ</CardTitle>
+                  <CardDescription>Questions et réponses fréquentes</CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <FAQEditor faqs={faq} onChange={setFaq} />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Tab: Advanced */}
+        <TabsContent value="advanced" className="space-y-4">
+          <Card className="border-[#9CD9F6]/30 bg-white/80 backdrop-blur">
+            <CardHeader>
+              <CardTitle className="text-[#004645]">CSS Personnalisé</CardTitle>
               <CardDescription className="text-[#004645]/70">
-                CSS personnalisé (pour utilisateurs avancés)
+                Pour les utilisateurs avancés - ajoutez votre propre CSS
               </CardDescription>
             </CardHeader>
             <CardContent>
               <Textarea
                 value={customCSS}
                 onChange={(e) => setCustomCSS(e.target.value)}
-                placeholder="/* Votre CSS personnalisé ici */"
-                className="font-mono text-sm min-h-[150px] border-[#9CD9F6]/30"
+                placeholder="/* Votre CSS personnalisé ici */
+.custom-class {
+  /* styles */
+}"
+                className="font-mono text-sm min-h-[200px] border-[#9CD9F6]/30"
               />
+              <p className="text-xs text-[#004645]/70 mt-2">
+                ⚠️ Attention: un CSS invalide peut casser l'affichage de votre page
+              </p>
             </CardContent>
           </Card>
+        </TabsContent>
+      </Tabs>
 
-          {/* Save Button */}
-          <div className="flex items-center justify-between gap-4">
-            {error && (
-              <p className="text-sm text-red-600">{error}</p>
-            )}
-            {saved && (
-              <div className="flex items-center gap-2 text-sm text-green-600">
-                <CheckCircle className="h-4 w-4" />
-                <span>Modifications enregistrées</span>
-              </div>
-            )}
-            <div className="flex gap-2 ml-auto">
-              {enabled && (
-                <a href={showcaseUrl} target="_blank" rel="noopener noreferrer">
-                  <Button variant="outline" className="border-[#009197] text-[#009197] hover:bg-[#009197]/10">
-                    <Eye className="h-4 w-4 mr-2" />
-                    Prévisualiser
-                  </Button>
-                </a>
-              )}
-              <Button
-                onClick={handleSave}
-                disabled={saving}
-                className="bg-gradient-to-r from-[#004645] to-[#009197] hover:from-[#006C51] hover:to-[#009197] text-white"
-              >
-                {saving ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Enregistrement...
-                  </>
-                ) : (
-                  <>
-                    <Save className="h-4 w-4 mr-2" />
-                    Enregistrer
-                  </>
-                )}
-              </Button>
-            </div>
+      {/* Save Button - Outside tabs but inside enabled block */}
+      <div className="flex items-center justify-between gap-4 mt-6">
+        {error && (
+          <p className="text-sm text-red-600">{error}</p>
+        )}
+        {saved && (
+          <div className="flex items-center gap-2 text-sm text-green-600">
+            <CheckCircle className="h-4 w-4" />
+            <span>Modifications enregistrées</span>
           </div>
-        </>
+        )}
+        <div className="flex gap-2 ml-auto">
+          <a href={showcaseUrl} target="_blank" rel="noopener noreferrer">
+            <Button variant="outline" className="border-[#009197] text-[#009197] hover:bg-[#009197]/10">
+              <Eye className="h-4 w-4 mr-2" />
+              Prévisualiser
+            </Button>
+          </a>
+          <Button
+            onClick={handleSave}
+            disabled={saving}
+            className="bg-gradient-to-r from-[#004645] to-[#009197] hover:from-[#006C51] hover:to-[#009197] text-white"
+          >
+            {saving ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Enregistrement...
+              </>
+            ) : (
+              <>
+                <Save className="h-4 w-4 mr-2" />
+                Enregistrer
+              </>
+            )}
+          </Button>
+        </div>
+      </div>
+      </>
       )}
     </div>
   )
