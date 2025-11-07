@@ -21,6 +21,7 @@ interface Event {
 export default function AdminDashboard() {
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
+  const [initLoading, setInitLoading] = useState(false);
 
   useEffect(() => {
     fetchEvents();
@@ -37,6 +38,28 @@ export default function AdminDashboard() {
       console.error('Error fetching events:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleInitDemo = async () => {
+    setInitLoading(true);
+    try {
+      const response = await fetch('/api/admin/init', {
+        method: 'POST',
+      });
+      const data = await response.json();
+
+      if (response.ok) {
+        alert(data.message);
+        fetchEvents(); // Reload events
+      } else {
+        alert(`Erreur: ${data.error}\nDétails: ${data.details || ''}`);
+      }
+    } catch (error) {
+      console.error('Error initializing:', error);
+      alert('Erreur de connexion');
+    } finally {
+      setInitLoading(false);
     }
   };
 
@@ -133,14 +156,19 @@ export default function AdminDashboard() {
               <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-semibold mb-2">Aucun événement</h3>
               <p className="text-gray-600 mb-4">
-                Créez votre premier événement pour commencer
+                Créez votre premier événement ou initialisez avec des données de démo
               </p>
-              <Link href="/admin/events/new">
-                <Button>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Créer un événement
+              <div className="flex gap-4 justify-center">
+                <Button onClick={handleInitDemo} disabled={initLoading} variant="outline">
+                  {initLoading ? "Initialisation..." : "Créer événement démo"}
                 </Button>
-              </Link>
+                <Link href="/admin/events/new">
+                  <Button>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Créer un événement
+                  </Button>
+                </Link>
+              </div>
             </CardContent>
           </Card>
         ) : (

@@ -10,6 +10,7 @@ import Link from "next/link";
 export default function NewEventPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -21,8 +22,10 @@ export default function NewEventPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setError('');
 
     try {
+      console.log('Sending data:', formData);
       const response = await fetch('/api/admin/events', {
         method: 'POST',
         headers: {
@@ -31,15 +34,20 @@ export default function NewEventPage() {
         body: JSON.stringify(formData),
       });
 
+      const data = await response.json();
+      console.log('Response:', data);
+
       if (response.ok) {
-        const event = await response.json();
-        router.push(`/admin/events/${event.id}`);
+        router.push(`/admin/events/${data.id}`);
       } else {
-        alert("Erreur lors de la création de l'événement");
+        setError(data.error || "Erreur lors de la création de l'événement");
+        if (data.details) {
+          console.error('Error details:', data.details);
+        }
       }
     } catch (error) {
       console.error('Error creating event:', error);
-      alert("Erreur lors de la création de l'événement");
+      setError("Erreur de connexion: " + (error instanceof Error ? error.message : 'Unknown error'));
     } finally {
       setLoading(false);
     }
@@ -146,6 +154,13 @@ export default function NewEventPage() {
                   placeholder="200"
                 />
               </div>
+
+              {error && (
+                <div className="p-4 bg-red-50 border border-red-200 rounded-md text-red-800">
+                  <p className="font-medium">Erreur</p>
+                  <p className="text-sm">{error}</p>
+                </div>
+              )}
 
               <div className="flex gap-4 pt-4">
                 <Button type="submit" disabled={loading} className="flex-1">
