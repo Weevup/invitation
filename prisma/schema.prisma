@@ -85,10 +85,20 @@ model Event {
   showcaseSubtitle      String?
   showcaseBannerImage   String?
   showcaseTheme         String  @default("weevup") // "weevup", "elegant", "modern", "minimal"
-  showcaseSections      Json?   // Array of sections to display: ["hero", "description", "program", "location", "rsvp"]
+  showcaseSections      Json?   // Array of sections to display
   showcaseCustomCSS     String? @db.Text
   showcasePrimaryColor  String  @default("#004645")
   showcaseSecondaryColor String @default("#FF4713")
+
+  // Advanced showcase content
+  showcaseGallery       Json?   // Array of image URLs for gallery
+  showcaseFAQ           Json?   // Array of {question, answer} objects
+  showcaseSpeakers      Json?   // Array of speaker objects {name, title, bio, photo}
+  showcaseSponsors      Json?   // Array of sponsor objects {name, logo, url}
+  showcaseTimeline      Json?   // Array of timeline items {time, title, description}
+  showcaseVideo         String? // YouTube or Vimeo embed URL
+  showcaseSocialShare   Boolean @default(true)
+  showcaseCountdown     Boolean @default(true)
 
   // Admin
   adminId String

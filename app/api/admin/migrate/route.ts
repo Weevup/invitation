@@ -14,7 +14,15 @@ export async function POST() {
       ADD COLUMN IF NOT EXISTS "showcaseSections" JSONB,
       ADD COLUMN IF NOT EXISTS "showcaseCustomCSS" TEXT,
       ADD COLUMN IF NOT EXISTS "showcasePrimaryColor" TEXT NOT NULL DEFAULT '#004645',
-      ADD COLUMN IF NOT EXISTS "showcaseSecondaryColor" TEXT NOT NULL DEFAULT '#FF4713'
+      ADD COLUMN IF NOT EXISTS "showcaseSecondaryColor" TEXT NOT NULL DEFAULT '#FF4713',
+      ADD COLUMN IF NOT EXISTS "showcaseGallery" JSONB,
+      ADD COLUMN IF NOT EXISTS "showcaseFAQ" JSONB,
+      ADD COLUMN IF NOT EXISTS "showcaseSpeakers" JSONB,
+      ADD COLUMN IF NOT EXISTS "showcaseSponsors" JSONB,
+      ADD COLUMN IF NOT EXISTS "showcaseTimeline" JSONB,
+      ADD COLUMN IF NOT EXISTS "showcaseVideo" TEXT,
+      ADD COLUMN IF NOT EXISTS "showcaseSocialShare" BOOLEAN NOT NULL DEFAULT true,
+      ADD COLUMN IF NOT EXISTS "showcaseCountdown" BOOLEAN NOT NULL DEFAULT true
     `
 
     return NextResponse.json({
