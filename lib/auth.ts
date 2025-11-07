@@ -1,8 +1,8 @@
-import jwt from 'jsonwebtoken'
+import jwt, { Secret } from 'jsonwebtoken'
 import { prisma } from './prisma'
 import crypto from 'crypto'
 
-const JWT_SECRET: string = process.env.JWT_SECRET || 'your-secret-key-change-in-production'
+const JWT_SECRET = (process.env.JWT_SECRET || 'your-secret-key-change-in-production') as Secret
 
 export interface TokenPayload {
   guestId: string
