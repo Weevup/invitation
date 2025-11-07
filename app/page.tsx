@@ -1,17 +1,9 @@
-"use client";
-
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar, Mail, QrCode, Users, CheckCircle, Clock } from "lucide-react";
 import Link from "next/link";
-import { motion } from "framer-motion";
 
 export default function HomePage() {
-  const fadeIn = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0 },
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50">
       {/* Header */}
@@ -36,12 +28,7 @@ export default function HomePage() {
 
       {/* Hero Section */}
       <section className="container mx-auto px-4 py-20 text-center">
-        <motion.div
-          initial="hidden"
-          animate="visible"
-          variants={fadeIn}
-          transition={{ duration: 0.6 }}
-        >
+        <div>
           <h1 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-purple-600 via-blue-600 to-purple-600 bg-clip-text text-transparent">
             Vos invitations, en toute fluidité
           </h1>
@@ -61,7 +48,7 @@ export default function HomePage() {
               </Button>
             </Link>
           </div>
-        </motion.div>
+        </div>
       </section>
 
       {/* Features */}
@@ -72,13 +59,7 @@ export default function HomePage() {
         </div>
 
         <div className="grid md:grid-cols-3 gap-8">
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={fadeIn}
-            transition={{ duration: 0.5, delay: 0.1 }}
-          >
+          <div>
             <Card className="h-full hover:shadow-lg transition-shadow">
               <CardHeader>
                 <Users className="h-12 w-12 text-primary mb-4" />
@@ -104,15 +85,9 @@ export default function HomePage() {
                 </ul>
               </CardContent>
             </Card>
-          </motion.div>
+          </div>
 
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={fadeIn}
-            transition={{ duration: 0.5, delay: 0.2 }}
-          >
+          <div>
             <Card className="h-full hover:shadow-lg transition-shadow">
               <CardHeader>
                 <Mail className="h-12 w-12 text-primary mb-4" />
@@ -138,15 +113,9 @@ export default function HomePage() {
                 </ul>
               </CardContent>
             </Card>
-          </motion.div>
+          </div>
 
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={fadeIn}
-            transition={{ duration: 0.5, delay: 0.3 }}
-          >
+          <div>
             <Card className="h-full hover:shadow-lg transition-shadow">
               <CardHeader>
                 <QrCode className="h-12 w-12 text-primary mb-4" />
@@ -172,7 +141,7 @@ export default function HomePage() {
                 </ul>
               </CardContent>
             </Card>
-          </motion.div>
+          </div>
         </div>
       </section>
 
@@ -184,14 +153,7 @@ export default function HomePage() {
         </div>
 
         <div className="grid md:grid-cols-3 gap-8">
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={fadeIn}
-            transition={{ duration: 0.5 }}
-            className="text-center"
-          >
+          <div className="text-center">
             <div className="bg-primary/10 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
               <Calendar className="h-8 w-8 text-primary" />
             </div>
@@ -199,16 +161,9 @@ export default function HomePage() {
             <p className="text-gray-600">
               Renseignez les détails : date, lieu, programme, options RSVP
             </p>
-          </motion.div>
+          </div>
 
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={fadeIn}
-            transition={{ duration: 0.5, delay: 0.1 }}
-            className="text-center"
-          >
+          <div className="text-center">
             <div className="bg-primary/10 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
               <Users className="h-8 w-8 text-primary" />
             </div>
@@ -216,16 +171,9 @@ export default function HomePage() {
             <p className="text-gray-600">
               Ajoutez vos contacts via CSV ou manuellement, et envoyez les invitations
             </p>
-          </motion.div>
+          </div>
 
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={fadeIn}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="text-center"
-          >
+          <div className="text-center">
             <div className="bg-primary/10 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
               <Clock className="h-8 w-8 text-primary" />
             </div>
@@ -233,19 +181,13 @@ export default function HomePage() {
             <p className="text-gray-600">
               Dashboard en temps réel, exports, et check-in le jour J
             </p>
-          </motion.div>
+          </div>
         </div>
       </section>
 
       {/* CTA */}
       <section className="container mx-auto px-4 py-20 text-center">
-        <motion.div
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          variants={fadeIn}
-          transition={{ duration: 0.6 }}
-        >
+        <div>
           <h2 className="text-4xl font-bold mb-6">Prêt à simplifier vos événements ?</h2>
           <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
             Rejoignez les organisateurs qui font confiance à Invitation Manager
@@ -255,7 +197,7 @@ export default function HomePage() {
               Commencer maintenant
             </Button>
           </Link>
-        </motion.div>
+        </div>
       </section>
 
       {/* Footer */}
