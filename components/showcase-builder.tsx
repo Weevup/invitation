@@ -262,7 +262,7 @@ export function ShowcaseBuilder({ eventId, eventSlug, initialData }: ShowcaseBui
                   <Clock className="h-4 w-4 text-[#FF4713]" />
                   <div>
                     <Label htmlFor="countdown-toggle" className="text-[#004645] cursor-pointer">Compte à rebours</Label>
-                    <p className="text-xs text-[#004645]/70">Afficher le compte à rebours avant l'événement</p>
+                    <p className="text-xs text-[#004645]/70">Afficher le compte à rebours avant l&apos;événement</p>
                   </div>
                 </div>
                 <Switch id="countdown-toggle" checked={countdown} onCheckedChange={setCountdown} />
@@ -453,7 +453,7 @@ export function ShowcaseBuilder({ eventId, eventSlug, initialData }: ShowcaseBui
               <div className="flex items-center gap-3">
                 <ImageIcon className="h-5 w-5 text-[#009197]" />
                 <div>
-                  <CardTitle className="text-[#004645]">Galerie d'images</CardTitle>
+                  <CardTitle className="text-[#004645]">Galerie d&apos;images</CardTitle>
                   <CardDescription>Ajoutez des photos pour créer une galerie</CardDescription>
                 </div>
               </div>
@@ -499,7 +499,7 @@ export function ShowcaseBuilder({ eventId, eventSlug, initialData }: ShowcaseBui
                 className="font-mono text-sm min-h-[200px] border-[#9CD9F6]/30"
               />
               <p className="text-xs text-[#004645]/70 mt-2">
-                ⚠️ Attention: un CSS invalide peut casser l'affichage de votre page
+                ⚠️ Attention: un CSS invalide peut casser l&apos;affichage de votre page
               </p>
             </CardContent>
           </Card>

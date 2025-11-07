@@ -130,7 +130,7 @@ export default async function EventShowcasePage({ params }: PageProps) {
                         color: primaryColor
                       }}
                     >
-                      L'événement commence dans
+                      L&apos;événement commence dans
                     </h2>
                     <CountdownTimer
                       targetDate={event.startsAt}
