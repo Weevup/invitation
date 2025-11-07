@@ -169,8 +169,8 @@ export default function GuestPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="min-h-screen bg-gradient-to-br from-[#9CD9F6] via-white to-[#9CD9F6] flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-[#009197]" />
       </div>
     );
   }
@@ -183,8 +183,30 @@ export default function GuestPage() {
   const eventDate = new Date(event.startsAt);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 py-8">
-      <div className="container mx-auto px-4 max-w-3xl">
+    <div className="min-h-screen bg-gradient-to-br from-[#9CD9F6] via-white to-[#9CD9F6] py-8">
+      {/* Lignes graphiques orange décoratives */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        <svg className="absolute top-0 right-0 w-1/4 h-1/4" viewBox="0 0 200 200">
+          <path
+            d="M 0 50 Q 50 50, 50 100 T 100 150 T 150 200"
+            stroke="#FF4713"
+            strokeWidth="2"
+            fill="none"
+            opacity="0.2"
+          />
+        </svg>
+        <svg className="absolute bottom-0 left-0 w-1/4 h-1/4" viewBox="0 0 200 200">
+          <path
+            d="M 200 150 Q 150 150, 150 100 T 100 50 T 50 0"
+            stroke="#FF4713"
+            strokeWidth="2"
+            fill="none"
+            opacity="0.2"
+          />
+        </svg>
+      </div>
+
+      <div className="relative container mx-auto px-4 max-w-3xl">
         {step < 7 && (
           <>
             {/* Welcome Header */}
@@ -193,19 +215,21 @@ export default function GuestPage() {
               animate={{ opacity: 1, y: 0 }}
               className="text-center mb-8"
             >
-              <h1 className="text-4xl font-bold mb-2">
+              <h1 className="text-4xl font-bold mb-2 text-[#004645]" style={{ fontFamily: "var(--font-abril)" }}>
                 Bonjour {guest.firstName} 👋
               </h1>
-              <p className="text-gray-600">Vous êtes invité(e) à</p>
+              <p className="text-[#004645]/70">Vous êtes invité(e) à</p>
             </motion.div>
 
             {/* Event Info Card */}
-            <Card className="mb-8">
+            <Card className="mb-8 border-[#9CD9F6]/30 bg-white/80 backdrop-blur">
               <CardHeader>
-                <CardTitle className="text-2xl">{event.name}</CardTitle>
-                <CardDescription className="space-y-2 text-base">
+                <CardTitle className="text-2xl text-[#004645]" style={{ fontFamily: "var(--font-abril)" }}>
+                  {event.name}
+                </CardTitle>
+                <CardDescription className="space-y-2 text-base text-[#004645]/70">
                   <div className="flex items-center">
-                    <Calendar className="h-4 w-4 mr-2" />
+                    <Calendar className="h-4 w-4 mr-2 text-[#009197]" />
                     {eventDate.toLocaleDateString("fr-FR", {
                       weekday: "long",
                       year: "numeric",
@@ -220,7 +244,7 @@ export default function GuestPage() {
                   </div>
                   {event.venueName && (
                     <div className="flex items-center">
-                      <MapPin className="h-4 w-4 mr-2" />
+                      <MapPin className="h-4 w-4 mr-2 text-[#009197]" />
                       {event.venueName}, {event.city}
                     </div>
                   )}
@@ -228,7 +252,7 @@ export default function GuestPage() {
               </CardHeader>
               {event.description && (
                 <CardContent>
-                  <p className="text-gray-600 whitespace-pre-wrap">
+                  <p className="text-[#004645]/70 whitespace-pre-wrap">
                     {event.description}
                   </p>
                 </CardContent>
@@ -236,10 +260,12 @@ export default function GuestPage() {
             </Card>
 
             {/* RSVP Form */}
-            <Card>
+            <Card className="border-[#9CD9F6]/30 bg-white/80 backdrop-blur">
               <CardHeader>
-                <CardTitle>Votre réponse</CardTitle>
-                <CardDescription>
+                <CardTitle className="text-[#004645]" style={{ fontFamily: "var(--font-abril)" }}>
+                  Votre réponse
+                </CardTitle>
+                <CardDescription className="text-[#004645]/70">
                   Merci de confirmer votre participation avant le{" "}
                   {event.rsvpDeadline &&
                     new Date(event.rsvpDeadline).toLocaleDateString("fr-FR")}
@@ -276,7 +302,7 @@ export default function GuestPage() {
                     <Button
                       onClick={() => attending !== null && setStep(attending ? 2 : 6)}
                       disabled={attending === null}
-                      className="w-full"
+                      className="w-full bg-gradient-to-r from-[#004645] to-[#009197] hover:from-[#006C51] hover:to-[#009197] text-white"
                     >
                       Continuer
                     </Button>
@@ -309,10 +335,10 @@ export default function GuestPage() {
                       </SelectContent>
                     </Select>
                     <div className="flex space-x-2">
-                      <Button variant="outline" onClick={() => setStep(1)}>
+                      <Button variant="outline" onClick={() => setStep(1)} className="border-[#004645] text-[#004645] hover:bg-[#004645] hover:text-white">
                         Retour
                       </Button>
-                      <Button onClick={() => setStep(3)} className="flex-1">
+                      <Button onClick={() => setStep(3)} className="flex-1 bg-gradient-to-r from-[#004645] to-[#009197] hover:from-[#006C51] hover:to-[#009197] text-white">
                         Continuer
                       </Button>
                     </div>
@@ -354,10 +380,11 @@ export default function GuestPage() {
                       <Button
                         variant="outline"
                         onClick={() => setStep(event.allowPlusOnes ? 2 : 1)}
+                        className="border-[#004645] text-[#004645] hover:bg-[#004645] hover:text-white"
                       >
                         Retour
                       </Button>
-                      <Button onClick={() => setStep(4)} className="flex-1">
+                      <Button onClick={() => setStep(4)} className="flex-1 bg-gradient-to-r from-[#004645] to-[#009197] hover:from-[#006C51] hover:to-[#009197] text-white">
                         Continuer
                       </Button>
                     </div>
@@ -411,10 +438,11 @@ export default function GuestPage() {
                       <Button
                         variant="outline"
                         onClick={() => setStep(event.requireMeal ? 3 : event.allowPlusOnes ? 2 : 1)}
+                        className="border-[#004645] text-[#004645] hover:bg-[#004645] hover:text-white"
                       >
                         Retour
                       </Button>
-                      <Button onClick={() => setStep(5)} className="flex-1">
+                      <Button onClick={() => setStep(5)} className="flex-1 bg-gradient-to-r from-[#004645] to-[#009197] hover:from-[#006C51] hover:to-[#009197] text-white">
                         Continuer
                       </Button>
                     </div>
@@ -445,10 +473,10 @@ export default function GuestPage() {
                       </div>
                     )}
                     <div className="flex space-x-2">
-                      <Button variant="outline" onClick={() => setStep(4)}>
+                      <Button variant="outline" onClick={() => setStep(4)} className="border-[#004645] text-[#004645] hover:bg-[#004645] hover:text-white">
                         Retour
                       </Button>
-                      <Button onClick={() => setStep(6)} className="flex-1">
+                      <Button onClick={() => setStep(6)} className="flex-1 bg-gradient-to-r from-[#004645] to-[#009197] hover:from-[#006C51] hover:to-[#009197] text-white">
                         Continuer
                       </Button>
                     </div>
@@ -488,19 +516,19 @@ export default function GuestPage() {
                         </>
                       )}
                     </div>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-[#004645]/70">
                       Vous pourrez modifier votre réponse jusqu&apos;au{" "}
                       {event.rsvpDeadline &&
                         new Date(event.rsvpDeadline).toLocaleDateString("fr-FR")}
                     </p>
                     <div className="flex space-x-2">
-                      <Button variant="outline" onClick={() => setStep(attending ? 5 : 1)}>
+                      <Button variant="outline" onClick={() => setStep(attending ? 5 : 1)} className="border-[#004645] text-[#004645] hover:bg-[#004645] hover:text-white">
                         Retour
                       </Button>
                       <Button
                         onClick={handleSubmit}
                         disabled={submitting}
-                        className="flex-1"
+                        className="flex-1 bg-gradient-to-r from-[#004645] to-[#009197] hover:from-[#006C51] hover:to-[#009197] text-white"
                       >
                         {submitting ? (
                           <>
@@ -525,15 +553,15 @@ export default function GuestPage() {
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
           >
-            <Card className="text-center">
+            <Card className="text-center border-[#9CD9F6]/30 bg-white/80 backdrop-blur">
               <CardHeader>
-                <div className="mx-auto bg-green-100 rounded-full w-16 h-16 flex items-center justify-center mb-4">
-                  <span className="text-3xl">✓</span>
+                <div className="mx-auto bg-gradient-to-br from-[#009197] to-[#9CD9F6] rounded-full w-16 h-16 flex items-center justify-center mb-4">
+                  <span className="text-3xl text-white">✓</span>
                 </div>
-                <CardTitle className="text-2xl">
+                <CardTitle className="text-2xl text-[#004645]" style={{ fontFamily: "var(--font-abril)" }}>
                   {attending ? "Merci, à très bientôt !" : "Réponse enregistrée"}
                 </CardTitle>
-                <CardDescription>
+                <CardDescription className="text-[#004645]/70">
                   {attending
                     ? `Votre participation à "${event.name}" est confirmée.`
                     : "Votre réponse a bien été enregistrée."}
@@ -542,21 +570,21 @@ export default function GuestPage() {
               <CardContent className="space-y-6">
                 {attending && qrCode && (
                   <div>
-                    <p className="font-semibold mb-4">Votre QR code d&apos;accès :</p>
+                    <p className="font-semibold mb-4 text-[#004645]">Votre QR code d&apos;accès :</p>
                     <img
                       src={qrCode}
                       alt="QR Code"
                       className="mx-auto max-w-[200px]"
                     />
-                    <p className="text-sm text-gray-600 mt-2">
+                    <p className="text-sm text-[#004645]/70 mt-2">
                       Présentez ce code à l&apos;entrée de l&apos;événement
                     </p>
                   </div>
                 )}
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-[#004645]/70">
                   Un email de confirmation vous a été envoyé à {guest.email}
                 </p>
-                <Button onClick={() => router.push("/")} variant="outline">
+                <Button onClick={() => router.push("/")} variant="outline" className="border-[#004645] text-[#004645] hover:bg-[#004645] hover:text-white">
                   Retour à l&apos;accueil
                 </Button>
               </CardContent>

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar, Users, Mail, CheckCircle, Clock, TrendingUp, Plus } from "lucide-react";
 import Link from "next/link";
+import { WeevupLogo } from "@/components/weevup-logo";
 
 interface Event {
   id: string;
@@ -68,24 +69,46 @@ export default function AdminDashboard() {
   const responseRate = totalGuests > 0 ? Math.round((totalRsvps / totalGuests) * 100) : 0;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50">
+    <div className="min-h-screen bg-gradient-to-br from-[#9CD9F6] via-white to-[#9CD9F6]">
+      {/* Lignes graphiques orange décoratives */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        <svg className="absolute top-0 right-0 w-1/4 h-1/4" viewBox="0 0 200 200">
+          <path
+            d="M 0 50 Q 50 50, 50 100 T 100 150 T 150 200"
+            stroke="#FF4713"
+            strokeWidth="2"
+            fill="none"
+            opacity="0.3"
+          />
+        </svg>
+      </div>
+
       {/* Header */}
-      <header className="border-b bg-white/80 backdrop-blur">
+      <header className="relative border-b border-[#9CD9F6]/30 bg-white/80 backdrop-blur">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <Mail className="h-6 w-6 text-primary" />
-              <span className="text-xl font-bold">Admin Dashboard</span>
+            <div className="flex items-center space-x-3">
+              <WeevupLogo className="w-10 h-10" />
+              <div>
+                <span className="text-xl font-bold text-[#004645]" style={{ fontFamily: "var(--font-abril)" }}>
+                  WEEVUP
+                </span>
+                <p className="text-xs text-[#004645]/70">Admin Dashboard</p>
+              </div>
             </div>
             <div className="flex items-center space-x-4">
               <Link href="/admin/diagnostic">
-                <Button variant="ghost" size="sm">Diagnostic</Button>
+                <Button variant="ghost" size="sm" className="text-[#004645] hover:text-[#FF4713]">
+                  Diagnostic
+                </Button>
               </Link>
               <Link href="/">
-                <Button variant="ghost">Retour accueil</Button>
+                <Button variant="ghost" className="text-[#004645] hover:text-[#FF4713]">
+                  Retour accueil
+                </Button>
               </Link>
               <Link href="/admin/events/new">
-                <Button>
+                <Button className="bg-gradient-to-r from-[#004645] to-[#009197] hover:from-[#006C51] hover:to-[#009197] text-white">
                   <Plus className="h-4 w-4 mr-2" />
                   Créer un événement
                 </Button>
@@ -95,78 +118,95 @@ export default function AdminDashboard() {
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-8">
+      <div className="relative container mx-auto px-4 py-8">
         {/* Stats Overview */}
         <div className="grid md:grid-cols-4 gap-4 mb-8">
-          <Card>
+          <Card className="border-[#9CD9F6]/30 bg-white/80 backdrop-blur hover:shadow-lg transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Événements</CardTitle>
-              <Calendar className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium text-[#004645]">Événements</CardTitle>
+              <Calendar className="h-4 w-4 text-[#009197]" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{events.length}</div>
-              <p className="text-xs text-muted-foreground">Total</p>
+              <div className="text-2xl font-bold text-[#004645]" style={{ fontFamily: "var(--font-abril)" }}>
+                {events.length}
+              </div>
+              <p className="text-xs text-[#004645]/70">Total</p>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="border-[#9CD9F6]/30 bg-white/80 backdrop-blur hover:shadow-lg transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Invités</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium text-[#004645]">Invités</CardTitle>
+              <Users className="h-4 w-4 text-[#009197]" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{totalGuests}</div>
-              <p className="text-xs text-muted-foreground">Total</p>
+              <div className="text-2xl font-bold text-[#004645]" style={{ fontFamily: "var(--font-abril)" }}>
+                {totalGuests}
+              </div>
+              <p className="text-xs text-[#004645]/70">Total</p>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="border-[#9CD9F6]/30 bg-white/80 backdrop-blur hover:shadow-lg transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Réponses</CardTitle>
-              <CheckCircle className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium text-[#004645]">Réponses</CardTitle>
+              <CheckCircle className="h-4 w-4 text-[#009197]" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{totalRsvps}</div>
-              <p className="text-xs text-muted-foreground">Total</p>
+              <div className="text-2xl font-bold text-[#004645]" style={{ fontFamily: "var(--font-abril)" }}>
+                {totalRsvps}
+              </div>
+              <p className="text-xs text-[#004645]/70">Total</p>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="border-[#9CD9F6]/30 bg-white/80 backdrop-blur hover:shadow-lg transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Taux réponse</CardTitle>
-              <TrendingUp className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium text-[#004645]">Taux réponse</CardTitle>
+              <TrendingUp className="h-4 w-4 text-[#FF4713]" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{responseRate}%</div>
-              <p className="text-xs text-muted-foreground">Moyenne</p>
+              <div className="text-2xl font-bold text-[#FF4713]" style={{ fontFamily: "var(--font-abril)" }}>
+                {responseRate}%
+              </div>
+              <p className="text-xs text-[#004645]/70">Moyenne</p>
             </CardContent>
           </Card>
         </div>
 
         {/* Events List */}
         <div className="mb-4">
-          <h2 className="text-2xl font-bold mb-4">Mes événements</h2>
+          <h2 className="text-2xl font-bold mb-4 text-[#004645]" style={{ fontFamily: "var(--font-abril)" }}>
+            Mes événements
+          </h2>
         </div>
 
         {loading ? (
           <div className="text-center py-12">
-            <Clock className="h-8 w-8 animate-spin text-primary mx-auto mb-2" />
-            <p className="text-gray-600">Chargement...</p>
+            <Clock className="h-8 w-8 animate-spin text-[#009197] mx-auto mb-2" />
+            <p className="text-[#004645]/70">Chargement...</p>
           </div>
         ) : events.length === 0 ? (
-          <Card>
+          <Card className="border-[#9CD9F6]/30 bg-white/80 backdrop-blur">
             <CardContent className="text-center py-12">
-              <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">Aucun événement</h3>
-              <p className="text-gray-600 mb-4">
+              <Calendar className="h-12 w-12 text-[#009197] mx-auto mb-4" />
+              <h3 className="text-lg font-semibold mb-2 text-[#004645]" style={{ fontFamily: "var(--font-abril)" }}>
+                Aucun événement
+              </h3>
+              <p className="text-[#004645]/70 mb-4">
                 Créez votre premier événement ou initialisez avec des données de démo
               </p>
               <div className="flex gap-4 justify-center">
-                <Button onClick={handleInitDemo} disabled={initLoading} variant="outline">
+                <Button
+                  onClick={handleInitDemo}
+                  disabled={initLoading}
+                  variant="outline"
+                  className="border-[#004645] text-[#004645] hover:bg-[#004645] hover:text-white"
+                >
                   {initLoading ? "Initialisation..." : "Créer événement démo"}
                 </Button>
                 <Link href="/admin/events/new">
-                  <Button>
+                  <Button className="bg-gradient-to-r from-[#004645] to-[#009197] hover:from-[#006C51] hover:to-[#009197] text-white">
                     <Plus className="h-4 w-4 mr-2" />
                     Créer un événement
                   </Button>
@@ -177,12 +217,14 @@ export default function AdminDashboard() {
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {events.map((event) => (
-              <Card key={event.id} className="hover:shadow-lg transition-shadow">
+              <Card key={event.id} className="border-[#9CD9F6]/30 bg-white/80 backdrop-blur hover:shadow-xl transition-all duration-300 group">
                 <CardHeader>
-                  <CardTitle>{event.name}</CardTitle>
+                  <CardTitle className="text-[#004645]" style={{ fontFamily: "var(--font-abril)" }}>
+                    {event.name}
+                  </CardTitle>
                   <CardDescription>
-                    <div className="flex items-center text-sm">
-                      <Calendar className="h-4 w-4 mr-1" />
+                    <div className="flex items-center text-sm text-[#004645]/70">
+                      <Calendar className="h-4 w-4 mr-1 text-[#009197]" />
                       {new Date(event.startsAt).toLocaleDateString('fr-FR', {
                         year: 'numeric',
                         month: 'long',
@@ -190,7 +232,7 @@ export default function AdminDashboard() {
                       })}
                     </div>
                     {event.venueName && (
-                      <div className="text-sm mt-1">
+                      <div className="text-sm mt-1 text-[#004645]/70">
                         {event.venueName}{event.city && `, ${event.city}`}
                       </div>
                     )}
@@ -199,25 +241,29 @@ export default function AdminDashboard() {
                 <CardContent>
                   <div className="flex justify-between items-center mb-4">
                     <div className="text-center">
-                      <div className="text-2xl font-bold">{event._count.guests}</div>
-                      <div className="text-xs text-gray-600">Invités</div>
+                      <div className="text-2xl font-bold text-[#004645]" style={{ fontFamily: "var(--font-abril)" }}>
+                        {event._count.guests}
+                      </div>
+                      <div className="text-xs text-[#004645]/70">Invités</div>
                     </div>
                     <div className="text-center">
-                      <div className="text-2xl font-bold">{event._count.rsvps}</div>
-                      <div className="text-xs text-gray-600">Réponses</div>
+                      <div className="text-2xl font-bold text-[#009197]" style={{ fontFamily: "var(--font-abril)" }}>
+                        {event._count.rsvps}
+                      </div>
+                      <div className="text-xs text-[#004645]/70">Réponses</div>
                     </div>
                     <div className="text-center">
-                      <div className="text-2xl font-bold text-primary">
+                      <div className="text-2xl font-bold text-[#FF4713]" style={{ fontFamily: "var(--font-abril)" }}>
                         {event._count.guests > 0
                           ? Math.round((event._count.rsvps / event._count.guests) * 100)
                           : 0}
                         %
                       </div>
-                      <div className="text-xs text-gray-600">Taux</div>
+                      <div className="text-xs text-[#004645]/70">Taux</div>
                     </div>
                   </div>
                   <Link href={`/admin/events/${event.id}`}>
-                    <Button className="w-full" variant="outline">
+                    <Button className="w-full bg-gradient-to-r from-[#004645] to-[#009197] hover:from-[#006C51] hover:to-[#009197] text-white transition-all">
                       Gérer l&apos;événement
                     </Button>
                   </Link>
