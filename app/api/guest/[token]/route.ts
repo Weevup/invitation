@@ -3,10 +3,11 @@ import { validateGuestToken } from '@/lib/auth'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { token: string } }
+  { params }: { params: Promise<{ token: string }> }
 ) {
   try {
-    const guest = await validateGuestToken(params.token)
+    const { token } = await params
+    const guest = await validateGuestToken(token)
 
     if (!guest) {
       return NextResponse.json(
