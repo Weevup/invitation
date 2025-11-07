@@ -78,6 +78,9 @@ export default function AdminDashboard() {
               <span className="text-xl font-bold">Admin Dashboard</span>
             </div>
             <div className="flex items-center space-x-4">
+              <Link href="/admin/diagnostic">
+                <Button variant="ghost" size="sm">Diagnostic</Button>
+              </Link>
               <Link href="/">
                 <Button variant="ghost">Retour accueil</Button>
               </Link>
