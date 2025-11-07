@@ -120,34 +120,28 @@ export default function SetupPage() {
                 <Database className="h-6 w-6 text-[#009197]" />
                 <div>
                   <CardTitle className="text-[#004645]" style={{ fontFamily: "var(--font-abril)" }}>
-                    Étape 1: Initialiser le schéma
+                    Étape 1: Base de données
                   </CardTitle>
                   <CardDescription className="text-[#004645]/70">
-                    Créer les tables dans la base de données PostgreSQL
+                    La base de données est automatiquement initialisée lors du déploiement
                   </CardDescription>
                 </div>
               </div>
             </CardHeader>
             <CardContent>
-              <Button
-                onClick={handleSetup}
-                disabled={setupLoading || !!setupResult}
-                className="w-full bg-gradient-to-r from-[#004645] to-[#009197] hover:from-[#006C51] hover:to-[#009197] text-white"
-              >
-                {setupLoading ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Initialisation en cours...
-                  </>
-                ) : setupResult ? (
-                  <>
-                    <CheckCircle className="h-4 w-4 mr-2" />
-                    Schéma initialisé
-                  </>
-                ) : (
-                  'Initialiser le schéma'
-                )}
-              </Button>
+              <div className="p-4 bg-green-50 border border-green-200 rounded-md flex items-start gap-2">
+                <CheckCircle className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
+                <div>
+                  <p className="font-medium text-green-800">Schéma déjà configuré</p>
+                  <p className="text-sm text-green-600 mt-1">
+                    Votre base de données PostgreSQL est automatiquement synchronisée lors de chaque déploiement sur Vercel.
+                    Les tables sont créées avec le script de build.
+                  </p>
+                </div>
+              </div>
+              <p className="mt-4 text-sm text-[#004645]/70">
+                💡 La configuration de la base de données se fait via le script <code className="bg-[#9CD9F6]/20 px-1 py-0.5 rounded">prisma db push</code> qui s&apos;exécute automatiquement lors du build.
+              </p>
 
               {setupError && (
                 <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-md flex items-start gap-2">
@@ -189,7 +183,7 @@ export default function SetupPage() {
             <CardContent>
               <Button
                 onClick={handleSeed}
-                disabled={seedLoading || !setupResult || !!seedResult}
+                disabled={seedLoading || !!seedResult}
                 className="w-full bg-gradient-to-r from-[#004645] to-[#009197] hover:from-[#006C51] hover:to-[#009197] text-white"
               >
                 {seedLoading ? (
@@ -206,12 +200,6 @@ export default function SetupPage() {
                   'Créer les données de démo'
                 )}
               </Button>
-
-              {!setupResult && (
-                <p className="mt-2 text-sm text-[#004645]/70">
-                  Vous devez d&apos;abord initialiser le schéma (Étape 1)
-                </p>
-              )}
 
               {seedError && (
                 <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-md flex items-start gap-2">
@@ -253,7 +241,7 @@ export default function SetupPage() {
           </Card>
 
           {/* Completion */}
-          {setupResult && seedResult && (
+          {seedResult && (
             <Card className="border-[#009197] bg-gradient-to-br from-[#009197]/10 to-[#9CD9F6]/10 backdrop-blur">
               <CardContent className="pt-6">
                 <div className="text-center">
