@@ -28,6 +28,7 @@ import { FAQEditor } from '@/components/showcase/faq-editor'
 import { SpeakersEditor } from '@/components/showcase/speakers-editor'
 import { SponsorsEditor } from '@/components/showcase/sponsors-editor'
 import { TimelineEditor } from '@/components/showcase/timeline-editor'
+import { themePresets } from '@/lib/showcase-presets'
 
 interface Speaker {
   name: string
@@ -412,44 +413,49 @@ export function ShowcaseBuilder({ eventId, eventSlug, initialData }: ShowcaseBui
               </div>
 
               <div>
-                <Label className="text-[#004645] mb-2 block">Thèmes prédéfinis</Label>
-                <div className="flex gap-2 flex-wrap">
-                  <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    setPrimaryColor('#004645')
-                    setSecondaryColor('#FF4713')
-                  }}
-                  className="text-xs"
-                >
-                  Weevup (défaut)
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    setPrimaryColor('#1a1a1a')
-                    setSecondaryColor('#d4af37')
-                  }}
-                  className="text-xs"
-                >
-                  Élégant
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    setPrimaryColor('#0066cc')
-                    setSecondaryColor('#ff6b35')
-                  }}
-                  className="text-xs"
-                >
-                  Moderne
-                </Button>
+                <Label className="text-[#004645] mb-3 block">Thèmes prédéfinis</Label>
+                <p className="text-xs text-[#004645]/70 mb-4">Sélectionnez un thème pour appliquer instantanément un style professionnel</p>
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                  {themePresets.map((preset) => {
+                    const isActive = preset.primaryColor === primaryColor && preset.secondaryColor === secondaryColor
+                    return (
+                      <button
+                        key={preset.id}
+                        type="button"
+                        onClick={() => {
+                          setPrimaryColor(preset.primaryColor)
+                          setSecondaryColor(preset.secondaryColor)
+                        }}
+                        className={`group relative overflow-hidden rounded-lg border-2 transition-all hover:scale-105 ${
+                          isActive
+                            ? 'border-[#009197] shadow-lg'
+                            : 'border-gray-200 hover:border-[#9CD9F6]'
+                        }`}
+                      >
+                        {/* Preview gradient */}
+                        <div
+                          className="h-20 w-full"
+                          style={{ background: preset.preview }}
+                        />
+
+                        {/* Theme info */}
+                        <div className="p-2 bg-white">
+                          <div className="flex items-center justify-between mb-1">
+                            <p className="text-xs font-semibold text-gray-900">{preset.name}</p>
+                            {isActive && (
+                              <CheckCircle className="h-4 w-4 text-[#009197]" />
+                            )}
+                          </div>
+                          <p className="text-[10px] text-gray-500 line-clamp-2">{preset.description}</p>
+                        </div>
+
+                        {/* Hover overlay */}
+                        {!isActive && (
+                          <div className="absolute inset-0 bg-[#009197]/0 group-hover:bg-[#009197]/5 transition-colors pointer-events-none" />
+                        )}
+                      </button>
+                    )
+                  })}
                 </div>
               </div>
             </CardContent>

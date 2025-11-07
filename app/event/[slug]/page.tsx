@@ -73,41 +73,77 @@ export default async function EventShowcasePage({ params }: PageProps) {
       <div className="relative">
         {/* Hero Section */}
         {sections.includes('hero') && (
-          <section className="relative">
+          <section className="relative overflow-hidden">
+            {/* Background avec gradient overlay */}
             {event.showcaseBannerImage && (
+              <>
+                <div
+                  className="absolute inset-0 bg-cover bg-center"
+                  style={{ backgroundImage: `url(${event.showcaseBannerImage})` }}
+                />
+                <div
+                  className="absolute inset-0"
+                  style={{
+                    background: `linear-gradient(135deg, ${primaryColor}E6 0%, ${primaryColor}CC 50%, ${secondaryColor}CC 100%)`
+                  }}
+                />
+              </>
+            )}
+            {!event.showcaseBannerImage && (
               <div
-                className="absolute inset-0 bg-cover bg-center opacity-20"
-                style={{ backgroundImage: `url(${event.showcaseBannerImage})` }}
+                className="absolute inset-0"
+                style={{
+                  background: `linear-gradient(135deg, ${primaryColor}15 0%, ${secondaryColor}10 100%)`
+                }}
               />
             )}
-            <div className="relative container mx-auto px-4 py-16 md:py-24">
+
+            {/* Decorative circles */}
+            <div className="absolute top-20 right-10 w-32 h-32 rounded-full opacity-10" style={{ backgroundColor: secondaryColor }} />
+            <div className="absolute bottom-10 left-10 w-24 h-24 rounded-full opacity-10" style={{ backgroundColor: primaryColor }} />
+
+            <div className="relative container mx-auto px-4 py-20 md:py-32">
               <div className="max-w-4xl mx-auto text-center">
-                <WeevupLogo className="w-16 h-16 mx-auto mb-6" />
+                <div className="mb-8 animate-bounce-slow">
+                  <WeevupLogo className="w-20 h-20 mx-auto drop-shadow-2xl" />
+                </div>
                 <h1
-                  className="text-4xl md:text-6xl font-bold mb-4"
+                  className="text-5xl md:text-7xl font-bold mb-6 animate-fade-in drop-shadow-lg"
                   style={{
                     fontFamily: "var(--font-abril)",
-                    color: primaryColor
+                    color: event.showcaseBannerImage ? '#ffffff' : primaryColor
                   }}
                 >
                   {event.showcaseTitle || event.name}
                 </h1>
                 {event.showcaseSubtitle && (
                   <p
-                    className="text-xl md:text-2xl mb-8"
-                    style={{ color: `${primaryColor}99` }}
+                    className="text-xl md:text-3xl mb-10 font-medium"
+                    style={{ color: event.showcaseBannerImage ? '#ffffffdd' : `${primaryColor}99` }}
                   >
                     {event.showcaseSubtitle}
                   </p>
                 )}
-                <div className="flex flex-wrap justify-center gap-4 text-lg">
-                  <div className="flex items-center gap-2" style={{ color: primaryColor }}>
-                    <Calendar className="h-5 w-5" />
-                    <span>{format(new Date(event.startsAt), 'EEEE d MMMM yyyy', { locale: fr })}</span>
+                <div className="flex flex-wrap justify-center gap-6 text-lg">
+                  <div
+                    className="flex items-center gap-3 px-6 py-3 rounded-full backdrop-blur-sm shadow-lg"
+                    style={{
+                      backgroundColor: event.showcaseBannerImage ? '#ffffff20' : `${primaryColor}10`,
+                      color: event.showcaseBannerImage ? '#ffffff' : primaryColor
+                    }}
+                  >
+                    <Calendar className="h-6 w-6" />
+                    <span className="font-semibold">{format(new Date(event.startsAt), 'EEEE d MMMM yyyy', { locale: fr })}</span>
                   </div>
-                  <div className="flex items-center gap-2" style={{ color: primaryColor }}>
-                    <Clock className="h-5 w-5" />
-                    <span>{format(new Date(event.startsAt), 'HH:mm', { locale: fr })}</span>
+                  <div
+                    className="flex items-center gap-3 px-6 py-3 rounded-full backdrop-blur-sm shadow-lg"
+                    style={{
+                      backgroundColor: event.showcaseBannerImage ? '#ffffff20' : `${primaryColor}10`,
+                      color: event.showcaseBannerImage ? '#ffffff' : primaryColor
+                    }}
+                  >
+                    <Clock className="h-6 w-6" />
+                    <span className="font-semibold">{format(new Date(event.startsAt), 'HH:mm', { locale: fr })}</span>
                   </div>
                 </div>
               </div>
@@ -121,10 +157,16 @@ export default async function EventShowcasePage({ params }: PageProps) {
             {/* Countdown Section */}
             {sections.includes('countdown') && event.showcaseCountdown && (
               <ScrollReveal>
-                <Card className="border-[#9CD9F6]/30 bg-white/80 backdrop-blur overflow-hidden">
-                  <CardContent className="pt-6">
+                <Card className="border-2 border-transparent bg-gradient-to-br from-white/95 to-white/80 backdrop-blur-xl shadow-xl overflow-hidden relative group hover:shadow-2xl transition-all duration-500">
+                  <div
+                    className="absolute top-0 left-0 right-0 h-1"
+                    style={{
+                      background: `linear-gradient(90deg, ${primaryColor}, ${secondaryColor})`
+                    }}
+                  />
+                  <CardContent className="pt-8">
                     <h2
-                      className="text-2xl font-bold mb-6 text-center"
+                      className="text-3xl font-bold mb-8 text-center"
                       style={{
                         fontFamily: "var(--font-abril)",
                         color: primaryColor
@@ -386,12 +428,20 @@ export default async function EventShowcasePage({ params }: PageProps) {
             {/* Speakers Section */}
             {sections.includes('speakers') && event.showcaseSpeakers && (event.showcaseSpeakers as Array<{name: string; title: string; bio: string; photo: string}>).length > 0 && (
               <ScrollReveal>
-                <Card className="border-[#9CD9F6]/30 bg-white/80 backdrop-blur">
-                  <CardContent className="pt-6">
-                    <div className="flex items-center gap-3 mb-6">
-                      <User className="h-6 w-6" style={{ color: secondaryColor }} />
+                <Card className="border-2 border-transparent bg-gradient-to-br from-white/95 to-white/80 backdrop-blur-xl shadow-xl overflow-hidden relative hover:shadow-2xl transition-all duration-500">
+                  <div
+                    className="absolute top-0 left-0 right-0 h-1"
+                    style={{
+                      background: `linear-gradient(90deg, ${primaryColor}, ${secondaryColor})`
+                    }}
+                  />
+                  <CardContent className="pt-8">
+                    <div className="flex items-center gap-3 mb-8">
+                      <div className="p-2 rounded-lg" style={{ backgroundColor: `${secondaryColor}20` }}>
+                        <User className="h-6 w-6" style={{ color: secondaryColor }} />
+                      </div>
                       <h2
-                        className="text-2xl font-bold"
+                        className="text-3xl font-bold"
                         style={{
                           fontFamily: "var(--font-abril)",
                           color: primaryColor
@@ -400,28 +450,40 @@ export default async function EventShowcasePage({ params }: PageProps) {
                         Speakers & Intervenants
                       </h2>
                     </div>
-                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                       {(event.showcaseSpeakers as Array<{name: string; title: string; bio: string; photo: string}>).map((speaker, index) => (
-                        <div key={index} className="text-center">
-                          {speaker.photo ? (
-                            <img
-                              src={speaker.photo}
-                              alt={speaker.name}
-                              className="w-32 h-32 rounded-full object-cover mx-auto mb-4 border-4 border-[#9CD9F6]/30"
-                            />
-                          ) : (
-                            <div className="w-32 h-32 rounded-full bg-[#9CD9F6]/20 mx-auto mb-4 flex items-center justify-center">
-                              <User className="h-16 w-16 text-[#009197]" />
+                        <div key={index} className="text-center group">
+                          <div className="relative mb-4 inline-block">
+                            {speaker.photo ? (
+                              <img
+                                src={speaker.photo}
+                                alt={speaker.name}
+                                className="w-36 h-36 rounded-full object-cover mx-auto border-4 shadow-lg group-hover:scale-110 transition-transform duration-300"
+                                style={{ borderColor: `${secondaryColor}40` }}
+                              />
+                            ) : (
+                              <div
+                                className="w-36 h-36 rounded-full mx-auto flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300"
+                                style={{ backgroundColor: `${secondaryColor}20` }}
+                              >
+                                <User className="h-20 w-20" style={{ color: secondaryColor }} />
+                              </div>
+                            )}
+                            <div
+                              className="absolute -bottom-2 -right-2 w-8 h-8 rounded-full flex items-center justify-center shadow-md"
+                              style={{ backgroundColor: secondaryColor }}
+                            >
+                              <span className="text-white font-bold text-xs">{index + 1}</span>
                             </div>
-                          )}
-                          <h3 className="font-bold text-lg mb-1" style={{ color: primaryColor }}>
+                          </div>
+                          <h3 className="font-bold text-xl mb-1" style={{ color: primaryColor }}>
                             {speaker.name}
                           </h3>
-                          <p className="text-sm font-medium mb-2" style={{ color: secondaryColor }}>
+                          <p className="text-sm font-semibold mb-3 px-3 py-1 rounded-full inline-block" style={{ color: secondaryColor, backgroundColor: `${secondaryColor}15` }}>
                             {speaker.title}
                           </p>
                           {speaker.bio && (
-                            <p className="text-sm text-left" style={{ color: `${primaryColor}99` }}>
+                            <p className="text-sm text-left leading-relaxed" style={{ color: `${primaryColor}99` }}>
                               {speaker.bio}
                             </p>
                           )}

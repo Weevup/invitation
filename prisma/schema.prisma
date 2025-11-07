@@ -80,7 +80,7 @@ model Event {
   enablePhotoConsent Boolean @default(true)
 
   // Showcase page configuration
-  showcaseEnabled       Boolean @default(false)
+  showcaseEnabled       Boolean @default(true)
   showcaseTitle         String?
   showcaseSubtitle      String?
   showcaseBannerImage   String?
