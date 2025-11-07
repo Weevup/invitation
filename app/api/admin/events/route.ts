@@ -29,14 +29,36 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
 
+    // Generate slug from name
+    const slug = body.name
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-|-$/g, '')
+      + '-' + Date.now()
+
+    // Create a dummy admin user if none exists
+    let adminUser = await prisma.user.findFirst({ where: { role: 'ADMIN' } })
+    if (!adminUser) {
+      adminUser = await prisma.user.create({
+        data: {
+          email: 'admin@weevup.com',
+          role: 'ADMIN',
+        },
+      })
+    }
+
     const event = await prisma.event.create({
       data: {
         name: body.name,
+        slug: slug,
         description: body.description,
-        date: new Date(body.date),
-        location: body.location,
-        capacity: body.capacity ? parseInt(body.capacity) : null,
-        isActive: body.isActive ?? true,
+        startsAt: new Date(body.date),
+        venueName: body.location || body.venueName,
+        address: body.address,
+        city: body.city,
+        adminId: adminUser.id,
       },
     })
 

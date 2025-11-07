@@ -9,8 +9,9 @@ import Link from "next/link";
 interface Event {
   id: string;
   name: string;
-  date: string;
-  location?: string;
+  startsAt: string;
+  venueName?: string;
+  city?: string;
   _count: {
     guests: number;
     rsvps: number;
@@ -151,15 +152,15 @@ export default function AdminDashboard() {
                   <CardDescription>
                     <div className="flex items-center text-sm">
                       <Calendar className="h-4 w-4 mr-1" />
-                      {new Date(event.date).toLocaleDateString('fr-FR', {
+                      {new Date(event.startsAt).toLocaleDateString('fr-FR', {
                         year: 'numeric',
                         month: 'long',
                         day: 'numeric',
                       })}
                     </div>
-                    {event.location && (
+                    {event.venueName && (
                       <div className="text-sm mt-1">
-                        {event.location}
+                        {event.venueName}{event.city && `, ${event.city}`}
                       </div>
                     )}
                   </CardDescription>

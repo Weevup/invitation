@@ -14,15 +14,29 @@ export async function POST() {
       )
     }
 
+    // Create admin user if not exists
+    let adminUser = await prisma.user.findFirst({ where: { role: 'ADMIN' } })
+    if (!adminUser) {
+      adminUser = await prisma.user.create({
+        data: {
+          email: 'admin@weevup.com',
+          role: 'ADMIN',
+        },
+      })
+    }
+
     // Create Weevup 10th anniversary event
     const event = await prisma.event.create({
       data: {
         name: '10 ans de Weevup',
+        slug: '10-ans-de-weevup-' + Date.now(),
         description: 'Célébration des 10 ans de l\'agence Weevup au Molitor Paris',
-        date: new Date('2025-06-15T19:00:00'),
-        location: 'Molitor Paris, 13 Rue Nungesser et Coli, 75016 Paris',
-        capacity: 200,
-        isActive: true,
+        startsAt: new Date('2025-06-15T19:00:00'),
+        venueName: 'Molitor Paris',
+        address: '13 Rue Nungesser et Coli',
+        city: 'Paris 75016',
+        country: 'France',
+        adminId: adminUser.id,
       },
     })
 
@@ -51,6 +65,7 @@ export async function POST() {
         data: {
           ...guestData,
           eventId: event.id,
+          token: token, // Store raw token (Note: not ideal for security, but required by schema)
           tokenHash,
           tokenExpiry,
         },
@@ -67,8 +82,8 @@ export async function POST() {
       event: {
         id: event.id,
         name: event.name,
-        date: event.date,
-        location: event.location,
+        date: event.startsAt,
+        location: `${event.venueName}, ${event.address}, ${event.city}`,
       },
       guestsCreated: guests.length,
       sampleInvitationUrl: guests[0]?.invitationUrl,
