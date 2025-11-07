@@ -1,0 +1,311 @@
+import { notFound } from 'next/navigation'
+import { prisma } from '@/lib/prisma'
+import { format } from 'date-fns'
+import { fr } from 'date-fns/locale'
+import { Calendar, MapPin, Clock, Users } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import { WeevupLogo } from '@/components/weevup-logo'
+import Link from 'next/link'
+
+interface PageProps {
+  params: Promise<{
+    slug: string
+  }>
+}
+
+async function getEvent(slug: string) {
+  const event = await prisma.event.findUnique({
+    where: { slug },
+    include: {
+      _count: {
+        select: {
+          guests: true,
+          rsvps: { where: { attending: true } },
+        },
+      },
+    },
+  })
+
+  return event
+}
+
+export default async function EventShowcasePage({ params }: PageProps) {
+  const { slug } = await params
+  const event = await getEvent(slug)
+
+  if (!event || !event.showcaseEnabled) {
+    notFound()
+  }
+
+  // Parse showcase sections or use defaults
+  const defaultSections = ['hero', 'description', 'details', 'location', 'cta']
+  const sections = event.showcaseSections
+    ? (event.showcaseSections as string[])
+    : defaultSections
+
+  // Theme colors
+  const primaryColor = event.showcasePrimaryColor || '#004645'
+  const secondaryColor = event.showcaseSecondaryColor || '#FF4713'
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-[#9CD9F6] via-white to-[#9CD9F6]">
+      {/* Custom CSS if provided */}
+      {event.showcaseCustomCSS && (
+        <style dangerouslySetInnerHTML={{ __html: event.showcaseCustomCSS }} />
+      )}
+
+      {/* Decorative elements */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        <svg className="absolute top-0 right-0 w-1/4 h-1/4" viewBox="0 0 200 200">
+          <path
+            d="M 0 50 Q 50 50, 50 100 T 100 150 T 150 200"
+            stroke={secondaryColor}
+            strokeWidth="2"
+            fill="none"
+            opacity="0.3"
+          />
+        </svg>
+      </div>
+
+      <div className="relative">
+        {/* Hero Section */}
+        {sections.includes('hero') && (
+          <section className="relative">
+            {event.showcaseBannerImage && (
+              <div
+                className="absolute inset-0 bg-cover bg-center opacity-20"
+                style={{ backgroundImage: `url(${event.showcaseBannerImage})` }}
+              />
+            )}
+            <div className="relative container mx-auto px-4 py-16 md:py-24">
+              <div className="max-w-4xl mx-auto text-center">
+                <WeevupLogo className="w-16 h-16 mx-auto mb-6" />
+                <h1
+                  className="text-4xl md:text-6xl font-bold mb-4"
+                  style={{
+                    fontFamily: "var(--font-abril)",
+                    color: primaryColor
+                  }}
+                >
+                  {event.showcaseTitle || event.name}
+                </h1>
+                {event.showcaseSubtitle && (
+                  <p
+                    className="text-xl md:text-2xl mb-8"
+                    style={{ color: `${primaryColor}99` }}
+                  >
+                    {event.showcaseSubtitle}
+                  </p>
+                )}
+                <div className="flex flex-wrap justify-center gap-4 text-lg">
+                  <div className="flex items-center gap-2" style={{ color: primaryColor }}>
+                    <Calendar className="h-5 w-5" />
+                    <span>{format(new Date(event.startsAt), 'EEEE d MMMM yyyy', { locale: fr })}</span>
+                  </div>
+                  <div className="flex items-center gap-2" style={{ color: primaryColor }}>
+                    <Clock className="h-5 w-5" />
+                    <span>{format(new Date(event.startsAt), 'HH:mm', { locale: fr })}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* Main Content */}
+        <div className="container mx-auto px-4 py-12 max-w-5xl">
+          <div className="space-y-12">
+            {/* Description Section */}
+            {sections.includes('description') && event.description && (
+              <Card className="border-[#9CD9F6]/30 bg-white/80 backdrop-blur">
+                <CardContent className="pt-6">
+                  <h2
+                    className="text-2xl font-bold mb-4"
+                    style={{
+                      fontFamily: "var(--font-abril)",
+                      color: primaryColor
+                    }}
+                  >
+                    À propos de l&apos;événement
+                  </h2>
+                  <div
+                    className="prose max-w-none"
+                    style={{ color: `${primaryColor}cc` }}
+                    dangerouslySetInnerHTML={{ __html: event.description.replace(/\n/g, '<br/>') }}
+                  />
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Program Section */}
+            {sections.includes('program') && event.program && (
+              <Card className="border-[#9CD9F6]/30 bg-white/80 backdrop-blur">
+                <CardContent className="pt-6">
+                  <h2
+                    className="text-2xl font-bold mb-4"
+                    style={{
+                      fontFamily: "var(--font-abril)",
+                      color: primaryColor
+                    }}
+                  >
+                    Programme
+                  </h2>
+                  <div
+                    className="prose max-w-none"
+                    style={{ color: `${primaryColor}cc` }}
+                    dangerouslySetInnerHTML={{ __html: event.program.replace(/\n/g, '<br/>') }}
+                  />
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Details Section */}
+            {sections.includes('details') && (
+              <div className="grid md:grid-cols-2 gap-6">
+                {/* Location */}
+                {(event.venueName || event.address) && (
+                  <Card className="border-[#9CD9F6]/30 bg-white/80 backdrop-blur">
+                    <CardContent className="pt-6">
+                      <div className="flex items-start gap-3">
+                        <MapPin className="h-6 w-6 flex-shrink-0" style={{ color: secondaryColor }} />
+                        <div>
+                          <h3
+                            className="font-bold mb-2"
+                            style={{ color: primaryColor }}
+                          >
+                            Lieu
+                          </h3>
+                          {event.venueName && (
+                            <p className="font-medium" style={{ color: primaryColor }}>
+                              {event.venueName}
+                            </p>
+                          )}
+                          {event.address && (
+                            <p className="text-sm" style={{ color: `${primaryColor}99` }}>
+                              {event.address}
+                            </p>
+                          )}
+                          {event.city && (
+                            <p className="text-sm" style={{ color: `${primaryColor}99` }}>
+                              {event.city}{event.country && `, ${event.country}`}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Date & Time */}
+                <Card className="border-[#9CD9F6]/30 bg-white/80 backdrop-blur">
+                  <CardContent className="pt-6">
+                    <div className="flex items-start gap-3">
+                      <Calendar className="h-6 w-6 flex-shrink-0" style={{ color: secondaryColor }} />
+                      <div>
+                        <h3
+                          className="font-bold mb-2"
+                          style={{ color: primaryColor }}
+                        >
+                          Date et heure
+                        </h3>
+                        <p className="font-medium" style={{ color: primaryColor }}>
+                          {format(new Date(event.startsAt), 'EEEE d MMMM yyyy', { locale: fr })}
+                        </p>
+                        <p className="text-sm" style={{ color: `${primaryColor}99` }}>
+                          {format(new Date(event.startsAt), 'HH:mm', { locale: fr })}
+                          {event.endsAt && ` - ${format(new Date(event.endsAt), 'HH:mm', { locale: fr })}`}
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Dress Code */}
+                {event.dressCode && (
+                  <Card className="border-[#9CD9F6]/30 bg-white/80 backdrop-blur">
+                    <CardContent className="pt-6">
+                      <div className="flex items-start gap-3">
+                        <Users className="h-6 w-6 flex-shrink-0" style={{ color: secondaryColor }} />
+                        <div>
+                          <h3
+                            className="font-bold mb-2"
+                            style={{ color: primaryColor }}
+                          >
+                            Code vestimentaire
+                          </h3>
+                          <p style={{ color: `${primaryColor}cc` }}>
+                            {event.dressCode}
+                          </p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
+            )}
+
+            {/* Call to Action */}
+            {sections.includes('cta') && (
+              <Card
+                className="border-2 bg-gradient-to-br from-white to-[#9CD9F6]/10 backdrop-blur"
+                style={{ borderColor: `${secondaryColor}50` }}
+              >
+                <CardContent className="pt-6 text-center">
+                  <h2
+                    className="text-2xl font-bold mb-4"
+                    style={{
+                      fontFamily: "var(--font-abril)",
+                      color: primaryColor
+                    }}
+                  >
+                    Vous êtes invité ?
+                  </h2>
+                  <p className="mb-6" style={{ color: `${primaryColor}99` }}>
+                    Si vous avez reçu une invitation, cliquez sur le lien dans votre email pour confirmer votre présence.
+                  </p>
+                  <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                    <Link href="/">
+                      <Button
+                        size="lg"
+                        className="text-white"
+                        style={{
+                          background: `linear-gradient(to right, ${primaryColor}, ${secondaryColor})`,
+                        }}
+                      >
+                        Retour à l&apos;accueil
+                      </Button>
+                    </Link>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        </div>
+
+        {/* Footer */}
+        <footer className="relative border-t border-[#9CD9F6]/30 bg-white/60 backdrop-blur mt-16">
+          <div className="container mx-auto px-4 py-8">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <WeevupLogo className="w-8 h-8" />
+                <span
+                  className="font-bold"
+                  style={{
+                    fontFamily: "var(--font-abril)",
+                    color: primaryColor
+                  }}
+                >
+                  WEEVUP
+                </span>
+              </div>
+              <p className="text-sm" style={{ color: `${primaryColor}99` }}>
+                Powered by Weevup Events
+              </p>
+            </div>
+          </div>
+        </footer>
+      </div>
+    </div>
+  )
+}

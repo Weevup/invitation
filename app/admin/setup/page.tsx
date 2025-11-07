@@ -3,17 +3,21 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { CheckCircle, AlertCircle, Loader2, Database, Sparkles } from "lucide-react";
+import { CheckCircle, AlertCircle, Loader2, Database, Sparkles, Trash2, AlertTriangle } from "lucide-react";
 import Link from "next/link";
 import { WeevupLogo } from "@/components/weevup-logo";
 
 export default function SetupPage() {
   const [setupLoading, setSetupLoading] = useState(false);
   const [seedLoading, setSeedLoading] = useState(false);
+  const [clearLoading, setClearLoading] = useState(false);
   const [setupResult, setSetupResult] = useState<any>(null);
   const [seedResult, setSeedResult] = useState<any>(null);
+  const [clearResult, setClearResult] = useState<any>(null);
   const [setupError, setSetupError] = useState<string>('');
   const [seedError, setSeedError] = useState<string>('');
+  const [clearError, setClearError] = useState<string>('');
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
 
   const handleSetup = async () => {
     setSetupLoading(true);
@@ -62,6 +66,35 @@ export default function SetupPage() {
       console.error('Seed error:', error);
     } finally {
       setSeedLoading(false);
+    }
+  };
+
+  const handleClearDatabase = async () => {
+    setClearLoading(true);
+    setClearError('');
+    setClearResult(null);
+    setShowClearConfirm(false);
+
+    try {
+      const response = await fetch('/api/admin/clear-database', {
+        method: 'POST',
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setClearResult(data);
+        // Reset other states
+        setSetupResult(null);
+        setSeedResult(null);
+      } else {
+        setClearError(data.error || 'Erreur lors de la suppression');
+      }
+    } catch (error) {
+      setClearError('Erreur de connexion');
+      console.error('Clear database error:', error);
+    } finally {
+      setClearLoading(false);
     }
   };
 
@@ -261,6 +294,108 @@ export default function SetupPage() {
               </CardContent>
             </Card>
           )}
+
+          {/* Clear Database - Danger Zone */}
+          <Card className="border-red-300 bg-gradient-to-br from-red-50/50 to-white/80 backdrop-blur">
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <AlertTriangle className="h-6 w-6 text-red-500" />
+                <div>
+                  <CardTitle className="text-[#004645]" style={{ fontFamily: "var(--font-abril)" }}>
+                    Zone de danger
+                  </CardTitle>
+                  <CardDescription className="text-[#004645]/70">
+                    Supprimez toutes les données de la base de données
+                  </CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="p-4 bg-red-50 border border-red-200 rounded-md mb-4">
+                <p className="text-sm text-red-800">
+                  <strong>⚠️ Attention :</strong> Cette action supprimera définitivement tous les événements, invités, réponses et emails de la base de données. Cette action est irréversible !
+                </p>
+              </div>
+
+              {!showClearConfirm ? (
+                <Button
+                  onClick={() => setShowClearConfirm(true)}
+                  variant="outline"
+                  className="w-full border-red-300 text-red-600 hover:bg-red-50 hover:text-red-700"
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Vider la base de données
+                </Button>
+              ) : (
+                <div className="space-y-3">
+                  <p className="text-sm font-medium text-[#004645]">
+                    Êtes-vous sûr de vouloir supprimer toutes les données ?
+                  </p>
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={handleClearDatabase}
+                      disabled={clearLoading}
+                      className="flex-1 bg-red-600 hover:bg-red-700 text-white"
+                    >
+                      {clearLoading ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Suppression...
+                        </>
+                      ) : (
+                        <>
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Oui, supprimer tout
+                        </>
+                      )}
+                    </Button>
+                    <Button
+                      onClick={() => setShowClearConfirm(false)}
+                      disabled={clearLoading}
+                      variant="outline"
+                      className="flex-1"
+                    >
+                      Annuler
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {clearError && (
+                <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-md flex items-start gap-2">
+                  <AlertCircle className="h-5 w-5 text-red-500 mt-0.5" />
+                  <div>
+                    <p className="font-medium text-red-800">Erreur</p>
+                    <p className="text-sm text-red-600">{clearError}</p>
+                  </div>
+                </div>
+              )}
+
+              {clearResult && (
+                <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-md">
+                  <div className="flex items-start gap-2 mb-3">
+                    <CheckCircle className="h-5 w-5 text-green-500 mt-0.5" />
+                    <div>
+                      <p className="font-medium text-green-800">Succès!</p>
+                      <p className="text-sm text-green-600">{clearResult.message}</p>
+                    </div>
+                  </div>
+
+                  <div className="bg-white rounded-md p-3 space-y-1 text-sm text-[#004645]">
+                    <p><strong>Supprimés:</strong></p>
+                    <ul className="ml-4 list-disc">
+                      <li>{clearResult.deleted?.events} événement(s)</li>
+                      <li>{clearResult.deleted?.guests} invité(s)</li>
+                      <li>{clearResult.deleted?.rsvps} réponse(s)</li>
+                      <li>{clearResult.deleted?.checkins} enregistrement(s)</li>
+                      <li>{clearResult.deleted?.emailLogs} email(s)</li>
+                      <li>{clearResult.deleted?.users} utilisateur(s)</li>
+                    </ul>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>

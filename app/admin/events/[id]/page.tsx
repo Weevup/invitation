@@ -17,6 +17,7 @@ import { AddGuestDialog } from "@/components/add-guest-dialog";
 import { ImportCSVDialog } from "@/components/import-csv-dialog";
 import { SendInvitationsDialog } from "@/components/send-invitations-dialog";
 import { WeevupLogo } from "@/components/weevup-logo";
+import { ShowcaseBuilder } from "@/components/showcase-builder";
 import Papa from "papaparse";
 
 interface Guest {
@@ -38,10 +39,20 @@ interface Guest {
 interface EventDetails {
   id: string;
   name: string;
+  slug: string;
   startsAt: string;
   venueName?: string;
   city?: string;
   guests: Guest[];
+  showcaseEnabled: boolean;
+  showcaseTitle: string | null;
+  showcaseSubtitle: string | null;
+  showcaseBannerImage: string | null;
+  showcaseTheme: string;
+  showcaseSections: any;
+  showcasePrimaryColor: string;
+  showcaseSecondaryColor: string;
+  showcaseCustomCSS: string | null;
 }
 
 export default function EventDetailsPage() {
@@ -390,6 +401,25 @@ export default function EventDetailsPage() {
               </div>
             </CardContent>
           </Card>
+        </div>
+
+        {/* Showcase Builder - Phase 2 */}
+        <div className="mb-8">
+          <ShowcaseBuilder
+            eventId={eventId}
+            eventSlug={event.slug}
+            initialData={{
+              showcaseEnabled: event.showcaseEnabled,
+              showcaseTitle: event.showcaseTitle,
+              showcaseSubtitle: event.showcaseSubtitle,
+              showcaseBannerImage: event.showcaseBannerImage,
+              showcaseTheme: event.showcaseTheme,
+              showcaseSections: event.showcaseSections,
+              showcasePrimaryColor: event.showcasePrimaryColor,
+              showcaseSecondaryColor: event.showcaseSecondaryColor,
+              showcaseCustomCSS: event.showcaseCustomCSS,
+            }}
+          />
         </div>
 
         {/* Guests Table */}

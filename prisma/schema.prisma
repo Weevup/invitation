@@ -79,6 +79,17 @@ model Event {
   enableAccessibility Boolean @default(true)
   enablePhotoConsent Boolean @default(true)
 
+  // Showcase page configuration
+  showcaseEnabled       Boolean @default(false)
+  showcaseTitle         String?
+  showcaseSubtitle      String?
+  showcaseBannerImage   String?
+  showcaseTheme         String  @default("weevup") // "weevup", "elegant", "modern", "minimal"
+  showcaseSections      Json?   // Array of sections to display: ["hero", "description", "program", "location", "rsvp"]
+  showcaseCustomCSS     String? @db.Text
+  showcasePrimaryColor  String  @default("#004645")
+  showcaseSecondaryColor String @default("#FF4713")
+
   // Admin
   adminId String
   admin   User   @relation("AdminEvents", fields: [adminId], references: [id], onDelete: Cascade)
