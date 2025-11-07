@@ -1,4 +1,4 @@
-import jwt, { Secret } from 'jsonwebtoken'
+import jwt, { Secret, SignOptions } from 'jsonwebtoken'
 import { prisma } from './prisma'
 import crypto from 'crypto'
 
@@ -12,7 +12,8 @@ export interface TokenPayload {
 }
 
 export function generateToken(payload: TokenPayload, expiresIn: string = '30d'): string {
-  return jwt.sign(payload, JWT_SECRET, { expiresIn })
+  const options: SignOptions = { expiresIn }
+  return jwt.sign(payload, JWT_SECRET, options)
 }
 
 export function verifyToken(token: string): TokenPayload | null {
