@@ -25,24 +25,67 @@ export async function POST() {
       })
     }
 
-    // Create Weevup 10th anniversary event
+    // Create Weevup 10th anniversary event with full showcase
     const event = await prisma.event.create({
       data: {
         name: '10 ans de Weevup',
         slug: '10-ans-de-weevup-' + Date.now(),
-        description: 'Célébration des 10 ans de l\'agence Weevup au Molitor Paris',
+        description: `🎉 Une décennie d'innovation, de créativité et de collaboration !
+
+Rejoignez-nous pour célébrer 10 ans d'aventure entrepreneuriale au cœur de Paris. Cette soirée unique au Molitor sera l'occasion de se retrouver, d'échanger et de fêter ensemble cette étape importante.
+
+Au programme : cocktail dînatoire, DJ set, surprises et moments inoubliables dans un lieu d'exception.`,
+        program: `18h30 - Accueil & Cocktail de bienvenue
+19h00 - Discours d'ouverture
+19h30 - Cocktail dînatoire
+21h00 - DJ set & dancefloor
+23h00 - Fin de la soirée`,
+        dressCode: 'Chic & Décontracté',
         startsAt: new Date('2025-06-15T19:00:00'),
+        endsAt: new Date('2025-06-15T23:00:00'),
         venueName: 'Molitor Paris',
         address: '13 Rue Nungesser et Coli',
         city: 'Paris 75016',
         country: 'France',
         adminId: adminUser.id,
-        // Showcase defaults
-        showcaseEnabled: false,
+        // Showcase - Enabled with full content
+        showcaseEnabled: true,
+        showcaseTitle: '10 ans de Weevup',
+        showcaseSubtitle: 'Une décennie d\'innovation et de créativité',
+        showcaseBannerImage: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=1920&h=600&fit=crop',
         showcaseTheme: 'weevup',
         showcasePrimaryColor: '#004645',
         showcaseSecondaryColor: '#FF4713',
-        showcaseSections: ['hero', 'description', 'details', 'cta'],
+        showcaseSections: ['hero', 'countdown', 'video', 'description', 'program', 'details', 'gallery', 'faq', 'cta'],
+        showcaseCountdown: true,
+        showcaseSocialShare: true,
+        showcaseVideo: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+        showcaseGallery: [
+          'https://images.unsplash.com/photo-1511578314322-379afb476865?w=800&h=800&fit=crop',
+          'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&h=800&fit=crop',
+          'https://images.unsplash.com/photo-1505236858219-8359eb29e329?w=800&h=800&fit=crop',
+          'https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=800&h=800&fit=crop',
+          'https://images.unsplash.com/photo-1519167758481-83f29da8c9a0?w=800&h=800&fit=crop',
+          'https://images.unsplash.com/photo-1478146896981-b80fe463b330?w=800&h=800&fit=crop',
+        ],
+        showcaseFAQ: [
+          {
+            question: 'Quelle est la tenue recommandée ?',
+            answer: 'La soirée est placée sous le signe du chic et du décontracté. Venez élégants mais à l\'aise pour profiter pleinement de la soirée !'
+          },
+          {
+            question: 'Y a-t-il un parking disponible ?',
+            answer: 'Oui, le Molitor dispose d\'un parking souterrain. Cependant, nous recommandons l\'utilisation des transports en commun (Métro 9 - Porte de Saint-Cloud).'
+          },
+          {
+            question: 'Peut-on venir accompagné ?',
+            answer: 'Cette invitation est strictement nominative. Si vous souhaitez venir accompagné, merci de nous contacter à l\'avance.'
+          },
+          {
+            question: 'Y a-t-il des options végétariennes/vegan ?',
+            answer: 'Absolument ! Le cocktail dînatoire proposera une variété d\'options pour tous les régimes alimentaires. N\'hésitez pas à nous signaler vos restrictions.'
+          },
+        ],
       },
     })
 

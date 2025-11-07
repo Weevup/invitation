@@ -3,9 +3,8 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar, Users, Mail, CheckCircle, Clock, TrendingUp, Plus } from "lucide-react";
+import { Calendar, Users, CheckCircle, Clock, TrendingUp, Plus, Sparkles } from "lucide-react";
 import Link from "next/link";
-import { WeevupLogo } from "@/components/weevup-logo";
 
 interface Event {
   id: string;
@@ -69,58 +68,29 @@ export default function AdminDashboard() {
   const responseRate = totalGuests > 0 ? Math.round((totalRsvps / totalGuests) * 100) : 0;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#9CD9F6] via-white to-[#9CD9F6]">
-      {/* Lignes graphiques orange décoratives */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <svg className="absolute top-0 right-0 w-1/4 h-1/4" viewBox="0 0 200 200">
-          <path
-            d="M 0 50 Q 50 50, 50 100 T 100 150 T 150 200"
-            stroke="#FF4713"
-            strokeWidth="2"
-            fill="none"
-            opacity="0.3"
-          />
-        </svg>
+    <div>
+      {/* Page Header */}
+      <div className="mb-8">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-[#004645]" style={{ fontFamily: "var(--font-abril)" }}>
+              Tableau de bord
+            </h1>
+            <p className="text-[#004645]/70 mt-1">
+              Vue d&apos;ensemble de vos événements et statistiques
+            </p>
+          </div>
+          <Link href="/admin/events/new">
+            <Button className="bg-gradient-to-r from-[#004645] to-[#009197] hover:from-[#006C51] hover:to-[#009197] text-white">
+              <Plus className="h-4 w-4 mr-2" />
+              Nouvel événement
+            </Button>
+          </Link>
+        </div>
       </div>
 
-      {/* Header */}
-      <header className="relative border-b border-[#9CD9F6]/30 bg-white/80 backdrop-blur">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <WeevupLogo className="w-10 h-10" />
-              <div>
-                <span className="text-xl font-bold text-[#004645]" style={{ fontFamily: "var(--font-abril)" }}>
-                  WEEVUP
-                </span>
-                <p className="text-xs text-[#004645]/70">Admin Dashboard</p>
-              </div>
-            </div>
-            <div className="flex items-center space-x-4">
-              <Link href="/admin/diagnostic">
-                <Button variant="ghost" size="sm" className="text-[#004645] hover:text-[#FF4713]">
-                  Diagnostic
-                </Button>
-              </Link>
-              <Link href="/">
-                <Button variant="ghost" className="text-[#004645] hover:text-[#FF4713]">
-                  Retour accueil
-                </Button>
-              </Link>
-              <Link href="/admin/events/new">
-                <Button className="bg-gradient-to-r from-[#004645] to-[#009197] hover:from-[#006C51] hover:to-[#009197] text-white">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Créer un événement
-                </Button>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      <div className="relative container mx-auto px-4 py-8">
-        {/* Stats Overview */}
-        <div className="grid md:grid-cols-4 gap-4 mb-8">
+      {/* Stats Overview */}
+      <div className="grid md:grid-cols-4 gap-6 mb-8">
           <Card className="border-[#9CD9F6]/30 bg-white/80 backdrop-blur hover:shadow-lg transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-[#004645]">Événements</CardTitle>
@@ -175,8 +145,8 @@ export default function AdminDashboard() {
         </div>
 
         {/* Events List */}
-        <div className="mb-4">
-          <h2 className="text-2xl font-bold mb-4 text-[#004645]" style={{ fontFamily: "var(--font-abril)" }}>
+        <div className="mb-6">
+          <h2 className="text-2xl font-bold text-[#004645]" style={{ fontFamily: "var(--font-abril)" }}>
             Mes événements
           </h2>
         </div>
@@ -272,7 +242,6 @@ export default function AdminDashboard() {
             ))}
           </div>
         )}
-      </div>
     </div>
   );
 }
