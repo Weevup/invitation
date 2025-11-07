@@ -2,10 +2,12 @@ import { notFound } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
-import { Calendar, MapPin, Clock, Users } from 'lucide-react'
+import { Calendar, MapPin, Clock, Users, MessageCircle, Image as ImageIcon, Play } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { WeevupLogo } from '@/components/weevup-logo'
+import { CountdownTimer } from '@/components/countdown-timer'
+import { ScrollReveal } from '@/components/scroll-reveal'
 import Link from 'next/link'
 
 interface PageProps {
@@ -116,6 +118,30 @@ export default async function EventShowcasePage({ params }: PageProps) {
         {/* Main Content */}
         <div className="container mx-auto px-4 py-12 max-w-5xl">
           <div className="space-y-12">
+            {/* Countdown Section */}
+            {sections.includes('countdown') && event.showcaseCountdown && (
+              <ScrollReveal>
+                <Card className="border-[#9CD9F6]/30 bg-white/80 backdrop-blur overflow-hidden">
+                  <CardContent className="pt-6">
+                    <h2
+                      className="text-2xl font-bold mb-6 text-center"
+                      style={{
+                        fontFamily: "var(--font-abril)",
+                        color: primaryColor
+                      }}
+                    >
+                      L'événement commence dans
+                    </h2>
+                    <CountdownTimer
+                      targetDate={event.startsAt}
+                      primaryColor={primaryColor}
+                      secondaryColor={secondaryColor}
+                    />
+                  </CardContent>
+                </Card>
+              </ScrollReveal>
+            )}
+
             {/* Description Section */}
             {sections.includes('description') && event.description && (
               <Card className="border-[#9CD9F6]/30 bg-white/80 backdrop-blur">
@@ -140,24 +166,136 @@ export default async function EventShowcasePage({ params }: PageProps) {
 
             {/* Program Section */}
             {sections.includes('program') && event.program && (
-              <Card className="border-[#9CD9F6]/30 bg-white/80 backdrop-blur">
-                <CardContent className="pt-6">
-                  <h2
-                    className="text-2xl font-bold mb-4"
-                    style={{
-                      fontFamily: "var(--font-abril)",
-                      color: primaryColor
-                    }}
-                  >
-                    Programme
-                  </h2>
-                  <div
-                    className="prose max-w-none"
-                    style={{ color: `${primaryColor}cc` }}
-                    dangerouslySetInnerHTML={{ __html: event.program.replace(/\n/g, '<br/>') }}
-                  />
-                </CardContent>
-              </Card>
+              <ScrollReveal>
+                <Card className="border-[#9CD9F6]/30 bg-white/80 backdrop-blur">
+                  <CardContent className="pt-6">
+                    <h2
+                      className="text-2xl font-bold mb-4"
+                      style={{
+                        fontFamily: "var(--font-abril)",
+                        color: primaryColor
+                      }}
+                    >
+                      Programme
+                    </h2>
+                    <div
+                      className="prose max-w-none"
+                      style={{ color: `${primaryColor}cc` }}
+                      dangerouslySetInnerHTML={{ __html: event.program.replace(/\n/g, '<br/>') }}
+                    />
+                  </CardContent>
+                </Card>
+              </ScrollReveal>
+            )}
+
+            {/* Video Section */}
+            {sections.includes('video') && event.showcaseVideo && (
+              <ScrollReveal>
+                <Card className="border-[#9CD9F6]/30 bg-white/80 backdrop-blur">
+                  <CardContent className="pt-6">
+                    <div className="flex items-center gap-3 mb-4">
+                      <Play className="h-6 w-6" style={{ color: secondaryColor }} />
+                      <h2
+                        className="text-2xl font-bold"
+                        style={{
+                          fontFamily: "var(--font-abril)",
+                          color: primaryColor
+                        }}
+                      >
+                        Vidéo
+                      </h2>
+                    </div>
+                    <div className="aspect-video rounded-lg overflow-hidden bg-gray-100">
+                      {event.showcaseVideo.includes('youtube.com') || event.showcaseVideo.includes('youtu.be') ? (
+                        <iframe
+                          src={event.showcaseVideo.replace('watch?v=', 'embed/').replace('youtu.be/', 'youtube.com/embed/')}
+                          className="w-full h-full"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allowFullScreen
+                        />
+                      ) : event.showcaseVideo.includes('vimeo.com') ? (
+                        <iframe
+                          src={event.showcaseVideo.replace('vimeo.com/', 'player.vimeo.com/video/')}
+                          className="w-full h-full"
+                          allow="autoplay; fullscreen; picture-in-picture"
+                          allowFullScreen
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-gray-500">
+                          Format vidéo non supporté
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              </ScrollReveal>
+            )}
+
+            {/* Gallery Section */}
+            {sections.includes('gallery') && event.showcaseGallery && (event.showcaseGallery as string[]).length > 0 && (
+              <ScrollReveal>
+                <Card className="border-[#9CD9F6]/30 bg-white/80 backdrop-blur">
+                  <CardContent className="pt-6">
+                    <div className="flex items-center gap-3 mb-6">
+                      <ImageIcon className="h-6 w-6" style={{ color: secondaryColor }} />
+                      <h2
+                        className="text-2xl font-bold"
+                        style={{
+                          fontFamily: "var(--font-abril)",
+                          color: primaryColor
+                        }}
+                      >
+                        Galerie
+                      </h2>
+                    </div>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                      {(event.showcaseGallery as string[]).map((url, index) => (
+                        <div key={index} className="aspect-square rounded-lg overflow-hidden bg-gray-100">
+                          <img
+                            src={url}
+                            alt={`Gallery ${index + 1}`}
+                            className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              </ScrollReveal>
+            )}
+
+            {/* FAQ Section */}
+            {sections.includes('faq') && event.showcaseFAQ && (event.showcaseFAQ as Array<{question: string; answer: string}>).length > 0 && (
+              <ScrollReveal>
+                <Card className="border-[#9CD9F6]/30 bg-white/80 backdrop-blur">
+                  <CardContent className="pt-6">
+                    <div className="flex items-center gap-3 mb-6">
+                      <MessageCircle className="h-6 w-6" style={{ color: secondaryColor }} />
+                      <h2
+                        className="text-2xl font-bold"
+                        style={{
+                          fontFamily: "var(--font-abril)",
+                          color: primaryColor
+                        }}
+                      >
+                        Questions fréquentes
+                      </h2>
+                    </div>
+                    <div className="space-y-4">
+                      {(event.showcaseFAQ as Array<{question: string; answer: string}>).map((faq, index) => (
+                        <div key={index} className="border-l-4 pl-4 py-2" style={{ borderColor: secondaryColor }}>
+                          <h3 className="font-bold mb-2" style={{ color: primaryColor }}>
+                            {faq.question}
+                          </h3>
+                          <p style={{ color: `${primaryColor}cc` }}>
+                            {faq.answer}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              </ScrollReveal>
             )}
 
             {/* Details Section */}
