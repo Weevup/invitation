@@ -10,6 +10,8 @@ import { Mail, Users, Download, Search, Send, Link as LinkIcon } from "lucide-re
 import Link from "next/link";
 import { useToast } from "@/components/ui/use-toast";
 import { AddGuestDialog } from "@/components/add-guest-dialog";
+import { ImportCSVDialog } from "@/components/import-csv-dialog";
+import Papa from "papaparse";
 
 interface Guest {
   id: string;
@@ -70,6 +72,45 @@ export default function EventDetailsPage() {
     toast({
       title: "Lien copié",
       description: "Le lien d'invitation a été copié dans le presse-papier",
+    });
+  };
+
+  const handleExportCSV = () => {
+    if (!event) return;
+
+    const csvData = event.guests.map((guest) => ({
+      Prénom: guest.firstName,
+      Nom: guest.lastName,
+      Email: guest.email,
+      Entreprise: guest.company || "",
+      Tags: guest.tags.join(", "),
+      Statut: guest.rsvp
+        ? guest.rsvp.attending
+          ? "Participe"
+          : "Décline"
+        : "En attente",
+      "Accompagnants": guest.rsvp?.plusOnes || 0,
+      "Choix repas": guest.rsvp?.mealChoice || "",
+    }));
+
+    const csv = Papa.unparse(csvData, {
+      delimiter: ",",
+      header: true,
+    });
+
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", `invites-${event.name}-${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = "hidden";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    toast({
+      title: "Export réussi",
+      description: `${event.guests.length} invité(s) exporté(s)`,
     });
   };
 
@@ -139,7 +180,7 @@ export default function EventDetailsPage() {
               </p>
             </div>
             <div className="flex items-center space-x-2">
-              <Button variant="outline">
+              <Button variant="outline" onClick={handleExportCSV}>
                 <Download className="h-4 w-4 mr-2" />
                 Exporter
               </Button>
@@ -222,10 +263,7 @@ export default function EventDetailsPage() {
               </div>
               <div className="flex gap-2">
                 <AddGuestDialog eventId={eventId} onGuestAdded={fetchEvent} />
-                <Button variant="outline">
-                  <Users className="h-4 w-4 mr-2" />
-                  Importer CSV
-                </Button>
+                <ImportCSVDialog eventId={eventId} onImportComplete={fetchEvent} />
               </div>
             </div>
           </CardHeader>

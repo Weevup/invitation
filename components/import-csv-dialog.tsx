@@ -1,0 +1,263 @@
+"use client";
+
+import { useState, useRef } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Users, Upload, CheckCircle, AlertCircle } from "lucide-react";
+import Papa from "papaparse";
+
+interface ImportCSVDialogProps {
+  eventId: string;
+  onImportComplete: () => void;
+}
+
+interface CSVRow {
+  firstName: string;
+  lastName: string;
+  email: string;
+  company?: string;
+  tags?: string;
+}
+
+export function ImportCSVDialog({ eventId, onImportComplete }: ImportCSVDialogProps) {
+  const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [file, setFile] = useState<File | null>(null);
+  const [preview, setPreview] = useState<CSVRow[]>([]);
+  const [results, setResults] = useState<{
+    success: number;
+    errors: string[];
+  } | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = e.target.files?.[0];
+    if (selectedFile) {
+      setFile(selectedFile);
+      setResults(null);
+
+      // Parse CSV for preview
+      Papa.parse(selectedFile, {
+        header: true,
+        skipEmptyLines: true,
+        complete: (results) => {
+          const data = results.data as CSVRow[];
+          setPreview(data.slice(0, 5)); // Show first 5 rows
+        },
+      });
+    }
+  };
+
+  const handleImport = async () => {
+    if (!file) return;
+
+    setLoading(true);
+    setResults(null);
+
+    Papa.parse(file, {
+      header: true,
+      skipEmptyLines: true,
+      complete: async (results) => {
+        const data = results.data as CSVRow[];
+        const errors: string[] = [];
+        let successCount = 0;
+
+        for (let i = 0; i < data.length; i++) {
+          const row = data[i];
+
+          // Validate required fields
+          if (!row.firstName || !row.lastName || !row.email) {
+            errors.push(`Ligne ${i + 2}: Prénom, nom et email sont requis`);
+            continue;
+          }
+
+          // Import guest
+          try {
+            const response = await fetch(`/api/admin/events/${eventId}/guests`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                firstName: row.firstName.trim(),
+                lastName: row.lastName.trim(),
+                email: row.email.trim().toLowerCase(),
+                company: row.company?.trim() || null,
+                tags: row.tags
+                  ? row.tags.split(",").map((t) => t.trim()).filter(Boolean)
+                  : [],
+              }),
+            });
+
+            if (response.ok) {
+              successCount++;
+            } else {
+              const error = await response.json();
+              errors.push(
+                `Ligne ${i + 2} (${row.email}): ${error.error || "Erreur inconnue"}`
+              );
+            }
+          } catch (error) {
+            errors.push(`Ligne ${i + 2} (${row.email}): Erreur de connexion`);
+          }
+        }
+
+        setResults({ success: successCount, errors });
+        setLoading(false);
+
+        if (successCount > 0) {
+          onImportComplete();
+        }
+      },
+    });
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+    setFile(null);
+    setPreview([]);
+    setResults(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={handleClose}>
+      <DialogTrigger asChild>
+        <Button variant="outline">
+          <Users className="h-4 w-4 mr-2" />
+          Importer CSV
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Importer des invités depuis un CSV</DialogTitle>
+          <DialogDescription>
+            Format attendu: firstName, lastName, email, company (optionnel), tags
+            (optionnel, séparés par des virgules)
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-4">
+          {/* File Upload */}
+          <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".csv"
+              onChange={handleFileChange}
+              className="hidden"
+              id="csv-upload"
+            />
+            <label htmlFor="csv-upload" className="cursor-pointer">
+              <Upload className="h-12 w-12 text-gray-400 mx-auto mb-2" />
+              <p className="text-sm text-gray-600 mb-1">
+                {file ? file.name : "Cliquez pour sélectionner un fichier CSV"}
+              </p>
+              <p className="text-xs text-gray-500">
+                ou glissez-déposez votre fichier ici
+              </p>
+            </label>
+          </div>
+
+          {/* Preview */}
+          {preview.length > 0 && !results && (
+            <div>
+              <h4 className="text-sm font-medium mb-2">
+                Aperçu ({preview.length} premières lignes):
+              </h4>
+              <div className="border rounded-lg overflow-hidden">
+                <table className="w-full text-xs">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-2 py-1 text-left">Prénom</th>
+                      <th className="px-2 py-1 text-left">Nom</th>
+                      <th className="px-2 py-1 text-left">Email</th>
+                      <th className="px-2 py-1 text-left">Entreprise</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y">
+                    {preview.map((row, idx) => (
+                      <tr key={idx}>
+                        <td className="px-2 py-1">{row.firstName}</td>
+                        <td className="px-2 py-1">{row.lastName}</td>
+                        <td className="px-2 py-1">{row.email}</td>
+                        <td className="px-2 py-1">{row.company || "-"}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* Results */}
+          {results && (
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-md">
+                <CheckCircle className="h-5 w-5 text-green-600" />
+                <div>
+                  <p className="font-medium text-green-800">
+                    {results.success} invité(s) importé(s) avec succès
+                  </p>
+                </div>
+              </div>
+
+              {results.errors.length > 0 && (
+                <div className="p-3 bg-red-50 border border-red-200 rounded-md">
+                  <div className="flex items-start gap-2">
+                    <AlertCircle className="h-5 w-5 text-red-600 mt-0.5" />
+                    <div>
+                      <p className="font-medium text-red-800 mb-2">
+                        {results.errors.length} erreur(s):
+                      </p>
+                      <ul className="text-xs text-red-700 space-y-1 max-h-40 overflow-y-auto">
+                        {results.errors.map((error, idx) => (
+                          <li key={idx}>• {error}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Example Format */}
+          {!file && (
+            <div className="text-xs text-gray-600 bg-gray-50 p-3 rounded-md">
+              <p className="font-medium mb-1">Exemple de format CSV:</p>
+              <code className="block bg-white p-2 rounded border mt-1">
+                firstName,lastName,email,company,tags
+                <br />
+                Sophie,Martin,sophie@example.com,Tech Solutions,VIP
+                <br />
+                Jean,Dupont,jean@example.com,Digital Agency,Presse,Sponsor
+              </code>
+            </div>
+          )}
+        </div>
+
+        <DialogFooter>
+          <Button type="button" variant="outline" onClick={handleClose} disabled={loading}>
+            {results ? "Fermer" : "Annuler"}
+          </Button>
+          {!results && (
+            <Button onClick={handleImport} disabled={!file || loading}>
+              {loading ? "Import en cours..." : "Importer"}
+            </Button>
+          )}
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
