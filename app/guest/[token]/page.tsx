@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -76,11 +76,7 @@ export default function GuestPage() {
   const [consentPhotos, setConsentPhotos] = useState(false);
   const [qrCode, setQrCode] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchGuestData();
-  }, [token]);
-
-  const fetchGuestData = async () => {
+  const fetchGuestData = useCallback(async () => {
     try {
       const response = await fetch(`/api/guest/${token}`);
       if (!response.ok) {
@@ -110,7 +106,11 @@ export default function GuestPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [token, toast, router]);
+
+  useEffect(() => {
+    fetchGuestData();
+  }, [fetchGuestData]);
 
   const handleSubmit = async () => {
     if (attending === null) {

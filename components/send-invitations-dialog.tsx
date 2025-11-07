@@ -100,7 +100,7 @@ export function SendInvitationsDialog({
         <DialogHeader>
           <DialogTitle>Envoyer des invitations</DialogTitle>
           <DialogDescription>
-            Envoyez des emails d'invitation ou de rappel à vos invités
+            Envoyez des emails d&apos;invitation ou de rappel à vos invités
           </DialogDescription>
         </DialogHeader>
 
@@ -114,7 +114,7 @@ export function SendInvitationsDialog({
                     Invitation initiale
                   </Label>
                   <p className="text-sm text-gray-600 mt-1">
-                    Envoyer l'invitation à tous les invités ({totalGuests}{" "}
+                    Envoyer l&apos;invitation à tous les invités ({totalGuests}{" "}
                     personnes)
                   </p>
                 </div>
@@ -127,7 +127,7 @@ export function SendInvitationsDialog({
                     Rappel
                   </Label>
                   <p className="text-sm text-gray-600 mt-1">
-                    Envoyer un rappel uniquement aux invités qui n'ont pas encore
+                    Envoyer un rappel uniquement aux invités qui n&apos;ont pas encore
                     répondu ({pendingGuests} personnes)
                   </p>
                 </div>
@@ -141,7 +141,7 @@ export function SendInvitationsDialog({
               {emailType === "INVITE" && (
                 <p className="text-blue-700 mt-1">
                   Note : Les invités qui ont déjà reçu une invitation recevront
-                  à nouveau l'email.
+                  à nouveau l&apos;email.
                 </p>
               )}
             </div>
@@ -180,7 +180,7 @@ export function SendInvitationsDialog({
             {results.success === 0 && results.failed === 0 && (
               <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-md">
                 <p className="text-yellow-800">
-                  Aucun email n'a été envoyé. Vérifiez vos critères de
+                  Aucun email n&apos;a été envoyé. Vérifiez vos critères de
                   sélection.
                 </p>
               </div>
