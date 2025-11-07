@@ -1,0 +1,205 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  GUEST
+  ADMIN
+}
+
+enum GuestStatus {
+  PENDING
+  INVITED
+  RESPONDED
+  BOUNCED
+}
+
+enum EmailType {
+  INVITE
+  REMINDER
+  CONFIRMATION
+  INFO
+  CUSTOM
+}
+
+enum EmailStatus {
+  PENDING
+  SENT
+  DELIVERED
+  OPENED
+  CLICKED
+  BOUNCED
+  FAILED
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  role      UserRole @default(GUEST)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  adminEvents Event[] @relation("AdminEvents")
+}
+
+model Event {
+  id          String    @id @default(cuid())
+  name        String
+  slug        String    @unique
+  startsAt    DateTime
+  endsAt      DateTime?
+  venueName   String?
+  address     String?
+  city        String?
+  country     String?
+  coverImage  String?
+  description String?   @db.Text
+  program     String?   @db.Text
+  dressCode   String?
+
+  // RSVP Configuration
+  rsvpDeadline   DateTime?
+  maxPlusOnes    Int       @default(0)
+  allowPlusOnes  Boolean   @default(false)
+  requireMeal    Boolean   @default(false)
+  mealOptions    String[]  @default([])
+
+  // Features enabled
+  enableTransport   Boolean @default(false)
+  enableLodging     Boolean @default(false)
+  enableAccessibility Boolean @default(true)
+  enablePhotoConsent Boolean @default(true)
+
+  // Admin
+  adminId String
+  admin   User   @relation("AdminEvents", fields: [adminId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  guests    Guest[]
+  rsvps     RSVP[]
+  checkins  Checkin[]
+  emailLogs EmailLog[]
+
+  @@index([slug])
+  @@index([adminId])
+}
+
+model Guest {
+  id        String      @id @default(cuid())
+  eventId   String
+  event     Event       @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  firstName String
+  lastName  String
+  email     String
+  company   String?
+  tags      String[]    @default([])
+
+  // Authentication
+  token         String      @unique // Will be hashed
+  tokenHash     String      @unique // Hashed version for lookup
+  tokenExpiry   DateTime?
+
+  // Status tracking
+  status        GuestStatus @default(PENDING)
+  lastEmailAt   DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  rsvp      RSVP?
+  checkins  Checkin[]
+  emailLogs EmailLog[]
+
+  @@unique([eventId, email])
+  @@index([tokenHash])
+  @@index([eventId])
+}
+
+model RSVP {
+  id       String  @id @default(cuid())
+  eventId  String
+  event    Event   @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  guestId  String  @unique
+  guest    Guest   @relation(fields: [guestId], references: [id], onDelete: Cascade)
+
+  // Response
+  attending Boolean?
+  plusOnes  Int      @default(0)
+
+  // Meal preferences
+  mealChoice String?
+  allergies  String?  @db.Text
+
+  // Additional info
+  accessibilityNotes String? @db.Text
+  transportNeeds     String? @db.Text
+  lodgingNeeds       String? @db.Text
+
+  // Consents
+  consentPhotos Boolean @default(false)
+
+  // QR Code for check-in
+  qrCodeId String @unique @default(cuid())
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([eventId])
+}
+
+model Checkin {
+  id         String   @id @default(cuid())
+  eventId    String
+  event      Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  guestId    String
+  guest      Guest    @relation(fields: [guestId], references: [id], onDelete: Cascade)
+
+  qrCodeId     String
+  checkedInAt  DateTime @default(now())
+  desk         String?
+  notes        String?
+
+  @@index([eventId])
+  @@index([guestId])
+}
+
+model EmailLog {
+  id         String      @id @default(cuid())
+  eventId    String
+  event      Event       @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  guestId    String
+  guest      Guest       @relation(fields: [guestId], references: [id], onDelete: Cascade)
+
+  type       EmailType
+  status     EmailStatus @default(PENDING)
+
+  subject    String
+  providerId String?
+
+  sentAt     DateTime?
+  openedAt   DateTime?
+  clickedAt  DateTime?
+  bouncedAt  DateTime?
+
+  error      String?     @db.Text
+
+  createdAt  DateTime    @default(now())
+
+  @@index([eventId])
+  @@index([guestId])
+  @@index([status])
+}
