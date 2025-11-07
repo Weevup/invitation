@@ -2,6 +2,10 @@
 
 Une webapp moderne et élégante de gestion d'invitations pour vos événements professionnels.
 
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/Weevup/invitation)
+
+> 🚀 **Déploiement rapide** : [Guide Vercel (5 min)](DEPLOIEMENT-VERCEL.md) | ⚠️ [Pourquoi pas GitHub Pages ?](POURQUOI-PAS-GITHUB-PAGES.md)
+
 ## ✨ Fonctionnalités
 
 ### Pour les organisateurs
@@ -143,6 +147,33 @@ npm run dev
 ```
 
 L'application est accessible sur http://localhost:3000
+
+## 🚢 Déploiement
+
+### Déployer sur Vercel (Recommandé)
+
+Pour déployer votre application en ligne et créer une démo accessible publiquement :
+
+**⚠️ Important :** Cette application **NE PEUT PAS** être déployée sur GitHub Pages (application full-stack avec backend + base de données).
+
+👉 **Solution recommandée : Vercel (gratuit)**
+
+1. **Suivez le guide complet** : [DEPLOIEMENT-VERCEL.md](DEPLOIEMENT-VERCEL.md)
+2. **Ou cliquez sur le bouton** : [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/Weevup/invitation)
+
+**Temps estimé :** 5-10 minutes
+**Coût :** Gratuit pour toujours (avec limites généreuses)
+
+**Inclus dans le déploiement Vercel :**
+- ✅ Hébergement de l'application Next.js
+- ✅ Base de données PostgreSQL (via Neon)
+- ✅ HTTPS automatique
+- ✅ Déploiements automatiques depuis GitHub
+- ✅ Variables d'environnement sécurisées
+
+**Voir aussi :** [Pourquoi pas GitHub Pages ?](POURQUOI-PAS-GITHUB-PAGES.md)
+
+---
 
 ## 📱 Utilisation
 

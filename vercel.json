@@ -1,0 +1,53 @@
+{
+  "buildCommand": "prisma generate && next build",
+  "devCommand": "next dev",
+  "installCommand": "npm install",
+  "framework": "nextjs",
+  "regions": ["cdg1"],
+  "env": {
+    "DATABASE_URL": {
+      "description": "PostgreSQL connection string from Neon or Supabase",
+      "required": true
+    },
+    "JWT_SECRET": {
+      "description": "Secret key for JWT tokens (use a strong random string)",
+      "required": true
+    },
+    "NEXT_PUBLIC_APP_URL": {
+      "description": "Public URL of your app (e.g., https://your-app.vercel.app)",
+      "required": true
+    },
+    "EMAIL_FROM": {
+      "description": "Email sender address",
+      "value": "noreply@invitation-manager.com"
+    },
+    "EMAIL_FROM_NAME": {
+      "description": "Email sender name",
+      "value": "Invitation Manager Weevup"
+    },
+    "RESEND_API_KEY": {
+      "description": "Resend API key for sending emails (optional for demo)",
+      "required": false
+    },
+    "SMTP_HOST": {
+      "description": "SMTP host (optional, for nodemailer)",
+      "value": "smtp.ethereal.email"
+    },
+    "SMTP_PORT": {
+      "description": "SMTP port",
+      "value": "587"
+    },
+    "SMTP_USER": {
+      "description": "SMTP username (optional)",
+      "required": false
+    },
+    "SMTP_PASSWORD": {
+      "description": "SMTP password (optional)",
+      "required": false
+    },
+    "NODE_ENV": {
+      "description": "Node environment",
+      "value": "production"
+    }
+  }
+}
