@@ -489,7 +489,7 @@ export default function GuestPage() {
                       )}
                     </div>
                     <p className="text-sm text-gray-600">
-                      Vous pourrez modifier votre réponse jusqu'au{" "}
+                      Vous pourrez modifier votre réponse jusqu&apos;au{" "}
                       {event.rsvpDeadline &&
                         new Date(event.rsvpDeadline).toLocaleDateString("fr-FR")}
                     </p>
