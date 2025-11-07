@@ -11,6 +11,7 @@ import Link from "next/link";
 import { useToast } from "@/components/ui/use-toast";
 import { AddGuestDialog } from "@/components/add-guest-dialog";
 import { ImportCSVDialog } from "@/components/import-csv-dialog";
+import { SendInvitationsDialog } from "@/components/send-invitations-dialog";
 import Papa from "papaparse";
 
 interface Guest {
@@ -184,10 +185,11 @@ export default function EventDetailsPage() {
                 <Download className="h-4 w-4 mr-2" />
                 Exporter
               </Button>
-              <Button>
-                <Send className="h-4 w-4 mr-2" />
-                Envoyer les invitations
-              </Button>
+              <SendInvitationsDialog
+                eventId={eventId}
+                totalGuests={event.guests.length}
+                pendingGuests={event.guests.filter((g) => !g.rsvp || g.rsvp.attending === null).length}
+              />
             </div>
           </div>
         </div>
