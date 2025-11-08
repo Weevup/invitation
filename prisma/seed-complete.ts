@@ -30,7 +30,6 @@ async function main() {
       venueName: 'Station F',
       address: '5 Parvis Alan Turing',
       city: 'Paris',
-      postalCode: '75013',
       country: 'France',
       coverImage: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=1200',
       description: `Le Tech Summit 2025 est LE rendez-vous annuel des professionnels de la tech en France.
