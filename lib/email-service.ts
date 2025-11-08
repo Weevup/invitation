@@ -536,8 +536,8 @@ async function sendViaSendGrid(
   data: EmailData,
   integration: EmailIntegration,
   from: string,
-  fromName?: string,
-  replyTo?: string
+  fromName?: string | null,
+  replyTo?: string | null
 ): Promise<EmailResult> {
   const apiKey = integration.apiKey ? decrypt(integration.apiKey) : ''
 
@@ -579,8 +579,8 @@ async function sendViaResend(
   data: EmailData,
   integration: EmailIntegration,
   from: string,
-  fromName?: string,
-  replyTo?: string
+  fromName?: string | null,
+  replyTo?: string | null
 ): Promise<EmailResult> {
   const apiKey = integration.apiKey ? decrypt(integration.apiKey) : ''
 
@@ -615,8 +615,8 @@ async function sendViaMailgun(
   data: EmailData,
   integration: EmailIntegration,
   from: string,
-  fromName?: string,
-  replyTo?: string
+  fromName?: string | null,
+  replyTo?: string | null
 ): Promise<EmailResult> {
   const apiKey = integration.apiKey ? decrypt(integration.apiKey) : ''
   const domain = integration.apiSecret
@@ -652,8 +652,8 @@ async function sendViaSMTP(
   data: EmailData,
   integration: EmailIntegration,
   from: string,
-  fromName?: string,
-  replyTo?: string
+  fromName?: string | null,
+  replyTo?: string | null
 ): Promise<EmailResult> {
   const smtpPass = integration.smtpPass ? decrypt(integration.smtpPass) : ''
 
