@@ -588,6 +588,7 @@ export default function InvitationDesignPage() {
           </div>
         </div>
       )}
+      </div>
     </div>
   )
 }
