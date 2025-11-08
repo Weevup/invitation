@@ -286,10 +286,10 @@ export async function GET() {
     // Check email logs
     const emailLogs = await prisma.emailLog.count()
     const deliveredEmails = await prisma.emailLog.count({
-      where: { deliveredAt: { not: null } }
+      where: { status: { in: ['DELIVERED', 'OPENED', 'CLICKED'] } }
     })
     const openedEmails = await prisma.emailLog.count({
-      where: { openedAt: { not: null } }
+      where: { status: { in: ['OPENED', 'CLICKED'] } }
     })
 
     if (emailLogs > 0) {

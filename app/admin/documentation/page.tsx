@@ -922,12 +922,12 @@ model EmailLog {
   messageId       String?     @unique
 
   // Tracking
-  deliveredAt     DateTime?
+  sentAt          DateTime?
   openedAt        DateTime?
   clickedAt       DateTime?
   bouncedAt       DateTime?
-  failedAt        DateTime?
-  failureReason   String?
+
+  error           String?     @db.Text
 
   tracking        EmailTracking[]
 }
@@ -1008,10 +1008,7 @@ const emailStats = await prisma.emailLog.groupBy({
     }
   },
   _count: {
-    id: true,
-    deliveredAt: true,
-    openedAt: true,
-    clickedAt: true,
+    _all: true
   }
 })
 \`\`\`
