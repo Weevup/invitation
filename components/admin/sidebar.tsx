@@ -75,6 +75,12 @@ const navigationSections: NavSection[] = [
         description: 'Santé du système'
       },
       {
+        name: 'Templates Emails',
+        href: '/admin/templates',
+        icon: Mail,
+        description: 'Personnaliser les emails'
+      },
+      {
         name: 'Intégrations',
         href: '/admin/settings/integrations',
         icon: Plug,

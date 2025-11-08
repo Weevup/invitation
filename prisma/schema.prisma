@@ -303,3 +303,42 @@ model EmailIntegration {
   @@index([isActive])
   @@index([isPrimary])
 }
+
+model EmailTemplate {
+  id          String    @id @default(cuid())
+
+  // Template info
+  name        String
+  slug        String    @unique
+  description String?
+  type        EmailType // INVITE, REMINDER, CONFIRMATION, etc.
+
+  // Template content
+  subject     String
+  htmlContent String    @db.Text
+  textContent String?   @db.Text
+
+  // Design settings
+  primaryColor   String  @default("#004645")
+  secondaryColor String  @default("#009197")
+  accentColor    String  @default("#FF4713")
+  fontFamily     String  @default("Arial, sans-serif")
+
+  // Status
+  isDefault   Boolean   @default(false)
+  isActive    Boolean   @default(true)
+
+  // Preview image
+  previewImage String?
+
+  // Usage tracking
+  usageCount  Int       @default(0)
+  lastUsedAt  DateTime?
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([type])
+  @@index([isActive])
+  @@index([isDefault])
+}
