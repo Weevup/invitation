@@ -15,12 +15,11 @@ import {
   ArrowLeft, Bell, Clock, Info
 } from "lucide-react";
 import Link from "next/link";
-import { useToast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
 
 export default function SaveTheDateBuilderPage() {
   const params = useParams();
   const router = useRouter();
-  const { toast } = useToast();
   const eventId = params.id as string;
 
   const [previewMode, setPreviewMode] = useState(false);
@@ -66,19 +65,12 @@ export default function SaveTheDateBuilderPage() {
       });
 
       if (response.ok) {
-        toast({
-          title: "Enregistré !",
-          description: "Votre Save the Date a été sauvegardé avec succès",
-        });
+        toast.success("Votre Save the Date a été sauvegardé avec succès");
       } else {
-        throw new Error("Erreur lors de l'enregistrement");
+        toast.error("Erreur lors de l'enregistrement");
       }
     } catch (error) {
-      toast({
-        title: "Erreur",
-        description: "Impossible d&apos;enregistrer le Save the Date",
-        variant: "destructive",
-      });
+      toast.error("Impossible d'enregistrer le Save the Date");
     } finally {
       setLoading(false);
     }

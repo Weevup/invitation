@@ -13,6 +13,7 @@ import {
 } from 'lucide-react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
+import { toast } from 'sonner'
 
 export default function InvitationDesignPage() {
   const params = useParams()
@@ -67,7 +68,7 @@ export default function InvitationDesignPage() {
   const handleSave = async () => {
     // TODO: Implémenter la sauvegarde vers l'API
     console.log('Saving invitation design:', design)
-    alert('Design de l\'invitation sauvegardé avec succès !')
+    toast.success('Design de l\'invitation sauvegardé avec succès !')
   }
 
   const updateDesign = (key: string, value: any) => {

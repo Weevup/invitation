@@ -37,6 +37,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Alert, AlertDescription } from '@/components/ui/alert'
+import { toast } from 'sonner'
 
 interface EmailTemplate {
   id: string
@@ -92,6 +93,7 @@ export default function TemplatesPage() {
       setTemplates(data)
     } catch (error) {
       console.error('Error fetching templates:', error)
+      toast.error('Erreur lors du chargement des templates')
     } finally {
       setLoading(false)
     }
@@ -152,9 +154,18 @@ export default function TemplatesPage() {
         await fetchTemplates()
         setShowEditor(false)
         setEditingTemplate(null)
+        toast.success(
+          editingTemplate
+            ? 'Template mis à jour avec succès'
+            : 'Template créé avec succès'
+        )
+      } else {
+        const data = await response.json()
+        toast.error(data.error || 'Erreur lors de la sauvegarde')
       }
     } catch (error) {
       console.error('Error saving template:', error)
+      toast.error('Erreur lors de la sauvegarde du template')
     } finally {
       setSaving(false)
     }
@@ -164,10 +175,17 @@ export default function TemplatesPage() {
     if (!confirm('Êtes-vous sûr de vouloir supprimer ce template ?')) return
 
     try {
-      await fetch(`/api/admin/templates/${id}`, { method: 'DELETE' })
-      await fetchTemplates()
+      const response = await fetch(`/api/admin/templates/${id}`, { method: 'DELETE' })
+      if (response.ok) {
+        await fetchTemplates()
+        toast.success('Template supprimé avec succès')
+      } else {
+        const data = await response.json()
+        toast.error(data.error || 'Erreur lors de la suppression')
+      }
     } catch (error) {
       console.error('Error deleting template:', error)
+      toast.error('Erreur lors de la suppression du template')
     }
   }
 

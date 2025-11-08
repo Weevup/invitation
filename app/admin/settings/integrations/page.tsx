@@ -11,7 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
   Mail, Check, AlertCircle, Send, Settings, Zap, Shield, BarChart3, ExternalLink
 } from 'lucide-react'
-import { useToast } from '@/components/ui/use-toast'
+import { toast } from 'sonner'
 
 interface EmailIntegration {
   id: string
@@ -75,7 +75,6 @@ const providers = [
 ]
 
 export default function IntegrationsPage() {
-  const { toast } = useToast()
   const [integrations, setIntegrations] = useState<EmailIntegration[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -109,25 +108,14 @@ export default function IntegrationsPage() {
       })
 
       if (response.ok) {
-        toast({
-          title: 'Configuration enregistrée',
-          description: 'L\'intégration a été configurée avec succès',
-        })
+        toast.success('L\'intégration a été configurée avec succès')
         fetchIntegrations()
       } else {
         const error = await response.json()
-        toast({
-          title: 'Erreur',
-          description: error.message || 'Impossible de sauvegarder la configuration',
-          variant: 'destructive',
-        })
+        toast.error(error.message || 'Impossible de sauvegarder la configuration')
       }
     } catch (error) {
-      toast({
-        title: 'Erreur',
-        description: 'Une erreur est survenue',
-        variant: 'destructive',
-      })
+      toast.error('Une erreur est survenue')
     } finally {
       setSaving(false)
     }
@@ -143,25 +131,14 @@ export default function IntegrationsPage() {
       })
 
       if (response.ok) {
-        toast({
-          title: 'Test réussi',
-          description: 'Un email de test a été envoyé avec succès',
-        })
+        toast.success('Un email de test a été envoyé avec succès')
         fetchIntegrations()
       } else {
         const error = await response.json()
-        toast({
-          title: 'Test échoué',
-          description: error.message || 'Impossible d\'envoyer l\'email de test',
-          variant: 'destructive',
-        })
+        toast.error(error.message || 'Impossible d\'envoyer l\'email de test')
       }
     } catch (error) {
-      toast({
-        title: 'Erreur',
-        description: 'Une erreur est survenue lors du test',
-        variant: 'destructive',
-      })
+      toast.error('Une erreur est survenue lors du test')
     } finally {
       setTesting(null)
     }

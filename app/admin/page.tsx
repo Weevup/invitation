@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar, Users, CheckCircle, Clock, TrendingUp, Plus, Sparkles } from "lucide-react";
 import Link from "next/link";
+import { toast } from "sonner";
 
 interface Event {
   id: string;
@@ -50,14 +51,14 @@ export default function AdminDashboard() {
       const data = await response.json();
 
       if (response.ok) {
-        alert(data.message);
+        toast.success(data.message);
         fetchEvents(); // Reload events
       } else {
-        alert(`Erreur: ${data.error}\nDétails: ${data.details || ''}`);
+        toast.error(`Erreur: ${data.error}${data.details ? '\nDétails: ' + data.details : ''}`);
       }
     } catch (error) {
       console.error('Error initializing:', error);
-      alert('Erreur de connexion');
+      toast.error('Erreur de connexion');
     } finally {
       setInitLoading(false);
     }
