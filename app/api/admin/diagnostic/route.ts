@@ -31,7 +31,9 @@ interface EventSelect {
 
 interface GuestGroupBy {
   status: string
-  _count: number
+  _count: {
+    _all: number
+  }
 }
 
 interface WebhookIntegrationSelect {
@@ -268,9 +270,9 @@ export async function GET() {
       _count: true
     }) as GuestGroupBy[]
 
-    const totalGuests = guestsWithRSVP.reduce((sum: number, g: GuestGroupBy) => sum + g._count, 0)
+    const totalGuests = guestsWithRSVP.reduce((sum: number, g: GuestGroupBy) => sum + g._count._all, 0)
     if (totalGuests > 0) {
-      const statusBreakdown = guestsWithRSVP.map(g => `${g.status}: ${g._count}`).join(', ')
+      const statusBreakdown = guestsWithRSVP.map(g => `${g.status}: ${g._count._all}`).join(', ')
       checks.data.push({
         name: 'RSVP',
         status: 'success',
