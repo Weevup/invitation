@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   Mail, Users, Download, Search, Send, Link as LinkIcon,
   Calendar, MapPin, CheckCircle, Clock, UserPlus, Upload,
-  ArrowRight, Sparkles
+  ArrowRight, Sparkles, Bell
 } from "lucide-react";
 import Link from "next/link";
 import { useToast } from "@/components/ui/use-toast";
@@ -257,25 +257,124 @@ export default function EventDetailsPage() {
       </header>
 
       <div className="relative container mx-auto px-4 py-8">
-        {/* Configuration rapide */}
+        {/* Timeline du cycle de l'événement */}
+        <Card className="mb-8 border-[#FF4713]/30 bg-gradient-to-r from-[#FF4713]/5 via-[#009197]/5 to-[#004645]/5 backdrop-blur">
+          <CardHeader>
+            <div className="flex items-center gap-3">
+              <Clock className="h-6 w-6 text-[#FF4713]" />
+              <div>
+                <CardTitle className="text-[#004645]" style={{ fontFamily: "var(--font-abril)" }}>
+                  Cycle de l&apos;événement
+                </CardTitle>
+                <CardDescription className="text-[#004645]/70">
+                  Save the Date → Invitation → RSVP
+                </CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="relative">
+              {/* Ligne de connexion */}
+              <div className="absolute top-8 left-0 right-0 h-1 bg-gradient-to-r from-[#FF4713] via-[#009197] to-[#004645] opacity-20 hidden md:block" />
+
+              <div className="grid md:grid-cols-3 gap-6 relative">
+                {/* Étape 1: Save the Date */}
+                <div className="text-center">
+                  <div className="relative mx-auto mb-4 w-16 h-16 bg-gradient-to-br from-[#FF4713] to-[#FF6B3D] rounded-full flex items-center justify-center shadow-lg">
+                    <Bell className="h-8 w-8 text-white" />
+                    <div className="absolute -top-2 -right-2 w-8 h-8 bg-white rounded-full flex items-center justify-center border-2 border-[#FF4713]">
+                      <span className="text-xs font-bold text-[#FF4713]">1</span>
+                    </div>
+                  </div>
+                  <h3 className="font-bold text-[#004645] mb-1">Save the Date</h3>
+                  <p className="text-xs text-[#004645]/60 mb-2">J-90 à J-60</p>
+                  <p className="text-sm text-[#004645]/70">
+                    Pré-invitation pour bloquer la date
+                  </p>
+                </div>
+
+                {/* Étape 2: Invitation */}
+                <div className="text-center">
+                  <div className="relative mx-auto mb-4 w-16 h-16 bg-gradient-to-br from-[#009197] to-[#9CD9F6] rounded-full flex items-center justify-center shadow-lg">
+                    <Sparkles className="h-8 w-8 text-white" />
+                    <div className="absolute -top-2 -right-2 w-8 h-8 bg-white rounded-full flex items-center justify-center border-2 border-[#009197]">
+                      <span className="text-xs font-bold text-[#009197]">2</span>
+                    </div>
+                  </div>
+                  <h3 className="font-bold text-[#004645] mb-1">Invitation</h3>
+                  <p className="text-xs text-[#004645]/60 mb-2">J-60 à J-30</p>
+                  <p className="text-sm text-[#004645]/70">
+                    Annonce officielle avec détails
+                  </p>
+                </div>
+
+                {/* Étape 3: RSVP */}
+                <div className="text-center">
+                  <div className="relative mx-auto mb-4 w-16 h-16 bg-gradient-to-br from-[#004645] to-[#006C51] rounded-full flex items-center justify-center shadow-lg">
+                    <CheckCircle className="h-8 w-8 text-white" />
+                    <div className="absolute -top-2 -right-2 w-8 h-8 bg-white rounded-full flex items-center justify-center border-2 border-[#004645]">
+                      <span className="text-xs font-bold text-[#004645]">3</span>
+                    </div>
+                  </div>
+                  <h3 className="font-bold text-[#004645] mb-1">RSVP</h3>
+                  <p className="text-xs text-[#004645]/60 mb-2">J-30 à J-14</p>
+                  <p className="text-sm text-[#004645]/70">
+                    Confirmation de participation
+                  </p>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Configuration des builders */}
         <div className="mb-8">
           <h2 className="text-2xl font-bold text-[#004645] mb-4" style={{ fontFamily: "var(--font-abril)" }}>
             Configuration de l&apos;événement
           </h2>
-          <div className="grid md:grid-cols-2 gap-4">
-            <Link href={`/admin/events/${eventId}/invitation`}>
-              <Card className="border-[#9CD9F6]/30 bg-white/80 backdrop-blur hover:shadow-xl transition-all duration-300 group cursor-pointer h-full">
+          <div className="grid md:grid-cols-3 gap-4">
+            {/* Save the Date Builder */}
+            <Link href={`/admin/events/${eventId}/save-the-date`}>
+              <Card className="border-[#FF4713]/30 bg-white/80 backdrop-blur hover:shadow-xl transition-all duration-300 group cursor-pointer h-full">
                 <CardHeader>
                   <div className="flex items-start gap-4">
-                    <div className="p-3 rounded-lg bg-purple-50">
-                      <Sparkles className="h-6 w-6 text-purple-600" />
+                    <div className="p-3 rounded-lg bg-orange-50">
+                      <Bell className="h-6 w-6 text-[#FF4713]" />
                     </div>
                     <div className="flex-1">
-                      <CardTitle className="text-[#004645] group-hover:text-[#009197] transition-colors mb-2">
-                        Design de l&apos;invitation
-                      </CardTitle>
+                      <div className="flex items-center gap-2 mb-2">
+                        <CardTitle className="text-[#004645] group-hover:text-[#FF4713] transition-colors">
+                          Save the Date
+                        </CardTitle>
+                        <Badge variant="secondary" className="text-xs">Étape 1</Badge>
+                      </div>
                       <CardDescription>
-                        Personnalisez l&apos;apparence, les couleurs et le contenu de votre invitation
+                        Créez votre pré-invitation pour annoncer la date
+                      </CardDescription>
+                    </div>
+                    <ArrowRight className="h-5 w-5 text-[#004645]/40 group-hover:text-[#FF4713] transition-colors" />
+                  </div>
+                </CardHeader>
+              </Card>
+            </Link>
+
+            {/* Invitation Builder */}
+            <Link href={`/admin/events/${eventId}/invitation`}>
+              <Card className="border-[#009197]/30 bg-white/80 backdrop-blur hover:shadow-xl transition-all duration-300 group cursor-pointer h-full">
+                <CardHeader>
+                  <div className="flex items-start gap-4">
+                    <div className="p-3 rounded-lg bg-teal-50">
+                      <Sparkles className="h-6 w-6 text-[#009197]" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <CardTitle className="text-[#004645] group-hover:text-[#009197] transition-colors">
+                          Invitation officielle
+                        </CardTitle>
+                        <Badge variant="secondary" className="text-xs">Étape 2</Badge>
+                      </div>
+                      <CardDescription>
+                        Personnalisez l&apos;invitation avec tous les détails
                       </CardDescription>
                     </div>
                     <ArrowRight className="h-5 w-5 text-[#004645]/40 group-hover:text-[#009197] transition-colors" />
@@ -284,22 +383,26 @@ export default function EventDetailsPage() {
               </Card>
             </Link>
 
+            {/* RSVP Builder */}
             <Link href={`/admin/events/${eventId}/rsvp-config`}>
-              <Card className="border-[#9CD9F6]/30 bg-white/80 backdrop-blur hover:shadow-xl transition-all duration-300 group cursor-pointer h-full">
+              <Card className="border-[#004645]/30 bg-white/80 backdrop-blur hover:shadow-xl transition-all duration-300 group cursor-pointer h-full">
                 <CardHeader>
                   <div className="flex items-start gap-4">
-                    <div className="p-3 rounded-lg bg-blue-50">
-                      <CheckCircle className="h-6 w-6 text-blue-600" />
+                    <div className="p-3 rounded-lg bg-green-50">
+                      <CheckCircle className="h-6 w-6 text-[#004645]" />
                     </div>
                     <div className="flex-1">
-                      <CardTitle className="text-[#004645] group-hover:text-[#009197] transition-colors mb-2">
-                        Formulaire RSVP
-                      </CardTitle>
+                      <div className="flex items-center gap-2 mb-2">
+                        <CardTitle className="text-[#004645] group-hover:text-[#006C51] transition-colors">
+                          Formulaire RSVP
+                        </CardTitle>
+                        <Badge variant="secondary" className="text-xs">Étape 3</Badge>
+                      </div>
                       <CardDescription>
-                        Créez et personnalisez le formulaire de réponse pour vos invités
+                        Créez le formulaire de confirmation de présence
                       </CardDescription>
                     </div>
-                    <ArrowRight className="h-5 w-5 text-[#004645]/40 group-hover:text-[#009197] transition-colors" />
+                    <ArrowRight className="h-5 w-5 text-[#004645]/40 group-hover:text-[#006C51] transition-colors" />
                   </div>
                 </CardHeader>
               </Card>
