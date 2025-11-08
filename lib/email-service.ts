@@ -658,11 +658,11 @@ async function sendViaSMTP(
   const smtpPass = integration.smtpPass ? decrypt(integration.smtpPass) : ''
 
   const transporter = nodemailer.createTransport({
-    host: integration.smtpHost,
+    host: integration.smtpHost || undefined,
     port: integration.smtpPort || 587,
     secure: integration.smtpPort === 465,
     auth: {
-      user: integration.smtpUser,
+      user: integration.smtpUser || undefined,
       pass: smtpPass,
     },
   })
