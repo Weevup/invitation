@@ -12,6 +12,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/components/ui/use-toast";
 import { Calendar, MapPin, Clock, Users, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
+import { RSVPProgress } from "@/components/rsvp-progress";
+import { RSVPConfirmation } from "@/components/rsvp-confirmation";
 
 interface GuestData {
   guest: {
@@ -219,6 +221,27 @@ export default function GuestPage() {
                 Bonjour {guest.firstName} 👋
               </h1>
               <p className="text-[#004645]/70">Vous êtes invité(e) à</p>
+            </motion.div>
+
+            {/* Progress Bar */}
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+            >
+              <RSVPProgress
+                currentStep={step}
+                totalSteps={7}
+                stepLabels={[
+                  'Réponse',
+                  'Accompagnants',
+                  'Repas',
+                  'Accès',
+                  'Transport',
+                  'Hébergement',
+                  'Confirmation'
+                ]}
+              />
             </motion.div>
 
             {/* Event Info Card */}
@@ -552,43 +575,24 @@ export default function GuestPage() {
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5 }}
           >
-            <Card className="text-center border-[#9CD9F6]/30 bg-white/80 backdrop-blur">
-              <CardHeader>
-                <div className="mx-auto bg-gradient-to-br from-[#009197] to-[#9CD9F6] rounded-full w-16 h-16 flex items-center justify-center mb-4">
-                  <span className="text-3xl text-white">✓</span>
-                </div>
-                <CardTitle className="text-2xl text-[#004645]" style={{ fontFamily: "var(--font-abril)" }}>
-                  {attending ? "Merci, à très bientôt !" : "Réponse enregistrée"}
-                </CardTitle>
-                <CardDescription className="text-[#004645]/70">
-                  {attending
-                    ? `Votre participation à "${event.name}" est confirmée.`
-                    : "Votre réponse a bien été enregistrée."}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {attending && qrCode && (
-                  <div>
-                    <p className="font-semibold mb-4 text-[#004645]">Votre QR code d&apos;accès :</p>
-                    <img
-                      src={qrCode}
-                      alt="QR Code"
-                      className="mx-auto max-w-[200px]"
-                    />
-                    <p className="text-sm text-[#004645]/70 mt-2">
-                      Présentez ce code à l&apos;entrée de l&apos;événement
-                    </p>
-                  </div>
-                )}
-                <p className="text-sm text-[#004645]/70">
-                  Un email de confirmation vous a été envoyé à {guest.email}
-                </p>
-                <Button onClick={() => router.push("/")} variant="outline" className="border-[#004645] text-[#004645] hover:bg-[#004645] hover:text-white">
-                  Retour à l&apos;accueil
-                </Button>
-              </CardContent>
-            </Card>
+            <RSVPConfirmation
+              attending={attending ?? false}
+              guestName={guest.firstName}
+              eventName={event.name}
+              qrCodeData={qrCode || undefined}
+            />
+            <div className="mt-6 text-center">
+              <Button
+                onClick={() => router.push("/")}
+                variant="outline"
+                size="lg"
+                className="border-[#004645] text-[#004645] hover:bg-[#004645] hover:text-white"
+              >
+                Retour à l&apos;accueil
+              </Button>
+            </div>
           </motion.div>
         )}
       </div>

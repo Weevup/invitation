@@ -164,8 +164,19 @@ export default function HomePage() {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
           {[
+            {
+              icon: Sparkles,
+              title: "Page Vitrine",
+              description: "Page publique élégante avec 8 thèmes professionnels",
+              features: [
+                "8 thèmes visuels prédéfinis",
+                "12 sections personnalisables",
+                "Animations et effets modernes",
+              ],
+              color: "from-[#FF4713] to-[#FF6B3D]",
+            },
             {
               icon: Users,
               title: "Gestion des invités",
@@ -178,24 +189,24 @@ export default function HomePage() {
               color: "from-[#004645] to-[#006C51]",
             },
             {
-              icon: Mail,
-              title: "Emails automatisés",
-              description: "Templates élégants avec suivi en temps réel",
+              icon: Calendar,
+              title: "Showcase Avancé",
+              description: "Speakers, sponsors, timeline et galerie photo",
               features: [
-                "3 templates professionnels",
-                "Rappels automatiques",
-                "Tracking des ouvertures",
+                "Intervenants avec bios",
+                "Sponsors par tier",
+                "Timeline de l'événement",
               ],
               color: "from-[#009197] to-[#9CD9F6]",
             },
             {
               icon: QrCode,
-              title: "QR Codes & Check-in",
-              description: "Simplifiez l'accueil avec des QR codes uniques",
+              title: "Analytics & RSVP",
+              description: "Suivi en temps réel et graphiques interactifs",
               features: [
-                "QR codes automatiques",
-                "Scan à l'entrée",
-                "Statistiques en temps réel",
+                "Graphiques détaillés",
+                "Export PDF/CSV",
+                "QR codes check-in",
               ],
               color: "from-[#006C51] to-[#009197]",
             },
@@ -230,6 +241,65 @@ export default function HomePage() {
               </Card>
             );
           })}
+        </div>
+      </section>
+
+      {/* Showcase Themes Preview */}
+      <section className="relative container mx-auto px-4 py-20 bg-gradient-to-b from-transparent via-[#9CD9F6]/10 to-transparent">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#FF4713]/10 rounded-full mb-4">
+              <Sparkles className="w-4 h-4 text-[#FF4713]" />
+              <span className="text-sm font-semibold text-[#FF4713]">Nouveau</span>
+            </div>
+            <h2
+              className="text-5xl font-bold mb-4 text-[#004645]"
+              style={{ fontFamily: "var(--font-abril)" }}
+            >
+              8 thèmes <span className="text-[#FF4713]">professionnels</span>
+            </h2>
+            <p className="text-lg text-[#004B56]/80 max-w-2xl mx-auto">
+              Créez une page vitrine unique en quelques clics. Chaque thème est conçu pour impressionner vos invités.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            {[
+              { name: "Weevup", gradient: "linear-gradient(135deg, #004645 0%, #009197 50%, #FF4713 100%)" },
+              { name: "Élégance", gradient: "linear-gradient(135deg, #1a1a1a 0%, #3d3d3d 50%, #d4af37 100%)" },
+              { name: "Moderne", gradient: "linear-gradient(135deg, #2563eb 0%, #7c3aed 50%, #8b5cf6 100%)" },
+              { name: "Océan", gradient: "linear-gradient(135deg, #0c4a6e 0%, #0369a1 50%, #06b6d4 100%)" },
+              { name: "Sunset", gradient: "linear-gradient(135deg, #dc2626 0%, #f97316 50%, #f59e0b 100%)" },
+              { name: "Forêt", gradient: "linear-gradient(135deg, #14532d 0%, #166534 50%, #84cc16 100%)" },
+              { name: "Royal", gradient: "linear-gradient(135deg, #581c87 0%, #7c3aed 50%, #eab308 100%)" },
+              { name: "Minimal", gradient: "linear-gradient(135deg, #374151 0%, #6b7280 50%, #10b981 100%)" },
+            ].map((theme, idx) => (
+              <div
+                key={idx}
+                className="group cursor-pointer"
+              >
+                <div
+                  className="h-32 rounded-xl mb-2 shadow-lg group-hover:shadow-2xl group-hover:scale-105 transition-all duration-300"
+                  style={{ background: theme.gradient }}
+                />
+                <p className="text-center text-sm font-medium text-[#004645]">{theme.name}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="text-center">
+            <p className="text-sm text-[#004645]/70 mb-4">
+              ✨ Plus de sections : Speakers, Sponsors, Timeline, Galerie, FAQ, Vidéo...
+            </p>
+            <Link href="/admin/setup">
+              <Button
+                className="bg-gradient-to-r from-[#FF4713] to-[#FF6B3D] hover:from-[#FF6B3D] hover:to-[#FF4713] text-white"
+              >
+                <Sparkles className="h-4 w-4 mr-2" />
+                Essayer maintenant
+              </Button>
+            </Link>
+          </div>
         </div>
       </section>
 
