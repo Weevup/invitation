@@ -4,10 +4,10 @@ import { prisma } from '@/lib/prisma';
 // GET - Récupérer la configuration Save the Date
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const eventId = params.id;
+    const { id: eventId } = await params;
 
     const event = await prisma.event.findUnique({
       where: { id: eventId },
@@ -37,10 +37,10 @@ export async function GET(
 // POST - Sauvegarder la configuration Save the Date
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const eventId = params.id;
+    const { id: eventId } = await params;
     const config = await request.json();
 
     const updatedEvent = await prisma.event.update({
