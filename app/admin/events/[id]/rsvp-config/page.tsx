@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/select'
 import {
   Settings, Plus, Trash2, GripVertical, Eye, Save,
-  MessageSquare, CheckSquare, ListChecked, Calendar,
+  MessageSquare, CheckSquare, List, Calendar,
   User, Mail, Phone, Building, Utensils, Users
 } from 'lucide-react'
 import { useParams } from 'next/navigation'
@@ -46,7 +46,7 @@ const fieldTypeIcons = {
   email: Mail,
   phone: Phone,
   textarea: MessageSquare,
-  select: ListChecked,
+  select: List,
   radio: CheckSquare,
   checkbox: CheckSquare,
   number: Users
@@ -340,7 +340,7 @@ export default function RSVPConfigPage() {
                       <MessageSquare className="h-4 w-4 mr-1" /> Texte long
                     </Button>
                     <Button variant="outline" size="sm" onClick={() => addField('select')} className="border-[#9CD9F6]/30">
-                      <ListChecked className="h-4 w-4 mr-1" /> Liste déroulante
+                      <List className="h-4 w-4 mr-1" /> Liste déroulante
                     </Button>
                     <Button variant="outline" size="sm" onClick={() => addField('radio')} className="border-[#9CD9F6]/30">
                       <CheckSquare className="h-4 w-4 mr-1" /> Choix unique
@@ -429,7 +429,7 @@ export default function RSVPConfigPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <Label className="text-sm font-medium">Hébergement</Label>
-                    <p className="text-xs text-[#004645]/70">Besoin d'un hébergement</p>
+                    <p className="text-xs text-[#004645]/70">Besoin d&apos;un hébergement</p>
                   </div>
                   <Switch
                     checked={config.collectAccommodation}

@@ -260,7 +260,7 @@ export default function EventDetailsPage() {
         {/* Configuration rapide */}
         <div className="mb-8">
           <h2 className="text-2xl font-bold text-[#004645] mb-4" style={{ fontFamily: "var(--font-abril)" }}>
-            Configuration de l'événement
+            Configuration de l&apos;événement
           </h2>
           <div className="grid md:grid-cols-2 gap-4">
             <Link href={`/admin/events/${eventId}/invitation`}>
@@ -272,10 +272,10 @@ export default function EventDetailsPage() {
                     </div>
                     <div className="flex-1">
                       <CardTitle className="text-[#004645] group-hover:text-[#009197] transition-colors mb-2">
-                        Design de l'invitation
+                        Design de l&apos;invitation
                       </CardTitle>
                       <CardDescription>
-                        Personnalisez l'apparence, les couleurs et le contenu de votre invitation
+                        Personnalisez l&apos;apparence, les couleurs et le contenu de votre invitation
                       </CardDescription>
                     </div>
                     <ArrowRight className="h-5 w-5 text-[#004645]/40 group-hover:text-[#009197] transition-colors" />

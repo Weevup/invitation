@@ -79,10 +79,10 @@ export default function InvitationDesignPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-[#004645]" style={{ fontFamily: "var(--font-abril)" }}>
-            Design de l'invitation
+            Design de l&apos;invitation
           </h1>
           <p className="text-[#004645]/70 mt-1">
-            Personnalisez l'apparence et le contenu de votre invitation
+            Personnalisez l&apos;apparence et le contenu de votre invitation
           </p>
         </div>
         <div className="flex gap-2">
@@ -235,12 +235,12 @@ export default function InvitationDesignPage() {
               <CardHeader>
                 <CardTitle className="text-[#004645] flex items-center gap-2">
                   <Type className="h-5 w-5" />
-                  Contenu de l'invitation
+                  Contenu de l&apos;invitation
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <Label>Message d'accueil</Label>
+                  <Label>Message d&apos;accueil</Label>
                   <Input
                     value={design.welcomeMessage}
                     onChange={(e) => updateDesign('welcomeMessage', e.target.value)}
@@ -249,7 +249,7 @@ export default function InvitationDesignPage() {
                 </div>
 
                 <div>
-                  <Label>Nom de l'événement</Label>
+                  <Label>Nom de l&apos;événement</Label>
                   <Input
                     value={design.eventName}
                     onChange={(e) => updateDesign('eventName', e.target.value)}
@@ -452,7 +452,7 @@ export default function InvitationDesignPage() {
                 </div>
 
                 <div>
-                  <Label className="text-sm">Couleur d'accent</Label>
+                  <Label className="text-sm">Couleur d&apos;accent</Label>
                   <div className="flex gap-2">
                     <Input
                       type="color"
@@ -506,7 +506,7 @@ export default function InvitationDesignPage() {
                 </div>
 
                 <div>
-                  <Label className="text-sm">Image d'en-tête (URL)</Label>
+                  <Label className="text-sm">Image d&apos;en-tête (URL)</Label>
                   <Input
                     value={design.headerImage}
                     onChange={(e) => updateDesign('headerImage', e.target.value)}
@@ -534,7 +534,7 @@ export default function InvitationDesignPage() {
                 </div>
 
                 <div className="flex items-center justify-between">
-                  <Label className="text-sm">Afficher l'heure</Label>
+                  <Label className="text-sm">Afficher l&apos;heure</Label>
                   <Switch
                     checked={design.showTime}
                     onCheckedChange={(checked) => updateDesign('showTime', checked)}
