@@ -61,11 +61,11 @@ export async function GET() {
 
     // Get confirmed vs pending RSVPs
     const confirmedRsvps = await prisma.rSVP.count({
-      where: { status: 'CONFIRMED' }
+      where: { attending: true }
     })
     const pendingRsvps = await prisma.guest.count({
       where: {
-        rsvps: { none: {} }
+        rsvp: null
       }
     })
 
@@ -102,7 +102,7 @@ export async function GET() {
         id: rsvp.id,
         guestName: `${rsvp.guest.firstName} ${rsvp.guest.lastName}`,
         eventName: rsvp.event.name,
-        status: rsvp.status,
+        attending: rsvp.attending,
         createdAt: rsvp.createdAt
       })),
       topEvents: events
