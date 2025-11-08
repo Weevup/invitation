@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge'
 import {
   Users, Download, Search, Link as LinkIcon, UserPlus, Upload
 } from 'lucide-react'
-import { useToast } from '@/components/ui/use-toast'
+import { toast } from 'sonner'
 import { AddGuestDialog } from '@/components/add-guest-dialog'
 import { ImportCSVDialog } from '@/components/import-csv-dialog'
 import { SendInvitationsDialog } from '@/components/send-invitations-dialog'
@@ -39,7 +39,6 @@ interface EventDetails {
 
 export default function GuestsPage() {
   const params = useParams()
-  const { toast } = useToast()
   const eventId = params.id as string
 
   const [event, setEvent] = useState<EventDetails | null>(null)
@@ -68,10 +67,7 @@ export default function GuestsPage() {
     const baseUrl = window.location.origin
     const link = `${baseUrl}/guest/${token}`
     navigator.clipboard.writeText(link)
-    toast({
-      title: 'Lien copié',
-      description: "Le lien d'invitation a été copié dans le presse-papier",
-    })
+    toast.success("Le lien d'invitation a été copié dans le presse-papier")
   }
 
   const handleExportCSV = () => {
@@ -97,10 +93,7 @@ export default function GuestsPage() {
     link.download = `invites-${event.name}.csv`
     link.click()
 
-    toast({
-      title: 'Export réussi',
-      description: `${event.guests.length} invités exportés`,
-    })
+    toast.success(`${event.guests.length} invités exportés`)
   }
 
   if (loading) {
