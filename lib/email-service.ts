@@ -480,15 +480,15 @@ export interface EmailData {
 export interface EmailIntegration {
   id: string
   provider: 'SENDGRID' | 'RESEND' | 'MAILGUN' | 'SMTP'
-  apiKey?: string
-  apiSecret?: string
-  smtpHost?: string
-  smtpPort?: number
-  smtpUser?: string
-  smtpPass?: string
-  fromEmail?: string
-  fromName?: string
-  replyTo?: string
+  apiKey?: string | null
+  apiSecret?: string | null
+  smtpHost?: string | null
+  smtpPort?: number | null
+  smtpUser?: string | null
+  smtpPass?: string | null
+  fromEmail?: string | null
+  fromName?: string | null
+  replyTo?: string | null
   trackOpens: boolean
   trackClicks: boolean
 }
