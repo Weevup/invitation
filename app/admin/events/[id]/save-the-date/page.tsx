@@ -206,7 +206,7 @@ export default function SaveTheDateBuilderPage() {
                           placeholder="12 Mars 2026"
                         />
                         <p className="text-xs text-[#004645]/60 mt-1">
-                          Format libre (ex: "Printemps 2026", "12-13 Mars 2026")
+                          Format libre (ex: &quot;Printemps 2026&quot;, &quot;12-13 Mars 2026&quot;)
                         </p>
                       </div>
 

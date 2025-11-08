@@ -16,91 +16,91 @@ export default function TutorielPage() {
   const steps = [
     {
       id: 1,
-      title: "Créer votre premier événement",
-      icon: Calendar,
+      title: "Configurer l'envoi d'emails",
+      icon: Settings,
       color: "text-[#009197]",
-      description: "Commencez par créer un événement avec toutes les informations nécessaires",
+      description: "Configurez votre service d'envoi d'emails (Resend ou SendGrid)",
       details: [
-        "Cliquez sur 'Événements' dans le menu de gauche",
-        "Cliquez sur 'Nouvel événement' ou le bouton '+' en haut à droite",
-        "Remplissez les informations : nom, date, lieu, description",
-        "Personnalisez l'apparence avec vos couleurs et logo",
-        "Enregistrez votre événement"
+        "Allez dans Paramètres → Configuration Email",
+        "Choisissez votre provider (Resend recommandé)",
+        "Ajoutez votre clé API dans le fichier .env.local",
+        "Configurez l'email expéditeur vérifié",
+        "Testez la configuration avec un email de test"
       ],
-      link: "/admin/events/new"
+      link: "/admin/settings/email"
     },
     {
       id: 2,
-      title: "Importer votre liste d'invités",
-      icon: Users,
+      title: "Créer votre événement",
+      icon: Calendar,
       color: "text-[#004645]",
-      description: "Ajoutez vos invités manuellement ou importez un fichier CSV",
+      description: "Créez votre événement et configurez le cycle de communication",
+      details: [
+        "Cliquez sur 'Événements' puis 'Nouvel événement'",
+        "Remplissez les informations : nom, date, lieu, description",
+        "Configurez le Save the Date (étape 1 : pré-invitation)",
+        "Configurez l'Invitation officielle (étape 2 : détails complets)",
+        "Configurez le formulaire RSVP (étape 3 : confirmation)"
+      ],
+      link: "/admin"
+    },
+    {
+      id: 3,
+      title: "Ajouter vos invités",
+      icon: Users,
+      color: "text-[#FF4713]",
+      description: "Importez votre liste d'invités par CSV ou ajout manuel",
       details: [
         "Accédez à la page de votre événement",
-        "Dans l'onglet 'Invités', cliquez sur 'Ajouter des invités'",
-        "Option 1 : Ajoutez les invités un par un (nom, prénom, email, entreprise)",
-        "Option 2 : Importez un fichier CSV avec les colonnes requises",
-        "Vérifiez que tous les invités sont bien ajoutés"
+        "Cliquez sur 'Ajouter des invités' ou 'Importer CSV'",
+        "Format CSV : Prénom, Nom, Email, Entreprise, Tags",
+        "Vérifiez que tous les invités sont bien importés",
+        "Chaque invité reçoit automatiquement un token unique"
       ],
       link: "/admin/guests"
     },
     {
-      id: 3,
-      title: "Générer et envoyer les invitations",
-      icon: Mail,
-      color: "text-[#FF4713]",
-      description: "Créez des invitations personnalisées et envoyez-les à vos invités",
-      details: [
-        "Chaque invité reçoit automatiquement un lien unique et sécurisé",
-        "Vous pouvez copier le lien d'invitation depuis la page 'Invités & RSVP'",
-        "Personnalisez le message d'invitation si nécessaire",
-        "Envoyez les invitations par email ou partagez les liens",
-        "Suivez l'état d'envoi de chaque invitation"
-      ],
-      link: "/admin/invitations"
-    },
-    {
       id: 4,
-      title: "Suivre les réponses RSVP",
-      icon: CheckCircle,
-      color: "text-green-600",
-      description: "Gérez et suivez les réponses de vos invités en temps réel",
+      title: "Gérer les communications",
+      icon: Mail,
+      color: "text-[#009197]",
+      description: "Planifiez et envoyez vos communications (Save the Date, Invitation, Rappel)",
       details: [
-        "Consultez le tableau de bord pour voir les statistiques globales",
-        "Accédez à 'Invités & RSVP' pour voir le détail de chaque réponse",
-        "Filtrez les invités par statut : confirmé, refusé, en attente",
-        "Exportez la liste des participants confirmés",
-        "Envoyez des relances aux invités qui n'ont pas répondu"
+        "Accédez à 'Gestion des communications' depuis la page événement",
+        "Onglet Planification : Programmez vos envois (dates automatiques ou manuelles)",
+        "Save the Date (J-90 à J-60) : Annonce teaser de la date",
+        "Invitation (J-60 à J-30) : Détails complets + lien RSVP",
+        "Rappel (J-7 à J-2) : Confirmation avec QR code pour le jour J"
       ],
       link: "/admin"
     },
     {
       id: 5,
-      title: "Analyser vos statistiques",
+      title: "Suivre les statistiques",
       icon: BarChart,
-      color: "text-[#9CD9F6]",
-      description: "Consultez les analyses détaillées de vos événements",
+      color: "text-green-600",
+      description: "Analysez les performances de vos communications",
       details: [
-        "Visualisez le taux de réponse global et par événement",
-        "Consultez les graphiques de participation",
-        "Analysez les tendances de réponse dans le temps",
-        "Identifiez les moments de pic d'engagement",
+        "Onglet Analytics : Consultez les taux d'ouverture et de clics",
+        "Suivez la conversion RSVP en temps réel",
+        "Identifiez les invités qui n'ont pas répondu",
+        "Activez les relances automatiques pour les non-répondants",
         "Exportez les données pour vos rapports"
       ],
-      link: "/admin/analytics"
+      link: "/admin"
     },
     {
       id: 6,
-      title: "Configurer votre espace",
-      icon: Settings,
+      title: "Jour de l'événement",
+      icon: CheckCircle,
       color: "text-[#004645]",
-      description: "Personnalisez les paramètres de votre plateforme",
+      description: "Gérez le check-in et l'accueil de vos invités",
       details: [
-        "Configurez vos informations de contact",
-        "Personnalisez les templates d'email",
-        "Configurez l'intégration avec votre base de données",
-        "Gérez les permissions et accès utilisateurs",
-        "Sauvegardez vos configurations"
+        "Les invités présentent leur QR code (reçu par email)",
+        "Scannez les QR codes pour valider l'entrée",
+        "Consultez la liste des participants confirmés",
+        "Exportez la liste finale pour impression",
+        "Marquez les présences pour vos statistiques post-événement"
       ],
       link: "/admin/setup"
     }
