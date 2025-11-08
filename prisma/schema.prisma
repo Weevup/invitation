@@ -23,7 +23,9 @@ enum GuestStatus {
 }
 
 enum EmailType {
+  SAVE_THE_DATE
   INVITE
+  INVITATION
   REMINDER
   CONFIRMATION
   INFO

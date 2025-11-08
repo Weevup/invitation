@@ -934,9 +934,12 @@ model EmailLog {
 
 enum EmailType {
   SAVE_THE_DATE
+  INVITE
   INVITATION
-  CONFIRMATION
   REMINDER
+  CONFIRMATION
+  INFO
+  CUSTOM
 }
 \`\`\`
 
