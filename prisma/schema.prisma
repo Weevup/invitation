@@ -90,7 +90,7 @@ model Event {
   showcaseSubtitle      String?
   showcaseBannerImage   String?
   showcaseTheme         String  @default("weevup") // "weevup", "elegant", "modern", "minimal"
-  showcaseSections      Json?   // Array of sections to display
+  showcaseSections      Json?   // Array of SectionConfig objects with advanced settings
   showcaseCustomCSS     String? @db.Text
   showcasePrimaryColor  String  @default("#004645")
   showcaseSecondaryColor String @default("#FF4713")
