@@ -499,6 +499,146 @@ export interface EmailResult {
   error?: string
 }
 
+export interface TemplateVariables {
+  // Event information
+  'event.name'?: string
+  'event.date'?: string
+  'event.time'?: string
+  'event.location'?: string
+  'event.address'?: string
+  'event.description'?: string
+
+  // Guest information
+  'guest.firstName'?: string
+  'guest.lastName'?: string
+  'guest.email'?: string
+
+  // RSVP information
+  'rsvpLink'?: string
+  'rsvpDeadline'?: string
+
+  // Host information
+  'host.name'?: string
+  'host.email'?: string
+
+  // Design variables
+  'fontFamily'?: string
+  'primaryColor'?: string
+  'secondaryColor'?: string
+  'accentColor'?: string
+
+  // Additional custom variables
+  [key: string]: string | undefined
+}
+
+/**
+ * Renders an email template by replacing variables with actual values
+ * Variables format: {{variableName}} or {{object.property}}
+ *
+ * Example:
+ * ```ts
+ * const html = renderTemplate(template.htmlContent, {
+ *   'event.name': 'Tech Summit 2025',
+ *   'guest.firstName': 'Marie',
+ *   'rsvpLink': 'https://app.com/rsvp/abc123',
+ *   'primaryColor': '#004645'
+ * })
+ * ```
+ */
+export function renderTemplate(
+  template: string,
+  variables: TemplateVariables
+): string {
+  let rendered = template
+
+  // Replace each variable in the template
+  Object.entries(variables).forEach(([key, value]) => {
+    if (value !== undefined && value !== null) {
+      // Create regex to match {{key}} with optional whitespace
+      const regex = new RegExp(`\\{\\{\\s*${key.replace(/\./g, '\\.')}\\s*\\}\\}`, 'g')
+      rendered = rendered.replace(regex, value)
+    }
+  })
+
+  // Remove any remaining unreplaced variables (optional - set to empty string)
+  rendered = rendered.replace(/\{\{[^}]+\}\}/g, '')
+
+  return rendered
+}
+
+/**
+ * Send email using a template
+ * This function fetches a template from database and renders it with variables
+ */
+export async function sendEmailWithTemplate(
+  templateId: string,
+  variables: TemplateVariables,
+  data: Omit<EmailData, 'html' | 'subject'>,
+  integration: EmailIntegration,
+  prisma: any // PrismaClient type
+): Promise<EmailResult> {
+  try {
+    // Fetch template from database
+    const template = await prisma.emailTemplate.findUnique({
+      where: { id: templateId }
+    })
+
+    if (!template) {
+      return {
+        success: false,
+        error: `Template with ID ${templateId} not found`
+      }
+    }
+
+    if (!template.isActive) {
+      return {
+        success: false,
+        error: `Template ${template.name} is not active`
+      }
+    }
+
+    // Add template design variables to the variables object
+    const allVariables: TemplateVariables = {
+      ...variables,
+      fontFamily: template.fontFamily,
+      primaryColor: template.primaryColor,
+      secondaryColor: template.secondaryColor,
+      accentColor: template.accentColor
+    }
+
+    // Render template
+    const html = renderTemplate(template.htmlContent, allVariables)
+    const subject = renderTemplate(template.subject, allVariables)
+    const text = template.textContent ? renderTemplate(template.textContent, allVariables) : undefined
+
+    // Update template usage stats
+    await prisma.emailTemplate.update({
+      where: { id: templateId },
+      data: {
+        usageCount: { increment: 1 },
+        lastUsedAt: new Date()
+      }
+    })
+
+    // Send email
+    return await sendEmail(
+      {
+        ...data,
+        html,
+        subject,
+        text
+      },
+      integration
+    )
+  } catch (error) {
+    console.error('Error sending email with template:', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error'
+    }
+  }
+}
+
 /**
  * Send email using a specific integration
  */

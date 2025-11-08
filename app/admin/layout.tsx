@@ -1,4 +1,5 @@
 import { AdminSidebar } from '@/components/admin/sidebar'
+import { SonnerToaster } from '@/components/ui/sonner'
 
 export default function AdminLayout({
   children,
@@ -13,6 +14,7 @@ export default function AdminLayout({
           {children}
         </main>
       </div>
+      <SonnerToaster />
     </div>
   )
 }

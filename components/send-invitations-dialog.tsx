@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -11,14 +11,30 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Send, Loader2, CheckCircle, AlertCircle } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Send, Loader2, CheckCircle, AlertCircle, Mail } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
 
 interface SendInvitationsDialogProps {
   eventId: string;
   totalGuests: number;
   pendingGuests: number;
+}
+
+interface EmailTemplate {
+  id: string;
+  name: string;
+  slug: string;
+  type: string;
+  description?: string;
 }
 
 export function SendInvitationsDialog({
@@ -28,7 +44,10 @@ export function SendInvitationsDialog({
 }: SendInvitationsDialogProps) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [emailType, setEmailType] = useState<"INVITE" | "REMINDER">("INVITE");
+  const [emailType, setEmailType] = useState<"invitation" | "save-the-date" | "reminder">("invitation");
+  const [templateId, setTemplateId] = useState<string>("");
+  const [templates, setTemplates] = useState<EmailTemplate[]>([]);
+  const [loadingTemplates, setLoadingTemplates] = useState(false);
   const [results, setResults] = useState<{
     total: number;
     success: number;
@@ -36,13 +55,36 @@ export function SendInvitationsDialog({
     errors: string[];
   } | null>(null);
 
+  // Fetch templates when dialog opens
+  useEffect(() => {
+    if (open && templates.length === 0) {
+      fetchTemplates();
+    }
+  }, [open]);
+
+  const fetchTemplates = async () => {
+    setLoadingTemplates(true);
+    try {
+      const response = await fetch('/api/admin/templates');
+      if (response.ok) {
+        const data = await response.json();
+        setTemplates(data);
+      }
+    } catch (error) {
+      console.error('Error fetching templates:', error);
+      toast.error('Erreur lors du chargement des templates');
+    } finally {
+      setLoadingTemplates(false);
+    }
+  };
+
   const handleSend = async () => {
     setLoading(true);
     setResults(null);
 
     try {
       const response = await fetch(
-        `/api/admin/events/${eventId}/send-invitations`,
+        `/api/admin/events/${eventId}/send-emails`,
         {
           method: "POST",
           headers: {
@@ -50,6 +92,7 @@ export function SendInvitationsDialog({
           },
           body: JSON.stringify({
             type: emailType,
+            templateId: templateId || undefined,
           }),
         }
       );
@@ -58,6 +101,9 @@ export function SendInvitationsDialog({
 
       if (response.ok) {
         setResults(data.results);
+        if (data.results.success > 0) {
+          toast.success(`${data.results.success} email(s) envoyé(s) avec succès`);
+        }
       } else {
         setResults({
           total: 0,
@@ -65,6 +111,7 @@ export function SendInvitationsDialog({
           failed: 1,
           errors: [data.error || "Erreur inconnue"],
         });
+        toast.error(data.error || "Erreur lors de l'envoi");
       }
     } catch (error) {
       setResults({
@@ -73,6 +120,7 @@ export function SendInvitationsDialog({
         failed: 1,
         errors: ["Erreur de connexion"],
       });
+      toast.error("Erreur de connexion");
     } finally {
       setLoading(false);
     }
@@ -81,65 +129,131 @@ export function SendInvitationsDialog({
   const handleClose = () => {
     setOpen(false);
     setResults(null);
-    setEmailType("INVITE");
+    setEmailType("invitation");
+    setTemplateId("");
   };
 
   const getTargetCount = () => {
-    return emailType === "REMINDER" ? pendingGuests : totalGuests;
+    return emailType === "reminder" ? pendingGuests : totalGuests;
+  };
+
+  const getFilteredTemplates = () => {
+    if (emailType === "save-the-date") {
+      return templates.filter(t => t.type === "SAVE_THE_DATE");
+    } else if (emailType === "invitation") {
+      return templates.filter(t => t.type === "INVITE");
+    } else if (emailType === "reminder") {
+      return templates.filter(t => t.type === "REMINDER");
+    }
+    return templates;
   };
 
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button>
           <Send className="h-4 w-4 mr-2" />
           Envoyer les invitations
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[550px]">
         <DialogHeader>
           <DialogTitle>Envoyer des invitations</DialogTitle>
           <DialogDescription>
-            Envoyez des emails d&apos;invitation ou de rappel à vos invités
+            Envoyez des emails à vos invités avec un template personnalisé
           </DialogDescription>
         </DialogHeader>
 
         {!results ? (
           <div className="space-y-4 py-4">
-            <RadioGroup value={emailType} onValueChange={(v) => setEmailType(v as "INVITE" | "REMINDER")}>
-              <div className="flex items-start space-x-3 p-4 border rounded-lg hover:bg-accent cursor-pointer">
-                <RadioGroupItem value="INVITE" id="invite" className="mt-1" />
-                <div className="flex-1">
-                  <Label htmlFor="invite" className="cursor-pointer font-medium">
-                    Invitation initiale
-                  </Label>
-                  <p className="text-sm text-gray-600 mt-1">
-                    Envoyer l&apos;invitation à tous les invités ({totalGuests}{" "}
-                    personnes)
-                  </p>
+            {/* Type d'email */}
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Type d&apos;email</Label>
+              <RadioGroup value={emailType} onValueChange={(v) => setEmailType(v as typeof emailType)}>
+                <div className="flex items-start space-x-3 p-3 border rounded-lg hover:bg-accent cursor-pointer">
+                  <RadioGroupItem value="save-the-date" id="std" className="mt-1" />
+                  <div className="flex-1">
+                    <Label htmlFor="std" className="cursor-pointer font-medium text-sm">
+                      Save the Date
+                    </Label>
+                    <p className="text-xs text-gray-600 mt-0.5">
+                      Annonce préliminaire de l&apos;événement
+                    </p>
+                  </div>
                 </div>
-              </div>
 
-              <div className="flex items-start space-x-3 p-4 border rounded-lg hover:bg-accent cursor-pointer">
-                <RadioGroupItem value="REMINDER" id="reminder" className="mt-1" />
-                <div className="flex-1">
-                  <Label htmlFor="reminder" className="cursor-pointer font-medium">
-                    Rappel
-                  </Label>
-                  <p className="text-sm text-gray-600 mt-1">
-                    Envoyer un rappel uniquement aux invités qui n&apos;ont pas encore
-                    répondu ({pendingGuests} personnes)
-                  </p>
+                <div className="flex items-start space-x-3 p-3 border rounded-lg hover:bg-accent cursor-pointer">
+                  <RadioGroupItem value="invitation" id="invite" className="mt-1" />
+                  <div className="flex-1">
+                    <Label htmlFor="invite" className="cursor-pointer font-medium text-sm">
+                      Invitation officielle
+                    </Label>
+                    <p className="text-xs text-gray-600 mt-0.5">
+                      Invitation complète avec RSVP ({totalGuests} personnes)
+                    </p>
+                  </div>
                 </div>
-              </div>
-            </RadioGroup>
 
+                <div className="flex items-start space-x-3 p-3 border rounded-lg hover:bg-accent cursor-pointer">
+                  <RadioGroupItem value="reminder" id="reminder" className="mt-1" />
+                  <div className="flex-1">
+                    <Label htmlFor="reminder" className="cursor-pointer font-medium text-sm">
+                      Rappel
+                    </Label>
+                    <p className="text-xs text-gray-600 mt-0.5">
+                      Pour les invités sans réponse ({pendingGuests} personnes)
+                    </p>
+                  </div>
+                </div>
+              </RadioGroup>
+            </div>
+
+            {/* Sélecteur de template */}
+            <div className="space-y-2">
+              <Label htmlFor="template" className="text-sm font-medium">
+                Template email (optionnel)
+              </Label>
+              <Select value={templateId} onValueChange={setTemplateId}>
+                <SelectTrigger id="template">
+                  <SelectValue placeholder={
+                    loadingTemplates
+                      ? "Chargement..."
+                      : "Template par défaut (hardcodé)"
+                  } />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">
+                    <div className="flex items-center gap-2">
+                      <Mail className="h-4 w-4" />
+                      <span>Template par défaut (hardcodé)</span>
+                    </div>
+                  </SelectItem>
+                  {getFilteredTemplates().map((template) => (
+                    <SelectItem key={template.id} value={template.id}>
+                      <div className="flex flex-col">
+                        <span className="font-medium">{template.name}</span>
+                        {template.description && (
+                          <span className="text-xs text-gray-500">{template.description}</span>
+                        )}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-gray-500">
+                {templateId
+                  ? "Un template personnalisé sera utilisé"
+                  : "Le template codé en dur dans l'application sera utilisé"}
+              </p>
+            </div>
+
+            {/* Info box */}
             <div className="bg-blue-50 border border-blue-200 rounded-md p-3 text-sm">
               <p className="text-blue-800">
                 <strong>📧 {getTargetCount()} email(s)</strong> seront envoyés.
               </p>
-              {emailType === "INVITE" && (
-                <p className="text-blue-700 mt-1">
+              {emailType === "invitation" && (
+                <p className="text-blue-700 mt-1 text-xs">
                   Note : Les invités qui ont déjà reçu une invitation recevront
                   à nouveau l&apos;email.
                 </p>

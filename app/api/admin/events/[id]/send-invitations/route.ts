@@ -36,12 +36,12 @@ export async function POST(
 
     // If specific guest IDs provided, filter by them
     if (guestIds && Array.isArray(guestIds) && guestIds.length > 0) {
-      targetGuests = event.guests.filter((g) => guestIds.includes(g.id))
+      targetGuests = event.guests.filter((g: typeof event.guests[0]) => guestIds.includes(g.id))
     }
 
     // For reminders, only send to guests who haven't responded
     if (type === 'REMINDER') {
-      targetGuests = targetGuests.filter((g) => !g.rsvp || g.rsvp.attending === null)
+      targetGuests = targetGuests.filter((g: typeof targetGuests[0]) => !g.rsvp || g.rsvp.attending === null)
     }
 
     const results = {

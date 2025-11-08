@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { emailService } from '@/lib/email-service';
+import { emailService, sendEmailWithTemplate, TemplateVariables } from '@/lib/email-service';
 
 export async function POST(
   request: NextRequest,
@@ -9,7 +9,7 @@ export async function POST(
   try {
     const { id: eventId } = await params;
     const body = await request.json();
-    const { type, guestIds, scheduleFor } = body;
+    const { type, guestIds, scheduleFor, templateId } = body;
 
     // Récupère l'événement et les invités
     const event = await prisma.event.findUnique({
@@ -26,6 +26,24 @@ export async function POST(
         { error: 'Événement non trouvé' },
         { status: 404 }
       );
+    }
+
+    // Récupère l'intégration email primaire si un template est utilisé
+    let emailIntegration = null;
+    if (templateId) {
+      emailIntegration = await prisma.emailIntegration.findFirst({
+        where: {
+          isPrimary: true,
+          isActive: true
+        }
+      });
+
+      if (!emailIntegration) {
+        return NextResponse.json(
+          { error: 'Aucune intégration email active configurée' },
+          { status: 400 }
+        );
+      }
     }
 
     // Si c'est un envoi programmé
@@ -53,7 +71,41 @@ export async function POST(
         // Crée un tracking ID unique
         const trackingId = `${eventId}-${guest.id}-${type}-${Date.now()}`;
 
-        if (type === 'save-the-date') {
+        // Si un template est fourni, utilise le système de templates
+        if (templateId && emailIntegration) {
+          const variables: TemplateVariables = {
+            'event.name': event.name,
+            'event.date': new Date(event.startsAt).toLocaleDateString('fr-FR', {
+              weekday: 'long',
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric'
+            }),
+            'event.time': new Date(event.startsAt).toLocaleTimeString('fr-FR', {
+              hour: '2-digit',
+              minute: '2-digit'
+            }),
+            'event.location': event.venueName || '',
+            'event.address': event.address || '',
+            'event.description': event.description || '',
+            'guest.firstName': guest.firstName,
+            'guest.lastName': guest.lastName,
+            'guest.email': guest.email,
+            'rsvpLink': `${baseUrl}/guest/${guest.token}`,
+            'rsvpDeadline': event.rsvpDeadline ? new Date(event.rsvpDeadline).toLocaleDateString('fr-FR') : ''
+          };
+
+          await sendEmailWithTemplate(
+            templateId,
+            variables,
+            {
+              to: guest.email,
+              fromName: emailIntegration.fromName || undefined,
+            },
+            emailIntegration as any,
+            prisma
+          );
+        } else if (type === 'save-the-date') {
           const config = event.saveTheDateConfig as any || {};
 
           await emailService.sendSaveTheDate({

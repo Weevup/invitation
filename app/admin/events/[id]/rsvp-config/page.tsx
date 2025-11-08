@@ -20,6 +20,7 @@ import {
   User, Mail, Phone, Building, Utensils, Users
 } from 'lucide-react'
 import { useParams } from 'next/navigation'
+import { toast } from 'sonner'
 
 interface FormField {
   id: string
@@ -103,7 +104,7 @@ export default function RSVPConfigPage() {
   const handleSave = async () => {
     // TODO: Implémenter la sauvegarde vers l'API
     console.log('Saving RSVP config:', { fields, config })
-    alert('Configuration RSVP sauvegardée avec succès !')
+    toast.success('Configuration RSVP sauvegardée avec succès !')
   }
 
   return (

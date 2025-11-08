@@ -11,7 +11,10 @@ import {
   BarChart,
   BookOpen,
   CheckSquare,
-  Plug
+  Plug,
+  FileText,
+  Activity,
+  Mail
 } from 'lucide-react'
 import { WeevupLogo } from '@/components/weevup-logo'
 import { cn } from '@/lib/utils'
@@ -67,6 +70,18 @@ const navigationSections: NavSection[] = [
         description: 'Analyses détaillées'
       },
       {
+        name: 'Diagnostic',
+        href: '/admin/diagnostic',
+        icon: Activity,
+        description: 'Santé du système'
+      },
+      {
+        name: 'Templates Emails',
+        href: '/admin/templates',
+        icon: Mail,
+        description: 'Personnaliser les emails'
+      },
+      {
         name: 'Intégrations',
         href: '/admin/settings/integrations',
         icon: Plug,
@@ -88,6 +103,12 @@ const navigationSections: NavSection[] = [
         href: '/admin/tutoriel',
         icon: BookOpen,
         description: 'Apprendre à utiliser l\'outil'
+      },
+      {
+        name: 'Documentation',
+        href: '/admin/documentation',
+        icon: FileText,
+        description: 'Documentation technique complète'
       },
     ]
   }
