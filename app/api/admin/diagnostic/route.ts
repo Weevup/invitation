@@ -29,13 +29,6 @@ interface EventSelect {
   }
 }
 
-interface GuestGroupBy {
-  status: string
-  _count: {
-    _all: number
-  }
-}
-
 interface WebhookIntegrationSelect {
   provider: string
   webhookUrl: string | null
@@ -265,12 +258,12 @@ export async function GET() {
     }
 
     // Check guests with RSVP
-    const guestsWithRSVP: GuestGroupBy[] = await prisma.guest.groupBy({
+    const guestsWithRSVP = await prisma.guest.groupBy({
       by: ['status'],
       _count: true
-    }) as GuestGroupBy[]
+    })
 
-    const totalGuests = guestsWithRSVP.reduce((sum: number, g: GuestGroupBy) => sum + g._count._all, 0)
+    const totalGuests = guestsWithRSVP.reduce((sum, g) => sum + g._count._all, 0)
     if (totalGuests > 0) {
       const statusBreakdown = guestsWithRSVP.map(g => `${g.status}: ${g._count._all}`).join(', ')
       checks.data.push({
