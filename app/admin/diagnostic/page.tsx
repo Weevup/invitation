@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Link from 'next/link'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -298,7 +299,7 @@ export default function DiagnosticPage() {
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Button variant="outline" asChild className="h-auto py-4 flex-col items-start">
-              <a href="/admin/settings/integrations">
+              <Link href="/admin/settings/integrations">
                 <Mail className="h-5 w-5 mb-2" />
                 <div className="text-left">
                   <div className="font-medium">Intégrations Email</div>
@@ -306,11 +307,11 @@ export default function DiagnosticPage() {
                     Configurer SendGrid, Resend, etc.
                   </div>
                 </div>
-              </a>
+              </Link>
             </Button>
 
             <Button variant="outline" asChild className="h-auto py-4 flex-col items-start">
-              <a href="/admin/events">
+              <Link href="/admin/events">
                 <Calendar className="h-5 w-5 mb-2" />
                 <div className="text-left">
                   <div className="font-medium">Événements</div>
@@ -318,11 +319,11 @@ export default function DiagnosticPage() {
                     Créer et gérer vos événements
                   </div>
                 </div>
-              </a>
+              </Link>
             </Button>
 
             <Button variant="outline" asChild className="h-auto py-4 flex-col items-start">
-              <a href="/admin/rsvp">
+              <Link href="/admin/rsvp">
                 <Users className="h-5 w-5 mb-2" />
                 <div className="text-left">
                   <div className="font-medium">Invités & RSVP</div>
@@ -330,7 +331,7 @@ export default function DiagnosticPage() {
                     Gérer les invitations
                   </div>
                 </div>
-              </a>
+              </Link>
             </Button>
           </div>
         </CardContent>
