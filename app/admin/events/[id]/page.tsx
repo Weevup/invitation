@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   Mail, Users, Download, Search, Send, Link as LinkIcon,
   Calendar, MapPin, CheckCircle, Clock, UserPlus, Upload,
-  ArrowRight, Sparkles, Bell
+  ArrowRight, Sparkles, Bell, Megaphone, BarChart3
 } from "lucide-react";
 import Link from "next/link";
 import { useToast } from "@/components/ui/use-toast";
@@ -409,6 +409,53 @@ export default function EventDetailsPage() {
             </Link>
           </div>
         </div>
+
+        {/* Gestion des communications */}
+        <Card className="mb-8 border-[#009197]/30 bg-white/80 backdrop-blur">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-[#004645]" style={{ fontFamily: "var(--font-abril)" }}>
+                  Gestion des communications
+                </CardTitle>
+                <CardDescription className="text-[#004645]/70">
+                  Planifiez vos envois et suivez les statistiques
+                </CardDescription>
+              </div>
+              <Link href={`/admin/events/${eventId}/communications`}>
+                <Button className="bg-gradient-to-r from-[#004645] to-[#009197] hover:from-[#006C51] hover:to-[#009197] text-white">
+                  <Megaphone className="h-4 w-4 mr-2" />
+                  Gérer les envois
+                </Button>
+              </Link>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="grid md:grid-cols-3 gap-4">
+              <div className="flex items-center gap-3 p-4 bg-gradient-to-r from-[#FF4713]/5 to-transparent rounded-lg">
+                <Send className="h-8 w-8 text-[#FF4713]" />
+                <div>
+                  <p className="font-semibold text-[#004645]">Planification</p>
+                  <p className="text-sm text-[#004645]/70">Programmez vos envois</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 p-4 bg-gradient-to-r from-[#009197]/5 to-transparent rounded-lg">
+                <Mail className="h-8 w-8 text-[#009197]" />
+                <div>
+                  <p className="font-semibold text-[#004645]">Templates</p>
+                  <p className="text-sm text-[#004645]/70">Emails personnalisés</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 p-4 bg-gradient-to-r from-[#004645]/5 to-transparent rounded-lg">
+                <BarChart3 className="h-8 w-8 text-[#004645]" />
+                <div>
+                  <p className="font-semibold text-[#004645]">Analytics</p>
+                  <p className="text-sm text-[#004645]/70">Taux d&apos;ouverture</p>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Guide rapide - Étapes numérotées */}
         <Card className="mb-8 border-[#FF4713]/30 bg-gradient-to-br from-[#FF4713]/5 to-white/80 backdrop-blur">
