@@ -191,7 +191,7 @@ export default function IntegrationsPage() {
             Intégrations Email
           </h1>
           <p className="text-[#004645]/70">
-            Configurez vos services d'envoi d'emails et gérez vos intégrations
+            Configurez vos services d&apos;envoi d&apos;emails et gérez vos intégrations
           </p>
         </div>
 
@@ -226,7 +226,7 @@ export default function IntegrationsPage() {
                 <div>
                   <CardTitle className="text-[#004645]">Aucune intégration active</CardTitle>
                   <CardDescription>
-                    Configurez au moins un provider d'email pour pouvoir envoyer des invitations
+                    Configurez au moins un provider d&apos;email pour pouvoir envoyer des invitations
                   </CardDescription>
                 </div>
               </div>
@@ -397,7 +397,7 @@ function ProviderConfig({ provider, integration, onSave, onTest, saving, testing
 
           {/* Sender configuration */}
           <div className="pt-4 border-t border-[#9CD9F6]/30">
-            <h3 className="font-semibold text-[#004645] mb-4">Configuration de l'expéditeur</h3>
+            <h3 className="font-semibold text-[#004645] mb-4">Configuration de l&apos;expéditeur</h3>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="fromEmail">Email expéditeur</Label>
@@ -437,7 +437,7 @@ function ProviderConfig({ provider, integration, onSave, onTest, saving, testing
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <Label>Tracking d'ouverture</Label>
+                  <Label>Tracking d&apos;ouverture</Label>
                   <p className="text-sm text-[#004645]/70">Suivre quand les emails sont ouverts</p>
                 </div>
                 <Switch
