@@ -203,7 +203,7 @@ export default function SetupPage() {
 
               <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-md">
                 <p className="text-sm text-blue-800 mb-3">
-                  <strong>⚠️ Migration manuelle requise :</strong> Si vous obtenez une erreur lors de la création des données de démo, cliquez sur ce bouton pour appliquer manuellement la migration Phase 2 (champs showcase).
+                  <strong>⚠️ Migration manuelle requise :</strong> Si vous obtenez une erreur lors de la création des données de démo, cliquez sur ce bouton pour appliquer manuellement la migration des derniers champs.
                 </p>
                 <Button
                   onClick={handleMigrate}
@@ -224,7 +224,7 @@ export default function SetupPage() {
                   ) : (
                     <>
                       <Database className="h-4 w-4 mr-2" />
-                      Appliquer la migration Phase 2
+                      Appliquer la migration
                     </>
                   )}
                 </Button>
