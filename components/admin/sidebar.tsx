@@ -6,23 +6,84 @@ import {
   LayoutDashboard,
   Calendar,
   Users,
-  Mail,
-  Sparkles,
   Settings,
-  Database,
   Home,
-  BarChart
+  BarChart,
+  BookOpen,
+  CheckSquare
 } from 'lucide-react'
 import { WeevupLogo } from '@/components/weevup-logo'
 import { cn } from '@/lib/utils'
 
-const navigation = [
-  { name: 'Tableau de bord', href: '/admin', icon: LayoutDashboard },
-  { name: 'Événements', href: '/admin/events', icon: Calendar },
-  { name: 'Invités', href: '/admin/guests', icon: Users },
-  { name: 'Invitations', href: '/admin/invitations', icon: Mail },
-  { name: 'Statistiques', href: '/admin/analytics', icon: BarChart },
-  { name: 'Configuration', href: '/admin/setup', icon: Database },
+interface NavSection {
+  title: string
+  items: NavItem[]
+}
+
+interface NavItem {
+  name: string
+  href: string
+  icon: any
+  description?: string
+}
+
+const navigationSections: NavSection[] = [
+  {
+    title: "Vue d'ensemble",
+    items: [
+      {
+        name: 'Tableau de bord',
+        href: '/admin',
+        icon: LayoutDashboard,
+        description: 'Vue globale de vos événements'
+      },
+    ]
+  },
+  {
+    title: "Gestion des événements",
+    items: [
+      {
+        name: 'Événements',
+        href: '/admin/events',
+        icon: Calendar,
+        description: 'Créer et gérer vos événements'
+      },
+      {
+        name: 'Invités & RSVP',
+        href: '/admin/rsvp',
+        icon: CheckSquare,
+        description: 'Gérer invités et réponses'
+      },
+    ]
+  },
+  {
+    title: "Analyse & Configuration",
+    items: [
+      {
+        name: 'Statistiques',
+        href: '/admin/analytics',
+        icon: BarChart,
+        description: 'Analyses détaillées'
+      },
+      {
+        name: 'Configuration',
+        href: '/admin/setup',
+        icon: Settings,
+        description: 'Paramètres système'
+      },
+    ]
+  },
+  {
+    title: "Aide",
+    items: [
+      {
+        name: 'Guide de démarrage',
+        href: '/admin/tutoriel',
+        icon: BookOpen,
+        description: 'Apprendre à utiliser l\'outil'
+      },
+    ]
+  }
 ]
 
 export function AdminSidebar() {
@@ -42,27 +103,47 @@ export function AdminSidebar() {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 space-y-1 px-3 py-4 overflow-y-auto">
-        {navigation.map((item) => {
-          const isActive = pathname === item.href ||
-                          (item.href !== '/admin' && pathname.startsWith(item.href))
+      <nav className="flex-1 px-3 py-4 overflow-y-auto">
+        {navigationSections.map((section, sectionIdx) => (
+          <div key={section.title} className={sectionIdx > 0 ? 'mt-6' : ''}>
+            {/* Section Title */}
+            <h3 className="px-3 mb-2 text-xs font-semibold text-white/40 uppercase tracking-wider">
+              {section.title}
+            </h3>
 
-          return (
-            <Link
-              key={item.name}
-              href={item.href}
-              className={cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all",
-                isActive
-                  ? "bg-white/10 text-white shadow-lg"
-                  : "text-white/70 hover:bg-white/5 hover:text-white"
-              )}
-            >
-              <item.icon className="h-5 w-5" />
-              {item.name}
-            </Link>
-          )
-        })}
+            {/* Section Items */}
+            <div className="space-y-1">
+              {section.items.map((item) => {
+                const isActive = pathname === item.href ||
+                                (item.href !== '/admin' && pathname.startsWith(item.href))
+
+                return (
+                  <Link
+                    key={item.name}
+                    href={item.href}
+                    className={cn(
+                      "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all group",
+                      isActive
+                        ? "bg-white/10 text-white shadow-lg"
+                        : "text-white/70 hover:bg-white/5 hover:text-white"
+                    )}
+                    title={item.description}
+                  >
+                    <item.icon className="h-5 w-5 flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <div className="truncate">{item.name}</div>
+                      {item.description && !isActive && (
+                        <div className="text-xs text-white/40 truncate opacity-0 group-hover:opacity-100 transition-opacity">
+                          {item.description}
+                        </div>
+                      )}
+                    </div>
+                  </Link>
+                )
+              })}
+            </div>
+          </div>
+        ))}
       </nav>
 
       {/* Footer */}
