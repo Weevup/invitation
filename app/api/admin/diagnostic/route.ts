@@ -9,6 +9,37 @@ interface DiagnosticCheck {
   fix?: string
 }
 
+interface EmailIntegrationSelect {
+  id: string
+  provider: string
+  isActive: boolean
+  isPrimary: boolean
+  fromEmail: string | null
+  webhookUrl: string | null
+  trackOpens: boolean
+  trackClicks: boolean
+}
+
+interface EventSelect {
+  id: string
+  name: string
+  startsAt: Date
+  _count: {
+    guests: number
+  }
+}
+
+interface GuestGroupBy {
+  status: string
+  _count: number
+}
+
+interface WebhookIntegrationSelect {
+  provider: string
+  webhookUrl: string | null
+  webhookSecret: string | null
+}
+
 export async function GET() {
   const checks: {
     database: DiagnosticCheck[]
@@ -60,7 +91,7 @@ export async function GET() {
 
   // 2. Email Integration Checks
   try {
-    const integrations = await prisma.emailIntegration.findMany({
+    const integrations: EmailIntegrationSelect[] = await prisma.emailIntegration.findMany({
       select: {
         id: true,
         provider: true,
@@ -71,7 +102,7 @@ export async function GET() {
         trackOpens: true,
         trackClicks: true
       }
-    })
+    }) as EmailIntegrationSelect[]
 
     if (integrations.length === 0) {
       checks.email.push({
@@ -81,8 +112,8 @@ export async function GET() {
         fix: 'Allez dans Paramètres → Intégrations pour configurer SendGrid, Resend, Mailgun ou SMTP'
       })
     } else {
-      const activeIntegrations = integrations.filter(i => i.isActive)
-      const primaryIntegration = integrations.find(i => i.isPrimary)
+      const activeIntegrations = integrations.filter((i) => i.isActive)
+      const primaryIntegration = integrations.find((i) => i.isPrimary)
 
       if (activeIntegrations.length === 0) {
         checks.email.push({
@@ -199,7 +230,7 @@ export async function GET() {
 
   // 4. Data System Checks
   try {
-    const events = await prisma.event.findMany({
+    const events: EventSelect[] = await prisma.event.findMany({
       select: {
         id: true,
         name: true,
@@ -212,7 +243,7 @@ export async function GET() {
       },
       orderBy: { createdAt: 'desc' },
       take: 5
-    })
+    }) as EventSelect[]
 
     if (events.length === 0) {
       checks.data.push({
@@ -232,12 +263,12 @@ export async function GET() {
     }
 
     // Check guests with RSVP
-    const guestsWithRSVP = await prisma.guest.groupBy({
+    const guestsWithRSVP: GuestGroupBy[] = await prisma.guest.groupBy({
       by: ['status'],
       _count: true
-    })
+    }) as GuestGroupBy[]
 
-    const totalGuests = guestsWithRSVP.reduce((sum, g) => sum + g._count, 0)
+    const totalGuests = guestsWithRSVP.reduce((sum: number, g: GuestGroupBy) => sum + g._count, 0)
     if (totalGuests > 0) {
       const statusBreakdown = guestsWithRSVP.map(g => `${g.status}: ${g._count}`).join(', ')
       checks.data.push({
@@ -293,18 +324,18 @@ export async function GET() {
 
   // 5. Webhooks Checks
   try {
-    const integrations = await prisma.emailIntegration.findMany({
+    const integrations: WebhookIntegrationSelect[] = await prisma.emailIntegration.findMany({
       where: { isActive: true },
       select: {
         provider: true,
         webhookUrl: true,
         webhookSecret: true
       }
-    })
+    }) as WebhookIntegrationSelect[]
 
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
 
-    integrations.forEach(integration => {
+    integrations.forEach((integration: WebhookIntegrationSelect) => {
       const expectedWebhookUrl = `${baseUrl}/api/webhooks/email/${integration.provider.toLowerCase()}`
 
       if (!integration.webhookUrl) {

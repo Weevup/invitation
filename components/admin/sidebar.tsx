@@ -13,7 +13,8 @@ import {
   CheckSquare,
   Plug,
   FileText,
-  Activity
+  Activity,
+  Mail
 } from 'lucide-react'
 import { WeevupLogo } from '@/components/weevup-logo'
 import { cn } from '@/lib/utils'
