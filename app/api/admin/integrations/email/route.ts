@@ -54,7 +54,7 @@ export async function GET() {
     })
 
     // Decrypt sensitive fields for display (masked)
-    const safeIntegrations = integrations.map(integration => ({
+    const safeIntegrations = integrations.map((integration) => ({
       ...integration,
       apiKey: integration.apiKey ? '••••••••' + integration.apiKey.slice(-4) : undefined,
       apiSecret: integration.apiSecret ? '••••••••' : undefined,

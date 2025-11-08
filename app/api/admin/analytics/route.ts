@@ -23,10 +23,10 @@ export async function GET() {
 
     // Calculate overall stats
     const totalEvents = events.length
-    const totalGuests = events.reduce((sum, e) => sum + e.guests.length, 0)
-    const totalRsvps = events.reduce((sum, e) => sum + e.rsvps.length, 0)
+    const totalGuests = events.reduce((sum: number, e) => sum + e.guests.length, 0)
+    const totalRsvps = events.reduce((sum: number, e) => sum + e.rsvps.length, 0)
     const totalAttending = events.reduce(
-      (sum, e) => sum + e.rsvps.filter(r => r.attending).length,
+      (sum: number, e) => sum + e.rsvps.filter((r) => r.attending).length,
       0
     )
     const totalDeclined = totalRsvps - totalAttending
@@ -44,8 +44,8 @@ export async function GET() {
       const nextDate = new Date(date)
       nextDate.setDate(nextDate.getDate() + 1)
 
-      const responsesOnDay = events.reduce((count, event) => {
-        return count + event.rsvps.filter(rsvp => {
+      const responsesOnDay = events.reduce((count: number, event) => {
+        return count + event.rsvps.filter((rsvp) => {
           const rsvpDate = new Date(rsvp.createdAt)
           return rsvpDate >= date && rsvpDate < nextDate
         }).length
@@ -58,12 +58,12 @@ export async function GET() {
     }
 
     // Event breakdown
-    const eventStats = events.map(event => ({
+    const eventStats = events.map((event) => ({
       name: event.name,
       guests: event.guests.length,
       responses: event.rsvps.length,
-      attending: event.rsvps.filter(r => r.attending).length,
-      declined: event.rsvps.filter(r => !r.attending).length,
+      attending: event.rsvps.filter((r) => r.attending).length,
+      declined: event.rsvps.filter((r) => !r.attending).length,
       responseRate: event.guests.length > 0
         ? Math.round((event.rsvps.length / event.guests.length) * 100)
         : 0,
@@ -78,8 +78,8 @@ export async function GET() {
 
     // Company breakdown (top 10)
     const companyMap = new Map<string, number>()
-    events.forEach(event => {
-      event.rsvps.forEach(rsvp => {
+    events.forEach((event) => {
+      event.rsvps.forEach((rsvp) => {
         if (rsvp.guest.company && rsvp.attending) {
           const count = companyMap.get(rsvp.guest.company) || 0
           companyMap.set(rsvp.guest.company, count + 1)

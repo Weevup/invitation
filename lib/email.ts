@@ -1,6 +1,8 @@
 import nodemailer from 'nodemailer'
 import { prisma } from './prisma'
-import { EmailType } from '@prisma/client'
+
+// Local type definition (sync with Prisma schema)
+type EmailType = 'INVITE' | 'REMINDER' | 'CONFIRMATION' | 'SAVE_THE_DATE' | 'CUSTOM'
 
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST || 'smtp.ethereal.email',
