@@ -257,6 +257,56 @@ export default function EventDetailsPage() {
       </header>
 
       <div className="relative container mx-auto px-4 py-8">
+        {/* Configuration rapide */}
+        <div className="mb-8">
+          <h2 className="text-2xl font-bold text-[#004645] mb-4" style={{ fontFamily: "var(--font-abril)" }}>
+            Configuration de l&apos;événement
+          </h2>
+          <div className="grid md:grid-cols-2 gap-4">
+            <Link href={`/admin/events/${eventId}/invitation`}>
+              <Card className="border-[#9CD9F6]/30 bg-white/80 backdrop-blur hover:shadow-xl transition-all duration-300 group cursor-pointer h-full">
+                <CardHeader>
+                  <div className="flex items-start gap-4">
+                    <div className="p-3 rounded-lg bg-purple-50">
+                      <Sparkles className="h-6 w-6 text-purple-600" />
+                    </div>
+                    <div className="flex-1">
+                      <CardTitle className="text-[#004645] group-hover:text-[#009197] transition-colors mb-2">
+                        Design de l&apos;invitation
+                      </CardTitle>
+                      <CardDescription>
+                        Personnalisez l&apos;apparence, les couleurs et le contenu de votre invitation
+                      </CardDescription>
+                    </div>
+                    <ArrowRight className="h-5 w-5 text-[#004645]/40 group-hover:text-[#009197] transition-colors" />
+                  </div>
+                </CardHeader>
+              </Card>
+            </Link>
+
+            <Link href={`/admin/events/${eventId}/rsvp-config`}>
+              <Card className="border-[#9CD9F6]/30 bg-white/80 backdrop-blur hover:shadow-xl transition-all duration-300 group cursor-pointer h-full">
+                <CardHeader>
+                  <div className="flex items-start gap-4">
+                    <div className="p-3 rounded-lg bg-blue-50">
+                      <CheckCircle className="h-6 w-6 text-blue-600" />
+                    </div>
+                    <div className="flex-1">
+                      <CardTitle className="text-[#004645] group-hover:text-[#009197] transition-colors mb-2">
+                        Formulaire RSVP
+                      </CardTitle>
+                      <CardDescription>
+                        Créez et personnalisez le formulaire de réponse pour vos invités
+                      </CardDescription>
+                    </div>
+                    <ArrowRight className="h-5 w-5 text-[#004645]/40 group-hover:text-[#009197] transition-colors" />
+                  </div>
+                </CardHeader>
+              </Card>
+            </Link>
+          </div>
+        </div>
+
         {/* Guide rapide - Étapes numérotées */}
         <Card className="mb-8 border-[#FF4713]/30 bg-gradient-to-br from-[#FF4713]/5 to-white/80 backdrop-blur">
           <CardHeader>
