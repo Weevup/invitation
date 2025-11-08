@@ -45,12 +45,14 @@ export async function GET() {
     // Fetch email stats
     const emailStats = await prisma.emailTracking.groupBy({
       by: ['status'],
-      _count: true
+      _count: {
+        _all: true
+      }
     })
 
-    const totalEmails = emailStats.reduce((sum, stat) => sum + stat._count, 0)
-    const openedEmails = emailStats.find(s => s.status === 'opened')?._count || 0
-    const clickedEmails = emailStats.find(s => s.status === 'clicked')?._count || 0
+    const totalEmails = emailStats.reduce((sum, stat) => sum + stat._count._all, 0)
+    const openedEmails = emailStats.find(s => s.status === 'opened')?._count._all || 0
+    const clickedEmails = emailStats.find(s => s.status === 'clicked')?._count._all || 0
 
     // Calculate totals
     const totalGuests = events.reduce((sum, e) => sum + e._count.guests, 0)

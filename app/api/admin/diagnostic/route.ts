@@ -260,7 +260,9 @@ export async function GET() {
     // Check guests with RSVP
     const guestsWithRSVP = await prisma.guest.groupBy({
       by: ['status'],
-      _count: true
+      _count: {
+        _all: true
+      }
     })
 
     const totalGuests = guestsWithRSVP.reduce((sum, g) => sum + g._count._all, 0)
