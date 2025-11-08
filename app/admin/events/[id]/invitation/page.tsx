@@ -9,9 +9,10 @@ import { Textarea } from '@/components/ui/textarea'
 import { Switch } from '@/components/ui/switch'
 import {
   Palette, Save, Eye, Image as ImageIcon, Type, Layout,
-  MapPin, Calendar, Clock, Upload, Sparkles
+  MapPin, Calendar, Clock, Upload, Sparkles, Info, ArrowLeft
 } from 'lucide-react'
 import { useParams } from 'next/navigation'
+import Link from 'next/link'
 
 export default function InvitationDesignPage() {
   const params = useParams()
@@ -74,10 +75,36 @@ export default function InvitationDesignPage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
+    <div className="min-h-screen bg-gradient-to-br from-[#9CD9F6] via-white to-[#9CD9F6] py-8">
+      <div className="max-w-7xl mx-auto px-4 space-y-6">
+        {/* Back Button */}
+        <Link href={`/admin/events/${eventId}`}>
+          <Button variant="ghost" size="sm" className="mb-4">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Retour à l&apos;événement
+          </Button>
+        </Link>
+
+        {/* Info Card */}
+        <Card className="border-[#009197]/30 bg-gradient-to-r from-[#009197]/5 to-transparent">
+          <CardHeader>
+            <div className="flex items-start gap-3">
+              <Info className="h-6 w-6 text-[#009197] mt-1" />
+              <div>
+                <CardTitle className="text-[#004645] mb-2">Invitation officielle (Étape 2)</CardTitle>
+                <CardDescription className="text-[#004645]/70">
+                  L&apos;invitation est envoyée <strong>après le Save the Date</strong> (1-2 mois avant l&apos;événement).
+                  Elle contient tous les détails : date précise, horaires, lieu complet, programme, et lien vers le formulaire RSVP.
+                  C&apos;est l&apos;étape où vous demandez une confirmation de présence.
+                </CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+        </Card>
+
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
           <h1 className="text-3xl font-bold text-[#004645]" style={{ fontFamily: "var(--font-abril)" }}>
             Design de l&apos;invitation
           </h1>
