@@ -560,15 +560,15 @@ export function ShowcaseBuilder({ eventId, eventSlug, initialData }: ShowcaseBui
             </CardContent>
           </Card>
 
-          <GalleryEditor gallery={gallery} onUpdate={setGallery} />
+          <GalleryEditor images={gallery} onChange={setGallery} />
         </TabsContent>
 
         {/* Tab: Advanced */}
         <TabsContent value="advanced" className="space-y-4">
-          <SpeakersEditor speakers={speakers} onUpdate={setSpeakers} />
-          <SponsorsEditor sponsors={sponsors} onUpdate={setSponsors} />
-          <TimelineEditor timeline={timeline} onUpdate={setTimeline} />
-          <FAQEditor faq={faq} onUpdate={setFaq} />
+          <SpeakersEditor speakers={speakers} onChange={setSpeakers} />
+          <SponsorsEditor sponsors={sponsors} onChange={setSponsors} />
+          <TimelineEditor timeline={timeline} onChange={setTimeline} />
+          <FAQEditor faqs={faq} onChange={setFaq} />
 
           <Card className="border-[#9CD9F6]/30 bg-white/80 backdrop-blur">
             <CardHeader>
