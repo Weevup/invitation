@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import {
   Sparkles,
   Eye,
@@ -14,21 +15,25 @@ import {
   Loader2,
   CheckCircle,
   Palette,
-  Layout,
   ExternalLink,
-  Image as ImageIcon,
   MessageCircle,
   Video,
-  Clock
+  Clock,
+  Plus,
+  Wand2
 } from 'lucide-react'
 import { Switch } from '@/components/ui/switch'
-import { Checkbox } from '@/components/ui/checkbox'
 import { GalleryEditor } from '@/components/showcase/gallery-editor'
 import { FAQEditor } from '@/components/showcase/faq-editor'
 import { SpeakersEditor } from '@/components/showcase/speakers-editor'
 import { SponsorsEditor } from '@/components/showcase/sponsors-editor'
 import { TimelineEditor } from '@/components/showcase/timeline-editor'
+import { TemplateSelector } from '@/components/showcase/template-selector'
+import { DraggableSectionList } from '@/components/showcase/draggable-section-list'
+import { SectionEditor } from '@/components/showcase/section-editor'
+import { SplitPreview } from '@/components/showcase/split-preview'
 import { themePresets } from '@/lib/showcase-presets'
+import { type SectionConfig, type ShowcaseTemplate } from '@/lib/showcase-templates'
 
 interface Speaker {
   name: string
@@ -59,7 +64,7 @@ interface ShowcaseBuilderProps {
     showcaseSubtitle: string | null
     showcaseBannerImage: string | null
     showcaseTheme: string
-    showcaseSections: string[] | null
+    showcaseSections: any
     showcasePrimaryColor: string
     showcaseSecondaryColor: string
     showcaseCustomCSS: string | null
@@ -89,6 +94,32 @@ const availableSections = [
   { id: 'cta', label: '✨ Appel à l\'action', description: 'Call-to-action final' },
 ]
 
+// Convertir les anciennes sections vers SectionConfig
+function migrateToSectionConfigs(oldSections: string[] | SectionConfig[]): SectionConfig[] {
+  if (!oldSections || oldSections.length === 0) {
+    return []
+  }
+
+  // Si c'est déjà des SectionConfig, les retourner
+  if (typeof oldSections[0] === 'object' && 'type' in oldSections[0]) {
+    return oldSections as SectionConfig[]
+  }
+
+  // Sinon, créer des SectionConfig par défaut
+  return (oldSections as string[]).map((sectionType, index) => ({
+    id: `${sectionType}-${index}`,
+    type: sectionType,
+    enabled: true,
+    order: index,
+    layout: 'container',
+    alignment: 'center',
+    paddingTop: 'lg',
+    paddingBottom: 'lg',
+    animationType: 'fade',
+    animationDuration: 'normal',
+  }))
+}
+
 export function ShowcaseBuilder({ eventId, eventSlug, initialData }: ShowcaseBuilderProps) {
   const [enabled, setEnabled] = useState(initialData.showcaseEnabled)
   const [title, setTitle] = useState(initialData.showcaseTitle || '')
@@ -96,9 +127,12 @@ export function ShowcaseBuilder({ eventId, eventSlug, initialData }: ShowcaseBui
   const [bannerImage, setBannerImage] = useState(initialData.showcaseBannerImage || '')
   const [primaryColor, setPrimaryColor] = useState(initialData.showcasePrimaryColor)
   const [secondaryColor, setSecondaryColor] = useState(initialData.showcaseSecondaryColor)
-  const [sections, setSections] = useState<string[]>(
-    initialData.showcaseSections || ['hero', 'countdown', 'description', 'details', 'cta']
+
+  // Nouveau système de sections avec SectionConfig
+  const [sectionConfigs, setSectionConfigs] = useState<SectionConfig[]>(
+    migrateToSectionConfigs(initialData.showcaseSections || [])
   )
+
   const [customCSS, setCustomCSS] = useState(initialData.showcaseCustomCSS || '')
 
   // Contenu multimédia
@@ -113,16 +147,64 @@ export function ShowcaseBuilder({ eventId, eventSlug, initialData }: ShowcaseBui
   const [sponsors, setSponsors] = useState<Sponsor[]>(initialData.showcaseSponsors || [])
   const [timeline, setTimeline] = useState<TimelineItem[]>(initialData.showcaseTimeline || [])
 
+  // UI States
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState('')
+  const [showTemplateSelector, setShowTemplateSelector] = useState(false)
+  const [editingSection, setEditingSection] = useState<SectionConfig | null>(null)
+  const [showPreview, setShowPreview] = useState(false)
+  const [showAddSection, setShowAddSection] = useState(false)
+
+  // Handlers pour templates
+  const handleTemplateSelect = (template: ShowcaseTemplate) => {
+    setSectionConfigs(template.sections)
+    setPrimaryColor(template.primaryColor)
+    setSecondaryColor(template.secondaryColor)
+    setShowTemplateSelector(false)
+  }
+
+  // Handlers pour sections
+  const handleSectionsReorder = (newSections: SectionConfig[]) => {
+    setSectionConfigs(newSections)
+  }
 
   const handleSectionToggle = (sectionId: string) => {
-    setSections(prev =>
-      prev.includes(sectionId)
-        ? prev.filter(s => s !== sectionId)
-        : [...prev, sectionId]
+    setSectionConfigs(prev =>
+      prev.map(s => s.id === sectionId ? { ...s, enabled: !s.enabled } : s)
     )
+  }
+
+  const handleSectionEdit = (section: SectionConfig) => {
+    setEditingSection(section)
+  }
+
+  const handleSectionUpdate = (updatedSection: SectionConfig) => {
+    setSectionConfigs(prev =>
+      prev.map(s => s.id === updatedSection.id ? updatedSection : s)
+    )
+    setEditingSection(null)
+  }
+
+  const handleSectionDelete = (sectionId: string) => {
+    setSectionConfigs(prev => prev.filter(s => s.id !== sectionId))
+  }
+
+  const handleAddSection = (type: string) => {
+    const newSection: SectionConfig = {
+      id: `${type}-${Date.now()}`,
+      type,
+      enabled: true,
+      order: sectionConfigs.length,
+      layout: 'container',
+      alignment: 'center',
+      paddingTop: 'lg',
+      paddingBottom: 'lg',
+      animationType: 'fade',
+      animationDuration: 'normal',
+    }
+    setSectionConfigs(prev => [...prev, newSection])
+    setShowAddSection(false)
   }
 
   const handleSave = async () => {
@@ -143,7 +225,7 @@ export function ShowcaseBuilder({ eventId, eventSlug, initialData }: ShowcaseBui
           showcaseBannerImage: bannerImage || null,
           showcasePrimaryColor: primaryColor,
           showcaseSecondaryColor: secondaryColor,
-          showcaseSections: sections,
+          showcaseSections: sectionConfigs,
           showcaseCustomCSS: customCSS || null,
           showcaseGallery: gallery.length > 0 ? gallery : null,
           showcaseFAQ: faq.length > 0 ? faq : null,
@@ -185,11 +267,21 @@ export function ShowcaseBuilder({ eventId, eventSlug, initialData }: ShowcaseBui
                   Page Vitrine
                 </CardTitle>
                 <CardDescription className="text-[#004645]/70">
-                  Créez une page publique pour votre événement
+                  Créez une page publique professionnelle pour votre événement
                 </CardDescription>
               </div>
             </div>
             <div className="flex items-center gap-3">
+              {enabled && (
+                <Button
+                  variant="outline"
+                  onClick={() => setShowPreview(!showPreview)}
+                  className="border-[#009197] text-[#009197] hover:bg-[#009197]/10"
+                >
+                  <Eye className="h-4 w-4 mr-2" />
+                  {showPreview ? 'Masquer' : 'Aperçu'}
+                </Button>
+              )}
               {enabled && (
                 <a
                   href={showcaseUrl}
@@ -197,9 +289,8 @@ export function ShowcaseBuilder({ eventId, eventSlug, initialData }: ShowcaseBui
                   rel="noopener noreferrer"
                   className="text-sm text-[#009197] hover:text-[#004645] flex items-center gap-1"
                 >
-                  <Eye className="h-4 w-4" />
-                  Voir la page
-                  <ExternalLink className="h-3 w-3" />
+                  <ExternalLink className="h-4 w-4" />
+                  Ouvrir
                 </a>
               )}
             </div>
@@ -317,40 +408,43 @@ export function ShowcaseBuilder({ eventId, eventSlug, initialData }: ShowcaseBui
           </Card>
         </TabsContent>
 
-        {/* Tab: Sections */}
+        {/* Tab: Sections - VERSION AMÉLIORÉE */}
         <TabsContent value="sections" className="space-y-4">
           <Card className="border-[#9CD9F6]/30 bg-white/80 backdrop-blur">
             <CardHeader>
-              <CardTitle className="text-[#004645]">Sections de la page</CardTitle>
-              <CardDescription>Choisissez les sections à afficher sur la page vitrine</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div>
-                <Label className="text-[#004645] mb-3 block">Sections disponibles</Label>
-                <div className="space-y-2">
-                  {availableSections.map((section) => (
-                    <div
-                      key={section.id}
-                      className="flex items-start space-x-3 p-3 rounded-lg border border-[#9CD9F6]/30 hover:bg-[#9CD9F6]/5 transition-colors"
-                    >
-                      <Checkbox
-                        id={`section-${section.id}`}
-                        checked={sections.includes(section.id)}
-                        onCheckedChange={() => handleSectionToggle(section.id)}
-                      />
-                      <div className="flex-1">
-                        <label
-                          htmlFor={`section-${section.id}`}
-                          className="text-sm font-medium text-[#004645] cursor-pointer"
-                        >
-                          {section.label}
-                        </label>
-                        <p className="text-xs text-[#004645]/70">{section.description}</p>
-                      </div>
-                    </div>
-                  ))}
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-[#004645]">Sections de la page</CardTitle>
+                  <CardDescription>Glissez-déposez pour réorganiser • Configurez chaque section</CardDescription>
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowTemplateSelector(true)}
+                    className="border-[#009197] text-[#009197] hover:bg-[#009197]/10"
+                  >
+                    <Wand2 className="h-4 w-4 mr-2" />
+                    Templates
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowAddSection(true)}
+                    className="border-[#FF4713] text-[#FF4713] hover:bg-[#FF4713]/10"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Ajouter
+                  </Button>
                 </div>
               </div>
+            </CardHeader>
+            <CardContent>
+              <DraggableSectionList
+                sections={sectionConfigs}
+                onReorder={handleSectionsReorder}
+                onToggle={handleSectionToggle}
+                onEdit={handleSectionEdit}
+                onDelete={handleSectionDelete}
+              />
             </CardContent>
           </Card>
         </TabsContent>
@@ -416,68 +510,43 @@ export function ShowcaseBuilder({ eventId, eventSlug, initialData }: ShowcaseBui
                 <Label className="text-[#004645] mb-3 block">Thèmes prédéfinis</Label>
                 <p className="text-xs text-[#004645]/70 mb-4">Sélectionnez un thème pour appliquer instantanément un style professionnel</p>
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                  {themePresets.map((preset) => {
-                    const isActive = preset.primaryColor === primaryColor && preset.secondaryColor === secondaryColor
-                    return (
-                      <button
-                        key={preset.id}
-                        type="button"
-                        onClick={() => {
-                          setPrimaryColor(preset.primaryColor)
-                          setSecondaryColor(preset.secondaryColor)
-                        }}
-                        className={`group relative overflow-hidden rounded-lg border-2 transition-all hover:scale-105 ${
-                          isActive
-                            ? 'border-[#009197] shadow-lg'
-                            : 'border-gray-200 hover:border-[#9CD9F6]'
-                        }`}
-                      >
-                        {/* Preview gradient */}
-                        <div
-                          className="h-20 w-full"
-                          style={{ background: preset.preview }}
-                        />
-
-                        {/* Theme info */}
-                        <div className="p-2 bg-white">
-                          <div className="flex items-center justify-between mb-1">
-                            <p className="text-xs font-semibold text-gray-900">{preset.name}</p>
-                            {isActive && (
-                              <CheckCircle className="h-4 w-4 text-[#009197]" />
-                            )}
-                          </div>
-                          <p className="text-[10px] text-gray-500 line-clamp-2">{preset.description}</p>
-                        </div>
-
-                        {/* Hover overlay */}
-                        {!isActive && (
-                          <div className="absolute inset-0 bg-[#009197]/0 group-hover:bg-[#009197]/5 transition-colors pointer-events-none" />
-                        )}
-                      </button>
-                    )
-                  })}
+                  {themePresets.map((preset) => (
+                    <button
+                      key={preset.id}
+                      onClick={() => {
+                        setPrimaryColor(preset.primaryColor)
+                        setSecondaryColor(preset.secondaryColor)
+                      }}
+                      className="group relative overflow-hidden rounded-lg border-2 border-[#9CD9F6]/30 hover:border-[#009197] transition-colors p-3 text-left"
+                    >
+                      <div
+                        className="h-16 rounded-md mb-2"
+                        style={{ background: preset.preview }}
+                      />
+                      <p className="font-medium text-sm text-[#004645]">{preset.name}</p>
+                      <p className="text-xs text-[#004645]/70 line-clamp-2">{preset.description}</p>
+                    </button>
+                  ))}
                 </div>
               </div>
             </CardContent>
           </Card>
         </TabsContent>
 
-        {/* Tab: Média */}
+        {/* Tab: Media */}
         <TabsContent value="media" className="space-y-4">
           <Card className="border-[#9CD9F6]/30 bg-white/80 backdrop-blur">
             <CardHeader>
               <div className="flex items-center gap-3">
-                <Video className="h-5 w-5 text-[#FF4713]" />
+                <Video className="h-5 w-5 text-[#009197]" />
                 <div>
                   <CardTitle className="text-[#004645]">Vidéo</CardTitle>
-                  <CardDescription>Intégrez une vidéo YouTube ou Vimeo</CardDescription>
+                  <CardDescription>Ajoutez une vidéo YouTube ou Vimeo</CardDescription>
                 </div>
               </div>
             </CardHeader>
             <CardContent>
-              <Label htmlFor="video-url" className="text-[#004645]">
-                URL de la vidéo
-              </Label>
+              <Label htmlFor="video-url" className="text-[#004645]">URL de la vidéo</Label>
               <Input
                 id="video-url"
                 value={videoUrl}
@@ -486,153 +555,130 @@ export function ShowcaseBuilder({ eventId, eventSlug, initialData }: ShowcaseBui
                 className="border-[#9CD9F6]/30"
               />
               <p className="text-xs text-[#004645]/70 mt-2">
-                Formats supportés: YouTube, Vimeo
+                Formats supportés: YouTube, Vimeo, Dailymotion
               </p>
             </CardContent>
           </Card>
 
-          <Card className="border-[#9CD9F6]/30 bg-white/80 backdrop-blur">
-            <CardHeader>
-              <div className="flex items-center gap-3">
-                <ImageIcon className="h-5 w-5 text-[#009197]" />
-                <div>
-                  <CardTitle className="text-[#004645]">Galerie d&apos;images</CardTitle>
-                  <CardDescription>Ajoutez des photos pour créer une galerie</CardDescription>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <GalleryEditor images={gallery} onChange={setGallery} />
-            </CardContent>
-          </Card>
-
-          <Card className="border-[#9CD9F6]/30 bg-white/80 backdrop-blur">
-            <CardHeader>
-              <div className="flex items-center gap-3">
-                <MessageCircle className="h-5 w-5 text-[#FF4713]" />
-                <div>
-                  <CardTitle className="text-[#004645]">FAQ</CardTitle>
-                  <CardDescription>Questions et réponses fréquentes</CardDescription>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <FAQEditor faqs={faq} onChange={setFaq} />
-            </CardContent>
-          </Card>
-
-          <Card className="border-[#9CD9F6]/30 bg-white/80 backdrop-blur">
-            <CardHeader>
-              <div className="flex items-center gap-3">
-                <Clock className="h-5 w-5 text-[#009197]" />
-                <div>
-                  <CardTitle className="text-[#004645]">Timeline de l&apos;événement</CardTitle>
-                  <CardDescription>Déroulé heure par heure</CardDescription>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <TimelineEditor timeline={timeline} onChange={setTimeline} />
-            </CardContent>
-          </Card>
-
-          <Card className="border-[#9CD9F6]/30 bg-white/80 backdrop-blur">
-            <CardHeader>
-              <div className="flex items-center gap-3">
-                <Sparkles className="h-5 w-5 text-[#FF4713]" />
-                <div>
-                  <CardTitle className="text-[#004645]">Speakers & Intervenants</CardTitle>
-                  <CardDescription>Présentez vos speakers</CardDescription>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <SpeakersEditor speakers={speakers} onChange={setSpeakers} />
-            </CardContent>
-          </Card>
-
-          <Card className="border-[#9CD9F6]/30 bg-white/80 backdrop-blur">
-            <CardHeader>
-              <div className="flex items-center gap-3">
-                <Sparkles className="h-5 w-5 text-[#004645]" />
-                <div>
-                  <CardTitle className="text-[#004645]">Sponsors & Partenaires</CardTitle>
-                  <CardDescription>Mettez en avant vos sponsors</CardDescription>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <SponsorsEditor sponsors={sponsors} onChange={setSponsors} />
-            </CardContent>
-          </Card>
+          <GalleryEditor gallery={gallery} onUpdate={setGallery} />
         </TabsContent>
 
         {/* Tab: Advanced */}
         <TabsContent value="advanced" className="space-y-4">
+          <SpeakersEditor speakers={speakers} onUpdate={setSpeakers} />
+          <SponsorsEditor sponsors={sponsors} onUpdate={setSponsors} />
+          <TimelineEditor timeline={timeline} onUpdate={setTimeline} />
+          <FAQEditor faq={faq} onUpdate={setFaq} />
+
           <Card className="border-[#9CD9F6]/30 bg-white/80 backdrop-blur">
             <CardHeader>
               <CardTitle className="text-[#004645]">CSS Personnalisé</CardTitle>
-              <CardDescription className="text-[#004645]/70">
-                Pour les utilisateurs avancés - ajoutez votre propre CSS
-              </CardDescription>
+              <CardDescription>Pour les utilisateurs avancés</CardDescription>
             </CardHeader>
             <CardContent>
               <Textarea
                 value={customCSS}
                 onChange={(e) => setCustomCSS(e.target.value)}
-                placeholder="/* Votre CSS personnalisé ici */
-.custom-class {
-  /* styles */
-}"
-                className="font-mono text-sm min-h-[200px] border-[#9CD9F6]/30"
+                placeholder=".mon-element { color: red; }"
+                className="font-mono text-sm border-[#9CD9F6]/30 min-h-[200px]"
               />
-              <p className="text-xs text-[#004645]/70 mt-2">
-                ⚠️ Attention: un CSS invalide peut casser l&apos;affichage de votre page
-              </p>
             </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
 
-      {/* Save Button - Outside tabs but inside enabled block */}
-      <div className="flex items-center justify-between gap-4 mt-6">
-        {error && (
-          <p className="text-sm text-red-600">{error}</p>
-        )}
-        {saved && (
-          <div className="flex items-center gap-2 text-sm text-green-600">
-            <CheckCircle className="h-4 w-4" />
-            <span>Modifications enregistrées</span>
-          </div>
-        )}
-        <div className="flex gap-2 ml-auto">
-          <a href={showcaseUrl} target="_blank" rel="noopener noreferrer">
-            <Button variant="outline" className="border-[#009197] text-[#009197] hover:bg-[#009197]/10">
-              <Eye className="h-4 w-4 mr-2" />
-              Prévisualiser
+      {/* Save Button */}
+      <Card className="border-[#FF4713]/30 bg-gradient-to-br from-[#FF4713]/5 to-white/80 backdrop-blur sticky bottom-4">
+        <CardContent className="pt-6">
+          <div className="flex items-center justify-between">
+            <div>
+              {error && <p className="text-sm text-red-600">{error}</p>}
+              {saved && (
+                <p className="text-sm text-green-600 flex items-center gap-2">
+                  <CheckCircle className="h-4 w-4" />
+                  Sauvegardé avec succès
+                </p>
+              )}
+            </div>
+            <Button
+              onClick={handleSave}
+              disabled={saving}
+              className="bg-[#FF4713] hover:bg-[#FF6B3D] text-white"
+              size="lg"
+            >
+              {saving ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Sauvegarde...
+                </>
+              ) : (
+                <>
+                  <Save className="h-4 w-4 mr-2" />
+                  Sauvegarder
+                </>
+              )}
             </Button>
-          </a>
-          <Button
-            onClick={handleSave}
-            disabled={saving}
-            className="bg-gradient-to-r from-[#004645] to-[#009197] hover:from-[#006C51] hover:to-[#009197] text-white"
-          >
-            {saving ? (
-              <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Enregistrement...
-              </>
-            ) : (
-              <>
-                <Save className="h-4 w-4 mr-2" />
-                Enregistrer
-              </>
-            )}
-          </Button>
-        </div>
-      </div>
+          </div>
+        </CardContent>
+      </Card>
       </>
       )}
+
+      {/* Template Selector Modal */}
+      <TemplateSelector
+        open={showTemplateSelector}
+        onSelect={handleTemplateSelect}
+        onClose={() => setShowTemplateSelector(false)}
+      />
+
+      {/* Section Editor Modal */}
+      {editingSection && (
+        <Dialog open={!!editingSection} onOpenChange={() => setEditingSection(null)}>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Configuration de la section</DialogTitle>
+            </DialogHeader>
+            <SectionEditor
+              section={editingSection}
+              onChange={handleSectionUpdate}
+            />
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setEditingSection(null)}>Fermer</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* Add Section Modal */}
+      {showAddSection && (
+        <Dialog open={showAddSection} onOpenChange={setShowAddSection}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Ajouter une section</DialogTitle>
+            </DialogHeader>
+            <div className="grid grid-cols-2 gap-3 py-4">
+              {availableSections.map((section) => (
+                <Button
+                  key={section.id}
+                  variant="outline"
+                  onClick={() => handleAddSection(section.id)}
+                  className="h-auto flex-col items-start p-4 text-left"
+                >
+                  <span className="font-medium">{section.label}</span>
+                  <span className="text-xs text-gray-500 mt-1">{section.description}</span>
+                </Button>
+              ))}
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* Split Preview */}
+      <SplitPreview
+        eventSlug={eventSlug}
+        isVisible={showPreview}
+        onToggle={() => setShowPreview(!showPreview)}
+      />
     </div>
   )
 }
