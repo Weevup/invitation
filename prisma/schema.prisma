@@ -40,6 +40,13 @@ enum EmailStatus {
   FAILED
 }
 
+enum EmailProvider {
+  SENDGRID
+  RESEND
+  MAILGUN
+  SMTP
+}
+
 model User {
   id        String   @id @default(cuid())
   email     String   @unique
@@ -250,4 +257,49 @@ model EmailTracking {
   @@index([guestId])
   @@index([type])
   @@index([status])
+}
+
+model EmailIntegration {
+  id        String        @id @default(cuid())
+
+  // Provider configuration
+  provider  EmailProvider
+  isActive  Boolean       @default(false)
+  isPrimary Boolean       @default(false) // Only one can be primary
+
+  // API Configuration (stored encrypted in production)
+  apiKey    String?       // Encrypted API key
+  apiSecret String?       // Encrypted secret (for some providers)
+
+  // SMTP specific fields
+  smtpHost  String?
+  smtpPort  Int?
+  smtpUser  String?
+  smtpPass  String?       // Encrypted
+
+  // Sender configuration
+  fromEmail String?
+  fromName  String?
+  replyTo   String?
+
+  // Webhooks & tracking
+  webhookUrl String?
+  webhookSecret String?   // Encrypted
+  trackOpens Boolean     @default(true)
+  trackClicks Boolean    @default(true)
+
+  // Limits & quotas
+  dailyLimit Int?
+  monthlyLimit Int?
+
+  // Metadata
+  lastTestedAt DateTime?
+  lastUsedAt   DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([provider])
+  @@index([isActive])
+  @@index([isPrimary])
 }

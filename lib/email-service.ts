@@ -442,3 +442,241 @@ class EmailService {
 
 // Singleton instance
 export const emailService = new EmailService();
+
+/**
+ * NEW: Unified email sending with dynamic integrations
+ * Supports SendGrid, Resend, Mailgun, and custom SMTP
+ */
+
+import nodemailer from 'nodemailer'
+import crypto from 'crypto'
+
+// Encryption helpers
+const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || 'change-this-in-production-32chr'
+const ALGORITHM = 'aes-256-cbc'
+
+function decrypt(text: string): string {
+  const textParts = text.split(':')
+  const iv = Buffer.from(textParts.shift()!, 'hex')
+  const encryptedText = Buffer.from(textParts.join(':'), 'hex')
+  const decipher = crypto.createDecipheriv(ALGORITHM, Buffer.from(ENCRYPTION_KEY.slice(0, 32)), iv)
+  let decrypted = decipher.update(encryptedText)
+  decrypted = Buffer.concat([decrypted, decipher.final()])
+  return decrypted.toString()
+}
+
+export interface EmailData {
+  to: string | string[]
+  from?: string
+  fromName?: string
+  replyTo?: string
+  subject: string
+  html: string
+  text?: string
+  cc?: string | string[]
+  bcc?: string | string[]
+}
+
+export interface EmailIntegration {
+  id: string
+  provider: 'SENDGRID' | 'RESEND' | 'MAILGUN' | 'SMTP'
+  apiKey?: string
+  apiSecret?: string
+  smtpHost?: string
+  smtpPort?: number
+  smtpUser?: string
+  smtpPass?: string
+  fromEmail?: string
+  fromName?: string
+  replyTo?: string
+  trackOpens: boolean
+  trackClicks: boolean
+}
+
+export interface EmailResult {
+  success: boolean
+  messageId?: string
+  error?: string
+}
+
+/**
+ * Send email using a specific integration
+ */
+export async function sendEmail(
+  data: EmailData,
+  integration: EmailIntegration
+): Promise<EmailResult> {
+  try {
+    const from = data.from || integration.fromEmail
+    const fromName = data.fromName || integration.fromName
+    const replyTo = data.replyTo || integration.replyTo
+
+    switch (integration.provider) {
+      case 'SENDGRID':
+        return await sendViaSendGrid(data, integration, from!, fromName, replyTo)
+      case 'RESEND':
+        return await sendViaResend(data, integration, from!, fromName, replyTo)
+      case 'MAILGUN':
+        return await sendViaMailgun(data, integration, from!, fromName, replyTo)
+      case 'SMTP':
+        return await sendViaSMTP(data, integration, from!, fromName, replyTo)
+      default:
+        return { success: false, error: `Unsupported provider: ${integration.provider}` }
+    }
+  } catch (error) {
+    console.error('Email sending error:', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    }
+  }
+}
+
+async function sendViaSendGrid(
+  data: EmailData,
+  integration: EmailIntegration,
+  from: string,
+  fromName?: string,
+  replyTo?: string
+): Promise<EmailResult> {
+  const apiKey = integration.apiKey ? decrypt(integration.apiKey) : ''
+
+  const payload = {
+    personalizations: [{
+      to: Array.isArray(data.to) ? data.to.map(email => ({ email })) : [{ email: data.to }],
+      subject: data.subject,
+    }],
+    from: { email: from, ...(fromName && { name: fromName }) },
+    ...(replyTo && { reply_to: { email: replyTo } }),
+    content: [
+      { type: 'text/html', value: data.html },
+      ...(data.text ? [{ type: 'text/plain', value: data.text }] : []),
+    ],
+    tracking_settings: {
+      click_tracking: { enable: integration.trackClicks },
+      open_tracking: { enable: integration.trackOpens },
+    },
+  }
+
+  const response = await fetch('https://api.sendgrid.com/v3/mail/send', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  })
+
+  if (!response.ok) {
+    const error = await response.text()
+    return { success: false, error: `SendGrid error: ${error}` }
+  }
+
+  return { success: true, messageId: response.headers.get('x-message-id') || undefined }
+}
+
+async function sendViaResend(
+  data: EmailData,
+  integration: EmailIntegration,
+  from: string,
+  fromName?: string,
+  replyTo?: string
+): Promise<EmailResult> {
+  const apiKey = integration.apiKey ? decrypt(integration.apiKey) : ''
+
+  const payload = {
+    from: fromName ? `${fromName} <${from}>` : from,
+    to: Array.isArray(data.to) ? data.to : [data.to],
+    ...(replyTo && { reply_to: replyTo }),
+    subject: data.subject,
+    html: data.html,
+    ...(data.text && { text: data.text }),
+  }
+
+  const response = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  })
+
+  const result = await response.json()
+
+  if (!response.ok) {
+    return { success: false, error: `Resend error: ${result.message || JSON.stringify(result)}` }
+  }
+
+  return { success: true, messageId: result.id }
+}
+
+async function sendViaMailgun(
+  data: EmailData,
+  integration: EmailIntegration,
+  from: string,
+  fromName?: string,
+  replyTo?: string
+): Promise<EmailResult> {
+  const apiKey = integration.apiKey ? decrypt(integration.apiKey) : ''
+  const domain = integration.apiSecret
+
+  const formData = new FormData()
+  formData.append('from', fromName ? `${fromName} <${from}>` : from)
+  formData.append('to', Array.isArray(data.to) ? data.to.join(',') : data.to)
+  if (replyTo) formData.append('h:Reply-To', replyTo)
+  formData.append('subject', data.subject)
+  formData.append('html', data.html)
+  if (data.text) formData.append('text', data.text)
+  if (integration.trackOpens) formData.append('o:tracking-opens', 'yes')
+  if (integration.trackClicks) formData.append('o:tracking-clicks', 'yes')
+
+  const response = await fetch(`https://api.mailgun.net/v3/${domain}/messages`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Basic ${Buffer.from(`api:${apiKey}`).toString('base64')}`,
+    },
+    body: formData,
+  })
+
+  const result = await response.json()
+
+  if (!response.ok) {
+    return { success: false, error: `Mailgun error: ${result.message || JSON.stringify(result)}` }
+  }
+
+  return { success: true, messageId: result.id }
+}
+
+async function sendViaSMTP(
+  data: EmailData,
+  integration: EmailIntegration,
+  from: string,
+  fromName?: string,
+  replyTo?: string
+): Promise<EmailResult> {
+  const smtpPass = integration.smtpPass ? decrypt(integration.smtpPass) : ''
+
+  const transporter = nodemailer.createTransport({
+    host: integration.smtpHost,
+    port: integration.smtpPort || 587,
+    secure: integration.smtpPort === 465,
+    auth: {
+      user: integration.smtpUser,
+      pass: smtpPass,
+    },
+  })
+
+  const mailOptions = {
+    from: fromName ? `${fromName} <${from}>` : from,
+    to: Array.isArray(data.to) ? data.to.join(', ') : data.to,
+    ...(replyTo && { replyTo }),
+    subject: data.subject,
+    html: data.html,
+    ...(data.text && { text: data.text }),
+  }
+
+  const info = await transporter.sendMail(mailOptions)
+
+  return { success: true, messageId: info.messageId }
+}
