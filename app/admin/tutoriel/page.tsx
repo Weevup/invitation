@@ -19,30 +19,36 @@ export default function TutorielPage() {
       title: "Configurer l'envoi d'emails",
       icon: Settings,
       color: "text-[#009197]",
-      description: "Configurez votre service d'envoi d'emails (Resend ou SendGrid)",
+      description: "Configurez une ou plusieurs intégrations email (SendGrid, Resend, Mailgun, SMTP)",
       details: [
-        "Allez dans Paramètres → Configuration Email",
-        "Choisissez votre provider (Resend recommandé)",
-        "Ajoutez votre clé API dans le fichier .env.local",
-        "Configurez l'email expéditeur vérifié",
-        "Testez la configuration avec un email de test"
+        "Allez dans Configuration → Intégrations dans le menu",
+        "Choisissez votre provider (SendGrid, Resend, Mailgun ou SMTP custom)",
+        "Configurez les clés API et paramètres du provider",
+        "Définissez l'email expéditeur vérifié et le nom d'expédition",
+        "Activez le tracking des ouvertures et clics",
+        "Définissez une intégration comme primaire",
+        "Testez la connexion avec le bouton 'Tester la connexion'"
       ],
-      link: "/admin/settings/email"
+      link: "/admin/settings/integrations"
     },
     {
       id: 2,
       title: "Créer votre événement",
       icon: Calendar,
       color: "text-[#004645]",
-      description: "Créez votre événement et configurez le cycle de communication",
+      description: "Créez votre événement et personnalisez la page showcase publique",
       details: [
         "Cliquez sur 'Événements' puis 'Nouvel événement'",
-        "Remplissez les informations : nom, date, lieu, description",
-        "Configurez le Save the Date (étape 1 : pré-invitation)",
-        "Configurez l'Invitation officielle (étape 2 : détails complets)",
-        "Configurez le formulaire RSVP (étape 3 : confirmation)"
+        "Onglet Informations : Nom, date, lieu, description, programme",
+        "Onglet Showcase : Configurez votre page publique",
+        "  → Ajoutez speakers avec photos, bio et titre",
+        "  → Créez une timeline de la journée avec horaires",
+        "  → Ajoutez des sponsors (Platine, Or, Argent, Bronze)",
+        "  → Créez une galerie de photos",
+        "  → Ajoutez une FAQ avec questions/réponses",
+        "Onglet Configuration : Options RSVP, +1, choix de repas, deadline"
       ],
-      link: "/admin"
+      link: "/admin/events"
     },
     {
       id: 3,
@@ -113,19 +119,24 @@ export default function TutorielPage() {
       icon: Calendar
     },
     {
-      title: "Invitations personnalisées",
-      description: "Chaque invité reçoit un lien unique et sécurisé pour RSVP",
+      title: "Intégrations email multi-providers",
+      description: "Support SendGrid, Resend, Mailgun et SMTP avec tracking complet",
       icon: Mail
     },
     {
-      title: "Suivi en temps réel",
-      description: "Suivez les réponses de vos invités instantanément",
+      title: "Showcase personnalisable",
+      description: "Créez une page publique avec speakers, timeline, galerie, sponsors et FAQ",
+      icon: Sparkles
+    },
+    {
+      title: "Invitations personnalisées",
+      description: "Chaque invité reçoit un lien unique et sécurisé pour RSVP",
       icon: CheckCircle
     },
     {
-      title: "Export de données",
-      description: "Exportez vos listes d'invités et statistiques en CSV",
-      icon: FileText
+      title: "Diagnostic système",
+      description: "Vérifiez la santé de votre application avec des recommandations",
+      icon: Database
     },
     {
       title: "Statistiques détaillées",
@@ -133,17 +144,37 @@ export default function TutorielPage() {
       icon: BarChart
     },
     {
-      title: "Configuration flexible",
-      description: "Personnalisez l'expérience selon vos besoins",
-      icon: Database
+      title: "Documentation intégrée",
+      description: "Guides complets d'architecture, développement, tests et déploiement",
+      icon: BookOpen
+    },
+    {
+      title: "Export de données",
+      description: "Exportez vos listes d'invités et statistiques en CSV",
+      icon: FileText
     }
   ]
 
   const tips = [
     {
+      title: "Utilisez le Diagnostic système",
+      description: "Avant votre premier envoi, vérifiez le Diagnostic (menu Configuration) pour vous assurer que tout est correctement configuré : base de données, intégrations email, variables d'environnement et webhooks.",
+      icon: Database
+    },
+    {
+      title: "Consultez la Documentation",
+      description: "La page Documentation (menu Aide) contient des guides complets sur l'architecture, le développement, les tests, les API, la sécurité et le déploiement. Parfait pour les développeurs !",
+      icon: BookOpen
+    },
+    {
       title: "Initialisez avec des données de démo",
-      description: "Si vous débutez, utilisez le bouton 'Créer événement démo' sur le tableau de bord pour voir comment fonctionne l'outil avec des données exemple.",
+      description: "Utilisez 'npm run db:seed:complete' pour créer un événement de démo complet avec 15 invités, emails, tracking et showcase configuré. Parfait pour tester end-to-end !",
       icon: Sparkles
+    },
+    {
+      title: "Configurez les webhooks",
+      description: "Configurez les webhooks dans votre provider email (SendGrid, Resend, Mailgun) pour recevoir les événements de livraison, ouverture et clics en temps réel.",
+      icon: Mail
     },
     {
       title: "Utilisez les filtres",
@@ -322,11 +353,23 @@ export default function TutorielPage() {
               <span className="text-[#004645]">Explorer chaque page pour découvrir toutes les possibilités</span>
             </div>
           </div>
-          <div className="mt-6 flex gap-3">
-            <Link href="/admin/setup">
+          <div className="mt-6 flex flex-wrap gap-3">
+            <Link href="/admin/diagnostic">
+              <Button variant="outline" className="border-[#009197] text-[#009197] hover:bg-[#009197] hover:text-white">
+                <Database className="h-4 w-4 mr-2" />
+                Diagnostic
+              </Button>
+            </Link>
+            <Link href="/admin/documentation">
+              <Button variant="outline" className="border-[#009197] text-[#009197] hover:bg-[#009197] hover:text-white">
+                <BookOpen className="h-4 w-4 mr-2" />
+                Documentation
+              </Button>
+            </Link>
+            <Link href="/admin/settings/integrations">
               <Button variant="outline" className="border-[#009197] text-[#009197] hover:bg-[#009197] hover:text-white">
                 <Settings className="h-4 w-4 mr-2" />
-                Configuration
+                Intégrations
               </Button>
             </Link>
             <Link href="/admin">
