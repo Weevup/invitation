@@ -101,14 +101,14 @@ export function ShowcaseBuilder({ eventId, eventSlug, initialData }: ShowcaseBui
   )
   const [customCSS, setCustomCSS] = useState(initialData.showcaseCustomCSS || '')
 
-  // Nouveaux champs Phase 2
+  // Contenu multimédia
   const [gallery, setGallery] = useState<string[]>(initialData.showcaseGallery || [])
   const [faq, setFaq] = useState<Array<{question: string; answer: string}>>(initialData.showcaseFAQ || [])
   const [videoUrl, setVideoUrl] = useState(initialData.showcaseVideo || '')
   const [countdown, setCountdown] = useState(initialData.showcaseCountdown ?? true)
   const [socialShare, setSocialShare] = useState(initialData.showcaseSocialShare ?? true)
 
-  // Nouveaux champs Phase 3
+  // Contenu avancé
   const [speakers, setSpeakers] = useState<Speaker[]>(initialData.showcaseSpeakers || [])
   const [sponsors, setSponsors] = useState<Sponsor[]>(initialData.showcaseSponsors || [])
   const [timeline, setTimeline] = useState<TimelineItem[]>(initialData.showcaseTimeline || [])

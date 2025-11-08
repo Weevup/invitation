@@ -603,7 +603,7 @@ export default function EventDetailsPage() {
           </Card>
         </div>
 
-        {/* Showcase Builder - Phase 2 */}
+        {/* Showcase Builder - Page de présentation publique */}
         <div className="mb-8">
           <ShowcaseBuilder
             eventId={eventId}
