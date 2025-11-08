@@ -10,7 +10,8 @@ import {
   Home,
   BarChart,
   BookOpen,
-  CheckSquare
+  CheckSquare,
+  Plug
 } from 'lucide-react'
 import { WeevupLogo } from '@/components/weevup-logo'
 import { cn } from '@/lib/utils'
@@ -64,6 +65,12 @@ const navigationSections: NavSection[] = [
         href: '/admin/analytics',
         icon: BarChart,
         description: 'Analyses détaillées'
+      },
+      {
+        name: 'Intégrations',
+        href: '/admin/settings/integrations',
+        icon: Plug,
+        description: 'Configuration des emails'
       },
       {
         name: 'Configuration',
