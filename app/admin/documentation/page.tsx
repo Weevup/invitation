@@ -678,16 +678,14 @@ Soumet une réponse RSVP
 **Request** :
 \`\`\`json
 {
-  "status": "ACCEPTED" | "DECLINED",
-  "plusOnesCount": number,
-  "plusOnes": [{
-    "firstName": "string",
-    "lastName": "string"
-  }],
+  "attending": boolean,
+  "plusOnes": number,
   "mealChoice": "string?",
-  "plusOnesMealChoices": ["string"],
-  "dietaryRestrictions": "string?",
-  "message": "string?"
+  "allergies": "string?",
+  "accessibilityNotes": "string?",
+  "transportNeeds": "string?",
+  "lodgingNeeds": "string?",
+  "consentPhotos": boolean
 }
 \`\`\`
 
@@ -838,18 +836,24 @@ model Guest {
   tokenHash      String       @unique
   status         GuestStatus  @default(PENDING)
 
-  // RSVP Data
-  plusOnesCount        Int      @default(0)
-  plusOnesNames        String[]
-  mealChoice           String?
-  plusOnesMealChoices  String[]
-  dietaryRestrictions  String?  @db.Text
-  message              String?  @db.Text
-  respondedAt          DateTime?
+  // Response
+  attending Boolean?
+  plusOnes  Int      @default(0)
 
-  // Check-in
-  checkedInAt    DateTime?
-  qrCode         String?
+  // Meal preferences
+  mealChoice String?
+  allergies  String?  @db.Text
+
+  // Additional info
+  accessibilityNotes String? @db.Text
+  transportNeeds     String? @db.Text
+  lodgingNeeds       String? @db.Text
+
+  // Consents
+  consentPhotos Boolean @default(false)
+
+  // QR Code for check-in
+  qrCodeId String @unique @default(cuid())
 
   // Relations
   eventId        String
@@ -1426,15 +1430,14 @@ Toutes les entrées utilisateur sont validées :
 import { z } from 'zod'
 
 const rsvpSchema = z.object({
-  status: z.enum(['ACCEPTED', 'DECLINED']),
-  plusOnesCount: z.number().min(0).max(5),
-  plusOnes: z.array(z.object({
-    firstName: z.string().min(1),
-    lastName: z.string().min(1)
-  })),
+  attending: z.boolean(),
+  plusOnes: z.number().min(0).max(5),
   mealChoice: z.string().optional(),
-  dietaryRestrictions: z.string().max(500).optional(),
-  message: z.string().max(1000).optional()
+  allergies: z.string().max(500).optional(),
+  accessibilityNotes: z.string().max(500).optional(),
+  transportNeeds: z.string().max(500).optional(),
+  lodgingNeeds: z.string().max(500).optional(),
+  consentPhotos: z.boolean().default(false)
 })
 
 // Utilisation
