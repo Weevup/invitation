@@ -1,4 +1,4 @@
-import { Event, Guest, EmailTemplate } from '@prisma/client'
+import { Event, Guest, EmailTemplate, EmailType } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 
 /**
