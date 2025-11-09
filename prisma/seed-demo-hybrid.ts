@@ -118,7 +118,7 @@ Pitch de 10 startups innovantes
       showcaseTheme: 'weevup',
       showcasePrimaryColor: '#6366f1',
       showcaseSecondaryColor: '#8b5cf6',
-      userId: admin.id
+      adminId: admin.id
     }
   })
 
