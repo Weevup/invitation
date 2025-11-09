@@ -1698,6 +1698,99 @@ Navettes vers Paris et gares`,
       }
     })
 
+    // ====================================
+    // 6. INVITÉS POUR TOUS LES ÉVÉNEMENTS
+    // ====================================
+
+    // Données de démonstration réalistes pour les invités
+    const demoGuestsData = [
+      { firstName: 'Sophie', lastName: 'Martin', email: 'sophie.martin@example.com', company: 'TechCorp', tags: ['VIP', 'Speaker'], attending: true, plusOnes: 1, meal: 'Végétarien', allergies: 'Fruits à coque' },
+      { firstName: 'Marc', lastName: 'Dubois', email: 'marc.dubois@example.com', company: 'StartupLab', tags: ['Sponsor'], attending: true, plusOnes: 0, meal: 'Standard', allergies: null },
+      { firstName: 'Julie', lastName: 'Bernard', email: 'julie.bernard@example.com', company: 'InnovateCo', tags: ['Speaker'], attending: true, plusOnes: 0, meal: 'Vegan', allergies: null },
+      { firstName: 'Thomas', lastName: 'Petit', email: 'thomas.petit@example.com', company: 'DevStudio', tags: ['Participant'], attending: false, plusOnes: 0, meal: null, allergies: null },
+      { firstName: 'Marie', lastName: 'Robert', email: 'marie.robert@example.com', company: 'CloudSystems', tags: ['VIP'], attending: true, plusOnes: 2, meal: 'Standard', allergies: 'Lactose' },
+      { firstName: 'Pierre', lastName: 'Richard', email: 'pierre.richard@example.com', company: 'DataCorp', tags: ['Participant'], attending: true, plusOnes: 0, meal: 'Végétarien', allergies: null },
+      { firstName: 'Emma', lastName: 'Durand', email: 'emma.durand@example.com', company: 'AI Ventures', tags: ['Speaker'], attending: true, plusOnes: 1, meal: 'Standard', allergies: null },
+      { firstName: 'Lucas', lastName: 'Moreau', email: 'lucas.moreau@example.com', company: 'CyberSec', tags: ['Sponsor'], attending: true, plusOnes: 0, meal: 'Halal', allergies: null },
+      { firstName: 'Chloé', lastName: 'Simon', email: 'chloe.simon@example.com', company: 'GreenTech', tags: ['Participant'], attending: null, plusOnes: 0, meal: null, allergies: null },
+      { firstName: 'Antoine', lastName: 'Laurent', email: 'antoine.laurent@example.com', company: 'BlockchainHub', tags: ['VIP'], attending: true, plusOnes: 1, meal: 'Vegan', allergies: null },
+      { firstName: 'Léa', lastName: 'Michel', email: 'lea.michel@example.com', company: 'DesignLab', tags: ['Participant'], attending: true, plusOnes: 0, meal: 'Standard', allergies: null },
+      { firstName: 'Hugo', lastName: 'Garcia', email: 'hugo.garcia@example.com', company: 'MediaTech', tags: ['Press'], attending: true, plusOnes: 1, meal: 'Végétarien', allergies: 'Gluten' },
+      { firstName: 'Camille', lastName: 'Martinez', email: 'camille.martinez@example.com', company: 'FinTech Pro', tags: ['Sponsor'], attending: true, plusOnes: 0, meal: 'Standard', allergies: null },
+      { firstName: 'Alexandre', lastName: 'Lopez', email: 'alexandre.lopez@example.com', company: 'IoT Solutions', tags: ['Participant'], attending: false, plusOnes: 0, meal: null, allergies: null },
+      { firstName: 'Sarah', lastName: 'Gonzalez', email: 'sarah.gonzalez@example.com', company: 'QuantumTech', tags: ['Speaker'], attending: true, plusOnes: 0, meal: 'Kosher', allergies: null }
+    ]
+
+    // Liste des événements créés
+    const allEventsForGuests = [
+      eventTechSummit,
+      eventWeevup10ans,
+      eventMariage,
+      eventGala,
+      eventWorkshop
+    ]
+
+    let totalGuestsCreated = 0
+    let totalRsvpsCreated = 0
+
+    // Créer des invités pour chaque événement
+    for (const event of allEventsForGuests) {
+      for (let i = 0; i < demoGuestsData.length; i++) {
+        const guestData = demoGuestsData[i]
+        const token = generateToken()
+        const tokenHash = hashToken(token)
+
+        // Déterminer le statut en fonction de la réponse
+        let status: GuestStatus
+        if (guestData.attending === null) {
+          status = GuestStatus.INVITED
+        } else {
+          status = GuestStatus.RESPONDED
+        }
+
+        // Créer un email unique pour chaque événement
+        const uniqueEmail = `${guestData.email.split('@')[0]}+${event.slug}@${guestData.email.split('@')[1]}`
+
+        const guest = await prisma.guest.create({
+          data: {
+            eventId: event.id,
+            firstName: guestData.firstName,
+            lastName: guestData.lastName,
+            email: uniqueEmail,
+            company: guestData.company,
+            tags: guestData.tags,
+            token: token,
+            tokenHash: tokenHash,
+            tokenExpiry: new Date('2025-12-31'),
+            status: status,
+            lastEmailAt: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000)
+          }
+        })
+
+        totalGuestsCreated++
+
+        // Créer un RSVP si le guest a répondu
+        if (guestData.attending !== null) {
+          await prisma.rSVP.create({
+            data: {
+              eventId: event.id,
+              guestId: guest.id,
+              attending: guestData.attending,
+              plusOnes: guestData.plusOnes || 0,
+              mealChoice: guestData.meal,
+              allergies: guestData.allergies,
+              accessibilityNotes: guestData.tags.includes('VIP') ? 'Accès prioritaire souhaité' : undefined,
+              transportNeeds: Math.random() > 0.8 ? 'Navette depuis la gare' : undefined,
+              lodgingNeeds: Math.random() > 0.7 ? 'Réservation hôtel à proximité' : undefined,
+              consentPhotos: Math.random() > 0.3
+            }
+          })
+
+          totalRsvpsCreated++
+        }
+      }
+    }
+
     const allEvents = await prisma.event.findMany({
       select: {
         id: true,
@@ -1713,7 +1806,7 @@ Navettes vers Paris et gares`,
     })
 
     return NextResponse.json({
-      message: '✅ 5 événements de démonstration créés avec succès!',
+      message: '✅ Données de démonstration créées avec succès!',
       events: allEvents.map(e => ({
         id: e.id,
         name: e.name,
@@ -1723,6 +1816,9 @@ Navettes vers Paris et gares`,
         showcaseUrl: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/events/${e.slug}`
       })),
       totalEventsCreated: allEvents.length,
+      totalGuestsCreated: totalGuestsCreated,
+      totalRsvpsCreated: totalRsvpsCreated,
+      guestsPerEvent: demoGuestsData.length,
       admins: [
         { email: adminWeevup.email, role: 'Admin Weevup' },
         { email: adminDemo.email, role: 'Admin Demo' }
