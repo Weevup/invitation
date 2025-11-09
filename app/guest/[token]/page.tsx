@@ -100,11 +100,15 @@ export default function GuestPage() {
       }
     } catch (error) {
       toast({
-        title: "Erreur",
-        description: "Lien d'invitation invalide ou expiré",
+        title: "❌ Lien d'invitation invalide ou expiré",
+        description: "Ce lien ne fonctionne plus. Contactez l'organisateur pour recevoir un nouveau lien d'invitation.",
         variant: "destructive",
+        duration: 10000, // Longer duration for important errors
       });
-      router.push("/");
+      // Redirect after showing the message
+      setTimeout(() => {
+        router.push("/");
+      }, 3000);
     } finally {
       setLoading(false);
     }
@@ -142,7 +146,8 @@ export default function GuestPage() {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to save RSVP");
+        const errorData = await response.json();
+        throw new Error(JSON.stringify(errorData));
       }
 
       const result = await response.json();
@@ -159,10 +164,27 @@ export default function GuestPage() {
 
       setStep(7); // Success step
     } catch (error) {
+      // Parse detailed error message
+      let errorMessage = "Impossible d'enregistrer votre réponse";
+      let errorSuggestion = "Veuillez réessayer.";
+
+      try {
+        const errorData = JSON.parse((error as Error).message);
+        if (errorData.message) {
+          errorMessage = errorData.message;
+        }
+        if (errorData.suggestion) {
+          errorSuggestion = errorData.suggestion;
+        }
+      } catch {
+        // If parsing fails, use default message
+      }
+
       toast({
-        title: "Erreur",
-        description: "Impossible d'enregistrer votre réponse",
+        title: "❌ " + errorMessage,
+        description: errorSuggestion,
         variant: "destructive",
+        duration: 8000, // Longer duration for error messages with suggestions
       });
     } finally {
       setSubmitting(false);

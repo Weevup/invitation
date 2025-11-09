@@ -15,7 +15,11 @@ export async function POST(
 
     if (!guest) {
       return NextResponse.json(
-        { error: 'Invalid or expired token' },
+        {
+          error: 'INVALID_TOKEN',
+          message: 'Lien d\'invitation invalide ou expiré',
+          suggestion: 'Contactez l\'organisateur pour recevoir un nouveau lien d\'invitation.'
+        },
         { status: 401 }
       )
     }
@@ -36,8 +40,41 @@ export async function POST(
 
     // Check if deadline passed
     if (guest.event.rsvpDeadline && new Date(guest.event.rsvpDeadline) < new Date()) {
+      const deadlineDate = new Date(guest.event.rsvpDeadline).toLocaleDateString('fr-FR', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+      })
       return NextResponse.json(
-        { error: 'RSVP deadline has passed' },
+        {
+          error: 'DEADLINE_PASSED',
+          message: `La date limite de confirmation était le ${deadlineDate}`,
+          suggestion: 'Contactez l\'organisateur pour confirmer votre présence malgré le délai dépassé.'
+        },
+        { status: 400 }
+      )
+    }
+
+    // Validate plusOnes limit
+    if (attending && plusOnes > guest.event.maxPlusOnes) {
+      return NextResponse.json(
+        {
+          error: 'TOO_MANY_PLUS_ONES',
+          message: `Vous ne pouvez inviter que ${guest.event.maxPlusOnes} accompagnant(s) maximum`,
+          suggestion: `Veuillez réduire le nombre d\'accompagnants à ${guest.event.maxPlusOnes} ou moins.`
+        },
+        { status: 400 }
+      )
+    }
+
+    // Validate meal choice if required
+    if (attending && guest.event.requireMeal && !mealChoice) {
+      return NextResponse.json(
+        {
+          error: 'MEAL_REQUIRED',
+          message: 'Le choix du menu est obligatoire',
+          suggestion: 'Veuillez sélectionner un menu parmi les options proposées.'
+        },
         { status: 400 }
       )
     }
@@ -112,7 +149,11 @@ export async function POST(
   } catch (error) {
     console.error('Error saving RSVP:', error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      {
+        error: 'SERVER_ERROR',
+        message: 'Une erreur est survenue lors de l\'enregistrement de votre réponse',
+        suggestion: 'Veuillez réessayer dans quelques instants. Si le problème persiste, contactez l\'organisateur.'
+      },
       { status: 500 }
     )
   }

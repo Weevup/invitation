@@ -22,6 +22,7 @@
     "db:seed:demo:wedding": "tsx prisma/seed-demo-wedding.ts",
     "db:seed:demo:gala": "tsx prisma/seed-demo-gala.ts",
     "db:seed:demo:workshop": "tsx prisma/seed-demo-workshop.ts",
+    "db:seed:demo:weevup-10ans": "tsx prisma/seed-demo-weevup-10ans.ts",
     "postinstall": "prisma generate"
   },
   "dependencies": {
