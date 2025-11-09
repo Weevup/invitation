@@ -343,7 +343,9 @@ Rejoignez-nous pour une journée d'échanges, d'innovation et de networking !`,
   console.log(`   Venue: ${event.venueName}, ${event.city}`)
   console.log(`   Guests: ${guestsData.length} total`)
   console.log(`   RSVPs: ${confirmed} confirmed, ${declined} declined, ${pending} pending`)
-  console.log(`   Showcase: Enabled with ${event.speakers?.length || 0} speakers, ${event.sponsors?.length || 0} sponsors`)
+  const speakersCount = Array.isArray(event.showcaseSpeakers) ? event.showcaseSpeakers.length : 0
+  const sponsorsCount = Array.isArray(event.showcaseSponsors) ? event.showcaseSponsors.length : 0
+  console.log(`   Showcase: Enabled with ${speakersCount} speakers, ${sponsorsCount} sponsors`)
   console.log('')
   console.log('🎯 Next steps:')
   console.log('1. Run: npm run dev')
