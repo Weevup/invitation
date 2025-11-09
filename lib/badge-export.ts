@@ -115,7 +115,8 @@ export async function exportBadgesPDF(options: BadgeExportOptions): Promise<void
 
     // Generate and add QR code
     try {
-      const baseUrl = typeof window !== 'undefined' ? window.location.origin : process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+      // Cette fonction est appelée côté client, window est toujours disponible
+      const baseUrl = window.location.origin
       const checkinUrl = `${baseUrl}/api/checkin/${guest.rsvp.qrCodeId}`
       const qrCodeDataUrl = await generateQRCode(checkinUrl)
 
