@@ -1,6 +1,6 @@
 import nodemailer from 'nodemailer'
 import { prisma } from './prisma'
-import { EmailType } from '@prisma/client'
+import { EmailType, EmailStatus } from '@prisma/client'
 
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST || 'smtp.ethereal.email',
@@ -37,7 +37,7 @@ export async function sendEmail({
         guestId,
         type,
         subject,
-        status: 'PENDING',
+        status: EmailStatus.PENDING,
       },
     })
 
@@ -53,7 +53,7 @@ export async function sendEmail({
     await prisma.emailLog.update({
       where: { id: emailLog.id },
       data: {
-        status: 'SENT',
+        status: EmailStatus.SENT,
         providerId: info.messageId,
         sentAt: new Date(),
       },
