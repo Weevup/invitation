@@ -435,7 +435,7 @@ export default function HomePage() {
               Pour tous vos <span className="text-[#FF4713]">événements</span>
             </h2>
             <p className="text-lg text-[#004B56]/80">
-              Une solution adaptée à chaque type d'événement
+              Une solution adaptée à chaque type d&apos;événement
             </p>
           </div>
 
