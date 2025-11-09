@@ -1870,8 +1870,8 @@ Navettes vers Paris et gares`,
     // Liste des événements créés
     const allEventsForGuests = [
       eventTechSummit,
-      eventWeevup10ans,
-      eventMariage,
+      eventWeevup,
+      eventWedding,
       eventGala,
       eventWorkshop
     ]
