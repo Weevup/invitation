@@ -1,7 +1,17 @@
 import { Resend } from 'resend'
 
-// Initialize Resend client
-const resend = new Resend(process.env.RESEND_API_KEY)
+// Lazy initialization of Resend client to avoid build-time errors
+let resendInstance: Resend | null = null
+
+function getResendClient(): Resend {
+  if (!resendInstance) {
+    if (!process.env.RESEND_API_KEY) {
+      throw new Error('RESEND_API_KEY is not configured')
+    }
+    resendInstance = new Resend(process.env.RESEND_API_KEY)
+  }
+  return resendInstance
+}
 
 export interface SendEmailParams {
   to: string | string[]
@@ -21,14 +31,11 @@ export async function sendEmail({
   text,
   replyTo
 }: SendEmailParams) {
-  if (!process.env.RESEND_API_KEY) {
-    throw new Error('RESEND_API_KEY is not configured')
-  }
-
   const from = process.env.EMAIL_FROM || 'noreply@weevup.com'
   const fromName = process.env.EMAIL_FROM_NAME || 'Weevup Events'
 
   try {
+    const resend = getResendClient()
     const result = await resend.emails.send({
       from: `${fromName} <${from}>`,
       to: Array.isArray(to) ? to : [to],
