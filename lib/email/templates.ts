@@ -78,7 +78,7 @@ export function getTemplateVariables(
  * Get email template by type and render it
  */
 export async function getRenderedTemplate(
-  templateType: string,
+  templateType: EmailType,
   event: Event,
   guest: Guest
 ) {
