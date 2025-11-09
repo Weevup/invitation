@@ -1945,6 +1945,7 @@ Navettes vers Paris et gares`,
     let totalCheckinsCreated = 0
 
     // Pour chaque événement, créer des logs d'emails et des trackings
+    let trackingCounter = 0
     for (const event of allEventsForGuests) {
       const guests = await prisma.guest.findMany({
         where: { eventId: event.id }
@@ -1971,9 +1972,10 @@ Navettes vers Paris et gares`,
         totalEmailLogsCreated++
 
         // Email Tracking Save the Date
+        trackingCounter++
         await prisma.emailTracking.create({
           data: {
-            id: `${event.id}-${guest.id}-save-the-date-${Date.now()}`,
+            id: `${event.id}-${guest.id}-std-${trackingCounter}`,
             eventId: event.id,
             guestId: guest.id,
             type: 'save-the-date',
@@ -2012,9 +2014,10 @@ Navettes vers Paris et gares`,
         totalEmailLogsCreated++
 
         // Email Tracking Invitation
+        trackingCounter++
         await prisma.emailTracking.create({
           data: {
-            id: `${event.id}-${guest.id}-invitation-${Date.now()}`,
+            id: `${event.id}-${guest.id}-inv-${trackingCounter}`,
             eventId: event.id,
             guestId: guest.id,
             type: 'invitation',
