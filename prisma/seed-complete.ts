@@ -73,9 +73,8 @@ Rejoignez-nous pour une journée d'échanges, d'innovation et de networking !`,
       showcaseTitle: 'Tech Summit 2025',
       showcaseSubtitle: 'L\'événement tech de l\'année',
       showcaseTheme: 'midnight',
-      primaryColor: '#6366f1',
-      secondaryColor: '#a855f7',
-      accentColor: '#ec4899',
+      showcasePrimaryColor: '#6366f1',
+      showcaseSecondaryColor: '#a855f7',
       showcaseSections: [
         'hero',
         'countdown',
@@ -88,7 +87,7 @@ Rejoignez-nous pour une journée d'échanges, d'innovation et de networking !`,
         'details',
         'cta'
       ],
-      speakers: [
+      showcaseSpeakers: [
         {
           name: 'Sarah Chen',
           role: 'CEO, AI Innovations',
@@ -120,7 +119,7 @@ Rejoignez-nous pour une journée d'échanges, d'innovation et de networking !`,
           linkedin: 'https://linkedin.com/in/raj-patel'
         }
       ],
-      timeline: [
+      showcaseTimeline: [
         { time: '09:00', title: 'Accueil & Networking', description: 'Café et viennoiseries offerts' },
         { time: '10:00', title: 'Keynote: L\'avenir de l\'IA', description: 'Par Sarah Chen' },
         { time: '11:00', title: 'Ateliers parallèles', description: '3 tracks: IA, Cybersécurité, Web3' },
@@ -130,7 +129,7 @@ Rejoignez-nous pour une journée d'échanges, d'innovation et de networking !`,
         { time: '16:00', title: 'Pitch des startups', description: '10 startups innovantes en 5min' },
         { time: '17:30', title: 'Cocktail de clôture', description: 'DJ set & networking' }
       ],
-      gallery: [
+      showcaseGallery: [
         'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800',
         'https://images.unsplash.com/photo-1591115765373-5207764f72e7?w=800',
         'https://images.unsplash.com/photo-1505373877841-8d25f7d46678?w=800',
@@ -138,7 +137,7 @@ Rejoignez-nous pour une journée d'échanges, d'innovation et de networking !`,
         'https://images.unsplash.com/photo-1511578314322-379afb476865?w=800',
         'https://images.unsplash.com/photo-1475721027785-f74eccf877e2?w=800'
       ],
-      sponsors: [
+      showcaseSponsors: [
         { name: 'TechCorp', logo: 'https://via.placeholder.com/200x80/6366f1/ffffff?text=TechCorp', tier: 'platinum', website: 'https://techcorp.example.com' },
         { name: 'AI Solutions', logo: 'https://via.placeholder.com/200x80/a855f7/ffffff?text=AI+Solutions', tier: 'platinum', website: 'https://aisolutions.example.com' },
         { name: 'CloudNet', logo: 'https://via.placeholder.com/200x80/ec4899/ffffff?text=CloudNet', tier: 'gold', website: 'https://cloudnet.example.com' },
@@ -146,7 +145,7 @@ Rejoignez-nous pour une journée d'échanges, d'innovation et de networking !`,
         { name: 'SecureIT', logo: 'https://via.placeholder.com/200x80/3b82f6/ffffff?text=SecureIT', tier: 'silver', website: 'https://secureit.example.com' },
         { name: 'DevTools', logo: 'https://via.placeholder.com/200x80/06b6d4/ffffff?text=DevTools', tier: 'silver', website: 'https://devtools.example.com' }
       ],
-      faq: [
+      showcaseFAQ: [
         { question: 'Quel est le code vestimentaire ?', answer: 'Business casual : élégant mais confortable. Pas de costume obligatoire !' },
         { question: 'Le déjeuner est-il inclus ?', answer: 'Oui ! Un déjeuner buffet est offert à tous les participants avec options végétariennes et sans gluten.' },
         { question: 'Puis-je venir avec des collègues ?', answer: 'Absolument ! Vous pouvez inviter jusqu\'à 2 accompagnants lors de votre inscription.' },
@@ -154,7 +153,7 @@ Rejoignez-nous pour une journée d'échanges, d'innovation et de networking !`,
         { question: 'L\'événement est-il accessible PMR ?', answer: 'Oui, le lieu est 100% accessible. Merci de nous indiquer vos besoins lors de l\'inscription.' },
         { question: 'Puis-je modifier ma réponse ?', answer: 'Oui, vous pouvez modifier votre RSVP jusqu\'au 1er septembre via votre lien personnel.' }
       ],
-      videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ'
+      showcaseVideo: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ'
     },
   })
 
