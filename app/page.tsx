@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Calendar, Mail, QrCode, Users, CheckCircle, ArrowRight, Sparkles } from "lucide-react";
+import { Calendar, Mail, QrCode, Users, CheckCircle, ArrowRight, Sparkles, BookOpen, Video, FileText, Zap, Trophy, Heart, Building2, GraduationCap, Gift } from "lucide-react";
 import Link from "next/link";
 import { WeevupLogo } from "@/components/weevup-logo";
 
@@ -65,6 +65,18 @@ export default function HomePage() {
             </div>
           </div>
           <div className="flex items-center space-x-4">
+            <Link href="/admin/tutoriel">
+              <Button variant="ghost" className="text-[#004645] hover:text-[#FF4713]">
+                <BookOpen className="h-4 w-4 mr-2" />
+                Tutoriels
+              </Button>
+            </Link>
+            <Link href="/admin/documentation">
+              <Button variant="ghost" className="text-[#004645] hover:text-[#FF4713]">
+                <FileText className="h-4 w-4 mr-2" />
+                Documentation
+              </Button>
+            </Link>
             <Link href="/admin">
               <Button
                 className="bg-gradient-to-r from-[#004645] to-[#009197] hover:from-[#006C51] hover:to-[#009197] text-white"
@@ -99,8 +111,8 @@ export default function HomePage() {
           </h1>
 
           <p className="text-xl text-[#004B56] mb-8 max-w-3xl mx-auto leading-relaxed">
-            Gérez vos événements avec élégance et simplicité.
-            Une plateforme complète pour vos invitations, RSVP et check-in.
+            La plateforme tout-en-un pour gérer vos événements avec élégance et simplicité.
+            Invitations personnalisées, RSVP en temps réel, check-in digital et analytics avancés.
           </p>
 
           <div className="flex justify-center gap-4 flex-wrap">
@@ -210,6 +222,50 @@ export default function HomePage() {
               ],
               color: "from-[#006C51] to-[#009197]",
             },
+            {
+              icon: Mail,
+              title: "Emails & Communications",
+              description: "Campagnes d'emails personnalisées et automatisées",
+              features: [
+                "Templates personnalisables",
+                "Envois programmés",
+                "Tracking d'ouvertures",
+              ],
+              color: "from-[#FF4713] to-[#FF8533]",
+            },
+            {
+              icon: Zap,
+              title: "Automatisations",
+              description: "Workflows automatiques pour gagner du temps",
+              features: [
+                "Rappels automatiques",
+                "Confirmations instantanées",
+                "Relances intelligentes",
+              ],
+              color: "from-[#004645] to-[#009197]",
+            },
+            {
+              icon: Trophy,
+              title: "Check-in Digital",
+              description: "Enregistrement rapide avec QR codes",
+              features: [
+                "Scan QR code",
+                "Liste d'émargement",
+                "Badges personnalisés",
+              ],
+              color: "from-[#1e3a8a] to-[#3b82f6]",
+            },
+            {
+              icon: Gift,
+              title: "Expérience Invité",
+              description: "Interface moderne et intuitive pour vos invités",
+              features: [
+                "RSVP en 2 clics",
+                "Préférences repas",
+                "Accompagnateurs",
+              ],
+              color: "from-[#059669] to-[#10b981]",
+            },
           ].map((feature, idx) => {
             const Icon = feature.icon;
             return (
@@ -244,13 +300,208 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Tutoriels & Guides Section (NOUVEAU) */}
+      <section className="relative container mx-auto px-4 py-20 bg-gradient-to-b from-transparent via-[#9CD9F6]/10 to-transparent">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#FF4713]/10 rounded-full mb-4">
+              <BookOpen className="w-4 h-4 text-[#FF4713]" />
+              <span className="text-sm font-semibold text-[#FF4713]">Ressources</span>
+            </div>
+            <h2
+              className="text-5xl font-bold mb-4 text-[#004645]"
+              style={{ fontFamily: "var(--font-abril)" }}
+            >
+              Tutoriels & <span className="text-[#FF4713]">Documentation</span>
+            </h2>
+            <p className="text-lg text-[#004B56]/80 max-w-3xl mx-auto">
+              Apprenez à maîtriser toutes les fonctionnalités avec nos guides détaillés, vidéos tutoriels et documentation complète.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            {[
+              {
+                icon: Video,
+                title: "Vidéos Tutoriels",
+                description: "Guides vidéo pas à pas",
+                items: [
+                  "Créer votre premier événement",
+                  "Importer vos invités en CSV",
+                  "Personnaliser votre showcase",
+                  "Configurer les emails automatiques"
+                ],
+                link: "/admin/tutoriel",
+                color: "from-[#FF4713] to-[#FF6B3D]"
+              },
+              {
+                icon: BookOpen,
+                title: "Documentation Technique",
+                description: "Référence complète de l'API",
+                items: [
+                  "Guide d'utilisation complet",
+                  "Schéma de base de données",
+                  "Configuration avancée",
+                  "FAQ et troubleshooting"
+                ],
+                link: "/admin/documentation",
+                color: "from-[#004645] to-[#009197]"
+              },
+              {
+                icon: FileText,
+                title: "Guides Pratiques",
+                description: "Cas d'usage et best practices",
+                items: [
+                  "Organiser un mariage",
+                  "Gérer une conférence",
+                  "Événement corporate",
+                  "Gala de charité"
+                ],
+                link: "/admin/tutoriel",
+                color: "from-[#059669] to-[#10b981]"
+              },
+            ].map((resource, idx) => {
+              const Icon = resource.icon;
+              return (
+                <Card
+                  key={idx}
+                  className="relative overflow-hidden hover:shadow-xl transition-all duration-300 group border-none"
+                >
+                  <div className={`absolute inset-0 bg-gradient-to-br ${resource.color} opacity-5 group-hover:opacity-10 transition-opacity`} />
+                  <div className="relative p-6">
+                    <div className={`bg-gradient-to-br ${resource.color} w-14 h-14 rounded-xl flex items-center justify-center mb-4`}>
+                      <Icon className="w-7 h-7 text-white" />
+                    </div>
+                    <h3 className="text-xl font-bold mb-2 text-[#004645]" style={{ fontFamily: "var(--font-abril)" }}>
+                      {resource.title}
+                    </h3>
+                    <p className="text-sm text-[#004B56]/70 mb-4">{resource.description}</p>
+                    <ul className="space-y-2 mb-4">
+                      {resource.items.map((item, i) => (
+                        <li key={i} className="flex items-start text-sm">
+                          <ArrowRight className="w-4 h-4 text-[#FF4713] mr-2 flex-shrink-0 mt-0.5" />
+                          <span className="text-[#004645]/80">{item}</span>
+                        </li>
+                      ))}
+                    </ul>
+                    <Link href={resource.link}>
+                      <Button
+                        variant="outline"
+                        className="w-full border-[#004645]/20 text-[#004645] hover:bg-[#004645] hover:text-white"
+                      >
+                        Explorer
+                        <ArrowRight className="ml-2 w-4 h-4" />
+                      </Button>
+                    </Link>
+                  </div>
+                </Card>
+              );
+            })}
+          </div>
+
+          <div className="bg-gradient-to-r from-[#004645] to-[#009197] rounded-2xl p-8 text-white text-center">
+            <h3 className="text-2xl font-bold mb-2" style={{ fontFamily: "var(--font-abril)" }}>
+              📚 Centre de Ressources Complet
+            </h3>
+            <p className="mb-6 opacity-90">
+              Accédez à plus de 20 tutoriels vidéo, 50+ guides pratiques et une documentation technique exhaustive
+            </p>
+            <div className="flex justify-center gap-4 flex-wrap">
+              <Link href="/admin/tutoriel">
+                <Button size="lg" className="bg-white text-[#004645] hover:bg-[#9CD9F6]">
+                  <Video className="mr-2 h-5 w-5" />
+                  Voir les tutoriels
+                </Button>
+              </Link>
+              <Link href="/admin/documentation">
+                <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10">
+                  <FileText className="mr-2 h-5 w-5" />
+                  Lire la documentation
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Use Cases Section (NOUVEAU) */}
+      <section className="relative container mx-auto px-4 py-20">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <h2
+              className="text-5xl font-bold mb-4 text-[#004645]"
+              style={{ fontFamily: "var(--font-abril)" }}
+            >
+              Pour tous vos <span className="text-[#FF4713]">événements</span>
+            </h2>
+            <p className="text-lg text-[#004B56]/80">
+              Une solution adaptée à chaque type d'événement
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[
+              {
+                icon: Building2,
+                title: "Événements Corporate",
+                examples: ["Conférences", "Séminaires", "Team Building", "Lancements produit"],
+                color: "from-[#004645] to-[#006C51]"
+              },
+              {
+                icon: Heart,
+                title: "Événements Privés",
+                examples: ["Mariages", "Anniversaires", "Fiançailles", "Baptêmes"],
+                color: "from-[#d4af37] to-[#f8e5d0]"
+              },
+              {
+                icon: Trophy,
+                title: "Galas & Fundraising",
+                examples: ["Galas de charité", "Soirées VIP", "Vernissages", "Awards"],
+                color: "from-[#1e3a8a] to-[#3b82f6]"
+              },
+              {
+                icon: GraduationCap,
+                title: "Formations & Workshops",
+                examples: ["Ateliers", "Masterclass", "Formations pro", "Webinaires"],
+                color: "from-[#059669] to-[#10b981]"
+              },
+            ].map((useCase, idx) => {
+              const Icon = useCase.icon;
+              return (
+                <Card
+                  key={idx}
+                  className="relative overflow-hidden hover:shadow-xl transition-all duration-300 group border-none p-6"
+                >
+                  <div className={`absolute inset-0 bg-gradient-to-br ${useCase.color} opacity-5 group-hover:opacity-10 transition-opacity`} />
+                  <div className="relative">
+                    <div className={`bg-gradient-to-br ${useCase.color} w-12 h-12 rounded-xl flex items-center justify-center mb-4`}>
+                      <Icon className="w-6 h-6 text-white" />
+                    </div>
+                    <h3 className="text-lg font-bold mb-3 text-[#004645]" style={{ fontFamily: "var(--font-abril)" }}>
+                      {useCase.title}
+                    </h3>
+                    <ul className="space-y-1">
+                      {useCase.examples.map((example, i) => (
+                        <li key={i} className="text-sm text-[#004645]/70">
+                          • {example}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </Card>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
       {/* Showcase Themes Preview */}
       <section className="relative container mx-auto px-4 py-20 bg-gradient-to-b from-transparent via-[#9CD9F6]/10 to-transparent">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#FF4713]/10 rounded-full mb-4">
               <Sparkles className="w-4 h-4 text-[#FF4713]" />
-              <span className="text-sm font-semibold text-[#FF4713]">Nouveau</span>
+              <span className="text-sm font-semibold text-[#FF4713]">Design</span>
             </div>
             <h2
               className="text-5xl font-bold mb-4 text-[#004645]"
@@ -415,7 +666,7 @@ export default function HomePage() {
       {/* Footer */}
       <footer className="relative container mx-auto px-4 py-12 border-t border-[#9CD9F6]/30">
         <div className="max-w-6xl mx-auto">
-          <div className="grid md:grid-cols-3 gap-8 mb-8">
+          <div className="grid md:grid-cols-4 gap-8 mb-8">
             <div>
               <div className="flex items-center space-x-3 mb-4">
                 <WeevupLogo className="w-8 h-8" />
@@ -431,7 +682,7 @@ export default function HomePage() {
               </p>
             </div>
             <div>
-              <h4 className="font-bold text-[#004645] mb-3">Liens rapides</h4>
+              <h4 className="font-bold text-[#004645] mb-3">Plateforme</h4>
               <ul className="space-y-2 text-sm text-[#004645]/70">
                 <li><Link href="/admin" className="hover:text-[#FF4713] transition-colors">Espace Admin</Link></li>
                 <li><Link href="/admin/setup" className="hover:text-[#FF4713] transition-colors">Commencer</Link></li>
@@ -439,7 +690,15 @@ export default function HomePage() {
               </ul>
             </div>
             <div>
-              <h4 className="font-bold text-[#004645] mb-3">Contact</h4>
+              <h4 className="font-bold text-[#004645] mb-3">Ressources</h4>
+              <ul className="space-y-2 text-sm text-[#004645]/70">
+                <li><Link href="/admin/tutoriel" className="hover:text-[#FF4713] transition-colors">Tutoriels</Link></li>
+                <li><Link href="/admin/documentation" className="hover:text-[#FF4713] transition-colors">Documentation</Link></li>
+                <li><Link href="/admin/templates" className="hover:text-[#FF4713] transition-colors">Templates Email</Link></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-bold text-[#004645] mb-3">Légal</h4>
               <ul className="space-y-2 text-sm text-[#004645]/70">
                 <li><Link href="/legal" className="hover:text-[#FF4713] transition-colors">Mentions légales</Link></li>
                 <li><Link href="/privacy" className="hover:text-[#FF4713] transition-colors">Confidentialité</Link></li>
