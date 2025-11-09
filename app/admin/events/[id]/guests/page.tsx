@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import {
-  Users, Download, Search, Link as LinkIcon, UserPlus, Upload, Eye, Filter
+  Users, Download, Search, Link as LinkIcon, UserPlus, Upload, Eye, Filter, CreditCard
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { AddGuestDialog } from '@/components/add-guest-dialog'
@@ -15,6 +15,7 @@ import { ImportCSVDialog } from '@/components/import-csv-dialog'
 import { SendInvitationsDialog } from '@/components/send-invitations-dialog'
 import { GuestDetailsModal } from '@/components/guest-details-modal'
 import Papa from 'papaparse'
+import { exportBadgesPDF } from '@/lib/badge-export'
 import {
   Select,
   SelectContent,
@@ -119,6 +120,36 @@ export default function GuestsPage() {
     toast.success(`${event.guests.length} invités exportés`)
   }
 
+  const handleExportBadges = async () => {
+    if (!event) return
+
+    const confirmedGuests = event.guests.filter(g => g.rsvp?.attending === true && g.rsvp?.qrCodeId)
+
+    if (confirmedGuests.length === 0) {
+      toast.error('Aucun invité confirmé avec QR code disponible')
+      return
+    }
+
+    try {
+      toast.loading('Génération des badges en cours...', { id: 'badges-export' })
+
+      await exportBadgesPDF({
+        eventName: event.name,
+        eventDate: new Date().toLocaleDateString('fr-FR', {
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric'
+        }),
+        guests: confirmedGuests
+      })
+
+      toast.success(`${confirmedGuests.length} badges exportés avec succès`, { id: 'badges-export' })
+    } catch (error) {
+      console.error('Error exporting badges:', error)
+      toast.error('Erreur lors de l\'export des badges', { id: 'badges-export' })
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -198,6 +229,15 @@ export default function GuestsPage() {
           >
             <Download className="h-4 w-4 mr-2" />
             Exporter CSV
+          </Button>
+          <Button
+            variant="outline"
+            onClick={handleExportBadges}
+            disabled={!hasGuests}
+            className="border-[#009197] text-[#009197] hover:bg-[#009197] hover:text-white"
+          >
+            <CreditCard className="h-4 w-4 mr-2" />
+            Exporter Badges
           </Button>
           <SendInvitationsDialog
             eventId={eventId}

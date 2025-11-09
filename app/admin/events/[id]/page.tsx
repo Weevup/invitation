@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import {
-  Mail, Users, Clock, Send, CheckCircle, Sparkles, Bell, Megaphone, BarChart3, ArrowRight
+  Mail, Users, Clock, Send, CheckCircle, Sparkles, Bell, Megaphone, BarChart3, ArrowRight, QrCode, UserCheck, UtensilsCrossed, XCircle
 } from 'lucide-react'
 import Link from 'next/link'
 import { AddGuestDialog } from '@/components/add-guest-dialog'
@@ -21,7 +21,12 @@ interface Guest {
   rsvp?: {
     attending?: boolean
     plusOnes: number
+    mealChoice?: string
   }
+  checkins?: Array<{
+    id: string
+    checkedInAt: string
+  }>
 }
 
 interface EventDetails {
@@ -78,6 +83,12 @@ export default function EventOverviewPage() {
 
   const respondedGuests = event.guests.filter((g) => g.rsvp && g.rsvp.attending !== null).length
   const attendingGuests = event.guests.filter((g) => g.rsvp?.attending === true).length
+  const decliningGuests = event.guests.filter((g) => g.rsvp?.attending === false).length
+  const checkedInGuests = event.guests.filter((g) => g.checkins && g.checkins.length > 0).length
+  const totalPlusOnes = event.guests
+    .filter((g) => g.rsvp?.attending === true)
+    .reduce((sum, g) => sum + (g.rsvp?.plusOnes || 0), 0)
+  const totalExpected = attendingGuests + totalPlusOnes
 
   return (
     <div className="space-y-8">
@@ -151,72 +162,162 @@ export default function EventOverviewPage() {
         </CardContent>
       </Card>
 
-      {/* Stats */}
-      <div className="grid md:grid-cols-4 gap-4">
-        <Card className="border-[#9CD9F6]/30 bg-white/80 backdrop-blur hover:shadow-lg transition-shadow">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-[#004645]">Total invités</CardTitle>
-            <Users className="h-4 w-4 text-[#009197]" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-[#004645]" style={{ fontFamily: "var(--font-abril)" }}>
-              {event.guests.length}
-            </div>
-            <Link href={`/admin/events/${eventId}/guests`}>
-              <Button variant="link" size="sm" className="text-xs text-[#009197] p-0 h-auto mt-1">
-                Voir la liste →
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
+      {/* Stats - Row 1: Invitations */}
+      <div>
+        <h2 className="text-xl font-bold text-[#004645] mb-4" style={{ fontFamily: "var(--font-abril)" }}>
+          Statistiques d'invitations
+        </h2>
+        <div className="grid md:grid-cols-4 gap-4">
+          <Card className="border-[#9CD9F6]/30 bg-white/80 backdrop-blur hover:shadow-lg transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-[#004645]">Total invités</CardTitle>
+              <Users className="h-4 w-4 text-[#009197]" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-[#004645]" style={{ fontFamily: "var(--font-abril)" }}>
+                {event.guests.length}
+              </div>
+              <Link href={`/admin/events/${eventId}/guests`}>
+                <Button variant="link" size="sm" className="text-xs text-[#009197] p-0 h-auto mt-1">
+                  Voir la liste →
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
 
-        <Card className="border-[#9CD9F6]/30 bg-white/80 backdrop-blur hover:shadow-lg transition-shadow">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-[#004645]">Réponses</CardTitle>
-            <Mail className="h-4 w-4 text-[#009197]" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-[#004645]" style={{ fontFamily: "var(--font-abril)" }}>
-              {respondedGuests}
-            </div>
-            <p className="text-xs text-[#004645]/70">
-              {event.guests.length > 0
-                ? Math.round((respondedGuests / event.guests.length) * 100)
-                : 0}
-              % du total
-            </p>
-          </CardContent>
-        </Card>
+          <Card className="border-[#9CD9F6]/30 bg-white/80 backdrop-blur hover:shadow-lg transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-[#004645]">Réponses</CardTitle>
+              <Mail className="h-4 w-4 text-[#009197]" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-[#004645]" style={{ fontFamily: "var(--font-abril)" }}>
+                {respondedGuests}
+              </div>
+              <p className="text-xs text-[#004645]/70">
+                {event.guests.length > 0
+                  ? Math.round((respondedGuests / event.guests.length) * 100)
+                  : 0}
+                % du total
+              </p>
+            </CardContent>
+          </Card>
 
-        <Card className="border-[#9CD9F6]/30 bg-white/80 backdrop-blur hover:shadow-lg transition-shadow">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-[#004645]">Participent</CardTitle>
-            <CheckCircle className="h-4 w-4 text-green-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600" style={{ fontFamily: "var(--font-abril)" }}>
-              {attendingGuests}
-            </div>
-            <p className="text-xs text-[#004645]/70">
-              {respondedGuests > 0
-                ? Math.round((attendingGuests / respondedGuests) * 100)
-                : 0}
-              % des réponses
-            </p>
-          </CardContent>
-        </Card>
+          <Card className="border-green-200 bg-green-50/80 backdrop-blur hover:shadow-lg transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-[#004645]">Confirmés</CardTitle>
+              <CheckCircle className="h-4 w-4 text-green-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-green-600" style={{ fontFamily: "var(--font-abril)" }}>
+                {attendingGuests}
+              </div>
+              <p className="text-xs text-[#004645]/70">
+                {respondedGuests > 0
+                  ? Math.round((attendingGuests / respondedGuests) * 100)
+                  : 0}
+                % des réponses
+              </p>
+            </CardContent>
+          </Card>
 
-        <Card className="border-[#9CD9F6]/30 bg-white/80 backdrop-blur hover:shadow-lg transition-shadow">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-[#004645]">En attente</CardTitle>
-            <Clock className="h-4 w-4 text-[#FF4713]" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-[#FF4713]" style={{ fontFamily: "var(--font-abril)" }}>
-              {event.guests.length - respondedGuests}
-            </div>
-          </CardContent>
-        </Card>
+          <Card className="border-red-200 bg-red-50/80 backdrop-blur hover:shadow-lg transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-[#004645]">Déclinés</CardTitle>
+              <XCircle className="h-4 w-4 text-red-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-red-600" style={{ fontFamily: "var(--font-abril)" }}>
+                {decliningGuests}
+              </div>
+              <p className="text-xs text-[#004645]/70">
+                {respondedGuests > 0
+                  ? Math.round((decliningGuests / respondedGuests) * 100)
+                  : 0}
+                % des réponses
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+
+      {/* Stats - Row 2: Event Day */}
+      <div>
+        <h2 className="text-xl font-bold text-[#004645] mb-4" style={{ fontFamily: "var(--font-abril)" }}>
+          Jour de l'événement
+        </h2>
+        <div className="grid md:grid-cols-4 gap-4">
+          <Card className="border-[#009197]/30 bg-[#009197]/5 backdrop-blur hover:shadow-lg transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-[#004645]">Attendus</CardTitle>
+              <Users className="h-4 w-4 text-[#009197]" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-[#009197]" style={{ fontFamily: "var(--font-abril)" }}>
+                {totalExpected}
+              </div>
+              <p className="text-xs text-[#004645]/70">
+                {attendingGuests} invités + {totalPlusOnes} accompagnants
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="border-green-200 bg-green-50/80 backdrop-blur hover:shadow-lg transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-[#004645]">Enregistrés</CardTitle>
+              <UserCheck className="h-4 w-4 text-green-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-green-600" style={{ fontFamily: "var(--font-abril)" }}>
+                {checkedInGuests}
+              </div>
+              <p className="text-xs text-[#004645]/70">
+                {attendingGuests > 0
+                  ? Math.round((checkedInGuests / attendingGuests) * 100)
+                  : 0}
+                % des confirmés
+              </p>
+              <Link href={`/admin/events/${eventId}/checkin`}>
+                <Button variant="link" size="sm" className="text-xs text-green-600 p-0 h-auto mt-1">
+                  Voir check-in →
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+
+          <Card className="border-orange-200 bg-orange-50/80 backdrop-blur hover:shadow-lg transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-[#004645]">En attente</CardTitle>
+              <Clock className="h-4 w-4 text-orange-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-orange-600" style={{ fontFamily: "var(--font-abril)" }}>
+                {attendingGuests - checkedInGuests}
+              </div>
+              <p className="text-xs text-[#004645]/70">
+                Confirmés non enregistrés
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="border-[#FF4713]/30 bg-[#FF4713]/5 backdrop-blur hover:shadow-lg transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-[#004645]">Sans réponse</CardTitle>
+              <Mail className="h-4 w-4 text-[#FF4713]" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-[#FF4713]" style={{ fontFamily: "var(--font-abril)" }}>
+                {event.guests.length - respondedGuests}
+              </div>
+              <p className="text-xs text-[#004645]/70">
+                {event.guests.length > 0
+                  ? Math.round(((event.guests.length - respondedGuests) / event.guests.length) * 100)
+                  : 0}
+                % du total
+              </p>
+            </CardContent>
+          </Card>
+        </div>
       </div>
 
       {/* Configuration des builders */}
@@ -359,13 +460,13 @@ export default function EventOverviewPage() {
                 Guide rapide
               </CardTitle>
               <CardDescription className="text-[#004645]/70">
-                Suivez ces 3 étapes pour gérer votre événement
+                Suivez ces 4 étapes pour gérer votre événement
               </CardDescription>
             </div>
           </div>
         </CardHeader>
         <CardContent>
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {/* Étape 1 */}
             <div className="relative">
               <div className="flex items-start gap-3">
@@ -377,7 +478,7 @@ export default function EventOverviewPage() {
                   <p className="text-sm text-[#004645]/70 mb-3">
                     Créez votre liste d&apos;invités manuellement ou importez un fichier CSV
                   </p>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 flex-wrap">
                     <AddGuestDialog eventId={eventId} onGuestAdded={fetchEvent} />
                     <ImportCSVDialog eventId={eventId} onImportComplete={fetchEvent} />
                   </div>
@@ -424,6 +525,31 @@ export default function EventOverviewPage() {
                     >
                       <Users className="h-4 w-4 mr-2" />
                       Voir les invités
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            </div>
+
+            {/* Étape 4 - Nouveau */}
+            <div className="relative">
+              <div className="flex items-start gap-3">
+                <div className="flex-shrink-0 bg-gradient-to-br from-[#009197] to-[#9CD9F6] text-white w-10 h-10 rounded-full flex items-center justify-center font-bold" style={{ fontFamily: "var(--font-abril)" }}>
+                  4
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-bold text-[#004645] mb-2">Check-in le jour J</h3>
+                  <p className="text-sm text-[#004645]/70 mb-3">
+                    Enregistrez les arrivées avec le scanner QR code
+                  </p>
+                  <Link href={`/admin/events/${eventId}/checkin`}>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="border-[#009197] text-[#009197] hover:bg-[#009197] hover:text-white"
+                    >
+                      <QrCode className="h-4 w-4 mr-2" />
+                      Scanner QR codes
                     </Button>
                   </Link>
                 </div>
