@@ -70,10 +70,10 @@ const navigationSections: NavSection[] = [
         description: 'Analyses détaillées'
       },
       {
-        name: 'Diagnostic',
-        href: '/admin/diagnostic',
-        icon: Activity,
-        description: 'Santé du système'
+        name: 'Système & Diagnostic',
+        href: '/admin/system',
+        icon: Settings,
+        description: 'Configuration et santé du système'
       },
       {
         name: 'Templates Emails',
@@ -86,12 +86,6 @@ const navigationSections: NavSection[] = [
         href: '/admin/settings/integrations',
         icon: Plug,
         description: 'Configuration des emails'
-      },
-      {
-        name: 'Configuration',
-        href: '/admin/setup',
-        icon: Settings,
-        description: 'Paramètres système'
       },
     ]
   },
