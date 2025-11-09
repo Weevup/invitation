@@ -21,15 +21,19 @@ export async function POST() {
     // ====================================
     // 1. UTILISATEURS
     // ====================================
-    const adminWeevup = await prisma.user.create({
-      data: {
+    const adminWeevup = await prisma.user.upsert({
+      where: { email: 'contact@weevup.com' },
+      update: {},
+      create: {
         email: 'contact@weevup.com',
         role: UserRole.ADMIN
       }
     })
 
-    const adminDemo = await prisma.user.create({
-      data: {
+    const adminDemo = await prisma.user.upsert({
+      where: { email: 'demo@weevup.com' },
+      update: {},
+      create: {
         email: 'demo@weevup.com',
         role: UserRole.ADMIN
       }
@@ -38,6 +42,11 @@ export async function POST() {
     // ====================================
     // 1.5. EMAIL INTEGRATION & TEMPLATES
     // ====================================
+
+    // Supprimer les anciennes intégrations et templates pour un seed propre
+    await prisma.emailIntegration.deleteMany({})
+    await prisma.emailTemplate.deleteMany({})
+
     const emailIntegration = await prisma.emailIntegration.create({
       data: {
         provider: EmailProvider.SENDGRID,
