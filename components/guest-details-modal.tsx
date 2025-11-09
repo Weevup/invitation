@@ -113,7 +113,7 @@ export function GuestDetailsModal({ guest, open, onOpenChange }: GuestDetailsMod
             {guest.firstName} {guest.lastName}
           </DialogTitle>
           <DialogDescription>
-            Détails complets de l'invité et de sa réponse
+            Détails complets de l&apos;invité et de sa réponse
           </DialogDescription>
         </DialogHeader>
 
@@ -167,7 +167,7 @@ export function GuestDetailsModal({ guest, open, onOpenChange }: GuestDetailsMod
                 <HelpCircle className="h-5 w-5 text-orange-600" />
                 <div>
                   <p className="font-medium text-orange-900">En attente de réponse</p>
-                  <p className="text-sm text-orange-700">L'invité n'a pas encore confirmé sa présence</p>
+                  <p className="text-sm text-orange-700">L&apos;invité n&apos;a pas encore confirmé sa présence</p>
                 </div>
               </div>
             ) : (
@@ -183,7 +183,7 @@ export function GuestDetailsModal({ guest, open, onOpenChange }: GuestDetailsMod
                     <>
                       <CheckCircle2 className="h-6 w-6 text-green-600" />
                       <div>
-                        <p className="font-semibold text-green-900">Participe à l'événement</p>
+                        <p className="font-semibold text-green-900">Participe à l&apos;événement</p>
                         <p className="text-sm text-green-700">
                           Confirmé le {new Date(guest.rsvp.createdAt).toLocaleDateString('fr-FR', {
                             day: 'numeric',
@@ -214,7 +214,7 @@ export function GuestDetailsModal({ guest, open, onOpenChange }: GuestDetailsMod
                       <HelpCircle className="h-6 w-6 text-gray-600" />
                       <div>
                         <p className="font-semibold text-gray-900">Réponse indécise</p>
-                        <p className="text-sm text-gray-700">L'invité hésite encore</p>
+                        <p className="text-sm text-gray-700">L&apos;invité hésite encore</p>
                       </div>
                     </>
                   )}
@@ -282,7 +282,7 @@ export function GuestDetailsModal({ guest, open, onOpenChange }: GuestDetailsMod
                       <div className="flex items-start gap-3 md:col-span-2">
                         <Accessibility className="h-5 w-5 text-[#009197] mt-0.5" />
                         <div>
-                          <p className="text-sm text-gray-500">Besoins d'accessibilité</p>
+                          <p className="text-sm text-gray-500">Besoins d&apos;accessibilité</p>
                           <p className="font-medium">{guest.rsvp.accessibilityNotes}</p>
                         </div>
                       </div>
@@ -309,7 +309,7 @@ export function GuestDetailsModal({ guest, open, onOpenChange }: GuestDetailsMod
             <>
               <Separator />
               <section>
-                <h3 className="text-lg font-semibold mb-3 text-[#004645]">QR Code d'accès</h3>
+                <h3 className="text-lg font-semibold mb-3 text-[#004645]">QR Code d&apos;accès</h3>
                 <div className="bg-gray-50 rounded-lg p-6 flex flex-col items-center gap-4">
                   {loading ? (
                     <div className="w-64 h-64 bg-gray-200 animate-pulse rounded-lg flex items-center justify-center">
@@ -319,7 +319,7 @@ export function GuestDetailsModal({ guest, open, onOpenChange }: GuestDetailsMod
                     <>
                       <img src={qrCodeUrl} alt="QR Code" className="w-64 h-64 border-4 border-white shadow-lg rounded-lg" />
                       <p className="text-sm text-gray-600 text-center">
-                        À présenter à l'entrée de l'événement
+                        À présenter à l&apos;entrée de l&apos;événement
                       </p>
                       <Button onClick={downloadQRCode} variant="outline" className="gap-2">
                         <Download className="h-4 w-4" />
@@ -339,7 +339,7 @@ export function GuestDetailsModal({ guest, open, onOpenChange }: GuestDetailsMod
             <>
               <Separator />
               <section>
-                <h3 className="text-lg font-semibold mb-3 text-[#004645]">Statut d'enregistrement</h3>
+                <h3 className="text-lg font-semibold mb-3 text-[#004645]">Statut d&apos;enregistrement</h3>
                 {hasCheckedIn ? (
                   <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                     <div className="flex items-center gap-3 mb-2">
@@ -373,8 +373,8 @@ export function GuestDetailsModal({ guest, open, onOpenChange }: GuestDetailsMod
                   <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-center gap-3">
                     <UserCheck className="h-5 w-5 text-blue-600" />
                     <div>
-                      <p className="font-medium text-blue-900">En attente d'arrivée</p>
-                      <p className="text-sm text-blue-700">L'invité n'est pas encore enregistré à l'événement</p>
+                      <p className="font-medium text-blue-900">En attente d&apos;arrivée</p>
+                      <p className="text-sm text-blue-700">L&apos;invité n&apos;est pas encore enregistré à l&apos;événement</p>
                     </div>
                   </div>
                 )}

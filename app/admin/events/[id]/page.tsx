@@ -165,7 +165,7 @@ export default function EventOverviewPage() {
       {/* Stats - Row 1: Invitations */}
       <div>
         <h2 className="text-xl font-bold text-[#004645] mb-4" style={{ fontFamily: "var(--font-abril)" }}>
-          Statistiques d'invitations
+          Statistiques d&apos;invitations
         </h2>
         <div className="grid md:grid-cols-4 gap-4">
           <Card className="border-[#9CD9F6]/30 bg-white/80 backdrop-blur hover:shadow-lg transition-shadow">
@@ -244,7 +244,7 @@ export default function EventOverviewPage() {
       {/* Stats - Row 2: Event Day */}
       <div>
         <h2 className="text-xl font-bold text-[#004645] mb-4" style={{ fontFamily: "var(--font-abril)" }}>
-          Jour de l'événement
+          Jour de l&apos;événement
         </h2>
         <div className="grid md:grid-cols-4 gap-4">
           <Card className="border-[#009197]/30 bg-[#009197]/5 backdrop-blur hover:shadow-lg transition-shadow">

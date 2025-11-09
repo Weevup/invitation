@@ -290,7 +290,7 @@ export default function CheckinPage() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-[#004645]/70">Taux d'arrivée</p>
+                <p className="text-sm text-[#004645]/70">Taux d&apos;arrivée</p>
                 <p className="text-3xl font-bold text-[#004645]">{stats.percentageCheckedIn}%</p>
               </div>
               <div className="h-8 w-8 rounded-full bg-[#009197]/20 flex items-center justify-center">
@@ -308,7 +308,7 @@ export default function CheckinPage() {
             Scanner QR Code
           </CardTitle>
           <CardDescription className="text-[#004645]/70">
-            Scannez le QR code de l'invité pour l'enregistrer automatiquement
+            Scannez le QR code de l&apos;invité pour l&apos;enregistrer automatiquement
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -371,7 +371,7 @@ export default function CheckinPage() {
           <CardHeader>
             <CardTitle className="text-[#004645] flex items-center gap-2">
               <Clock className="h-5 w-5 text-orange-600" />
-              En attente d'arrivée ({pendingGuests.length})
+              En attente d&apos;arrivée ({pendingGuests.length})
             </CardTitle>
           </CardHeader>
           <CardContent>
