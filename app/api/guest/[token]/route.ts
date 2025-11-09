@@ -11,7 +11,11 @@ export async function GET(
 
     if (!guest) {
       return NextResponse.json(
-        { error: 'Invalid or expired token' },
+        {
+          error: 'INVALID_TOKEN',
+          message: 'Lien d\'invitation invalide ou expiré',
+          suggestion: 'Contactez l\'organisateur pour recevoir un nouveau lien d\'invitation.'
+        },
         { status: 401 }
       )
     }
