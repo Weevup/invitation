@@ -468,7 +468,7 @@ JOUR 2 - Mardi 16 septembre
           token: token,
           tokenHash: tokenHash,
           tags: guest.tags,
-          status: 'PENDING'
+          status: guest.attending !== undefined ? 'RESPONDED' : 'INVITED'
         }
       })
 
@@ -529,7 +529,7 @@ JOUR 2 - Mardi 16 septembre
           token: token,
           tokenHash: tokenHash,
           tags: member.tags,
-          status: 'PENDING'
+          status: 'RESPONDED'
         }
       })
 
@@ -589,7 +589,7 @@ JOUR 2 - Mardi 16 septembre
           token: token,
           tokenHash: tokenHash,
           tags: speaker.tags,
-          status: 'CONFIRMED'
+          status: 'RESPONDED'
         }
       })
 
@@ -642,7 +642,7 @@ JOUR 2 - Mardi 16 septembre
           token: token,
           tokenHash: tokenHash,
           tags: participant.tags,
-          status: participant.attending === null ? 'PENDING' : 'CONFIRMED'
+          status: participant.attending === null ? 'INVITED' : 'RESPONDED'
         }
       })
 
