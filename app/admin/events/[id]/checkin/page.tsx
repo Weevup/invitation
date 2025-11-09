@@ -204,7 +204,7 @@ export default function CheckinPage() {
       return
     }
 
-    await performCheckin(guest.rsvp.qrCodeId, guest.id)
+    await performCheckin(guest.rsvp!.qrCodeId, guest.id)
   }
 
   useEffect(() => {

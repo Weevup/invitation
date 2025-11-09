@@ -102,7 +102,7 @@ export function GuestDetailsModal({ guest, open, onOpenChange }: GuestDetailsMod
   }
 
   const hasCheckedIn = guest.checkins && guest.checkins.length > 0
-  const latestCheckin = hasCheckedIn ? guest.checkins[0] : null
+  const latestCheckin = hasCheckedIn ? guest.checkins![0] : null
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
