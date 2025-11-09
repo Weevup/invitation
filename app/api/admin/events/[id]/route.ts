@@ -13,6 +13,11 @@ export async function GET(
         guests: {
           include: {
             rsvp: true,
+            checkins: {
+              orderBy: {
+                checkedInAt: 'desc',
+              },
+            },
           },
           orderBy: {
             lastName: 'asc',

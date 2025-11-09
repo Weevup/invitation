@@ -11,6 +11,7 @@ import {
   UserCheck,
   Sparkles,
   Users,
+  QrCode,
   Settings,
   ChevronLeft,
   Calendar,
@@ -73,6 +74,11 @@ export default function EventLayout({
       label: 'Invités',
       href: `/admin/events/${eventId}/guests`,
       icon: Users,
+    },
+    {
+      label: 'Check-in',
+      href: `/admin/events/${eventId}/checkin`,
+      icon: QrCode,
     },
     {
       label: 'Communications',
