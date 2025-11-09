@@ -99,9 +99,85 @@ export async function POST() {
       END $$;
     `)
 
+    // Step 8: Create EmailProvider enum
+    await prisma.$executeRawUnsafe(`
+      DO $$ BEGIN
+        CREATE TYPE "EmailProvider" AS ENUM ('SENDGRID', 'RESEND', 'MAILGUN', 'SMTP');
+      EXCEPTION
+        WHEN duplicate_object THEN null;
+      END $$;
+    `)
+
+    // Step 9: Create EmailIntegration table
+    await prisma.$executeRawUnsafe(`
+      CREATE TABLE IF NOT EXISTS "EmailIntegration" (
+        "id" TEXT NOT NULL,
+        "provider" "EmailProvider" NOT NULL,
+        "isActive" BOOLEAN NOT NULL DEFAULT false,
+        "isPrimary" BOOLEAN NOT NULL DEFAULT false,
+        "apiKey" TEXT,
+        "apiSecret" TEXT,
+        "smtpHost" TEXT,
+        "smtpPort" INTEGER,
+        "smtpUser" TEXT,
+        "smtpPass" TEXT,
+        "fromEmail" TEXT,
+        "fromName" TEXT,
+        "replyTo" TEXT,
+        "webhookUrl" TEXT,
+        "webhookSecret" TEXT,
+        "trackOpens" BOOLEAN NOT NULL DEFAULT true,
+        "trackClicks" BOOLEAN NOT NULL DEFAULT true,
+        "dailyLimit" INTEGER,
+        "monthlyLimit" INTEGER,
+        "lastTestedAt" TIMESTAMP(3),
+        "lastUsedAt" TIMESTAMP(3),
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT "EmailIntegration_pkey" PRIMARY KEY ("id")
+      )
+    `)
+
+    // Step 10: Create indexes for EmailIntegration
+    await prisma.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "EmailIntegration_provider_idx" ON "EmailIntegration"("provider")`)
+    await prisma.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "EmailIntegration_isActive_idx" ON "EmailIntegration"("isActive")`)
+    await prisma.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "EmailIntegration_isPrimary_idx" ON "EmailIntegration"("isPrimary")`)
+
+    // Step 11: Create EmailTemplate table
+    await prisma.$executeRawUnsafe(`
+      CREATE TABLE IF NOT EXISTS "EmailTemplate" (
+        "id" TEXT NOT NULL,
+        "name" TEXT NOT NULL,
+        "slug" TEXT NOT NULL,
+        "description" TEXT,
+        "type" "EmailType" NOT NULL,
+        "subject" TEXT NOT NULL,
+        "htmlContent" TEXT NOT NULL,
+        "textContent" TEXT,
+        "primaryColor" TEXT NOT NULL DEFAULT '#004645',
+        "secondaryColor" TEXT NOT NULL DEFAULT '#009197',
+        "accentColor" TEXT NOT NULL DEFAULT '#FF4713',
+        "fontFamily" TEXT NOT NULL DEFAULT 'Arial, sans-serif',
+        "isDefault" BOOLEAN NOT NULL DEFAULT false,
+        "isActive" BOOLEAN NOT NULL DEFAULT true,
+        "previewImage" TEXT,
+        "usageCount" INTEGER NOT NULL DEFAULT 0,
+        "lastUsedAt" TIMESTAMP(3),
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT "EmailTemplate_pkey" PRIMARY KEY ("id")
+      )
+    `)
+
+    // Step 12: Create indexes for EmailTemplate
+    await prisma.$executeRawUnsafe(`CREATE UNIQUE INDEX IF NOT EXISTS "EmailTemplate_slug_key" ON "EmailTemplate"("slug")`)
+    await prisma.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "EmailTemplate_type_idx" ON "EmailTemplate"("type")`)
+    await prisma.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "EmailTemplate_isActive_idx" ON "EmailTemplate"("isActive")`)
+    await prisma.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "EmailTemplate_isDefault_idx" ON "EmailTemplate"("isDefault")`)
+
     return NextResponse.json({
       success: true,
-      message: 'Migration appliquée avec succès - Tous les champs ont été ajoutés',
+      message: 'Migration appliquée avec succès - Toutes les tables ont été créées (EmailIntegration, EmailTemplate, EmailTracking)',
     })
   } catch (error) {
     console.error('Error applying migration:', error)
