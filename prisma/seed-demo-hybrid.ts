@@ -40,9 +40,8 @@ async function main() {
       startsAt: new Date('2025-09-15T09:00:00Z'),
       endsAt: new Date('2025-09-15T18:00:00Z'),
       venueName: 'Station F',
-      address: '5 Parvis Alan Turing',
+      address: '5 Parvis Alan Turing, 75013',
       city: 'Paris',
-      postalCode: '75013',
       country: 'France',
       coverImage: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87',
       description: `Le Tech Summit 2025 revient dans un format innovant : participez en présentiel à Station F ou suivez l'événement en direct depuis chez vous !
