@@ -604,12 +604,6 @@ JOUR 2 - Mardi 16 septembre
           mealChoice: speaker.meal,
           qrCodeId,
           consentPhotos: true,
-          customResponses: {
-            expertise: speaker.expertise,
-            topics: ['Intelligence Artificielle'],
-            hackathon: 'Non',
-            tshirt: 'L'
-          },
           createdAt: new Date(Date.now() - Math.random() * 60 * 24 * 60 * 60 * 1000)
         }
       })
@@ -659,12 +653,6 @@ JOUR 2 - Mardi 16 septembre
             allergies: participant.allergies,
             qrCodeId: participant.attending ? qrCodeId : undefined,
             consentPhotos: participant.attending,
-            customResponses: participant.attending ? {
-              expertise: participant.expertise || 'Intermédiaire',
-              topics: ['Intelligence Artificielle', 'Cloud Computing'],
-              hackathon: Math.random() > 0.7 ? 'Oui, seul' : 'Non',
-              tshirt: ['M', 'L', 'XL'][Math.floor(Math.random() * 3)]
-            } : undefined,
             createdAt: new Date(Date.now() - Math.random() * 40 * 24 * 60 * 60 * 1000)
           }
         })
