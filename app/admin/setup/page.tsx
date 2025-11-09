@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { CheckCircle, AlertCircle, Loader2, Database, Sparkles, Trash2, AlertTriangle } from "lucide-react";
+import { CheckCircle, AlertCircle, Loader2, Database, Sparkles, Trash2, AlertTriangle, RefreshCw } from "lucide-react";
 import Link from "next/link";
 import { WeevupLogo } from "@/components/weevup-logo";
 
@@ -21,6 +21,30 @@ export default function SetupPage() {
   const [clearError, setClearError] = useState<string>('');
   const [migrateError, setMigrateError] = useState<string>('');
   const [showClearConfirm, setShowClearConfirm] = useState(false);
+
+  // État de la base de données
+  const [dbStatus, setDbStatus] = useState<any>(null);
+  const [dbStatusLoading, setDbStatusLoading] = useState(true);
+
+  // Charger le statut de la BDD au montage et après migration
+  useEffect(() => {
+    fetchDatabaseStatus();
+  }, []);
+
+  const fetchDatabaseStatus = async () => {
+    setDbStatusLoading(true);
+    try {
+      const response = await fetch('/api/admin/database-status');
+      if (response.ok) {
+        const data = await response.json();
+        setDbStatus(data);
+      }
+    } catch (error) {
+      console.error('Error fetching database status:', error);
+    } finally {
+      setDbStatusLoading(false);
+    }
+  };
 
   const handleSetup = async () => {
     setSetupLoading(true);
@@ -115,6 +139,8 @@ export default function SetupPage() {
 
       if (response.ok) {
         setMigrateResult(data);
+        // Rafraîchir le statut de la BDD après migration réussie
+        await fetchDatabaseStatus();
       } else {
         setMigrateError(data.error || 'Erreur lors de la migration');
       }
@@ -190,45 +216,133 @@ export default function SetupPage() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="p-4 bg-green-50 border border-green-200 rounded-md flex items-start gap-2">
-                <CheckCircle className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
-                <div>
-                  <p className="font-medium text-green-800">Schéma déjà configuré</p>
-                  <p className="text-sm text-green-600 mt-1">
-                    Votre base de données PostgreSQL est automatiquement synchronisée lors de chaque déploiement sur Vercel.
-                    Les tables sont créées avec le script de build.
-                  </p>
+              {/* État de la base de données en temps réel */}
+              {dbStatusLoading ? (
+                <div className="p-4 bg-gray-50 border border-gray-200 rounded-md flex items-center gap-2">
+                  <Loader2 className="h-5 w-5 text-gray-500 animate-spin" />
+                  <p className="text-sm text-gray-600">Vérification de l&apos;état de la base de données...</p>
                 </div>
-              </div>
+              ) : dbStatus && !dbStatus.needsMigration ? (
+                <div className="p-4 bg-green-50 border border-green-200 rounded-md">
+                  <div className="flex items-start gap-2 mb-2">
+                    <CheckCircle className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
+                    <div className="flex-1">
+                      <p className="font-medium text-green-800">✅ Base de données complète</p>
+                      <p className="text-sm text-green-600 mt-1">
+                        Toutes les tables et colonnes sont présentes ({dbStatus.summary.tablesOk} tables, {dbStatus.summary.enumsOk} ENUMs)
+                      </p>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={fetchDatabaseStatus}
+                      className="text-green-600 hover:text-green-700 hover:bg-green-100"
+                    >
+                      <RefreshCw className="h-4 w-4" />
+                    </Button>
+                  </div>
 
-              <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-md">
-                <p className="text-sm text-blue-800 mb-3">
-                  <strong>⚠️ Migration manuelle requise :</strong> Si vous obtenez une erreur lors de la création des données de démo, cliquez sur ce bouton pour appliquer manuellement la migration des derniers champs.
-                </p>
-                <Button
-                  onClick={handleMigrate}
-                  disabled={migrateLoading || !!migrateResult}
-                  variant="outline"
-                  className="w-full border-blue-300 text-blue-700 hover:bg-blue-100"
-                >
-                  {migrateLoading ? (
-                    <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Application de la migration...
-                    </>
-                  ) : migrateResult ? (
-                    <>
-                      <CheckCircle className="h-4 w-4 mr-2" />
-                      Migration appliquée
-                    </>
-                  ) : (
-                    <>
-                      <Database className="h-4 w-4 mr-2" />
-                      Appliquer la migration
-                    </>
-                  )}
-                </Button>
-              </div>
+                  {/* Détails des tables */}
+                  <div className="mt-3 grid grid-cols-3 gap-2 text-xs">
+                    {dbStatus.status.tables.map((table: any) => (
+                      <div key={table.name} className="flex items-center gap-1">
+                        <CheckCircle className="h-3 w-3 text-green-500" />
+                        <span className="text-green-700">{table.name}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : dbStatus ? (
+                <div className="p-4 bg-orange-50 border border-orange-200 rounded-md">
+                  <div className="flex items-start gap-2 mb-2">
+                    <AlertTriangle className="h-5 w-5 text-orange-500 mt-0.5 flex-shrink-0" />
+                    <div className="flex-1">
+                      <p className="font-medium text-orange-800">⚠️ Migration nécessaire</p>
+                      <p className="text-sm text-orange-600 mt-1">
+                        {dbStatus.summary.message}
+                      </p>
+                      <p className="text-xs text-orange-600 mt-1">
+                        Tables: {dbStatus.summary.tablesOk} • ENUMs: {dbStatus.summary.enumsOk}
+                      </p>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={fetchDatabaseStatus}
+                      className="text-orange-600 hover:text-orange-700 hover:bg-orange-100"
+                    >
+                      <RefreshCw className="h-4 w-4" />
+                    </Button>
+                  </div>
+
+                  {/* Détails des tables manquantes ou incomplètes */}
+                  <div className="mt-3 space-y-2">
+                    {dbStatus.status.tables.filter((t: any) => !t.exists || t.missingColumns).map((table: any) => (
+                      <div key={table.name} className="flex items-start gap-2 text-xs bg-white rounded p-2">
+                        {table.exists ? (
+                          <>
+                            <AlertCircle className="h-3 w-3 text-orange-500 mt-0.5 flex-shrink-0" />
+                            <div>
+                              <span className="font-medium text-orange-800">{table.name}</span>
+                              <span className="text-orange-600"> - Colonnes manquantes: </span>
+                              <span className="text-orange-700">{table.missingColumns.join(', ')}</span>
+                            </div>
+                          </>
+                        ) : (
+                          <>
+                            <AlertCircle className="h-3 w-3 text-red-500 mt-0.5 flex-shrink-0" />
+                            <span className="font-medium text-red-800">{table.name} - Table absente</span>
+                          </>
+                        )}
+                      </div>
+                    ))}
+
+                    {dbStatus.status.enums.filter((e: any) => !e.exists).length > 0 && (
+                      <div className="flex items-start gap-2 text-xs bg-white rounded p-2">
+                        <AlertCircle className="h-3 w-3 text-red-500 mt-0.5 flex-shrink-0" />
+                        <div>
+                          <span className="font-medium text-red-800">ENUMs manquants: </span>
+                          <span className="text-red-700">
+                            {dbStatus.status.enums.filter((e: any) => !e.exists).map((e: any) => e.name).join(', ')}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ) : null}
+
+              {/* Bouton de migration */}
+              {dbStatus?.needsMigration && (
+                <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-md">
+                  <p className="text-sm text-blue-800 mb-3">
+                    <strong>🔧 Action requise :</strong> Cliquez sur le bouton ci-dessous pour créer automatiquement les tables et colonnes manquantes.
+                  </p>
+                  <Button
+                    onClick={handleMigrate}
+                    disabled={migrateLoading || !!migrateResult}
+                    variant="outline"
+                    className="w-full border-blue-300 text-blue-700 hover:bg-blue-100"
+                  >
+                    {migrateLoading ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Application de la migration...
+                      </>
+                    ) : migrateResult ? (
+                      <>
+                        <CheckCircle className="h-4 w-4 mr-2" />
+                        Migration appliquée
+                      </>
+                    ) : (
+                      <>
+                        <Database className="h-4 w-4 mr-2" />
+                        Appliquer la migration
+                      </>
+                    )}
+                  </Button>
+                </div>
+              )}
 
               {migrateError && (
                 <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-md flex items-start gap-2">
