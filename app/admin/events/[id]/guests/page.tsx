@@ -7,13 +7,21 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import {
-  Users, Download, Search, Link as LinkIcon, UserPlus, Upload
+  Users, Download, Search, Link as LinkIcon, UserPlus, Upload, Eye, Filter
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { AddGuestDialog } from '@/components/add-guest-dialog'
 import { ImportCSVDialog } from '@/components/import-csv-dialog'
 import { SendInvitationsDialog } from '@/components/send-invitations-dialog'
+import { GuestDetailsModal } from '@/components/guest-details-modal'
 import Papa from 'papaparse'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 
 interface Guest {
   id: string
@@ -28,7 +36,19 @@ interface Guest {
     attending?: boolean
     plusOnes: number
     mealChoice?: string
+    allergies?: string
+    accessibilityNotes?: string
+    transportNeeds?: string
+    lodgingNeeds?: string
+    consentPhotos: boolean
+    createdAt: string
+    qrCodeId: string
   }
+  checkins?: Array<{
+    checkedInAt: string
+    desk?: string
+    notes?: string
+  }>
 }
 
 interface EventDetails {
@@ -44,6 +64,9 @@ export default function GuestsPage() {
   const [event, setEvent] = useState<EventDetails | null>(null)
   const [search, setSearch] = useState('')
   const [loading, setLoading] = useState(true)
+  const [selectedGuest, setSelectedGuest] = useState<Guest | null>(null)
+  const [statusFilter, setStatusFilter] = useState<string>('all')
+  const [tagFilter, setTagFilter] = useState<string>('all')
 
   const fetchEvent = useCallback(async () => {
     try {
@@ -117,21 +140,45 @@ export default function GuestsPage() {
     )
   }
 
+  // Get all unique tags
+  const allTags = Array.from(new Set(event.guests.flatMap((g) => g.tags)))
+
   const filteredGuests = event.guests.filter((guest) => {
     const searchLower = search.toLowerCase()
-    return (
+    const matchesSearch =
       guest.firstName.toLowerCase().includes(searchLower) ||
       guest.lastName.toLowerCase().includes(searchLower) ||
       guest.email.toLowerCase().includes(searchLower) ||
       guest.company?.toLowerCase().includes(searchLower) ||
       guest.tags.some((tag) => tag.toLowerCase().includes(searchLower))
-    )
+
+    // Status filter
+    const matchesStatus =
+      statusFilter === 'all' ||
+      (statusFilter === 'confirmed' && guest.rsvp?.attending === true) ||
+      (statusFilter === 'declined' && guest.rsvp?.attending === false) ||
+      (statusFilter === 'pending' && !guest.rsvp)
+
+    // Tag filter
+    const matchesTag =
+      tagFilter === 'all' || guest.tags.includes(tagFilter)
+
+    return matchesSearch && matchesStatus && matchesTag
   })
 
   const hasGuests = event.guests.length > 0
 
   return (
     <div className="space-y-6">
+      {/* Guest Details Modal */}
+      {selectedGuest && (
+        <GuestDetailsModal
+          guest={selectedGuest}
+          open={!!selectedGuest}
+          onOpenChange={(open) => !open && setSelectedGuest(null)}
+        />
+      )}
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -159,6 +206,65 @@ export default function GuestsPage() {
           />
         </div>
       </div>
+
+      {/* Filtres avancés */}
+      {hasGuests && (
+        <Card className="border-[#9CD9F6]/30 bg-white/80 backdrop-blur">
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-4 flex-wrap">
+              <div className="flex items-center gap-2">
+                <Filter className="h-4 w-4 text-[#009197]" />
+                <span className="text-sm font-medium text-[#004645]">Filtres :</span>
+              </div>
+
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-[180px] border-[#9CD9F6]/50">
+                  <SelectValue placeholder="Statut" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tous les statuts</SelectItem>
+                  <SelectItem value="confirmed">✓ Confirmés</SelectItem>
+                  <SelectItem value="declined">✗ Déclinés</SelectItem>
+                  <SelectItem value="pending">⏳ En attente</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Select value={tagFilter} onValueChange={setTagFilter}>
+                <SelectTrigger className="w-[180px] border-[#9CD9F6]/50">
+                  <SelectValue placeholder="Tag" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tous les tags</SelectItem>
+                  {allTags.map((tag) => (
+                    <SelectItem key={tag} value={tag}>
+                      {tag}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              {(statusFilter !== 'all' || tagFilter !== 'all') && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setStatusFilter('all')
+                    setTagFilter('all')
+                  }}
+                  className="text-[#FF4713]"
+                >
+                  Réinitialiser
+                </Button>
+              )}
+
+              <div className="ml-auto text-sm text-[#004645]/70">
+                {filteredGuests.length} invité{filteredGuests.length !== 1 ? 's' : ''}
+                {filteredGuests.length !== event.guests.length && ` sur ${event.guests.length}`}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Guests Table */}
       <Card className="border-[#9CD9F6]/30 bg-white/80 backdrop-blur">
@@ -268,14 +374,26 @@ export default function GuestsPage() {
                         )}
                       </td>
                       <td className="py-3">
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => copyInvitationLink(guest.token)}
-                          className="text-[#009197] hover:text-[#004645] hover:bg-[#9CD9F6]/20"
-                        >
-                          <LinkIcon className="h-4 w-4" />
-                        </Button>
+                        <div className="flex items-center gap-1">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => setSelectedGuest(guest)}
+                            className="text-[#004645] hover:text-[#009197] hover:bg-[#9CD9F6]/20"
+                            title="Voir les détails"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => copyInvitationLink(guest.token)}
+                            className="text-[#009197] hover:text-[#004645] hover:bg-[#9CD9F6]/20"
+                            title="Copier le lien d'invitation"
+                          >
+                            <LinkIcon className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </td>
                     </tr>
                   ))}
