@@ -11,7 +11,15 @@ export async function GET() {
       ]
     })
 
-    return NextResponse.json(templates)
+    // Serialize dates to strings to avoid client-side errors
+    const serializedTemplates = templates.map(template => ({
+      ...template,
+      createdAt: template.createdAt.toISOString(),
+      updatedAt: template.updatedAt.toISOString(),
+      lastUsedAt: template.lastUsedAt?.toISOString() || null
+    }))
+
+    return NextResponse.json(serializedTemplates)
   } catch (error) {
     console.error('Error fetching templates:', error)
     return NextResponse.json(

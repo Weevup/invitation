@@ -54,7 +54,9 @@ interface EmailTemplate {
   fontFamily: string
   isDefault: boolean
   isActive: boolean
+  previewImage?: string
   usageCount: number
+  lastUsedAt?: string | null
   createdAt: string
   updatedAt: string
 }
@@ -299,7 +301,9 @@ export default function TemplatesPage() {
   ]
 
   const typeLabels: Record<string, string> = {
+    SAVE_THE_DATE: 'Save the Date',
     INVITE: 'Invitation',
+    INVITATION: 'Invitation',
     REMINDER: 'Rappel',
     CONFIRMATION: 'Confirmation',
     INFO: 'Information',
@@ -360,7 +364,7 @@ export default function TemplatesPage() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2 mt-3">
-                  <Badge>{typeLabels[template.type]}</Badge>
+                  <Badge>{typeLabels[template.type] || template.type}</Badge>
                   <Badge variant="outline">{template.usageCount} utilisations</Badge>
                 </div>
               </CardHeader>
@@ -473,7 +477,9 @@ export default function TemplatesPage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="SAVE_THE_DATE">Save the Date</SelectItem>
                     <SelectItem value="INVITE">Invitation</SelectItem>
+                    <SelectItem value="INVITATION">Invitation (alt)</SelectItem>
                     <SelectItem value="REMINDER">Rappel</SelectItem>
                     <SelectItem value="CONFIRMATION">Confirmation</SelectItem>
                     <SelectItem value="INFO">Information</SelectItem>

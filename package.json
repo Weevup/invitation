@@ -15,6 +15,7 @@
     "db:seed:weevup": "tsx prisma/seed-weevup.ts",
     "db:seed:complete": "tsx prisma/seed-complete.ts",
     "db:seed:templates": "tsx prisma/seed-templates.ts",
+    "db:seed:demo": "tsx prisma/seed-demo.ts",
     "postinstall": "prisma generate"
   },
   "dependencies": {
