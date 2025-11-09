@@ -1,6 +1,12 @@
 "use client"
 
-import { CheckCircle, Circle } from 'lucide-react'
+import { CheckCircle } from 'lucide-react'
+
+interface StepConfig {
+  id: string
+  label: string
+  enabled: boolean
+}
 
 interface Step {
   number: number
@@ -10,17 +16,23 @@ interface Step {
 }
 
 interface RSVPProgressProps {
-  currentStep: number
-  totalSteps: number
-  stepLabels?: string[]
+  currentStepId: string
+  steps: StepConfig[]
 }
 
-export function RSVPProgress({ currentStep, totalSteps, stepLabels }: RSVPProgressProps) {
-  const steps: Step[] = Array.from({ length: totalSteps }, (_, i) => ({
+export function RSVPProgress({ currentStepId, steps: stepsConfig }: RSVPProgressProps) {
+  // Filter only enabled steps
+  const enabledSteps = stepsConfig.filter(s => s.enabled)
+
+  // Find current step index
+  const currentIndex = enabledSteps.findIndex(s => s.id === currentStepId)
+
+  // Build step array with proper state
+  const steps: Step[] = enabledSteps.map((stepConfig, i) => ({
     number: i + 1,
-    label: stepLabels?.[i] || `Étape ${i + 1}`,
-    completed: i + 1 < currentStep,
-    active: i + 1 === currentStep
+    label: stepConfig.label,
+    completed: i < currentIndex,
+    active: i === currentIndex
   }))
 
   return (
@@ -82,7 +94,7 @@ export function RSVPProgress({ currentStep, totalSteps, stepLabels }: RSVPProgre
         <div
           className="h-full bg-gradient-to-r from-[#004645] via-[#009197] to-[#9CD9F6] transition-all duration-500 ease-out"
           style={{
-            width: `${((currentStep - 1) / (totalSteps - 1)) * 100}%`
+            width: `${enabledSteps.length > 1 ? (currentIndex / (enabledSteps.length - 1)) * 100 : 100}%`
           }}
         />
       </div>
@@ -90,7 +102,7 @@ export function RSVPProgress({ currentStep, totalSteps, stepLabels }: RSVPProgre
       {/* Step Counter */}
       <div className="mt-2 text-center">
         <span className="text-sm text-[#004645]/70">
-          Étape <strong className="text-[#FF4713]">{currentStep}</strong> sur <strong>{totalSteps}</strong>
+          Étape <strong className="text-[#FF4713]">{currentIndex + 1}</strong> sur <strong>{enabledSteps.length}</strong>
         </span>
       </div>
     </div>

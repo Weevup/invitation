@@ -383,30 +383,89 @@ export default function AdminDashboard() {
         </h2>
 
         {events.length === 0 ? (
-          <Card className="border-[#9CD9F6]/30 bg-white/80 backdrop-blur">
-            <CardContent className="text-center py-12">
-              <Calendar className="h-12 w-12 text-[#009197] mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2 text-[#004645]" style={{ fontFamily: "var(--font-abril)" }}>
-                Aucun événement
-              </h3>
-              <p className="text-[#004645]/70 mb-4">
-                Créez votre premier événement ou initialisez avec des données de démo
-              </p>
-              <div className="flex gap-4 justify-center">
-                <Button
-                  onClick={handleInitDemo}
-                  disabled={initLoading}
-                  variant="outline"
-                  className="border-[#004645] text-[#004645] hover:bg-[#004645] hover:text-white"
-                >
-                  {initLoading ? "Initialisation..." : "Créer événement démo"}
-                </Button>
-                <Link href="/admin/events/new">
-                  <Button className="bg-gradient-to-r from-[#004645] to-[#009197] hover:from-[#006C51] hover:to-[#009197] text-white">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Créer un événement
-                  </Button>
-                </Link>
+          <Card className="border-[#9CD9F6]/30 bg-gradient-to-br from-white via-[#9CD9F6]/5 to-white backdrop-blur">
+            <CardContent className="py-16 px-8">
+              {/* Illustration et message principal */}
+              <div className="max-w-2xl mx-auto text-center space-y-6">
+                {/* Icon with gradient background */}
+                <div className="relative inline-flex">
+                  <div className="absolute inset-0 bg-gradient-to-r from-[#004645] to-[#009197] rounded-full blur-xl opacity-20 animate-pulse" />
+                  <div className="relative bg-gradient-to-r from-[#004645] to-[#009197] p-6 rounded-full">
+                    <Calendar className="h-16 w-16 text-white" />
+                  </div>
+                </div>
+
+                {/* Title */}
+                <div>
+                  <h3 className="text-3xl font-bold mb-3 text-[#004645]" style={{ fontFamily: "var(--font-abril)" }}>
+                    Bienvenue sur votre dashboard !
+                  </h3>
+                  <p className="text-lg text-[#004645]/70">
+                    Commencez par créer votre premier événement
+                  </p>
+                </div>
+
+                {/* Steps */}
+                <div className="grid md:grid-cols-3 gap-6 my-8">
+                  <div className="space-y-2">
+                    <div className="w-10 h-10 rounded-full bg-[#009197] text-white flex items-center justify-center font-bold mx-auto">
+                      1
+                    </div>
+                    <p className="text-sm font-medium text-[#004645]">Créez votre événement</p>
+                    <p className="text-xs text-[#004645]/60">Configurez les détails et paramètres</p>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="w-10 h-10 rounded-full bg-[#009197] text-white flex items-center justify-center font-bold mx-auto">
+                      2
+                    </div>
+                    <p className="text-sm font-medium text-[#004645]">Invitez vos participants</p>
+                    <p className="text-xs text-[#004645]/60">Envoyez des invitations personnalisées</p>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="w-10 h-10 rounded-full bg-[#009197] text-white flex items-center justify-center font-bold mx-auto">
+                      3
+                    </div>
+                    <p className="text-sm font-medium text-[#004645]">Suivez les réponses</p>
+                    <p className="text-xs text-[#004645]/60">Gérez les RSVP et analytics</p>
+                  </div>
+                </div>
+
+                {/* Main CTA */}
+                <div className="space-y-4">
+                  <Link href="/admin/events/new">
+                    <Button
+                      size="lg"
+                      className="bg-gradient-to-r from-[#004645] to-[#009197] hover:from-[#006C51] hover:to-[#009197] text-white text-lg px-8 py-6 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105"
+                    >
+                      <Plus className="h-6 w-6 mr-2" />
+                      Créer mon premier événement
+                    </Button>
+                  </Link>
+
+                  {/* Secondary action - less prominent */}
+                  <div className="pt-4 border-t border-gray-200">
+                    <p className="text-xs text-[#004645]/50 mb-2">Ou découvrez avec un exemple</p>
+                    <Button
+                      onClick={handleInitDemo}
+                      disabled={initLoading}
+                      variant="ghost"
+                      size="sm"
+                      className="text-[#004645]/60 hover:text-[#004645] text-sm"
+                    >
+                      {initLoading ? (
+                        <>
+                          <RefreshCw className="h-3 w-3 mr-2 animate-spin" />
+                          Initialisation...
+                        </>
+                      ) : (
+                        <>
+                          <Award className="h-3 w-3 mr-2" />
+                          Charger un événement de démonstration
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>
