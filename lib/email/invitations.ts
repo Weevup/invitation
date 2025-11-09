@@ -133,7 +133,10 @@ export async function sendReminders(eventId: string) {
     where: {
       eventId,
       invitationSentAt: { not: null },
-      rsvpStatus: 'PENDING'
+      OR: [
+        { rsvp: null },                    // No RSVP created yet
+        { rsvp: { attending: null } }       // RSVP started but not completed
+      ]
     }
   })
 
