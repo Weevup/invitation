@@ -16,6 +16,10 @@
     "db:seed:complete": "tsx prisma/seed-complete.ts",
     "db:seed:templates": "tsx prisma/seed-templates.ts",
     "db:seed:demo": "tsx prisma/seed-demo.ts",
+    "db:seed:demo:all": "tsx prisma/seed-demo-all.ts",
+    "db:seed:demo:wedding": "tsx prisma/seed-demo-wedding.ts",
+    "db:seed:demo:gala": "tsx prisma/seed-demo-gala.ts",
+    "db:seed:demo:workshop": "tsx prisma/seed-demo-workshop.ts",
     "postinstall": "prisma generate"
   },
   "dependencies": {
