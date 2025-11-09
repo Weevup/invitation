@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { generateGuestToken, hashToken } from '@/lib/auth'
-import { UserRole, GuestStatus } from '@prisma/client'
+import { UserRole, GuestStatus, EmailProvider, EmailType, EmailStatus } from '@prisma/client'
 
 function generateToken(): string {
   return generateGuestToken()
@@ -32,6 +32,110 @@ export async function POST() {
       data: {
         email: 'demo@weevup.com',
         role: UserRole.ADMIN
+      }
+    })
+
+    // ====================================
+    // 1.5. EMAIL INTEGRATION & TEMPLATES
+    // ====================================
+    const emailIntegration = await prisma.emailIntegration.create({
+      data: {
+        provider: EmailProvider.SENDGRID,
+        isActive: true,
+        isPrimary: true,
+        apiKey: 'SG.demo_key_encrypted_for_testing',
+        fromEmail: 'noreply@weevup.com',
+        fromName: 'Weevup Events',
+        replyTo: 'contact@weevup.com',
+        webhookUrl: 'https://app.weevup.com/api/webhooks/email/sendgrid',
+        webhookSecret: 'webhook_secret_encrypted',
+        trackOpens: true,
+        trackClicks: true,
+        dailyLimit: 10000,
+        monthlyLimit: 300000,
+        lastTestedAt: new Date(),
+        lastUsedAt: new Date()
+      }
+    })
+
+    // Templates d'emails
+    const saveTheDateTemplate = await prisma.emailTemplate.create({
+      data: {
+        name: 'Save the Date - Événement Tech',
+        slug: 'save-the-date-tech',
+        description: 'Template pour l\'annonce initiale des événements',
+        type: EmailType.SAVE_THE_DATE,
+        subject: '📅 Save the Date - {{eventName}}',
+        htmlContent: `<!DOCTYPE html><html><body style="font-family: Arial; background: #f5f5f5; padding: 20px;"><div style="max-width: 600px; margin: 0 auto; background: white; border-radius: 8px; overflow: hidden;"><div style="background: {{primaryColor}}; color: white; padding: 40px 20px; text-align: center;"><h1>Save the Date!</h1><p style="font-size: 18px;">{{eventName}}</p></div><div style="padding: 40px 30px;"><p>Bonjour {{firstName}},</p><p>Nous sommes ravis de vous annoncer <strong>{{eventName}}</strong> qui se tiendra le <strong>{{eventDate}}</strong>.</p><p>📍 <strong>Lieu:</strong> {{venueName}}, {{city}}</p><p>L'invitation officielle avec tous les détails suivra prochainement.</p><p style="text-align: center; margin: 30px 0;"><a href="{{showcaseUrl}}" style="display: inline-block; background: {{accentColor}}; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px;">En savoir plus</a></p></div></div></body></html>`,
+        textContent: 'Save the Date! {{eventName}} - {{eventDate}} à {{venueName}}, {{city}}',
+        primaryColor: '#004645',
+        secondaryColor: '#009197',
+        accentColor: '#FF4713',
+        fontFamily: 'Arial, sans-serif',
+        isDefault: true,
+        isActive: true,
+        usageCount: 250,
+        lastUsedAt: new Date()
+      }
+    })
+
+    const invitationTemplate = await prisma.emailTemplate.create({
+      data: {
+        name: 'Invitation Officielle',
+        slug: 'invitation-officielle',
+        description: 'Invitation formelle avec détails complets et RSVP',
+        type: EmailType.INVITATION,
+        subject: '🎟️ Vous êtes invité à {{eventName}}',
+        htmlContent: `<!DOCTYPE html><html><body style="font-family: Arial; background: #f5f5f5; padding: 20px;"><div style="max-width: 600px; margin: 0 auto; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.1);"><div style="background: linear-gradient(135deg, {{primaryColor}} 0%, {{secondaryColor}} 100%); color: white; padding: 50px 30px; text-align: center;"><h1 style="margin: 0; font-size: 32px;">{{eventName}}</h1><p style="font-size: 18px; margin-top: 15px;">{{eventDate}}</p></div><div style="padding: 40px 30px;"><p>Cher(e) {{firstName}} {{lastName}},</p><p>Nous avons le plaisir de vous inviter à participer à <strong>{{eventName}}</strong>.</p><div style="background: #f9f9f9; padding: 20px; border-left: 4px solid {{accentColor}}; margin: 20px 0;"><p style="margin: 0;"><strong>📅 Date:</strong> {{eventDate}}</p><p style="margin: 10px 0 0 0;"><strong>📍 Lieu:</strong> {{venueName}}, {{city}}</p></div><p><strong>Merci de confirmer votre présence avant le {{rsvpDeadline}}</strong></p><p style="text-align: center; margin: 30px 0;"><a href="{{rsvpLink}}" style="display: inline-block; background: {{accentColor}}; color: white; padding: 15px 40px; text-decoration: none; border-radius: 5px; font-weight: bold;">Confirmer ma présence</a></p></div></div></body></html>`,
+        textContent: 'Vous êtes invité au {{eventName}} le {{eventDate}}. Confirmez: {{rsvpLink}}',
+        primaryColor: '#004645',
+        secondaryColor: '#009197',
+        accentColor: '#FF4713',
+        fontFamily: 'Arial, sans-serif',
+        isDefault: true,
+        isActive: true,
+        usageCount: 500,
+        lastUsedAt: new Date()
+      }
+    })
+
+    const reminderTemplate = await prisma.emailTemplate.create({
+      data: {
+        name: 'Rappel RSVP',
+        slug: 'reminder-rsvp',
+        description: 'Rappel pour les invités qui n\'ont pas encore répondu',
+        type: EmailType.REMINDER,
+        subject: '⏰ Rappel - Confirmez votre présence à {{eventName}}',
+        htmlContent: `<!DOCTYPE html><html><body style="font-family: Arial; background: #f5f5f5; padding: 20px;"><div style="max-width: 600px; margin: 0 auto; background: white; border-radius: 8px; overflow: hidden;"><div style="background: {{accentColor}}; color: white; padding: 30px 20px; text-align: center;"><h1>⏰ Derniers jours!</h1></div><div style="padding: 40px 30px;"><p>Bonjour {{firstName}},</p><div style="background: #fff3cd; border: 1px solid #ffc107; padding: 15px; border-radius: 5px; margin: 20px 0;"><p style="margin: 0; font-weight: bold;">⚠️ La date limite approche!</p></div><p>Nous n'avons pas encore reçu votre confirmation pour <strong>{{eventName}}</strong> ({{eventDate}}).</p><p>Merci de nous faire part de votre réponse avant le <strong>{{rsvpDeadline}}</strong>.</p><p style="text-align: center; margin: 30px 0;"><a href="{{rsvpLink}}" style="display: inline-block; background: {{accentColor}}; color: white; padding: 15px 40px; text-decoration: none; border-radius: 5px; font-weight: bold;">Confirmer maintenant</a></p></div></div></body></html>`,
+        textContent: 'Rappel: Confirmez votre présence à {{eventName}} avant le {{rsvpDeadline}}. {{rsvpLink}}',
+        primaryColor: '#004645',
+        secondaryColor: '#009197',
+        accentColor: '#FF4713',
+        fontFamily: 'Arial, sans-serif',
+        isDefault: false,
+        isActive: true,
+        usageCount: 180,
+        lastUsedAt: new Date()
+      }
+    })
+
+    const confirmationTemplate = await prisma.emailTemplate.create({
+      data: {
+        name: 'Confirmation de participation',
+        slug: 'confirmation-attendance',
+        description: 'Email de confirmation après RSVP positif',
+        type: EmailType.CONFIRMATION,
+        subject: '✅ Votre participation à {{eventName}} est confirmée!',
+        htmlContent: `<!DOCTYPE html><html><body style="font-family: Arial; background: #f5f5f5; padding: 20px;"><div style="max-width: 600px; margin: 0 auto; background: white; border-radius: 8px; overflow: hidden;"><div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 40px 20px; text-align: center;"><h1>✅ C'est confirmé!</h1><p style="font-size: 18px;">Votre place est réservée</p></div><div style="padding: 40px 30px;"><p>Bonjour {{firstName}},</p><p>Merci d'avoir confirmé votre participation à <strong>{{eventName}}</strong>!</p><div style="background: #f9fafb; padding: 20px; border-radius: 5px; margin: 20px 0;"><h3 style="margin-top: 0;">Récapitulatif</h3><p><strong>📅 Date:</strong> {{eventDate}}</p><p><strong>📍 Lieu:</strong> {{venueName}}, {{city}}</p><p><strong>👥 Participants:</strong> {{attendeeCount}}</p></div><p>À très bientôt!</p></div></div></body></html>`,
+        textContent: 'Votre participation à {{eventName}} est confirmée! RDV le {{eventDate}} à {{venueName}}.',
+        primaryColor: '#004645',
+        secondaryColor: '#009197',
+        accentColor: '#FF4713',
+        fontFamily: 'Arial, sans-serif',
+        isDefault: false,
+        isActive: true,
+        usageCount: 380,
+        lastUsedAt: new Date()
       }
     })
 
@@ -1698,6 +1802,293 @@ Navettes vers Paris et gares`,
       }
     })
 
+    // ====================================
+    // 6. INVITÉS POUR TOUS LES ÉVÉNEMENTS
+    // ====================================
+
+    // Données de démonstration réalistes pour les invités (45 invités)
+    const demoGuestsData = [
+      // VIP & Speakers (10)
+      { firstName: 'Sophie', lastName: 'Martin', email: 'sophie.martin@example.com', company: 'TechCorp', tags: ['VIP', 'Speaker'], attending: true, plusOnes: 1, meal: 'Végétarien', allergies: 'Fruits à coque' },
+      { firstName: 'Julie', lastName: 'Bernard', email: 'julie.bernard@example.com', company: 'InnovateCo', tags: ['VIP', 'Speaker'], attending: true, plusOnes: 0, meal: 'Vegan', allergies: null },
+      { firstName: 'Emma', lastName: 'Durand', email: 'emma.durand@example.com', company: 'AI Ventures', tags: ['VIP', 'Speaker'], attending: true, plusOnes: 1, meal: 'Standard', allergies: null },
+      { firstName: 'Sarah', lastName: 'Gonzalez', email: 'sarah.gonzalez@example.com', company: 'QuantumTech', tags: ['VIP', 'Speaker'], attending: true, plusOnes: 0, meal: 'Kosher', allergies: null },
+      { firstName: 'Clara', lastName: 'Torres', email: 'clara.torres@example.com', company: 'CloudNative', tags: ['VIP', 'Speaker'], attending: true, plusOnes: 0, meal: 'Vegan', allergies: null },
+      { firstName: 'Vincent', lastName: 'Morales', email: 'vincent.morales@example.com', company: 'DataScience Co', tags: ['VIP', 'Speaker'], attending: true, plusOnes: 2, meal: 'Standard', allergies: null },
+      { firstName: 'Ethan', lastName: 'Suarez', email: 'ethan.suarez@example.com', company: 'Redis Labs', tags: ['VIP', 'Speaker'], attending: true, plusOnes: 0, meal: 'Vegan', allergies: null },
+      { firstName: 'Mathilde', lastName: 'Ortiz', email: 'mathilde.ortiz@example.com', company: 'AR/VR Studios', tags: ['VIP', 'Speaker'], attending: true, plusOnes: 1, meal: 'Standard', allergies: null },
+      { firstName: 'Enzo', lastName: 'Medina', email: 'enzo.medina@example.com', company: 'Microservices Co', tags: ['VIP', 'Speaker'], attending: true, plusOnes: 1, meal: 'Standard', allergies: null },
+      { firstName: 'Raphaël', lastName: 'Santos', email: 'raphael.santos@example.com', company: 'Kafka Streams', tags: ['VIP'], attending: true, plusOnes: 1, meal: 'Standard', allergies: 'Arachides' },
+
+      // Sponsors (8)
+      { firstName: 'Marc', lastName: 'Dubois', email: 'marc.dubois@example.com', company: 'StartupLab', tags: ['Sponsor'], attending: true, plusOnes: 0, meal: 'Standard', allergies: null },
+      { firstName: 'Lucas', lastName: 'Moreau', email: 'lucas.moreau@example.com', company: 'CyberSec', tags: ['Sponsor'], attending: true, plusOnes: 0, meal: 'Halal', allergies: null },
+      { firstName: 'Camille', lastName: 'Martinez', email: 'camille.martinez@example.com', company: 'FinTech Pro', tags: ['Sponsor'], attending: true, plusOnes: 0, meal: 'Standard', allergies: null },
+      { firstName: 'Arthur', lastName: 'Ruiz', email: 'arthur.ruiz@example.com', company: 'MLOps Inc', tags: ['Sponsor'], attending: true, plusOnes: 1, meal: 'Standard', allergies: null },
+      { firstName: 'Louis', lastName: 'Moreno', email: 'louis.moreno@example.com', company: 'API Gateway', tags: ['Sponsor'], attending: true, plusOnes: 0, meal: 'Standard', allergies: null },
+      { firstName: 'Noé', lastName: 'Silva', email: 'noe.silva@example.com', company: 'gRPC Systems', tags: ['Sponsor'], attending: true, plusOnes: 2, meal: 'Végétarien', allergies: null },
+      { firstName: 'Manon', lastName: 'Sanchez', email: 'manon.sanchez@example.com', company: 'HealthTech', tags: ['Sponsor'], attending: true, plusOnes: 1, meal: 'Standard', allergies: 'Fruits de mer' },
+      { firstName: 'Gabriel', lastName: 'Navarro', email: 'gabriel.navarro@example.com', company: '3D Printing Co', tags: ['Sponsor'], attending: null, plusOnes: 0, meal: null, allergies: null },
+
+      // Press & Media (5)
+      { firstName: 'Hugo', lastName: 'Garcia', email: 'hugo.garcia@example.com', company: 'MediaTech', tags: ['Press'], attending: true, plusOnes: 1, meal: 'Végétarien', allergies: 'Gluten' },
+      { firstName: 'Inès', lastName: 'Rivera', email: 'ines.rivera@example.com', company: 'TechNews', tags: ['Press'], attending: true, plusOnes: 0, meal: 'Vegan', allergies: null },
+      { firstName: 'Océane', lastName: 'Jimenez', email: 'oceane.jimenez@example.com', company: 'La Tribune Tech', tags: ['Press'], attending: true, plusOnes: 0, meal: 'Standard', allergies: null },
+      { firstName: 'Lucie', lastName: 'Vargas', email: 'lucie.vargas@example.com', company: 'Les Échos', tags: ['Press'], attending: null, plusOnes: 0, meal: null, allergies: null },
+      { firstName: 'Victoria', lastName: 'Pena', email: 'victoria.pena@example.com', company: 'France Info', tags: ['Press'], attending: false, plusOnes: 0, meal: null, allergies: null },
+
+      // Participants réguliers (22)
+      { firstName: 'Thomas', lastName: 'Petit', email: 'thomas.petit@example.com', company: 'DevStudio', tags: ['Participant'], attending: false, plusOnes: 0, meal: null, allergies: null },
+      { firstName: 'Marie', lastName: 'Robert', email: 'marie.robert@example.com', company: 'CloudSystems', tags: ['Participant'], attending: true, plusOnes: 2, meal: 'Standard', allergies: 'Lactose' },
+      { firstName: 'Pierre', lastName: 'Richard', email: 'pierre.richard@example.com', company: 'DataCorp', tags: ['Participant'], attending: true, plusOnes: 0, meal: 'Végétarien', allergies: null },
+      { firstName: 'Chloé', lastName: 'Simon', email: 'chloe.simon@example.com', company: 'GreenTech', tags: ['Participant'], attending: null, plusOnes: 0, meal: null, allergies: null },
+      { firstName: 'Antoine', lastName: 'Laurent', email: 'antoine.laurent@example.com', company: 'BlockchainHub', tags: ['Participant'], attending: true, plusOnes: 1, meal: 'Vegan', allergies: null },
+      { firstName: 'Léa', lastName: 'Michel', email: 'lea.michel@example.com', company: 'DesignLab', tags: ['Participant'], attending: true, plusOnes: 0, meal: 'Standard', allergies: null },
+      { firstName: 'Alexandre', lastName: 'Lopez', email: 'alexandre.lopez@example.com', company: 'IoT Solutions', tags: ['Participant'], attending: false, plusOnes: 0, meal: null, allergies: null },
+      { firstName: 'Maxime', lastName: 'Rodriguez', email: 'maxime.rodriguez@example.com', company: 'RoboticsCo', tags: ['Participant'], attending: true, plusOnes: 2, meal: 'Standard', allergies: null },
+      { firstName: 'Laura', lastName: 'Hernandez', email: 'laura.hernandez@example.com', company: 'EcoTech', tags: ['Participant'], attending: null, plusOnes: 0, meal: null, allergies: null },
+      { firstName: 'Nicolas', lastName: 'Perez', email: 'nicolas.perez@example.com', company: 'SmartCity', tags: ['Participant'], attending: true, plusOnes: 0, meal: 'Vegan', allergies: null },
+      { firstName: 'Julien', lastName: 'Ramirez', email: 'julien.ramirez@example.com', company: 'EdTech Plus', tags: ['Participant'], attending: true, plusOnes: 0, meal: 'Végétarien', allergies: null },
+      { firstName: 'Quentin', lastName: 'Flores', email: 'quentin.flores@example.com', company: 'AutoTech', tags: ['Participant'], attending: false, plusOnes: 0, meal: null, allergies: null },
+      { firstName: 'Romain', lastName: 'Gomez', email: 'romain.gomez@example.com', company: 'NanoTech', tags: ['Participant'], attending: true, plusOnes: 0, meal: 'Standard', allergies: null },
+      { firstName: 'Anaïs', lastName: 'Diaz', email: 'anais.diaz@example.com', company: 'GameDev Studio', tags: ['Participant'], attending: null, plusOnes: 0, meal: null, allergies: null },
+      { firstName: 'Zoé', lastName: 'Alvarez', email: 'zoe.alvarez@example.com', company: 'WebDev Agency', tags: ['Participant'], attending: true, plusOnes: 0, meal: 'Vegan', allergies: 'Soja' },
+      { firstName: 'Baptiste', lastName: 'Castillo', email: 'baptiste.castillo@example.com', company: 'MobileTech', tags: ['Participant'], attending: false, plusOnes: 0, meal: null, allergies: null },
+      { firstName: 'Tom', lastName: 'Cruz', email: 'tom.cruz@example.com', company: 'DevOps Pro', tags: ['Participant'], attending: true, plusOnes: 0, meal: 'Standard', allergies: null },
+      { firstName: 'Elise', lastName: 'Reyes', email: 'elise.reyes@example.com', company: 'UX Design Lab', tags: ['Participant'], attending: true, plusOnes: 1, meal: 'Vegan', allergies: null },
+      { firstName: 'Jade', lastName: 'Romero', email: 'jade.romero@example.com', company: 'NetworkSec', tags: ['Participant'], attending: true, plusOnes: 0, meal: 'Végétarien', allergies: null },
+      { firstName: 'Nathan', lastName: 'Gutierrez', email: 'nathan.gutierrez@example.com', company: 'Container Tech', tags: ['Participant'], attending: false, plusOnes: 0, meal: null, allergies: null },
+      { firstName: 'Lola', lastName: 'Aguilar', email: 'lola.aguilar@example.com', company: 'Serverless Inc', tags: ['Participant'], attending: true, plusOnes: 0, meal: 'Standard', allergies: null },
+      { firstName: 'Mila', lastName: 'Ortega', email: 'mila.ortega@example.com', company: 'EventMesh', tags: ['Participant'], attending: null, plusOnes: 0, meal: null, allergies: null },
+      { firstName: 'Adam', lastName: 'Castro', email: 'adam.castro@example.com', company: 'GraphQL Hub', tags: ['Participant'], attending: true, plusOnes: 0, meal: 'Vegan', allergies: null },
+      { firstName: 'Juliette', lastName: 'Mendez', email: 'juliette.mendez@example.com', company: 'RestAPI Pro', tags: ['Participant'], attending: true, plusOnes: 0, meal: 'Standard', allergies: null },
+      { firstName: 'Alice', lastName: 'Ramos', email: 'alice.ramos@example.com', company: 'WebSocket Tech', tags: ['Participant'], attending: true, plusOnes: 0, meal: 'Standard', allergies: null },
+      { firstName: 'Lily', lastName: 'Figueroa', email: 'lily.figueroa@example.com', company: 'MongoDB Inc', tags: ['Participant'], attending: true, plusOnes: 0, meal: 'Standard', allergies: null },
+      { firstName: 'Dylan', lastName: 'Leon', email: 'dylan.leon@example.com', company: 'PostgreSQL Pro', tags: ['Participant'], attending: null, plusOnes: 0, meal: null, allergies: null }
+    ]
+
+    // Liste des événements créés
+    const allEventsForGuests = [
+      eventTechSummit,
+      eventWeevup10ans,
+      eventMariage,
+      eventGala,
+      eventWorkshop
+    ]
+
+    let totalGuestsCreated = 0
+    let totalRsvpsCreated = 0
+
+    // Créer des invités pour chaque événement
+    for (const event of allEventsForGuests) {
+      for (let i = 0; i < demoGuestsData.length; i++) {
+        const guestData = demoGuestsData[i]
+        const token = generateToken()
+        const tokenHash = hashToken(token)
+
+        // Déterminer le statut en fonction de la réponse
+        let status: GuestStatus
+        if (guestData.attending === null) {
+          status = GuestStatus.INVITED
+        } else {
+          status = GuestStatus.RESPONDED
+        }
+
+        // Créer un email unique pour chaque événement
+        const uniqueEmail = `${guestData.email.split('@')[0]}+${event.slug}@${guestData.email.split('@')[1]}`
+
+        const guest = await prisma.guest.create({
+          data: {
+            eventId: event.id,
+            firstName: guestData.firstName,
+            lastName: guestData.lastName,
+            email: uniqueEmail,
+            company: guestData.company,
+            tags: guestData.tags,
+            token: token,
+            tokenHash: tokenHash,
+            tokenExpiry: new Date('2025-12-31'),
+            status: status,
+            lastEmailAt: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000)
+          }
+        })
+
+        totalGuestsCreated++
+
+        // Créer un RSVP si le guest a répondu
+        if (guestData.attending !== null) {
+          await prisma.rSVP.create({
+            data: {
+              eventId: event.id,
+              guestId: guest.id,
+              attending: guestData.attending,
+              plusOnes: guestData.plusOnes || 0,
+              mealChoice: guestData.meal,
+              allergies: guestData.allergies,
+              accessibilityNotes: guestData.tags.includes('VIP') ? 'Accès prioritaire souhaité' : undefined,
+              transportNeeds: Math.random() > 0.8 ? 'Navette depuis la gare' : undefined,
+              lodgingNeeds: Math.random() > 0.7 ? 'Réservation hôtel à proximité' : undefined,
+              consentPhotos: Math.random() > 0.3
+            }
+          })
+
+          totalRsvpsCreated++
+        }
+      }
+    }
+
+    // ====================================
+    // 7. EMAIL LOGS & TRACKINGS
+    // ====================================
+    let totalEmailLogsCreated = 0
+    let totalEmailTrackingsCreated = 0
+    let totalCheckinsCreated = 0
+
+    // Pour chaque événement, créer des logs d'emails et des trackings
+    for (const event of allEventsForGuests) {
+      const guests = await prisma.guest.findMany({
+        where: { eventId: event.id }
+      })
+
+      for (const guest of guests) {
+        // Save the Date (envoyé à tous) - 2 mois avant
+        const saveTheDateSentAt = new Date(event.startsAt)
+        saveTheDateSentAt.setMonth(saveTheDateSentAt.getMonth() - 2)
+
+        await prisma.emailLog.create({
+          data: {
+            eventId: event.id,
+            guestId: guest.id,
+            type: EmailType.SAVE_THE_DATE,
+            status: EmailStatus.OPENED,
+            subject: `📅 Save the Date - ${event.name}`,
+            providerId: `sg_${Math.random().toString(36).substring(7)}`,
+            sentAt: saveTheDateSentAt,
+            openedAt: new Date(saveTheDateSentAt.getTime() + Math.random() * 7 * 24 * 60 * 60 * 1000),
+            clickedAt: Math.random() > 0.5 ? new Date(saveTheDateSentAt.getTime() + Math.random() * 7 * 24 * 60 * 60 * 1000) : null
+          }
+        })
+        totalEmailLogsCreated++
+
+        // Email Tracking Save the Date
+        await prisma.emailTracking.create({
+          data: {
+            id: `${event.id}-${guest.id}-save-the-date-${Date.now()}`,
+            eventId: event.id,
+            guestId: guest.id,
+            type: 'save-the-date',
+            status: 'opened',
+            sentAt: saveTheDateSentAt,
+            openedAt: new Date(saveTheDateSentAt.getTime() + Math.random() * 7 * 24 * 60 * 60 * 1000),
+            clickedAt: Math.random() > 0.5 ? new Date(saveTheDateSentAt.getTime() + Math.random() * 7 * 24 * 60 * 60 * 1000) : null
+          }
+        })
+        totalEmailTrackingsCreated++
+
+        // Invitation officielle (envoyée à tous) - 1 mois avant
+        const invitationSentAt = new Date(event.startsAt)
+        invitationSentAt.setMonth(invitationSentAt.getMonth() - 1)
+
+        const invitationStatus = Math.random() > 0.95 ? EmailStatus.BOUNCED :
+                                Math.random() > 0.1 ? EmailStatus.OPENED : EmailStatus.DELIVERED
+
+        await prisma.emailLog.create({
+          data: {
+            eventId: event.id,
+            guestId: guest.id,
+            type: EmailType.INVITATION,
+            status: invitationStatus,
+            subject: `🎟️ Vous êtes invité à ${event.name}`,
+            providerId: `sg_${Math.random().toString(36).substring(7)}`,
+            sentAt: invitationSentAt,
+            openedAt: invitationStatus === EmailStatus.OPENED ?
+                      new Date(invitationSentAt.getTime() + Math.random() * 5 * 24 * 60 * 60 * 1000) : null,
+            clickedAt: invitationStatus === EmailStatus.OPENED && Math.random() > 0.4 ?
+                       new Date(invitationSentAt.getTime() + Math.random() * 5 * 24 * 60 * 60 * 1000) : null,
+            bouncedAt: invitationStatus === EmailStatus.BOUNCED ? invitationSentAt : null,
+            error: invitationStatus === EmailStatus.BOUNCED ? 'Email address not found' : null
+          }
+        })
+        totalEmailLogsCreated++
+
+        // Email Tracking Invitation
+        await prisma.emailTracking.create({
+          data: {
+            id: `${event.id}-${guest.id}-invitation-${Date.now()}`,
+            eventId: event.id,
+            guestId: guest.id,
+            type: 'invitation',
+            status: invitationStatus === EmailStatus.BOUNCED ? 'failed' : invitationStatus === EmailStatus.OPENED ? 'opened' : 'delivered',
+            sentAt: invitationSentAt,
+            openedAt: invitationStatus === EmailStatus.OPENED ? new Date(invitationSentAt.getTime() + Math.random() * 5 * 24 * 60 * 60 * 1000) : null,
+            clickedAt: invitationStatus === EmailStatus.OPENED && Math.random() > 0.4 ? new Date(invitationSentAt.getTime() + Math.random() * 5 * 24 * 60 * 60 * 1000) : null
+          }
+        })
+        totalEmailTrackingsCreated++
+
+        // Rappel (seulement pour ceux qui n'ont pas encore répondu)
+        if (guest.status === GuestStatus.INVITED) {
+          const reminderSentAt = new Date(event.startsAt)
+          reminderSentAt.setDate(reminderSentAt.getDate() - 10)
+
+          await prisma.emailLog.create({
+            data: {
+              eventId: event.id,
+              guestId: guest.id,
+              type: EmailType.REMINDER,
+              status: Math.random() > 0.2 ? EmailStatus.OPENED : EmailStatus.DELIVERED,
+              subject: `⏰ Rappel - Confirmez votre présence à ${event.name}`,
+              providerId: `sg_${Math.random().toString(36).substring(7)}`,
+              sentAt: reminderSentAt,
+              openedAt: Math.random() > 0.2 ?
+                        new Date(reminderSentAt.getTime() + Math.random() * 3 * 24 * 60 * 60 * 1000) : null
+            }
+          })
+          totalEmailLogsCreated++
+        }
+
+        // Confirmation (pour ceux qui ont dit oui)
+        if (guest.status === GuestStatus.RESPONDED) {
+          const rsvp = await prisma.rSVP.findUnique({
+            where: { guestId: guest.id }
+          })
+
+          if (rsvp?.attending) {
+            const confirmationSentAt = new Date(rsvp.createdAt.getTime() + 60000)
+
+            await prisma.emailLog.create({
+              data: {
+                eventId: event.id,
+                guestId: guest.id,
+                type: EmailType.CONFIRMATION,
+                status: EmailStatus.OPENED,
+                subject: `✅ Votre participation à ${event.name} est confirmée!`,
+                providerId: `sg_${Math.random().toString(36).substring(7)}`,
+                sentAt: confirmationSentAt,
+                openedAt: new Date(confirmationSentAt.getTime() + Math.random() * 24 * 60 * 60 * 1000)
+              }
+            })
+            totalEmailLogsCreated++
+
+            // Créer des check-ins simulés pour certains invités confirmés (60% de chance)
+            if (Math.random() > 0.4) {
+              await prisma.checkin.create({
+                data: {
+                  eventId: event.id,
+                  guestId: guest.id,
+                  qrCodeId: rsvp.qrCodeId,
+                  checkedInAt: new Date(event.startsAt.getTime() - Math.random() * 60 * 60 * 1000),
+                  desk: ['A', 'B', 'C'][Math.floor(Math.random() * 3)],
+                  notes: guest.tags.includes('VIP') ? 'Badge VIP délivré' : Math.random() > 0.8 ? 'Badge standard' : undefined
+                }
+              })
+              totalCheckinsCreated++
+            }
+          }
+        }
+      }
+    }
+
     const allEvents = await prisma.event.findMany({
       select: {
         id: true,
@@ -1713,16 +2104,42 @@ Navettes vers Paris et gares`,
     })
 
     return NextResponse.json({
-      message: '✅ 5 événements de démonstration créés avec succès!',
+      message: '✅ Base de données peuplée avec des données de démonstration complètes!',
+      summary: {
+        events: allEvents.length,
+        guests: totalGuestsCreated,
+        rsvps: totalRsvpsCreated,
+        emailLogs: totalEmailLogsCreated,
+        emailTrackings: totalEmailTrackingsCreated,
+        checkins: totalCheckinsCreated,
+        emailTemplates: 4,
+        emailIntegration: 1,
+        admins: 2
+      },
       events: allEvents.map(e => ({
         id: e.id,
         name: e.name,
         slug: e.slug,
         date: e.startsAt.toLocaleDateString('fr-FR'),
         location: `${e.venueName}, ${e.city}`,
-        showcaseUrl: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/events/${e.slug}`
+        showcaseUrl: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/events/${e.slug}`,
+        guestsCount: demoGuestsData.length
       })),
-      totalEventsCreated: allEvents.length,
+      details: {
+        guestsPerEvent: demoGuestsData.length,
+        guestCategories: {
+          'VIP & Speakers': 10,
+          'Sponsors': 8,
+          'Press': 5,
+          'Participants': 22
+        },
+        emailTypes: {
+          'Save the Date': totalGuestsCreated,
+          'Invitation': totalGuestsCreated,
+          'Reminder': '~30% des invités',
+          'Confirmation': '~70% des confirmés'
+        }
+      },
       admins: [
         { email: adminWeevup.email, role: 'Admin Weevup' },
         { email: adminDemo.email, role: 'Admin Demo' }
