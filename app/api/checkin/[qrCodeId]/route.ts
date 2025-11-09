@@ -3,10 +3,10 @@ import { prisma } from '@/lib/prisma'
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { qrCodeId: string } }
+  { params }: { params: Promise<{ qrCodeId: string }> }
 ) {
   try {
-    const { qrCodeId } = params
+    const { qrCodeId } = await params
     const body = await request.json()
     const { desk, eventId, manualGuestId } = body
 
@@ -74,10 +74,10 @@ export async function POST(
 // GET endpoint to verify QR code without checking in
 export async function GET(
   request: NextRequest,
-  { params }: { params: { qrCodeId: string } }
+  { params }: { params: Promise<{ qrCodeId: string }> }
 ) {
   try {
-    const { qrCodeId } = params
+    const { qrCodeId } = await params
 
     const rsvp = await prisma.rSVP.findFirst({
       where: { qrCodeId },

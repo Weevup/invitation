@@ -57,7 +57,7 @@ export default function CheckinPage() {
 
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const animationFrameRef = useRef<number>()
+  const animationFrameRef = useRef<number | undefined>(undefined)
 
   const fetchGuests = useCallback(async () => {
     try {
