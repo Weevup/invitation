@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge'
 import { Switch } from '@/components/ui/switch'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
-  Mail, Check, AlertCircle, Send, Settings, Zap, Shield, BarChart3, ExternalLink
+  Mail, Check, AlertCircle, Send, Settings, Zap, Shield, BarChart3, ExternalLink, Info, Copy
 } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -444,6 +444,61 @@ function ProviderConfig({ provider, integration, onSave, onTest, saving, testing
               </div>
             </div>
           </div>
+
+          {/* Webhook Configuration Helper (Resend only) */}
+          {provider.id === 'RESEND' && (
+            <div className="pt-4 border-t border-[#9CD9F6]/30">
+              <h3 className="font-semibold text-[#004645] mb-3 flex items-center gap-2">
+                <Info className="h-4 w-4 text-[#009197]" />
+                Configuration du Webhook
+              </h3>
+              <div className="bg-blue-50/50 border border-blue-200/50 rounded-lg p-4 space-y-3">
+                <p className="text-sm text-[#004645]">
+                  Pour activer le tracking des emails (ouvertures, clics, bounces), configurez ce webhook dans votre dashboard Resend :
+                </p>
+
+                <div className="space-y-2">
+                  <Label className="text-xs text-[#004645]/70">URL du webhook</Label>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      readOnly
+                      value={`${typeof window !== 'undefined' ? window.location.origin : ''}/api/webhooks/email/resend`}
+                      className="bg-white font-mono text-sm"
+                    />
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        const url = `${typeof window !== 'undefined' ? window.location.origin : ''}/api/webhooks/email/resend`
+                        navigator.clipboard.writeText(url)
+                        toast.success('URL copiée dans le presse-papier')
+                      }}
+                    >
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="text-xs text-[#004645]/70 space-y-1">
+                  <p><strong>Étapes :</strong></p>
+                  <ol className="list-decimal list-inside space-y-1 ml-2">
+                    <li>Accédez à votre <a href="https://resend.com/webhooks" target="_blank" rel="noopener noreferrer" className="text-[#009197] hover:underline">dashboard Resend</a></li>
+                    <li>Créez un nouveau webhook avec l&apos;URL ci-dessus</li>
+                    <li>Sélectionnez les événements : <code className="bg-white px-1 py-0.5 rounded">email.sent</code>, <code className="bg-white px-1 py-0.5 rounded">email.delivered</code>, <code className="bg-white px-1 py-0.5 rounded">email.opened</code>, <code className="bg-white px-1 py-0.5 rounded">email.clicked</code>, <code className="bg-white px-1 py-0.5 rounded">email.bounced</code></li>
+                    <li>Copiez le secret du webhook et conservez-le en sécurité (optionnel mais recommandé)</li>
+                  </ol>
+                </div>
+
+                <div className="flex items-start gap-2 mt-3 p-2 bg-amber-50/50 border border-amber-200/50 rounded">
+                  <AlertCircle className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
+                  <p className="text-xs text-amber-900">
+                    Sans webhook configuré, vous ne pourrez pas suivre l&apos;état de vos emails (ouvertures, clics, bounces).
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Actions */}
           <div className="flex items-center gap-3 pt-4 border-t border-[#9CD9F6]/30">
