@@ -287,7 +287,7 @@ export default function SetupPage() {
                     Étape 2: Créer les données de démo
                   </CardTitle>
                   <CardDescription className="text-[#004645]/70">
-                    Ajouter l&apos;événement &quot;10 ans de Weevup&quot; avec 10 invités de test
+                    Créer 5 événements de démonstration variés (Tech Summit, 10 ans Weevup, Mariage, Gala, Workshop)
                   </CardDescription>
                 </div>
               </div>
@@ -333,17 +333,45 @@ export default function SetupPage() {
                     </div>
                   </div>
 
-                  <div className="bg-white rounded-md p-3 space-y-2 text-sm text-[#004645]">
-                    <p><strong>Événement:</strong> {seedResult.event?.name}</p>
-                    <p><strong>Date:</strong> {new Date(seedResult.event?.date).toLocaleDateString('fr-FR')}</p>
-                    <p><strong>Lieu:</strong> {seedResult.event?.location}</p>
-                    <p><strong>Invités créés:</strong> {seedResult.guestsCreated}</p>
-                    {seedResult.sampleInvitationUrl && (
-                      <div className="mt-3 pt-3 border-t">
-                        <p className="font-medium mb-1">Exemple d&apos;URL d&apos;invitation:</p>
-                        <code className="text-xs bg-gray-100 p-2 rounded block overflow-x-auto">
-                          {seedResult.sampleInvitationUrl}
-                        </code>
+                  <div className="bg-white rounded-md p-4 space-y-3 text-sm text-[#004645]">
+                    <p className="font-bold text-base mb-2">
+                      📊 {seedResult.totalEventsCreated || 5} événements créés • {seedResult.totalGuestsCreated || 25} invités
+                    </p>
+
+                    {seedResult.events && (
+                      <div className="space-y-2">
+                        <p className="font-medium">🎉 Événements de démonstration:</p>
+                        <div className="space-y-2">
+                          {seedResult.events.map((event: any, idx: number) => (
+                            <div key={idx} className="pl-3 border-l-2 border-[#9CD9F6]">
+                              <p className="font-medium text-[#004645]">{event.name}</p>
+                              <p className="text-xs text-[#004645]/70">
+                                📅 {event.date} • 📍 {event.location}
+                              </p>
+                              {event.showcaseUrl && (
+                                <a
+                                  href={event.showcaseUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-xs text-[#FF4713] hover:underline"
+                                >
+                                  🔗 Voir la showcase
+                                </a>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {seedResult.admins && (
+                      <div className="pt-2 border-t">
+                        <p className="font-medium mb-1">👤 Comptes admin créés:</p>
+                        {seedResult.admins.map((admin: any, idx: number) => (
+                          <p key={idx} className="text-xs text-[#004645]/70">
+                            • {admin.email} ({admin.role})
+                          </p>
+                        ))}
                       </div>
                     )}
                   </div>

@@ -1,7 +1,11 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { generateGuestToken, hashToken } from '@/lib/auth'
-import crypto from 'crypto'
+import { UserRole, GuestStatus } from '@prisma/client'
+
+function generateToken(): string {
+  return generateGuestToken()
+}
 
 export async function POST() {
   try {
@@ -14,266 +18,296 @@ export async function POST() {
       )
     }
 
-    // Create admin user if not exists
-    let adminUser = await prisma.user.findFirst({ where: { role: 'ADMIN' } })
-    if (!adminUser) {
-      adminUser = await prisma.user.create({
-        data: {
-          email: 'admin@weevup.com',
-          role: 'ADMIN',
-        },
-      })
-    }
-
-    // Create Weevup 10th anniversary event with full showcase
-    const event = await prisma.event.create({
+    // ====================================
+    // 1. UTILISATEURS
+    // ====================================
+    const adminWeevup = await prisma.user.create({
       data: {
-        name: '10 ans de Weevup',
-        slug: '10-ans-de-weevup-' + Date.now(),
-        description: `🎉 Une décennie d'innovation, de créativité et de collaboration !
+        email: 'contact@weevup.com',
+        role: UserRole.ADMIN
+      }
+    })
 
-Rejoignez-nous pour célébrer 10 ans d'aventure entrepreneuriale au cœur de Paris. Cette soirée unique au Molitor sera l'occasion de se retrouver, d'échanger et de fêter ensemble cette étape importante.
+    const adminDemo = await prisma.user.create({
+      data: {
+        email: 'demo@weevup.com',
+        role: UserRole.ADMIN
+      }
+    })
 
-Au programme : cocktail dînatoire, DJ set, surprises et moments inoubliables dans un lieu d'exception.`,
-        program: `18h30 - Accueil & Cocktail de bienvenue
-19h00 - Discours d'ouverture
-19h30 - Cocktail dînatoire
-21h00 - DJ set & dancefloor
-23h00 - Fin de la soirée`,
-        dressCode: 'Chic & Décontracté',
-        startsAt: new Date('2025-06-15T19:00:00'),
-        endsAt: new Date('2025-06-15T23:00:00'),
-        venueName: 'Molitor Paris',
-        address: '13 Rue Nungesser et Coli',
-        city: 'Paris 75016',
+    // ====================================
+    // 2. ÉVÉNEMENT 1: TECH SUMMIT 2025
+    // ====================================
+    const eventTechSummit = await prisma.event.create({
+      data: {
+        name: 'Tech Summit 2025 - L\'Innovation en Action',
+        slug: 'tech-summit-2025',
+        startsAt: new Date('2025-05-15T09:00:00Z'),
+        endsAt: new Date('2025-05-16T18:00:00Z'),
+        venueName: 'Palais des Congrès de Paris',
+        address: '2 Place de la Porte Maillot',
+        city: 'Paris',
         country: 'France',
-        adminId: adminUser.id,
-        // RSVP Configuration
-        rsvpDeadline: new Date('2025-06-01T23:59:59'),
-        maxPlusOnes: 1,
+        coverImage: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87',
+        description: 'Le Tech Summit 2025 est l\'événement incontournable de l\'innovation technologique en France.',
+        program: 'Programme complet sur 2 jours avec conférences, ateliers et networking',
+        dressCode: 'Business casual',
+        rsvpDeadline: new Date('2025-05-01T23:59:59Z'),
+        maxPlusOnes: 2,
         allowPlusOnes: true,
         requireMeal: true,
-        mealOptions: ['Viande', 'Poisson', 'Végétarien', 'Vegan'],
-        // Features enabled
+        mealOptions: ['Standard', 'Végétarien', 'Vegan', 'Sans gluten', 'Halal', 'Kosher'],
         enableTransport: true,
         enableLodging: true,
         enableAccessibility: true,
         enablePhotoConsent: true,
-        // Communication Configuration - Save the Date
-        saveTheDateConfig: {
-          eventName: '10 ans de Weevup',
-          tagline: 'Réservez la date !',
-          dateAnnouncement: '15 Juin 2025',
-          locationHint: 'Molitor Paris',
-          teaserMessage: 'Une soirée exceptionnelle pour célébrer 10 ans d\'innovation et de créativité. Les détails suivront prochainement...',
-          primaryColor: '#004645',
-          secondaryColor: '#FF4713',
-          accentColor: '#009197',
-          backgroundColor: '#9CD9F6',
-          ctaText: 'Je bloque la date ✨',
-          ctaAction: 'interest',
-          showInterestForm: true,
-          showCountdown: true,
-          showSocialShare: true,
-          animationStyle: 'confetti',
-          footerMessage: 'Invitation officielle à venir début mai',
-          logoImage: 'https://images.unsplash.com/photo-1599305445671-ac291c95aaa9?w=200&h=80&fit=crop',
-          headerImage: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=1200&h=400&fit=crop',
-        },
-        // Communication Configuration - Invitation
-        invitationConfig: {
-          welcomeMessage: 'Vous êtes cordialement invité(e) à',
-          description: 'Rejoignez-nous pour célébrer 10 années d\'aventure entrepreneuriale ! Une soirée unique au cœur de Paris avec cocktail dînatoire, DJ set et surprises.',
-          primaryColor: '#004645',
-          secondaryColor: '#009197',
-          accentColor: '#FF4713',
-          showMap: true,
-          showProgram: true,
-          showDressCode: true,
-          ctaText: 'Confirmer ma présence',
-          footerMessage: 'Nous avons hâte de vous retrouver !',
-          logoUrl: 'https://images.unsplash.com/photo-1599305445671-ac291c95aaa9?w=200&h=80&fit=crop',
-          headerImage: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=1200&h=400&fit=crop',
-        },
-        // Communication Configuration - RSVP
-        rsvpConfig: {
-          welcomeMessage: 'Merci de confirmer votre présence',
-          confirmationMessage: 'Votre réponse a bien été enregistrée. À très bientôt !',
-          primaryColor: '#004645',
-          accentColor: '#FF4713',
-          showMealPreferences: true,
-          showPlusOnes: true,
-          showAccessibility: true,
-          showTransport: true,
-          showLodging: true,
-          requirePhotoConsent: true,
-        },
-        // Showcase - Enabled with full content
         showcaseEnabled: true,
-        showcaseTitle: '10 ans de Weevup',
-        showcaseSubtitle: 'Une décennie d\'innovation et de créativité',
-        showcaseBannerImage: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=1920&h=600&fit=crop',
-        showcaseTheme: 'weevup',
+        showcaseTitle: 'Tech Summit 2025',
+        showcaseSubtitle: 'L\'Innovation en Action • 15-16 Mai 2025 • Paris',
         showcasePrimaryColor: '#004645',
         showcaseSecondaryColor: '#FF4713',
-        showcaseSections: ['hero', 'countdown', 'video', 'description', 'program', 'details', 'gallery', 'faq', 'cta'],
-        showcaseCountdown: true,
-        showcaseSocialShare: true,
-        showcaseVideo: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-        showcaseGallery: [
-          'https://images.unsplash.com/photo-1511578314322-379afb476865?w=800&h=800&fit=crop',
-          'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&h=800&fit=crop',
-          'https://images.unsplash.com/photo-1505236858219-8359eb29e329?w=800&h=800&fit=crop',
-          'https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=800&h=800&fit=crop',
-          'https://images.unsplash.com/photo-1519167758481-83f29da8c9a0?w=800&h=800&fit=crop',
-          'https://images.unsplash.com/photo-1478146896981-b80fe463b330?w=800&h=800&fit=crop',
-        ],
-        showcaseFAQ: [
-          {
-            question: 'Quelle est la tenue recommandée ?',
-            answer: 'La soirée est placée sous le signe du chic et du décontracté. Venez élégants mais à l\'aise pour profiter pleinement de la soirée !'
-          },
-          {
-            question: 'Y a-t-il un parking disponible ?',
-            answer: 'Oui, le Molitor dispose d\'un parking souterrain. Cependant, nous recommandons l\'utilisation des transports en commun (Métro 9 - Porte de Saint-Cloud).'
-          },
-          {
-            question: 'Peut-on venir accompagné ?',
-            answer: 'Cette invitation est strictement nominative. Si vous souhaitez venir accompagné, merci de nous contacter à l\'avance.'
-          },
-          {
-            question: 'Y a-t-il des options végétariennes/vegan ?',
-            answer: 'Absolument ! Le cocktail dînatoire proposera une variété d\'options pour tous les régimes alimentaires. N\'hésitez pas à nous signaler vos restrictions.'
-          },
-        ],
-        showcaseSpeakers: [
-          {
-            name: 'Marie Dubois',
-            title: 'CEO & Fondatrice',
-            bio: 'Marie a fondé Weevup il y a 10 ans avec une vision: révolutionner la gestion d\'événements. Son leadership a permis à l\'entreprise de devenir un acteur majeur du secteur.',
-            photo: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop',
-          },
-          {
-            name: 'Thomas Martin',
-            title: 'CTO',
-            bio: 'Expert en technologies événementielles, Thomas pilote l\'innovation technique chez Weevup. Passionné par l\'IA et l\'automatisation.',
-            photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop',
-          },
-          {
-            name: 'Sophie Laurent',
-            title: 'Directrice Créative',
-            bio: 'Sophie transforme chaque événement en expérience mémorable. Son approche créative et son sens du détail font toute la différence.',
-            photo: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&h=400&fit=crop',
-          },
-        ],
-        showcaseSponsors: [
-          {
-            name: 'Tech Corp',
-            logo: 'https://images.unsplash.com/photo-1599305445671-ac291c95aaa9?w=200&h=100&fit=crop',
-            website: 'https://techcorp.example.com',
-            tier: 'platinum',
-          },
-          {
-            name: 'Digital Solutions',
-            logo: 'https://images.unsplash.com/photo-1560179707-f14e90ef3623?w=200&h=100&fit=crop',
-            website: 'https://digitalsolutions.example.com',
-            tier: 'gold',
-          },
-          {
-            name: 'Innovation Labs',
-            logo: 'https://images.unsplash.com/photo-1599305445671-ac291c95aaa9?w=200&h=100&fit=crop',
-            website: 'https://innovationlabs.example.com',
-            tier: 'gold',
-          },
-          {
-            name: 'Creative Studio',
-            logo: 'https://images.unsplash.com/photo-1572044162444-ad60f128bdea?w=200&h=100&fit=crop',
-            website: '',
-            tier: 'silver',
-          },
-        ],
-        showcaseTimeline: [
-          {
-            time: '18:30',
-            title: 'Accueil & Cocktail de bienvenue',
-            description: 'Arrivée des invités, remise des badges et cocktail de bienvenue dans le hall du Molitor',
-          },
-          {
-            time: '19:00',
-            title: 'Discours d\'ouverture',
-            description: 'Mot de bienvenue de Marie Dubois, CEO, et rétrospective des 10 ans de Weevup',
-          },
-          {
-            time: '19:30',
-            title: 'Cocktail dînatoire',
-            description: 'Buffet gastronomique avec animations culinaires et networking',
-          },
-          {
-            time: '21:00',
-            title: 'DJ Set & Dancefloor',
-            description: 'Ambiance musicale avec DJ résident et ouverture de la piste de danse',
-          },
-          {
-            time: '22:30',
-            title: 'Surprise anniversaire',
-            description: 'Animation spéciale pour célébrer ces 10 années',
-          },
-          {
-            time: '23:00',
-            title: 'Fin de la soirée',
-            description: 'Derniers échanges et départ des invités',
-          },
-        ],
-      },
+        adminId: adminDemo.id
+      }
     })
 
-    // Create demo guests
-    const demoGuests = [
-      { firstName: 'Sophie', lastName: 'Martin', email: 'sophie.martin@example.com', company: 'Tech Solutions' },
-      { firstName: 'Jean', lastName: 'Dupont', email: 'jean.dupont@example.com', company: 'Digital Agency' },
-      { firstName: 'Marie', lastName: 'Dubois', email: 'marie.dubois@example.com', company: 'Creative Studio' },
-      { firstName: 'Pierre', lastName: 'Bernard', email: 'pierre.bernard@example.com', company: 'Startup Inc' },
-      { firstName: 'Alice', lastName: 'Petit', email: 'alice.petit@example.com', company: 'Innovation Lab' },
-      { firstName: 'Thomas', lastName: 'Robert', email: 'thomas.robert@example.com', company: 'Web Agency' },
-      { firstName: 'Emma', lastName: 'Richard', email: 'emma.richard@example.com', company: 'Design Co' },
-      { firstName: 'Lucas', lastName: 'Simon', email: 'lucas.simon@example.com', company: 'Media Group' },
-      { firstName: 'Léa', lastName: 'Laurent', email: 'lea.laurent@example.com', company: 'Brand Studio' },
-      { firstName: 'Hugo', lastName: 'Leroy', email: 'hugo.leroy@example.com', company: 'Marketing Pro' },
+    // ====================================
+    // 3. ÉVÉNEMENT 2: 10 ANS DE WEEVUP
+    // ====================================
+    const eventWeevup = await prisma.event.create({
+      data: {
+        name: '10 ans de Weevup',
+        slug: 'weevup-10-ans',
+        startsAt: new Date('2025-06-20T19:00:00Z'),
+        endsAt: new Date('2025-06-21T01:00:00Z'),
+        venueName: 'Molitor Paris',
+        address: '13 Rue Nungesser et Coli',
+        city: 'Paris',
+        country: 'France',
+        coverImage: 'https://images.unsplash.com/photo-1519167758481-83f29da8c43f?w=1200',
+        description: 'Rejoignez-nous pour célébrer une décennie d\'innovation et de succès !',
+        program: `19h00 - Accueil champagne & cocktail
+20h30 - Dîner gastronomique
+22h00 - Rétrospective Weevup
+22h30 - Soirée DJ
+00h30 - Clôture`,
+        dressCode: 'Élégant & décontracté',
+        rsvpDeadline: new Date('2025-06-10T23:59:59Z'),
+        maxPlusOnes: 1,
+        allowPlusOnes: true,
+        requireMeal: true,
+        mealOptions: ['Menu Classique', 'Menu Végétarien', 'Menu Végan', 'Menu Sans gluten', 'Menu Halal'],
+        enableTransport: true,
+        enableLodging: false,
+        enableAccessibility: true,
+        enablePhotoConsent: true,
+        showcaseEnabled: true,
+        showcaseTitle: '10 ans de Weevup',
+        showcaseSubtitle: 'Une décennie d\'innovation • 20 Juin 2025 • Molitor Paris',
+        showcasePrimaryColor: '#004645',
+        showcaseSecondaryColor: '#FF4713',
+        adminId: adminWeevup.id
+      }
+    })
+
+    // ====================================
+    // 4. ÉVÉNEMENT 3: MARIAGE JULIE & THOMAS
+    // ====================================
+    const eventWedding = await prisma.event.create({
+      data: {
+        name: 'Mariage de Julie & Thomas',
+        slug: 'mariage-julie-thomas',
+        startsAt: new Date('2025-07-12T15:00:00Z'),
+        endsAt: new Date('2025-07-13T02:00:00Z'),
+        venueName: 'Château de Vaux-le-Vicomte',
+        address: 'Château de Vaux-le-Vicomte',
+        city: 'Maincy',
+        country: 'France',
+        coverImage: 'https://images.unsplash.com/photo-1519741497674-611481863552',
+        description: 'Julie et Thomas ont le plaisir de vous inviter à célébrer leur union dans le cadre enchanteur du Château de Vaux-le-Vicomte.',
+        program: `15h00 - Cérémonie laïque dans les jardins
+16h30 - Cocktail & vin d'honneur
+19h30 - Dîner de gala
+22h00 - Ouverture du bal
+23h00 - Pièce montée
+00h00 - Soirée dansante
+02h00 - Fin de la réception`,
+        dressCode: 'Tenue de soirée / Smoking',
+        rsvpDeadline: new Date('2025-06-12T23:59:59Z'),
+        maxPlusOnes: 1,
+        allowPlusOnes: true,
+        requireMeal: true,
+        mealOptions: ['Menu Adulte', 'Menu Végétarien', 'Menu Enfant'],
+        enableTransport: true,
+        enableLodging: true,
+        enableAccessibility: true,
+        enablePhotoConsent: true,
+        showcaseEnabled: true,
+        showcaseTitle: 'Julie & Thomas',
+        showcaseSubtitle: '12 Juillet 2025 • Château de Vaux-le-Vicomte',
+        showcasePrimaryColor: '#d4af37',
+        showcaseSecondaryColor: '#f8e5d0',
+        adminId: adminDemo.id
+      }
+    })
+
+    // ====================================
+    // 5. ÉVÉNEMENT 4: GALA DE CHARITÉ
+    // ====================================
+    const eventGala = await prisma.event.create({
+      data: {
+        name: 'Gala de Charité - Enfants du Monde',
+        slug: 'gala-charite-2025',
+        startsAt: new Date('2025-09-25T19:00:00Z'),
+        endsAt: new Date('2025-09-26T00:00:00Z'),
+        venueName: 'Hôtel de Ville de Paris',
+        address: 'Place de l\'Hôtel de Ville',
+        city: 'Paris',
+        country: 'France',
+        coverImage: 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622',
+        description: 'Soirée de gala au profit de l\'association "Enfants du Monde". Ensemble, faisons la différence.',
+        program: `19h00 - Accueil & tapis rouge
+19h30 - Cocktail dînatoire
+20h30 - Présentation de l'association
+21h00 - Dîner de gala
+22h00 - Vente aux enchères caritative
+23h00 - Concert privé
+00h00 - Clôture`,
+        dressCode: 'Tenue de gala / Black tie',
+        rsvpDeadline: new Date('2025-09-10T23:59:59Z'),
+        maxPlusOnes: 1,
+        allowPlusOnes: true,
+        requireMeal: true,
+        mealOptions: ['Menu Prestige', 'Menu Végétarien', 'Menu Végan'],
+        enableTransport: true,
+        enableLodging: false,
+        enableAccessibility: true,
+        enablePhotoConsent: true,
+        showcaseEnabled: true,
+        showcaseTitle: 'Gala de Charité',
+        showcaseSubtitle: 'Enfants du Monde • 25 Septembre 2025 • Paris',
+        showcasePrimaryColor: '#1e3a8a',
+        showcaseSecondaryColor: '#3b82f6',
+        adminId: adminDemo.id
+      }
+    })
+
+    // ====================================
+    // 6. ÉVÉNEMENT 5: WORKSHOP PROFESSIONNEL
+    // ====================================
+    const eventWorkshop = await prisma.event.create({
+      data: {
+        name: 'Workshop Leadership & Management',
+        slug: 'workshop-leadership-2025',
+        startsAt: new Date('2025-04-10T09:00:00Z'),
+        endsAt: new Date('2025-04-10T17:00:00Z'),
+        venueName: 'Station F',
+        address: '5 Parvis Alan Turing',
+        city: 'Paris',
+        country: 'France',
+        coverImage: 'https://images.unsplash.com/photo-1515187029135-18ee286d815b',
+        description: 'Workshop intensif d\'une journée sur le leadership et le management d\'équipe à l\'ère digitale.',
+        program: `09h00 - Accueil & petit-déjeuner
+09h30 - Introduction : Les nouveaux défis du leadership
+10h30 - Atelier 1 : Communication efficace
+12h00 - Déjeuner networking
+13h30 - Atelier 2 : Gestion du changement
+15h00 - Pause café
+15h30 - Atelier 3 : Intelligence émotionnelle
+16h30 - Table ronde & Q&A
+17h00 - Clôture & remise des certificats`,
+        dressCode: 'Business casual',
+        rsvpDeadline: new Date('2025-04-03T23:59:59Z'),
+        maxPlusOnes: 0,
+        allowPlusOnes: false,
+        requireMeal: true,
+        mealOptions: ['Standard', 'Végétarien', 'Vegan', 'Sans gluten'],
+        enableTransport: false,
+        enableLodging: false,
+        enableAccessibility: true,
+        enablePhotoConsent: true,
+        showcaseEnabled: true,
+        showcaseTitle: 'Workshop Leadership',
+        showcaseSubtitle: 'Leadership & Management • 10 Avril 2025 • Station F',
+        showcasePrimaryColor: '#059669',
+        showcaseSecondaryColor: '#10b981',
+        adminId: adminDemo.id
+      }
+    })
+
+    // ====================================
+    // 7. CRÉATION DE QUELQUES INVITÉS PAR ÉVÉNEMENT
+    // ====================================
+    const events = [
+      { event: eventTechSummit, count: 5 },
+      { event: eventWeevup, count: 5 },
+      { event: eventWedding, count: 5 },
+      { event: eventGala, count: 5 },
+      { event: eventWorkshop, count: 5 }
     ]
 
-    const guests = []
-    for (const guestData of demoGuests) {
-      const token = generateGuestToken()
-      const tokenHash = hashToken(token)
-      const tokenExpiry = new Date()
-      tokenExpiry.setDate(tokenExpiry.getDate() + 90) // 90 days validity
+    let totalGuestsCreated = 0
+    const sampleUrls: string[] = []
 
-      const guest = await prisma.guest.create({
-        data: {
-          ...guestData,
-          eventId: event.id,
-          token: token, // Store raw token (Note: not ideal for security, but required by schema)
-          tokenHash,
-          tokenExpiry,
-        },
-      })
+    for (const { event, count } of events) {
+      for (let i = 0; i < count; i++) {
+        const token = generateToken()
+        const tokenHash = hashToken(token)
 
-      guests.push({
-        ...guest,
-        invitationUrl: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/guest/${token}`,
-      })
+        await prisma.guest.create({
+          data: {
+            eventId: event.id,
+            firstName: `Invité${i + 1}`,
+            lastName: event.name.split(' ')[0],
+            email: `guest${i + 1}@${event.slug}.com`,
+            company: 'Demo Company',
+            tags: ['Demo'],
+            token: token,
+            tokenHash: tokenHash,
+            tokenExpiry: new Date('2025-12-31'),
+            status: GuestStatus.INVITED
+          }
+        })
+
+        totalGuestsCreated++
+
+        // Garder un exemple d'URL par événement
+        if (i === 0) {
+          sampleUrls.push(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/guest/${token}`)
+        }
+      }
     }
 
-    return NextResponse.json({
-      message: 'Database seeded successfully!',
-      event: {
-        id: event.id,
-        name: event.name,
-        date: event.startsAt,
-        location: `${event.venueName}, ${event.address}, ${event.city}`,
+    const allEvents = await prisma.event.findMany({
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        startsAt: true,
+        venueName: true,
+        city: true,
       },
-      guestsCreated: guests.length,
-      sampleInvitationUrl: guests[0]?.invitationUrl,
+      orderBy: {
+        startsAt: 'asc'
+      }
+    })
+
+    return NextResponse.json({
+      message: '✅ 5 événements de démonstration créés avec succès!',
+      events: allEvents.map(e => ({
+        id: e.id,
+        name: e.name,
+        slug: e.slug,
+        date: e.startsAt.toLocaleDateString('fr-FR'),
+        location: `${e.venueName}, ${e.city}`,
+        showcaseUrl: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/events/${e.slug}`
+      })),
+      totalEventsCreated: allEvents.length,
+      totalGuestsCreated: totalGuestsCreated,
+      sampleInvitationUrls: sampleUrls,
+      admins: [
+        { email: adminWeevup.email, role: 'Admin Weevup' },
+        { email: adminDemo.email, role: 'Admin Demo' }
+      ]
     })
   } catch (error) {
     console.error('Error seeding database:', error)
