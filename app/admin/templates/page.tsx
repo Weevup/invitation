@@ -38,6 +38,7 @@ import {
 } from '@/components/ui/select'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { toast } from 'sonner'
+import { EmailPreviewModal } from '@/components/email-preview-modal'
 
 interface EmailTemplate {
   id: string
@@ -657,40 +658,24 @@ export default function TemplatesPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Preview Dialog */}
-      <Dialog open={!!previewTemplate} onOpenChange={() => setPreviewTemplate(null)}>
-        <DialogContent className="max-w-4xl max-h-[90vh]">
-          <DialogHeader>
-            <DialogTitle>{previewTemplate?.name}</DialogTitle>
-            <DialogDescription>
-              Sujet : {previewTemplate?.subject}
-            </DialogDescription>
-          </DialogHeader>
-          {previewTemplate && (
-            <div className="border rounded p-4 bg-gray-50 max-h-[70vh] overflow-y-auto">
-              <iframe
-                srcDoc={previewTemplate.htmlContent
-                  .replace(/\{\{fontFamily\}\}/g, previewTemplate.fontFamily)
-                  .replace(/\{\{primaryColor\}\}/g, previewTemplate.primaryColor)
-                  .replace(/\{\{secondaryColor\}\}/g, previewTemplate.secondaryColor)
-                  .replace(/\{\{accentColor\}\}/g, previewTemplate.accentColor)
-                  .replace(/\{\{event\.name\}\}/g, 'Tech Summit 2025')
-                  .replace(/\{\{event\.date\}\}/g, '15 septembre 2025')
-                  .replace(/\{\{event\.time\}\}/g, '9h00')
-                  .replace(/\{\{event\.location\}\}/g, 'Station F, Paris')
-                  .replace(/\{\{event\.address\}\}/g, '5 Parvis Alan Turing, 75013 Paris')
-                  .replace(/\{\{event\.organizerName\}\}/g, 'Weevup')
-                  .replace(/\{\{guest\.firstName\}\}/g, 'Jean')
-                  .replace(/\{\{guest\.lastName\}\}/g, 'Dupont')
-                  .replace(/\{\{guest\.email\}\}/g, 'jean.dupont@example.com')
-                  .replace(/\{\{rsvpLink\}\}/g, '#')}
-                className="w-full h-[600px] border-0"
-                title="Full Preview"
-              />
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+      {/* Preview Dialog - Enhanced with variable editing */}
+      {previewTemplate && (
+        <EmailPreviewModal
+          open={!!previewTemplate}
+          onOpenChange={(open) => !open && setPreviewTemplate(null)}
+          template={{
+            name: previewTemplate.name,
+            subject: previewTemplate.subject,
+            htmlContent: previewTemplate.htmlContent,
+          }}
+          defaultVariables={{
+            fontFamily: previewTemplate.fontFamily,
+            primaryColor: previewTemplate.primaryColor,
+            secondaryColor: previewTemplate.secondaryColor,
+            accentColor: previewTemplate.accentColor,
+          }}
+        />
+      )}
     </div>
   )
 }

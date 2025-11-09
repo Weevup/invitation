@@ -14,6 +14,7 @@ import { Calendar, MapPin, Clock, Users, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { RSVPProgress } from "@/components/rsvp-progress";
 import { RSVPConfirmation } from "@/components/rsvp-confirmation";
+import { buildSteps, getNextStep, getPreviousStep, type StepConfig } from "@/lib/rsvp-steps";
 
 interface GuestData {
   guest: {
@@ -65,7 +66,8 @@ export default function GuestPage() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [data, setData] = useState<GuestData | null>(null);
-  const [step, setStep] = useState(1);
+  const [currentStepId, setCurrentStepId] = useState('response');
+  const [steps, setSteps] = useState<StepConfig[]>([]);
 
   // Form state
   const [attending, setAttending] = useState<boolean | null>(null);
@@ -118,6 +120,29 @@ export default function GuestPage() {
     fetchGuestData();
   }, [fetchGuestData]);
 
+  // Rebuild steps when event data or attending status changes
+  useEffect(() => {
+    if (data?.event) {
+      const newSteps = buildSteps(
+        {
+          allowPlusOnes: data.event.allowPlusOnes,
+          requireMeal: data.event.requireMeal,
+          enableAccessibility: data.event.enableAccessibility,
+          enableTransport: data.event.enableTransport,
+          enableLodging: data.event.enableLodging,
+          enablePhotoConsent: data.event.enablePhotoConsent,
+        },
+        attending
+      );
+      setSteps(newSteps);
+
+      // If attending status changes from true to false, jump to summary
+      if (attending === false && currentStepId !== 'response') {
+        setCurrentStepId('summary');
+      }
+    }
+  }, [data?.event, attending]);
+
   const handleSubmit = async () => {
     if (attending === null) {
       toast({
@@ -162,7 +187,7 @@ export default function GuestPage() {
           : "Votre réponse a été enregistrée. Nous espérons vous voir lors d'un prochain événement.",
       });
 
-      setStep(7); // Success step
+      setCurrentStepId('success');
     } catch (error) {
       // Parse detailed error message
       let errorMessage = "Impossible d'enregistrer votre réponse";
@@ -231,7 +256,7 @@ export default function GuestPage() {
       </div>
 
       <div className="relative container mx-auto px-4 max-w-3xl">
-        {step < 7 && (
+        {currentStepId !== 'success' && (
           <>
             {/* Welcome Header */}
             <motion.div
@@ -252,17 +277,8 @@ export default function GuestPage() {
               transition={{ delay: 0.2 }}
             >
               <RSVPProgress
-                currentStep={step}
-                totalSteps={7}
-                stepLabels={[
-                  'Réponse',
-                  'Accompagnants',
-                  'Repas',
-                  'Accès',
-                  'Transport',
-                  'Hébergement',
-                  'Confirmation'
-                ]}
+                currentStepId={currentStepId}
+                steps={steps.filter(s => s.id !== 'success')}
               />
             </motion.div>
 
@@ -317,8 +333,8 @@ export default function GuestPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-                {/* Step 1: Attendance */}
-                {step === 1 && (
+                {/* Step: Response */}
+                {currentStepId === 'response' && (
                   <motion.div
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
@@ -327,9 +343,10 @@ export default function GuestPage() {
                     <Label className="text-lg">Participez-vous à l&apos;événement ?</Label>
                     <RadioGroup
                       value={attending === null ? "" : attending.toString()}
-                      onValueChange={(value) =>
-                        setAttending(value === "true")
-                      }
+                      onValueChange={(value) => {
+                        const newAttending = value === "true";
+                        setAttending(newAttending);
+                      }}
                     >
                       <div className="flex items-center space-x-2 p-4 border rounded-lg hover:bg-accent cursor-pointer">
                         <RadioGroupItem value="true" id="yes" />
@@ -345,7 +362,10 @@ export default function GuestPage() {
                       </div>
                     </RadioGroup>
                     <Button
-                      onClick={() => attending !== null && setStep(attending ? 2 : 6)}
+                      onClick={() => {
+                        const next = getNextStep('response', steps);
+                        if (next) setCurrentStepId(next);
+                      }}
                       disabled={attending === null}
                       className="w-full bg-gradient-to-r from-[#004645] to-[#009197] hover:from-[#006C51] hover:to-[#009197] text-white"
                     >
@@ -354,8 +374,8 @@ export default function GuestPage() {
                   </motion.div>
                 )}
 
-                {/* Step 2: Plus Ones */}
-                {step === 2 && attending && event.allowPlusOnes && (
+                {/* Step: Plus Ones */}
+                {currentStepId === 'plus-ones' && (
                   <motion.div
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
@@ -380,18 +400,31 @@ export default function GuestPage() {
                       </SelectContent>
                     </Select>
                     <div className="flex space-x-2">
-                      <Button variant="outline" onClick={() => setStep(1)} className="border-[#004645] text-[#004645] hover:bg-[#004645] hover:text-white">
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          const prev = getPreviousStep('plus-ones', steps);
+                          if (prev) setCurrentStepId(prev);
+                        }}
+                        className="border-[#004645] text-[#004645] hover:bg-[#004645] hover:text-white"
+                      >
                         Retour
                       </Button>
-                      <Button onClick={() => setStep(3)} className="flex-1 bg-gradient-to-r from-[#004645] to-[#009197] hover:from-[#006C51] hover:to-[#009197] text-white">
+                      <Button
+                        onClick={() => {
+                          const next = getNextStep('plus-ones', steps);
+                          if (next) setCurrentStepId(next);
+                        }}
+                        className="flex-1 bg-gradient-to-r from-[#004645] to-[#009197] hover:from-[#006C51] hover:to-[#009197] text-white"
+                      >
                         Continuer
                       </Button>
                     </div>
                   </motion.div>
                 )}
 
-                {/* Step 3: Meal Choice */}
-                {step === 3 && attending && event.requireMeal && (
+                {/* Step: Meal Choice */}
+                {currentStepId === 'meal' && (
                   <motion.div
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
@@ -424,20 +457,29 @@ export default function GuestPage() {
                     <div className="flex space-x-2">
                       <Button
                         variant="outline"
-                        onClick={() => setStep(event.allowPlusOnes ? 2 : 1)}
+                        onClick={() => {
+                          const prev = getPreviousStep('meal', steps);
+                          if (prev) setCurrentStepId(prev);
+                        }}
                         className="border-[#004645] text-[#004645] hover:bg-[#004645] hover:text-white"
                       >
                         Retour
                       </Button>
-                      <Button onClick={() => setStep(4)} className="flex-1 bg-gradient-to-r from-[#004645] to-[#009197] hover:from-[#006C51] hover:to-[#009197] text-white">
+                      <Button
+                        onClick={() => {
+                          const next = getNextStep('meal', steps);
+                          if (next) setCurrentStepId(next);
+                        }}
+                        className="flex-1 bg-gradient-to-r from-[#004645] to-[#009197] hover:from-[#006C51] hover:to-[#009197] text-white"
+                      >
                         Continuer
                       </Button>
                     </div>
                   </motion.div>
                 )}
 
-                {/* Step 4: Accessibility & Transport */}
-                {step === 4 && attending && (
+                {/* Step: Practical Info */}
+                {currentStepId === 'practical' && (
                   <motion.div
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
@@ -482,20 +524,29 @@ export default function GuestPage() {
                     <div className="flex space-x-2">
                       <Button
                         variant="outline"
-                        onClick={() => setStep(event.requireMeal ? 3 : event.allowPlusOnes ? 2 : 1)}
+                        onClick={() => {
+                          const prev = getPreviousStep('practical', steps);
+                          if (prev) setCurrentStepId(prev);
+                        }}
                         className="border-[#004645] text-[#004645] hover:bg-[#004645] hover:text-white"
                       >
                         Retour
                       </Button>
-                      <Button onClick={() => setStep(5)} className="flex-1 bg-gradient-to-r from-[#004645] to-[#009197] hover:from-[#006C51] hover:to-[#009197] text-white">
+                      <Button
+                        onClick={() => {
+                          const next = getNextStep('practical', steps);
+                          if (next) setCurrentStepId(next);
+                        }}
+                        className="flex-1 bg-gradient-to-r from-[#004645] to-[#009197] hover:from-[#006C51] hover:to-[#009197] text-white"
+                      >
                         Continuer
                       </Button>
                     </div>
                   </motion.div>
                 )}
 
-                {/* Step 5: Consents */}
-                {step === 5 && attending && (
+                {/* Step: Consents */}
+                {currentStepId === 'consent' && (
                   <motion.div
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
@@ -518,18 +569,31 @@ export default function GuestPage() {
                       </div>
                     )}
                     <div className="flex space-x-2">
-                      <Button variant="outline" onClick={() => setStep(4)} className="border-[#004645] text-[#004645] hover:bg-[#004645] hover:text-white">
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          const prev = getPreviousStep('consent', steps);
+                          if (prev) setCurrentStepId(prev);
+                        }}
+                        className="border-[#004645] text-[#004645] hover:bg-[#004645] hover:text-white"
+                      >
                         Retour
                       </Button>
-                      <Button onClick={() => setStep(6)} className="flex-1 bg-gradient-to-r from-[#004645] to-[#009197] hover:from-[#006C51] hover:to-[#009197] text-white">
+                      <Button
+                        onClick={() => {
+                          const next = getNextStep('consent', steps);
+                          if (next) setCurrentStepId(next);
+                        }}
+                        className="flex-1 bg-gradient-to-r from-[#004645] to-[#009197] hover:from-[#006C51] hover:to-[#009197] text-white"
+                      >
                         Continuer
                       </Button>
                     </div>
                   </motion.div>
                 )}
 
-                {/* Step 6: Summary */}
-                {step === 6 && (
+                {/* Step: Summary */}
+                {currentStepId === 'summary' && (
                   <motion.div
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
@@ -567,7 +631,14 @@ export default function GuestPage() {
                         new Date(event.rsvpDeadline).toLocaleDateString("fr-FR")}
                     </p>
                     <div className="flex space-x-2">
-                      <Button variant="outline" onClick={() => setStep(attending ? 5 : 1)} className="border-[#004645] text-[#004645] hover:bg-[#004645] hover:text-white">
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          const prev = getPreviousStep('summary', steps);
+                          if (prev) setCurrentStepId(prev);
+                        }}
+                        className="border-[#004645] text-[#004645] hover:bg-[#004645] hover:text-white"
+                      >
                         Retour
                       </Button>
                       <Button
@@ -593,7 +664,7 @@ export default function GuestPage() {
         )}
 
         {/* Success Step */}
-        {step === 7 && (
+        {currentStepId === 'success' && (
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
