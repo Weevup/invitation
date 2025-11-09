@@ -1,0 +1,189 @@
+import { NextResponse } from 'next/server'
+import { prisma } from '@/lib/prisma'
+
+interface TableStatus {
+  name: string
+  exists: boolean
+  columnCount?: number
+  missingColumns?: string[]
+}
+
+interface EnumStatus {
+  name: string
+  exists: boolean
+}
+
+export async function GET() {
+  try {
+    const status = {
+      enums: [] as EnumStatus[],
+      tables: [] as TableStatus[],
+      overall: {
+        allTablesExist: false,
+        allEnumsExist: false,
+        tablesComplete: 0,
+        totalTables: 9,
+        enumsComplete: 0,
+        totalEnums: 5,
+      }
+    }
+
+    // =====================================================
+    // Vérifier les ENUMs
+    // =====================================================
+
+    const enumsToCheck = [
+      'UserRole',
+      'GuestStatus',
+      'EmailType',
+      'EmailStatus',
+      'EmailProvider'
+    ]
+
+    for (const enumName of enumsToCheck) {
+      try {
+        const result = await prisma.$queryRawUnsafe<any[]>(`
+          SELECT EXISTS (
+            SELECT 1 FROM pg_type WHERE typname = '${enumName}'
+          ) as exists
+        `)
+        const exists = result[0]?.exists || false
+        status.enums.push({ name: enumName, exists })
+        if (exists) status.overall.enumsComplete++
+      } catch {
+        status.enums.push({ name: enumName, exists: false })
+      }
+    }
+
+    status.overall.allEnumsExist = status.overall.enumsComplete === status.overall.totalEnums
+
+    // =====================================================
+    // Vérifier les Tables
+    // =====================================================
+
+    const tablesToCheck = [
+      {
+        name: 'User',
+        requiredColumns: ['id', 'email', 'role', 'createdAt', 'updatedAt']
+      },
+      {
+        name: 'Event',
+        requiredColumns: ['id', 'name', 'slug', 'startsAt', 'adminId', 'showcaseEnabled',
+                         'rsvpDeadline', 'maxPlusOnes', 'showcaseGallery']
+      },
+      {
+        name: 'Guest',
+        requiredColumns: ['id', 'eventId', 'firstName', 'lastName', 'email', 'token',
+                         'tokenHash', 'status']
+      },
+      {
+        name: 'RSVP',
+        requiredColumns: ['id', 'eventId', 'guestId', 'attending', 'qrCodeId']
+      },
+      {
+        name: 'Checkin',
+        requiredColumns: ['id', 'eventId', 'guestId', 'qrCodeId', 'checkedInAt']
+      },
+      {
+        name: 'EmailLog',
+        requiredColumns: ['id', 'eventId', 'guestId', 'type', 'status', 'subject']
+      },
+      {
+        name: 'EmailTracking',
+        requiredColumns: ['id', 'eventId', 'guestId', 'type', 'status', 'sentAt']
+      },
+      {
+        name: 'EmailIntegration',
+        requiredColumns: ['id', 'provider', 'isActive', 'isPrimary', 'trackOpens', 'trackClicks']
+      },
+      {
+        name: 'EmailTemplate',
+        requiredColumns: ['id', 'name', 'slug', 'type', 'subject', 'htmlContent', 'primaryColor']
+      }
+    ]
+
+    for (const table of tablesToCheck) {
+      try {
+        // Vérifier si la table existe
+        const tableExists = await prisma.$queryRawUnsafe<any[]>(`
+          SELECT EXISTS (
+            SELECT FROM information_schema.tables
+            WHERE table_schema = 'public'
+            AND table_name = '${table.name}'
+          ) as exists
+        `)
+
+        const exists = tableExists[0]?.exists || false
+
+        if (!exists) {
+          status.tables.push({
+            name: table.name,
+            exists: false
+          })
+          continue
+        }
+
+        // Vérifier les colonnes
+        const columns = await prisma.$queryRawUnsafe<any[]>(`
+          SELECT column_name
+          FROM information_schema.columns
+          WHERE table_schema = 'public'
+          AND table_name = '${table.name}'
+        `)
+
+        const existingColumns = columns.map(col => col.column_name)
+        const missingColumns = table.requiredColumns.filter(
+          col => !existingColumns.includes(col)
+        )
+
+        status.tables.push({
+          name: table.name,
+          exists: true,
+          columnCount: existingColumns.length,
+          missingColumns: missingColumns.length > 0 ? missingColumns : undefined
+        })
+
+        if (missingColumns.length === 0) {
+          status.overall.tablesComplete++
+        }
+      } catch (error) {
+        console.error(`Error checking table ${table.name}:`, error)
+        status.tables.push({
+          name: table.name,
+          exists: false
+        })
+      }
+    }
+
+    status.overall.allTablesExist = status.overall.tablesComplete === status.overall.totalTables
+
+    // =====================================================
+    // Déterminer si une migration est nécessaire
+    // =====================================================
+
+    const needsMigration = !status.overall.allTablesExist ||
+                          !status.overall.allEnumsExist ||
+                          status.tables.some(t => t.missingColumns && t.missingColumns.length > 0)
+
+    return NextResponse.json({
+      status,
+      needsMigration,
+      summary: {
+        message: needsMigration
+          ? '⚠️ Migration nécessaire - Certaines tables ou colonnes manquent'
+          : '✅ Base de données complète - Aucune migration nécessaire',
+        tablesOk: `${status.overall.tablesComplete}/${status.overall.totalTables}`,
+        enumsOk: `${status.overall.enumsComplete}/${status.overall.totalEnums}`,
+      }
+    })
+  } catch (error) {
+    console.error('Error checking database status:', error)
+    return NextResponse.json(
+      {
+        error: 'Impossible de vérifier l\'état de la base de données',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      },
+      { status: 500 }
+    )
+  }
+}
