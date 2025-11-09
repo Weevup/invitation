@@ -41,9 +41,8 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({
-      success: true,
-      message: `Sent ${result.sent}/${result.total} invitations`,
-      ...result
+      ...result,
+      message: `Sent ${result.sent}/${result.total} invitations`
     })
   } catch (error) {
     console.error('Error in send-invitations API:', error)
