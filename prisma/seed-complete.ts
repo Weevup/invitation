@@ -214,17 +214,16 @@ Rejoignez-nous pour une journée d'échanges, d'innovation et de networking !`,
 
     // Create RSVP if guest has responded
     if (guestData.rsvp !== null) {
-      await prisma.rSVP.create({
+      const rsvp = await prisma.rSVP.create({
         data: {
           eventId: event.id,
           guestId: guest.id,
           attending: guestData.rsvp.attending,
           plusOnes: guestData.rsvp.plusOnes,
           mealChoice: guestData.rsvp.meal,
-          dietaryRestrictions: guestData.rsvp.dietary || '',
           allergies: guestData.rsvp.dietary || 'Aucune',
-          needsTransport: guestData.rsvp.transport,
-          needsAccessibility: guestData.rsvp.accessibility,
+          transportNeeds: guestData.rsvp.transport ? 'Besoin de transport' : undefined,
+          accessibilityNotes: guestData.rsvp.accessibility ? 'Besoins d\'accessibilité' : undefined,
           consentPhotos: true,
         },
       })
@@ -235,8 +234,7 @@ Rejoignez-nous pour une journée d'échanges, d'innovation et de networking !`,
           data: {
             eventId: event.id,
             guestId: guest.id,
-            checkedIn: false,
-            qrCode: `TECH2025-${guest.id.substring(0, 8).toUpperCase()}`,
+            qrCodeId: rsvp.qrCodeId,
           },
         })
       }

@@ -279,22 +279,23 @@ enum GuestStatus {
   guestId: string (unique per event)
 
   // Participation
-  attending: boolean
-  plusOnes: int (0-N)
+  attending: boolean?
+  plusOnes: int (default 0)
 
   // Repas
   mealChoice: string?
-  dietaryRestrictions: string?
-  allergies: string?
+  allergies: string? @db.Text
 
   // Logistique
-  needsTransport: boolean
-  needsLodging: boolean
-  needsAccessibility: boolean
-  accessibilityNeeds: string?
+  accessibilityNotes: string? @db.Text
+  transportNeeds: string? @db.Text
+  lodgingNeeds: string? @db.Text
 
   // Consentements
-  consentPhotos: boolean
+  consentPhotos: boolean (default false)
+
+  // QR Code
+  qrCodeId: string @unique @default(cuid())
 
   // Timestamps
   createdAt: DateTime
