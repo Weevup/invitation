@@ -200,10 +200,8 @@ export default function UsersPage() {
     setIsSubmitting(true)
     try {
       // Ne pas envoyer le mot de passe s'il est vide
-      const updateData = { ...formData }
-      if (!updateData.password) {
-        delete updateData.password
-      }
+      const { password, ...rest } = formData
+      const updateData = password ? formData : rest
 
       const response = await fetch(`/api/admin/users/${selectedUser.id}`, {
         method: 'PUT',
