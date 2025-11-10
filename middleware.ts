@@ -6,7 +6,7 @@ import type { NextRequest } from 'next/server'
  * Checks for NextAuth session cookie without importing NextAuth
  * This avoids Edge runtime compatibility issues
  */
-export function middleware(request: NextRequest) {
+export default function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   // Always allow access to login page
