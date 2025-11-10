@@ -32,7 +32,8 @@ export interface TokenPayload {
 }
 
 export function generateToken(payload: TokenPayload, expiresIn: string | number = '30d'): string {
-  return jwt.sign(payload, getJwtSecret(), { expiresIn } as jwt.SignOptions)
+  // Cast en any pour compatibilité avec différentes versions de @types/jsonwebtoken
+  return jwt.sign(payload, getJwtSecret(), { expiresIn } as any)
 }
 
 export function verifyToken(token: string): TokenPayload | null {

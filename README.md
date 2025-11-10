@@ -4,45 +4,93 @@ Une webapp moderne et élégante de gestion d'invitations pour vos événements 
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/Weevup/invitation)
 
-> 🚀 **Déploiement rapide** : [Guide Vercel (5 min)](DEPLOIEMENT-VERCEL.md) | ⚠️ [Pourquoi pas GitHub Pages ?](POURQUOI-PAS-GITHUB-PAGES.md)
+> 🚀 **Déploiement rapide** : [Guide Vercel (5 min)](DEPLOIEMENT-VERCEL.md) | ⚠️ **Pré-déploiement** : [Checklist Vercel](GUIDE-PRE-DEPLOIEMENT.md)
+
+---
+
+## 🎯 Démarrage Rapide
+
+**Envie d'essayer en 5 minutes ?** → [Guide de Démarrage Rapide](GUIDE-DEMARRAGE-RAPIDE.md)
+
+**Prêt à déployer ?** → [Checklist Pré-Déploiement](GUIDE-PRE-DEPLOIEMENT.md)
+
+---
 
 ## ✨ Fonctionnalités
 
-### Pour les organisateurs
-- 📅 **Création d'événements** : Paramétrez tous les détails de votre événement
-- 👥 **Gestion des invités** : Import CSV, tags, statuts en temps réel
-- 📧 **Emails automatisés** : Templates personnalisables, envoi groupé, suivi des ouvertures
-- 📊 **Dashboard analytique** : Taux de réponse, statistiques, exports
-- 🎫 **QR Codes** : Génération automatique pour le check-in
+### Pour les organisateurs 🎯
 
-### Pour les invités
+- 📅 **Création d'événements** : Configurez tous les détails (date, lieu, dress code, etc.)
+- 👥 **Gestion des invités** : Import CSV, ajout manuel, tags, filtres, statuts en temps réel
+- 📧 **Emails automatisés** :
+  - 3 templates professionnels (invitation, confirmation, reminder)
+  - Envoi groupé avec rate limiting
+  - Tracking (envoi, ouverture, clic)
+  - Multi-provider (Resend, SendGrid, SMTP)
+- 📊 **Dashboard analytique** :
+  - Taux de réponse en temps réel
+  - Statistiques par événement
+  - Exports CSV/PDF
+- 🎫 **QR Codes** : Génération automatique pour le check-in
+- 🎨 **Page showcase** : Page publique personnalisable pour chaque événement
+- 🔒 **Sécurité** : Encryption AES-256, tokens SHA-256, rate limiting
+
+### Pour les invités 💌
+
 - 🔐 **Authentification sécurisée** : Lien personnel unique (magic link)
-- 📝 **Formulaire RSVP complet** : Participation, accompagnants, repas, allergies, accessibilité
-- ✉️ **Confirmations** : Email avec QR code d'accès
+- 📝 **Formulaire RSVP complet** :
+  - Participation (Oui/Non)
+  - Accompagnants (+1, +2, etc.)
+  - Choix de repas + allergies
+  - Besoins d'accessibilité
+  - Transport & hébergement
+  - Consentement photos
+- ✉️ **Confirmations** : Email avec récapitulatif et QR code d'accès
 - ✏️ **Modification** : Possibilité de modifier sa réponse jusqu'à la deadline
 
-## 🛠️ Stack technique
+---
 
-- **Frontend** : Next.js 15 (App Router), React 19, TypeScript
-- **Styling** : Tailwind CSS, shadcn/ui, Framer Motion
-- **Backend** : Next.js API Routes
-- **Base de données** : Prisma + PostgreSQL
-- **Authentification** : JWT + Magic Links
-- **Emails** : Nodemailer (SMTP)
-- **QR Codes** : qrcode
+## 🛠️ Stack Technique
+
+### Frontend
+- **Next.js 15** (App Router) + **React 19** + **TypeScript**
+- **Tailwind CSS** + **shadcn/ui** (Radix UI)
+- **Framer Motion** (animations)
+- **Recharts** (analytics)
+
+### Backend
+- **Next.js API Routes**
+- **Prisma 6.0** (ORM)
+- **PostgreSQL** (Neon en production)
+- **Zod** (validation)
+
+### Email & Communication
+- **Resend** (recommandé) ou **SendGrid**
+- **Nodemailer** (fallback SMTP)
+- Templates HTML professionnels
+
+### Sécurité
+- **JWT** (authentification)
+- **Crypto** (encryption AES-256-GCM)
+- **bcryptjs** (hashing)
+- **Rate limiting** sur toutes les routes sensibles
+
+---
 
 ## 📋 Prérequis
 
-- Node.js 18+ et npm
-- PostgreSQL 14+
-- (Optionnel) Docker pour PostgreSQL
+- **Node.js 18+** et npm
+- **PostgreSQL 14+** (ou compte Neon gratuit)
+- (Optionnel) Docker pour PostgreSQL local
 
-## 🚀 Installation
+---
+
+## 🚀 Installation Locale
 
 ### 1. Cloner le repository
 
 ```bash
-git clone <your-repo-url>
+git clone https://github.com/Weevup/invitation.git
 cd invitation
 ```
 
@@ -52,13 +100,64 @@ cd invitation
 npm install
 ```
 
-### 3. Configurer la base de données
+### 3. Configurer les variables d'environnement
+
+```bash
+cp .env.example .env
+```
+
+**Éditez `.env` avec vos paramètres** :
+
+```env
+# Base de données PostgreSQL
+DATABASE_URL="postgresql://user:password@localhost:5432/invitation_manager"
+
+# URL publique de l'application
+NEXT_PUBLIC_APP_URL="http://localhost:3000"
+
+# Secrets (générez avec: openssl rand -hex 64)
+JWT_SECRET="votre-secret-jwt-64-caracteres"
+ENCRYPTION_KEY="votre-cle-32-caracteres-exact"
+
+# Email Provider (resend recommandé)
+EMAIL_PROVIDER="resend"
+RESEND_API_KEY="re_your_api_key"
+EMAIL_FROM="noreply@votredomaine.com"
+EMAIL_FROM_NAME="Weevup Events"
+```
+
+**Générer les secrets** :
+```bash
+# JWT_SECRET (64 caractères)
+openssl rand -hex 64
+
+# ENCRYPTION_KEY (32 caractères)
+openssl rand -hex 16
+```
+
+**Configuration Email (Resend recommandé)** :
+
+1. Créez un compte gratuit : https://resend.com/signup
+2. Ajoutez et vérifiez votre domaine
+3. Créez une API Key
+4. Ajoutez dans `.env` :
+   ```env
+   EMAIL_PROVIDER="resend"
+   RESEND_API_KEY="re_votre_cle"
+   EMAIL_FROM="noreply@votredomaine.com"
+   ```
+
+Voir aussi : [Configuration détaillée](GUIDE-PRE-DEPLOIEMENT.md#6-configuration-email-resend-recommandé-)
+
+### 4. Configurer la base de données
 
 #### Option A : PostgreSQL local
 
-Assurez-vous que PostgreSQL est installé et en cours d'exécution.
-
 ```bash
+# Installer PostgreSQL (macOS)
+brew install postgresql@14
+brew services start postgresql@14
+
 # Créer la base de données
 createdb invitation_manager
 ```
@@ -73,51 +172,11 @@ docker run --name invitation-postgres \
   -d postgres:14
 ```
 
-### 4. Configurer les variables d'environnement
+#### Option C : Neon (Cloud gratuit)
 
-Copiez le fichier `.env.example` vers `.env` et configurez les variables :
-
-```bash
-cp .env.example .env
-```
-
-Éditez `.env` avec vos paramètres :
-
-```env
-# Base de données
-DATABASE_URL="postgresql://user:password@localhost:5432/invitation_manager?schema=public"
-
-# URL de l'application
-NEXT_PUBLIC_APP_URL="http://localhost:3000"
-
-# Secret JWT (générez-en un unique pour la production)
-JWT_SECRET="votre-secret-jwt-super-securise"
-
-# Configuration email
-EMAIL_FROM="noreply@invitation-manager.com"
-EMAIL_FROM_NAME="Invitation Manager"
-
-# SMTP (pour les emails)
-SMTP_HOST="smtp.ethereal.email"
-SMTP_PORT="587"
-SMTP_USER=""
-SMTP_PASSWORD=""
-SMTP_SECURE="false"
-```
-
-#### Configuration des emails
-
-**Pour le développement** : Utilisez [Ethereal Email](https://ethereal.email/) (emails de test)
-
-1. Visitez https://ethereal.email/
-2. Créez un compte de test gratuit
-3. Copiez les identifiants SMTP dans votre `.env`
-
-**Pour la production** : Utilisez un vrai fournisseur d'emails
-
-- **Resend** (recommandé) : Ajoutez `RESEND_API_KEY="re_xxx"`
-- **SendGrid** : Ajoutez `SENDGRID_API_KEY="SG.xxx"`
-- **Gmail SMTP** : Configurez SMTP avec un mot de passe d'application
+1. Créez un compte : https://neon.tech
+2. Créez un projet PostgreSQL
+3. Copiez la `DATABASE_URL` dans `.env`
 
 ### 5. Initialiser la base de données
 
@@ -125,8 +184,8 @@ SMTP_SECURE="false"
 # Générer le client Prisma
 npm run db:generate
 
-# Appliquer le schéma à la base de données
-npm run db:push
+# Appliquer les migrations
+npm run db:migrate
 
 # (Optionnel) Charger les données de démo
 npm run db:seed
@@ -136,9 +195,9 @@ Le seed crée :
 - 1 compte admin (`admin@invitation-manager.com`)
 - 1 événement de démo ("Soirée Partenaires 2026")
 - 10 invités de test avec leurs tokens
-- 1 RSVP exemple
+- Plusieurs RSVP exemples
 
-**Note** : Les tokens d'invitation sont affichés dans la console après le seed. Copiez-les pour tester !
+**Note** : Les tokens d'invitation sont affichés dans la console. Copiez-les pour tester !
 
 ### 6. Lancer l'application
 
@@ -146,32 +205,38 @@ Le seed crée :
 npm run dev
 ```
 
-L'application est accessible sur http://localhost:3000
+L'application est accessible sur **http://localhost:3000**
 
-## 🚢 Déploiement
+---
+
+## 🚢 Déploiement en Production
 
 ### Déployer sur Vercel (Recommandé)
 
-Pour déployer votre application en ligne et créer une démo accessible publiquement :
+**⚠️ IMPORTANT** : Lisez le [Guide Pré-Déploiement](GUIDE-PRE-DEPLOIEMENT.md) avant de déployer !
 
-**⚠️ Important :** Cette application **NE PEUT PAS** être déployée sur GitHub Pages (application full-stack avec backend + base de données).
+**Étapes rapides** :
 
-👉 **Solution recommandée : Vercel (gratuit)**
+1. **Fork le repository** sur GitHub
+2. **Cliquez sur** : [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/Weevup/invitation)
+3. **Configurez les variables d'environnement** (voir [Checklist](GUIDE-PRE-DEPLOIEMENT.md))
+4. **Déployez** !
 
-1. **Suivez le guide complet** : [DEPLOIEMENT-VERCEL.md](DEPLOIEMENT-VERCEL.md)
-2. **Ou cliquez sur le bouton** : [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/Weevup/invitation)
+**Temps estimé** : 10-15 minutes
+**Coût** : Gratuit (avec limites généreuses)
 
-**Temps estimé :** 5-10 minutes
-**Coût :** Gratuit pour toujours (avec limites généreuses)
-
-**Inclus dans le déploiement Vercel :**
-- ✅ Hébergement de l'application Next.js
-- ✅ Base de données PostgreSQL (via Neon)
+**Inclus dans Vercel** :
+- ✅ Hébergement Next.js
+- ✅ Base de données PostgreSQL (Neon)
 - ✅ HTTPS automatique
-- ✅ Déploiements automatiques depuis GitHub
+- ✅ Déploiements automatiques
 - ✅ Variables d'environnement sécurisées
+- ✅ Preview deployments
 
-**Voir aussi :** [Pourquoi pas GitHub Pages ?](POURQUOI-PAS-GITHUB-PAGES.md)
+**Guides complets** :
+- [Guide Pré-Déploiement (LIRE EN PREMIER)](GUIDE-PRE-DEPLOIEMENT.md)
+- [Guide Vercel Détaillé](DEPLOIEMENT-VERCEL.md)
+- [Pourquoi pas GitHub Pages ?](POURQUOI-PAS-GITHUB-PAGES.md)
 
 ---
 
@@ -181,189 +246,305 @@ Pour déployer votre application en ligne et créer une démo accessible publiqu
 
 - **Page d'accueil** : http://localhost:3000
 - **Admin Dashboard** : http://localhost:3000/admin
-- **Invitation invité** : http://localhost:3000/guest/[TOKEN]
+- **Créer un événement** : http://localhost:3000/admin/events/new
+- **Page RSVP invité** : http://localhost:3000/guest/[TOKEN]
+- **Showcase événement** : http://localhost:3000/event/[SLUG]
 
-### Tester avec les données de démo
+### Workflow typique
 
-Après avoir exécuté `npm run db:seed`, vous pouvez :
+1. **Créer un événement**
+   - Allez sur `/admin/events/new`
+   - Remplissez les détails
+   - Configurez RSVP (deadline, +1, repas)
+   - Personnalisez la page showcase
 
-1. **Accéder au dashboard admin**
-   - Allez sur http://localhost:3000/admin
-   - Vous verrez l'événement "Soirée Partenaires 2026"
+2. **Importer les invités**
+   - Format CSV : `firstName,lastName,email,company,tags`
+   - Import manuel ou upload CSV
+   - Les tokens sont générés automatiquement
 
-2. **Tester le parcours invité**
-   - Prenez un token affiché dans la console lors du seed
-   - Ouvrez http://localhost:3000/guest/[TOKEN]
-   - Remplissez le formulaire RSVP
+3. **Envoyer les invitations**
+   - Sélectionnez les invités
+   - Envoyez en masse ou individuellement
+   - Tracking automatique
 
-3. **Voir les réponses**
-   - Retournez sur le dashboard admin
-   - Cliquez sur "Gérer l'événement"
-   - Consultez la liste des invités et leurs réponses
+4. **Suivre les réponses**
+   - Dashboard en temps réel
+   - Statistiques et analytics
+   - Export CSV/PDF
 
-## 🗄️ Structure du projet
-
-```
-invitation/
-├── app/                    # Next.js App Router
-│   ├── api/               # API Routes
-│   │   ├── guest/        # Authentification invité
-│   │   ├── rsvp/         # Gestion des réponses
-│   │   └── admin/        # API admin
-│   ├── admin/            # Pages admin
-│   ├── guest/            # Pages invité (RSVP)
-│   ├── layout.tsx        # Layout principal
-│   ├── page.tsx          # Page d'accueil
-│   └── globals.css       # Styles globaux
-├── components/
-│   └── ui/               # Composants shadcn/ui
-├── lib/
-│   ├── auth.ts           # Authentification & tokens
-│   ├── email.ts          # Envoi d'emails & templates
-│   ├── prisma.ts         # Client Prisma
-│   ├── qrcode.ts         # Génération QR codes
-│   └── utils.ts          # Utilitaires
-├── prisma/
-│   ├── schema.prisma     # Schéma de base de données
-│   └── seed.ts           # Données de démo
-├── .env.example          # Variables d'environnement exemple
-├── package.json
-└── README.md
-```
-
-## 🎨 Personnalisation
-
-### Thème et couleurs
-
-Éditez `app/globals.css` pour personnaliser les couleurs :
-
-```css
-:root {
-  --primary: 262.1 83.3% 57.8%; /* Violet par défaut */
-  /* ... autres variables ... */
-}
-```
-
-### Templates d'emails
-
-Les templates sont dans `lib/email.ts`. Personnalisez :
-- `getInvitationEmailTemplate()` : Email d'invitation
-- `getConfirmationEmailTemplate()` : Email de confirmation
-
-## 🔧 Commandes utiles
-
-```bash
-# Développement
-npm run dev                 # Lancer le serveur de dev
-
-# Base de données
-npm run db:generate         # Générer le client Prisma
-npm run db:push            # Appliquer le schéma
-npm run db:studio          # Ouvrir Prisma Studio (GUI)
-npm run db:seed            # Charger les données de démo
-
-# Production
-npm run build              # Build de production
-npm start                  # Démarrer en production
-
-# Autres
-npm run lint               # Linter le code
-```
-
-## 📊 Prisma Studio
-
-Pour visualiser et gérer vos données avec une interface graphique :
-
-```bash
-npm run db:studio
-```
-
-Ouvre http://localhost:5555 avec une interface pour explorer :
-- Les événements
-- Les invités
-- Les RSVP
-- Les logs d'emails
-- etc.
-
-## 🚢 Déploiement
-
-### Vercel (recommandé)
-
-1. Push votre code sur GitHub
-2. Connectez-vous à [Vercel](https://vercel.com)
-3. Importez votre repository
-4. Configurez les variables d'environnement
-5. Déployez !
-
-**Important** : Utilisez une base de données PostgreSQL hébergée (Neon, Supabase, PlanetScale, etc.)
-
-### Variables d'environnement en production
-
-N'oubliez pas de configurer :
-- `DATABASE_URL` : URL de votre base de données
-- `NEXT_PUBLIC_APP_URL` : URL publique de votre app
-- `JWT_SECRET` : Secret unique et sécurisé
-- Configuration email (Resend, SendGrid, etc.)
-
-## 🔐 Sécurité
-
-- ✅ Tokens JWT signés et expirables
-- ✅ Tokens d'invitation hashés en base
-- ✅ Rate limiting (à implémenter en production)
-- ✅ Validation des données (Zod)
-- ✅ HTTPS obligatoire en production
-- ✅ Variables d'environnement sécurisées
-
-## 🐛 Dépannage
-
-### Erreur de connexion à la base de données
-
-```bash
-# Vérifiez que PostgreSQL est démarré
-pg_isready
-
-# Vérifiez votre DATABASE_URL dans .env
-# Format : postgresql://USER:PASSWORD@HOST:PORT/DATABASE
-```
-
-### Erreur Prisma
-
-```bash
-# Régénérez le client Prisma
-npm run db:generate
-
-# Réinitialisez la base de données
-npm run db:push
-```
-
-### Emails non envoyés
-
-- Vérifiez vos identifiants SMTP dans `.env`
-- Pour le dev, utilisez Ethereal Email
-- Consultez la console pour les erreurs
-- Vérifiez les logs dans la table `EmailLog`
-
-## 🎯 Roadmap / TODO
-
-- [ ] Ajout du support i18n (FR/EN) avec next-intl
-- [ ] Import CSV des invités
-- [ ] Export Excel des réponses
-- [ ] Personnalisation des templates emails (UI)
-- [ ] Création d'événements via UI admin
-- [ ] Rappels automatiques avant deadline
-- [ ] Authentification admin complète
-- [ ] Rate limiting des API
-- [ ] Tests unitaires et E2E
-- [ ] Mode sombre
-
-## 📄 Licence
-
-MIT
-
-## 🤝 Contribution
-
-Les contributions sont les bienvenues ! N'hésitez pas à ouvrir une issue ou une pull request.
+5. **Check-in le jour J**
+   - Scanner les QR codes
+   - Validation instantanée
 
 ---
 
-Fait avec ❤️ pour simplifier la gestion d'événements
+## 📚 Documentation
+
+### Guides
+
+- 🚀 [**Démarrage Rapide (5 min)**](GUIDE-DEMARRAGE-RAPIDE.md) - Essayez l'app en local
+- ⚠️ [**Pré-Déploiement Vercel**](GUIDE-PRE-DEPLOIEMENT.md) - Checklist avant déploiement
+- 🎓 [**Tutoriels Complets**](TUTORIELS.md) - Guide d'utilisation détaillé
+- 🚀 [**Guide Vercel**](DEPLOIEMENT-VERCEL.md) - Déploiement pas à pas
+
+### Rapports & Status
+
+- ✅ [**Rapport Phase 1**](RAPPORT-PHASE-1-FINAL.md) - État complet du projet
+- 🔧 [**Guide Finalisation**](GUIDE-FINALISATION.md) - Migration base de données
+- ✅ [**Vérification**](VERIFICATION-REPORT.md) - Tests et validation
+
+### Techniques
+
+- 📊 [**Schema Prisma**](prisma/schema.prisma) - Modèle de données
+- 🧪 [**Tests E2E**](tests/README.md) - Tests Playwright
+- 🌱 [**Seeds & Démos**](prisma/README-DEMOS.md) - Données de démo
+
+---
+
+## 🔧 Scripts NPM
+
+### Développement
+```bash
+npm run dev              # Lancer en mode dev
+npm run build            # Build de production
+npm start                # Lancer le build
+npm run lint             # Linter le code
+```
+
+### Base de données
+```bash
+npm run db:generate      # Générer le client Prisma
+npm run db:migrate       # Appliquer les migrations
+npm run db:push          # Pusher le schema (dev)
+npm run db:studio        # Ouvrir Prisma Studio
+npm run db:seed          # Seed données de base
+npm run db:seed:demo     # Seed événement démo
+```
+
+### Tests
+```bash
+npm run test:e2e         # Tests E2E Playwright
+npm run test:e2e:ui      # Tests en mode UI
+npm run test:e2e:debug   # Debug tests
+```
+
+---
+
+## 🏗️ Structure du Projet
+
+```
+invitation/
+├── app/                      # Application Next.js 15 (App Router)
+│   ├── admin/               # Dashboard admin
+│   │   ├── events/          # Gestion événements
+│   │   ├── setup/           # Configuration initiale
+│   │   └── system/          # Système & DB status
+│   ├── guest/[token]/       # Page RSVP invités
+│   ├── event/[slug]/        # Page showcase publique
+│   └── api/                 # Routes API
+│       ├── admin/           # API admin
+│       └── guest/           # API invités
+│
+├── components/              # Composants React
+│   ├── ui/                 # shadcn/ui components
+│   ├── admin/              # Composants admin
+│   ├── guest/              # Composants invités
+│   └── showcase/           # Composants showcase
+│
+├── lib/                     # Utilitaires & config
+│   ├── prisma.ts           # Client Prisma
+│   ├── auth.ts             # Authentification JWT
+│   ├── encryption.ts       # Encryption AES-256
+│   ├── email-service.ts    # Service email unifié
+│   ├── rate-limit.ts       # Rate limiting
+│   └── env.ts              # Validation environnement
+│
+├── prisma/                  # Prisma ORM
+│   ├── schema.prisma       # Schéma de la DB
+│   ├── migrations/         # Migrations (6)
+│   └── seed*.ts            # Scripts de seed
+│
+├── scripts/                 # Scripts utilitaires
+│   ├── apply-all-migrations.sql
+│   ├── check-db-status.sql
+│   └── setup-database.sh
+│
+├── tests/                   # Tests E2E Playwright
+│
+└── public/                  # Assets statiques
+```
+
+---
+
+## 🔐 Sécurité
+
+### Mesures Implémentées
+
+- ✅ **Encryption** : AES-256-GCM pour les secrets (API keys)
+- ✅ **Hashing** : SHA-256 pour les tokens invités
+- ✅ **JWT** : Authentification sécurisée avec expiration
+- ✅ **Rate Limiting** : Protection contre le spam et brute force
+- ✅ **SQL Injection** : Requêtes préparées avec Prisma
+- ✅ **XSS Protection** : Sanitisation avec DOMPurify
+- ✅ **CSRF Protection** : Validation des origines
+- ✅ **Webhooks** : Signatures HMAC pour tous les providers
+- ✅ **Images** : Liste blanche de domaines autorisés
+
+### Variables Sensibles
+
+**Ne JAMAIS committer** :
+- `.env` (dans `.gitignore`)
+- Clés API (Resend, SendGrid)
+- DATABASE_URL avec credentials
+- JWT_SECRET et ENCRYPTION_KEY
+
+**En production** :
+- Générez des secrets forts (64+ caractères)
+- Utilisez les variables d'environnement Vercel
+- Activez HTTPS (automatique sur Vercel)
+- Configurez les webhooks avec signatures
+
+---
+
+## 🧪 Tests
+
+### Tests E2E avec Playwright
+
+```bash
+# Lancer les tests
+npm run test:e2e
+
+# Mode UI interactif
+npm run test:e2e:ui
+
+# Mode debug
+npm run test:e2e:debug
+
+# Générer un rapport
+npm run test:e2e:report
+```
+
+**Tests inclus** :
+- ✅ Navigation et pages
+- ✅ Création d'événement
+- ✅ Import CSV invités
+- ✅ Formulaire RSVP
+- ✅ Envoi d'emails
+
+---
+
+## 🐛 Résolution de Problèmes
+
+### Erreur : "Prisma Client not found"
+
+**Solution** :
+```bash
+npm run db:generate
+```
+
+### Erreur : "JWT_SECRET must be defined"
+
+**Solution** : Ajoutez `JWT_SECRET` dans `.env` (voir `.env.example`)
+
+### Erreur : "Email sending failed"
+
+**Vérifiez** :
+- `EMAIL_PROVIDER` est défini (resend ou sendgrid)
+- `RESEND_API_KEY` ou `SENDGRID_API_KEY` est configuré
+- `EMAIL_FROM` est vérifié chez le provider
+
+### Erreur de build
+
+**Vérifiez** :
+```bash
+# Test build local
+npm run build
+
+# Vérifier TypeScript
+npx tsc --noEmit
+```
+
+### Base de données ne se connecte pas
+
+**Vérifiez** :
+- `DATABASE_URL` est correcte dans `.env`
+- PostgreSQL est lancé (si local)
+- Les migrations sont appliquées : `npm run db:migrate`
+
+---
+
+## 📈 Roadmap
+
+### Phase 1 ✅ (Complète)
+- ✅ Gestion événements & invités
+- ✅ Formulaire RSVP complet
+- ✅ Emails automatisés (3 templates)
+- ✅ QR Codes & check-in
+- ✅ Dashboard analytics
+- ✅ Sécurité renforcée
+- ✅ Multi-provider email
+
+### Phase 2 🔄 (En cours)
+- 🔄 Billetterie & paiements (Stripe)
+- 🔄 Check-in mobile app
+- 🔄 Analytics avancés
+- 🔄 Multi-langue (i18n)
+- 🔄 Notifications push
+- 🔄 Export PDF personnalisé
+
+### Phase 3 📅 (Prévu)
+- 📅 Intégrations tierces (Eventbrite, Mailchimp)
+- 📅 API publique
+- 📅 Webhooks sortants
+- 📅 Templates email builder
+- 📅 A/B testing emails
+
+---
+
+## 🤝 Contribution
+
+Les contributions sont les bienvenues !
+
+1. Fork le projet
+2. Créez une branche feature (`git checkout -b feature/AmazingFeature`)
+3. Committez vos changements (`git commit -m 'feat: Add AmazingFeature'`)
+4. Pushez sur la branche (`git push origin feature/AmazingFeature`)
+5. Ouvrez une Pull Request
+
+---
+
+## 📄 Licence
+
+Ce projet est sous licence MIT - voir le fichier [LICENSE](LICENSE) pour plus de détails.
+
+---
+
+## 🙏 Remerciements
+
+- [Next.js](https://nextjs.org/) - Framework React
+- [Prisma](https://www.prisma.io/) - ORM TypeScript
+- [shadcn/ui](https://ui.shadcn.com/) - Composants UI
+- [Radix UI](https://www.radix-ui.com/) - Primitives accessibles
+- [Tailwind CSS](https://tailwindcss.com/) - Utility-first CSS
+- [Resend](https://resend.com/) - Email API
+- [Vercel](https://vercel.com/) - Hébergement
+- [Neon](https://neon.tech/) - PostgreSQL serverless
+
+---
+
+## 📞 Support & Contact
+
+- **Documentation** : Voir les guides dans ce repository
+- **Issues** : [GitHub Issues](https://github.com/Weevup/invitation/issues)
+- **Email** : contact@weevup.com
+
+---
+
+<div align="center">
+
+**Fait avec ❤️ par [Weevup](https://weevup.com)**
+
+⭐ Si ce projet vous plaît, donnez-lui une étoile sur GitHub !
+
+</div>
