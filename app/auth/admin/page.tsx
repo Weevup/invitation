@@ -72,7 +72,7 @@ export default function LoginPage() {
                 <Input
                   id="email"
                   type="email"
-                  placeholder="admin@weevup.com"
+                  placeholder="contact@weevup.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
@@ -113,7 +113,7 @@ export default function LoginPage() {
             <div className="mt-6 text-center text-sm text-gray-600">
               <p>Compte de démonstration :</p>
               <p className="font-mono text-xs mt-1">
-                admin@weevup.com / admin123
+                contact@weevup.com / admin123
               </p>
             </div>
           </CardContent>
