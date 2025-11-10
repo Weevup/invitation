@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { sendEmail } from '@/lib/email-service'
+import { requireAdmin, handleAuthError } from '@/lib/auth-utils'
 
 export async function POST(request: NextRequest) {
   try {
+    await requireAdmin()
+
     const { integrationId } = await request.json()
 
     if (!integrationId) {
@@ -70,12 +73,6 @@ export async function POST(request: NextRequest) {
     }
   } catch (error) {
     console.error('Error testing integration:', error)
-    return NextResponse.json(
-      {
-        error: 'Une erreur est survenue lors du test',
-        details: error instanceof Error ? error.message : 'Unknown error',
-      },
-      { status: 500 }
-    )
+    return handleAuthError(error)
   }
 }

@@ -1,10 +1,15 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { requireAdmin, handleAuthError } from '@/lib/auth-utils'
+import { getEventFilter } from '@/lib/permissions'
 
 export async function GET() {
   try {
-    // Fetch all events with counts
+    const session = await requireAdmin()
+
+    // Fetch only current admin's events with counts
     const events = await prisma.event.findMany({
+      where: getEventFilter(session.user.id),
       include: {
         _count: {
           select: {
@@ -25,8 +30,13 @@ export async function GET() {
       return eventDate.toDateString() === now.toDateString()
     })
 
-    // Fetch recent RSVPs
+    // Fetch recent RSVPs (only from current admin's events)
     const recentRsvps = await prisma.rSVP.findMany({
+      where: {
+        event: {
+          adminId: session.user.id
+        }
+      },
       take: 5,
       orderBy: { createdAt: 'desc' },
       include: {
@@ -44,9 +54,14 @@ export async function GET() {
       }
     })
 
-    // Fetch email stats
+    // Fetch email stats (only from current admin's events)
     const emailStats = await prisma.emailTracking.groupBy({
       by: ['status'],
+      where: {
+        event: {
+          adminId: session.user.id
+        }
+      },
       _count: {
         _all: true
       }
@@ -65,13 +80,21 @@ export async function GET() {
     const openRate = totalEmails > 0 ? Math.round((openedEmails / totalEmails) * 100) : 0
     const clickRate = totalEmails > 0 ? Math.round((clickedEmails / totalEmails) * 100) : 0
 
-    // Get confirmed vs pending RSVPs
+    // Get confirmed vs pending RSVPs (only from current admin's events)
     const confirmedRsvps = await prisma.rSVP.count({
-      where: { attending: true }
+      where: {
+        attending: true,
+        event: {
+          adminId: session.user.id
+        }
+      }
     })
     const pendingRsvps = await prisma.guest.count({
       where: {
-        rsvp: null
+        rsvp: null,
+        event: {
+          adminId: session.user.id
+        }
       }
     })
 
@@ -126,9 +149,6 @@ export async function GET() {
     })
   } catch (error) {
     console.error('Error fetching dashboard stats:', error)
-    return NextResponse.json(
-      { error: 'Failed to fetch statistics' },
-      { status: 500 }
-    )
+    return handleAuthError(error)
   }
 }

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { sendBulkInvitations } from '@/lib/email/invitations'
 import { EmailType } from '@prisma/client'
+import { requireAdmin, handleAuthError } from '@/lib/auth-utils'
+import { requireEventOwnership } from '@/lib/permissions'
 
 /**
  * POST /api/admin/send-invitations
@@ -8,6 +10,7 @@ import { EmailType } from '@prisma/client'
  */
 export async function POST(request: NextRequest) {
   try {
+    const session = await requireAdmin()
     const body = await request.json()
     const { eventId, guestIds, emailType = 'INVITE' } = body
 
@@ -17,6 +20,9 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       )
     }
+
+    // Verify admin owns this event before sending invitations
+    await requireEventOwnership(eventId, session.user.id)
 
     // Validate email type
     const validTypes: EmailType[] = ['INVITE', 'INVITATION', 'SAVE_THE_DATE', 'REMINDER', 'CONFIRMATION', 'INFO', 'CUSTOM']
@@ -46,12 +52,6 @@ export async function POST(request: NextRequest) {
     })
   } catch (error) {
     console.error('Error in send-invitations API:', error)
-    return NextResponse.json(
-      {
-        error: 'Failed to send invitations',
-        details: error instanceof Error ? error.message : 'Unknown error'
-      },
-      { status: 500 }
-    )
+    return handleAuthError(error)
   }
 }

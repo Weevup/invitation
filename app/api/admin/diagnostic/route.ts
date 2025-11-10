@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { requireAdmin, handleAuthError } from '@/lib/auth-utils'
 
 interface DiagnosticCheck {
   name: string
@@ -36,22 +37,25 @@ interface WebhookIntegrationSelect {
 }
 
 export async function GET() {
-  const checks: {
-    database: DiagnosticCheck[]
-    email: DiagnosticCheck[]
-    environment: DiagnosticCheck[]
-    data: DiagnosticCheck[]
-    webhooks: DiagnosticCheck[]
-  } = {
-    database: [],
-    email: [],
-    environment: [],
-    data: [],
-    webhooks: []
-  }
-
-  // 1. Database Checks
   try {
+    await requireAdmin()
+
+    const checks: {
+      database: DiagnosticCheck[]
+      email: DiagnosticCheck[]
+      environment: DiagnosticCheck[]
+      data: DiagnosticCheck[]
+      webhooks: DiagnosticCheck[]
+    } = {
+      database: [],
+      email: [],
+      environment: [],
+      data: [],
+      webhooks: []
+    }
+
+    // 1. Database Checks
+    try {
     await prisma.$queryRaw`SELECT 1`
     checks.database.push({
       name: 'Connexion PostgreSQL',
@@ -395,7 +399,10 @@ export async function GET() {
       message: 'Erreur lors de la vérification des webhooks',
       details: error instanceof Error ? error.message : String(error)
     })
-  }
+    }
 
-  return NextResponse.json(checks)
+    return NextResponse.json(checks)
+  } catch (error) {
+    return handleAuthError(error)
+  }
 }

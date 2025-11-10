@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { generateGuestToken, hashToken } from '@/lib/auth'
 import bcrypt from 'bcryptjs'
+import { requireAdmin, handleAuthError } from '@/lib/auth-utils'
 
 function generateToken(): string {
   return generateGuestToken()
@@ -9,6 +10,19 @@ function generateToken(): string {
 
 export async function POST() {
   try {
+    await requireAdmin()
+
+    // Additional safety: Only allow in development
+    if (process.env.NODE_ENV === 'production') {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Cette opération est désactivée en production',
+        },
+        { status: 403 }
+      )
+    }
+
     // Check if events already exist
     const existingEvents = await prisma.event.findMany()
     if (existingEvents.length > 0) {
@@ -681,9 +695,6 @@ JOUR 2 - Mardi 16 septembre
 
   } catch (error) {
     console.error('Seed error:', error)
-    return NextResponse.json(
-      { error: 'Failed to seed database', details: error instanceof Error ? error.message : 'Unknown error' },
-      { status: 500 }
-    )
+    return handleAuthError(error)
   }
 }
