@@ -4,6 +4,8 @@ import { prisma } from '@/lib/prisma'
 import { sendEmail, getConfirmationEmailTemplate } from '@/lib/email'
 import { generateQRCode, getCheckinUrl } from '@/lib/qrcode'
 import { formatDateTime } from '@/lib/utils'
+import { rsvpRateLimit, getRateLimitIdentifier, getRateLimitHeaders } from '@/lib/rate-limit'
+import { rsvpSubmissionSchema, validateSchema } from '@/lib/validations'
 
 export async function POST(
   request: NextRequest,
@@ -11,6 +13,25 @@ export async function POST(
 ) {
   try {
     const { token } = await params
+
+    // Rate limiting
+    const identifier = getRateLimitIdentifier(request, token)
+    const rateLimitResult = await rsvpRateLimit.limit(identifier)
+
+    if (!rateLimitResult.success) {
+      return NextResponse.json(
+        {
+          error: 'RATE_LIMIT_EXCEEDED',
+          message: 'Trop de tentatives. Veuillez réessayer dans quelques minutes.',
+          suggestion: `Vous pourrez réessayer après ${rateLimitResult.reset.toLocaleTimeString('fr-FR')}`
+        },
+        {
+          status: 429,
+          headers: getRateLimitHeaders(rateLimitResult)
+        }
+      )
+    }
+
     const guest = await validateGuestToken(token)
 
     if (!guest) {
@@ -26,7 +47,19 @@ export async function POST(
 
     const body = await request.json()
 
-    // Validate data
+    // Validate data with Zod
+    const validation = validateSchema(rsvpSubmissionSchema, body)
+    if (!validation.success) {
+      return NextResponse.json(
+        {
+          error: 'VALIDATION_ERROR',
+          message: 'Les données soumises sont invalides',
+          errors: validation.errors,
+        },
+        { status: 400 }
+      )
+    }
+
     const {
       attending,
       plusOnes,
@@ -36,7 +69,7 @@ export async function POST(
       transportNeeds,
       lodgingNeeds,
       consentPhotos,
-    } = body
+    } = validation.data
 
     // Check if deadline passed
     if (guest.event.rsvpDeadline && new Date(guest.event.rsvpDeadline) < new Date()) {

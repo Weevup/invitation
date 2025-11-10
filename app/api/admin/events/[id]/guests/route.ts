@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { generateGuestToken, hashToken } from '@/lib/auth'
+import { adminApiRateLimit, getRateLimitIdentifier, getRateLimitHeaders } from '@/lib/rate-limit'
+import { createGuestSchema, validateSchema } from '@/lib/validations'
 
 export async function POST(
   request: NextRequest,
@@ -8,7 +10,40 @@ export async function POST(
 ) {
   try {
     const { id: eventId } = await params
+
+    // Rate limiting
+    const identifier = getRateLimitIdentifier(request, eventId)
+    const rateLimitResult = await adminApiRateLimit.limit(identifier)
+
+    if (!rateLimitResult.success) {
+      return NextResponse.json(
+        {
+          error: 'RATE_LIMIT_EXCEEDED',
+          message: 'Trop de requêtes. Veuillez ralentir.',
+        },
+        {
+          status: 429,
+          headers: getRateLimitHeaders(rateLimitResult)
+        }
+      )
+    }
+
     const body = await request.json()
+
+    // Validate data with Zod
+    const validation = validateSchema(createGuestSchema, body)
+    if (!validation.success) {
+      return NextResponse.json(
+        {
+          error: 'VALIDATION_ERROR',
+          message: 'Les données sont invalides',
+          errors: validation.errors,
+        },
+        { status: 400 }
+      )
+    }
+
+    const { firstName, lastName, email, company, tags } = validation.data
 
     // Check if event exists
     const event = await prisma.event.findUnique({
@@ -27,7 +62,7 @@ export async function POST(
       where: {
         eventId_email: {
           eventId,
-          email: body.email,
+          email,
         },
       },
     })
@@ -49,11 +84,11 @@ export async function POST(
     const guest = await prisma.guest.create({
       data: {
         eventId,
-        firstName: body.firstName,
-        lastName: body.lastName,
-        email: body.email,
-        company: body.company || null,
-        tags: body.tags || [],
+        firstName,
+        lastName,
+        email,
+        company: company || null,
+        tags: tags || [],
         token,
         tokenHash,
         tokenExpiry,
