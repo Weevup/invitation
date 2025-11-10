@@ -164,7 +164,7 @@ export default function DiagnosticPage() {
           <CardHeader>
             <CardTitle>Diagnostic de connexion</CardTitle>
             <CardDescription>
-              Testez l'état du système d'authentification et la création du compte admin
+              Testez l&apos;état du système d&apos;authentification et la création du compte admin
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
