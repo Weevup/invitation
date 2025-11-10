@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { checkinRateLimit, getRateLimitIdentifier, getRateLimitHeaders } from '@/lib/rate-limit'
+import { checkinRateLimit, getRateLimitIdentifier, getRateLimitHeaders, normalizeRateLimitResult } from '@/lib/rate-limit'
 import { checkinSchema, validateSchema } from '@/lib/validations'
 
 export async function POST(
@@ -12,7 +12,8 @@ export async function POST(
 
     // Rate limiting
     const identifier = getRateLimitIdentifier(request, qrCodeId)
-    const rateLimitResult = await checkinRateLimit.limit(identifier)
+    const rawResult = await checkinRateLimit.limit(identifier)
+    const rateLimitResult = normalizeRateLimitResult(rawResult)
 
     if (!rateLimitResult.success) {
       return NextResponse.json(

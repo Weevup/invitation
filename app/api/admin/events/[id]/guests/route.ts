@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { generateGuestToken, hashToken } from '@/lib/auth'
-import { adminApiRateLimit, getRateLimitIdentifier, getRateLimitHeaders } from '@/lib/rate-limit'
+import { adminApiRateLimit, getRateLimitIdentifier, getRateLimitHeaders, normalizeRateLimitResult } from '@/lib/rate-limit'
 import { createGuestSchema, validateSchema } from '@/lib/validations'
 
 export async function POST(
@@ -13,7 +13,8 @@ export async function POST(
 
     // Rate limiting
     const identifier = getRateLimitIdentifier(request, eventId)
-    const rateLimitResult = await adminApiRateLimit.limit(identifier)
+    const rawResult = await adminApiRateLimit.limit(identifier)
+    const rateLimitResult = normalizeRateLimitResult(rawResult)
 
     if (!rateLimitResult.success) {
       return NextResponse.json(

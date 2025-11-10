@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { sendEmail, getConfirmationEmailTemplate } from '@/lib/email'
 import { generateQRCode, getCheckinUrl } from '@/lib/qrcode'
 import { formatDateTime } from '@/lib/utils'
-import { rsvpRateLimit, getRateLimitIdentifier, getRateLimitHeaders } from '@/lib/rate-limit'
+import { rsvpRateLimit, getRateLimitIdentifier, getRateLimitHeaders, normalizeRateLimitResult } from '@/lib/rate-limit'
 import { rsvpSubmissionSchema, validateSchema } from '@/lib/validations'
 
 export async function POST(
@@ -16,7 +16,8 @@ export async function POST(
 
     // Rate limiting
     const identifier = getRateLimitIdentifier(request, token)
-    const rateLimitResult = await rsvpRateLimit.limit(identifier)
+    const rawResult = await rsvpRateLimit.limit(identifier)
+    const rateLimitResult = normalizeRateLimitResult(rawResult)
 
     if (!rateLimitResult.success) {
       return NextResponse.json(

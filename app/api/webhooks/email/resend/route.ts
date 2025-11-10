@@ -44,15 +44,28 @@ export async function POST(request: NextRequest) {
     const body = await request.text()
     const event: ResendEvent = JSON.parse(body)
 
-    // Verify webhook signature
+    // REQUIRED: Verify webhook signature for security
     const signature = request.headers.get('svix-signature') || request.headers.get('resend-signature')
     const webhookSecret = process.env.RESEND_WEBHOOK_SECRET
 
-    if (signature && webhookSecret) {
+    // Webhook verification is mandatory in production
+    if (process.env.NODE_ENV === 'production' && !webhookSecret) {
+      console.error('RESEND_WEBHOOK_SECRET must be configured in production')
+      return NextResponse.json({ error: 'Webhook not configured' }, { status: 500 })
+    }
+
+    // Verify signature if configured
+    if (webhookSecret) {
+      if (!signature) {
+        return NextResponse.json({ error: 'Missing signature header' }, { status: 401 })
+      }
       const isValid = verifyWebhookSignature(body, signature, webhookSecret)
       if (!isValid) {
         return NextResponse.json({ error: 'Invalid signature' }, { status: 401 })
       }
+    } else if (process.env.NODE_ENV !== 'development') {
+      // In non-dev environments without key, log warning but allow (for staging)
+      console.warn('⚠️  Resend webhook signature verification is disabled - configure RESEND_WEBHOOK_SECRET')
     }
 
     const { type, data } = event

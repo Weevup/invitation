@@ -61,16 +61,29 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json() as MailgunEvent
 
-    // Verify webhook signature
+    // REQUIRED: Verify webhook signature for security
     const webhookSigningKey = process.env.MAILGUN_WEBHOOK_SIGNING_KEY
 
+    // Webhook verification is mandatory in production
+    if (process.env.NODE_ENV === 'production' && !webhookSigningKey) {
+      console.error('MAILGUN_WEBHOOK_SIGNING_KEY must be configured in production')
+      return NextResponse.json({ error: 'Webhook not configured' }, { status: 500 })
+    }
+
+    // Verify signature if configured
     if (webhookSigningKey) {
+      if (!body.signature || !body.signature.timestamp || !body.signature.token || !body.signature.signature) {
+        return NextResponse.json({ error: 'Missing signature data' }, { status: 401 })
+      }
       const { timestamp, token, signature } = body.signature
       const isValid = verifyMailgunSignature(timestamp, token, signature, webhookSigningKey)
 
       if (!isValid) {
         return NextResponse.json({ error: 'Invalid signature' }, { status: 401 })
       }
+    } else if (process.env.NODE_ENV !== 'development') {
+      // In non-dev environments without key, log warning but allow (for staging)
+      console.warn('⚠️  Mailgun webhook signature verification is disabled - configure MAILGUN_WEBHOOK_SIGNING_KEY')
     }
 
     const eventData = body['event-data']

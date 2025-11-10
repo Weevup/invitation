@@ -1,13 +1,50 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
+/**
+ * Validate that the redirect URL is safe and belongs to our domain
+ */
+function isValidRedirectUrl(url: string | null): string {
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+
+  // If no URL provided, use base URL
+  if (!url) {
+    return baseUrl;
+  }
+
+  try {
+    const parsed = new URL(url);
+    const baseUrlParsed = new URL(baseUrl);
+
+    // Only allow redirects to:
+    // 1. Same origin as NEXT_PUBLIC_APP_URL
+    // 2. Localhost (for development)
+    const allowedHosts = [
+      baseUrlParsed.hostname,
+      'localhost',
+      '127.0.0.1',
+    ];
+
+    if (allowedHosts.includes(parsed.hostname)) {
+      return url;
+    }
+
+    // Invalid URL, fallback to base
+    console.warn(`Rejected redirect to untrusted host: ${parsed.hostname}`);
+    return baseUrl;
+  } catch (error) {
+    // Invalid URL format, fallback to base
+    console.warn(`Invalid redirect URL format: ${url}`);
+    return baseUrl;
+  }
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const url = request.nextUrl.searchParams.get('url');
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-  const redirectUrl = url || baseUrl;
+  const redirectUrl = isValidRedirectUrl(url);
 
   try {
     const { id: trackingId } = await params;

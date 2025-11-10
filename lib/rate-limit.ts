@@ -138,16 +138,45 @@ export function getRateLimitIdentifier(request: Request, fallback?: string): str
 }
 
 /**
+ * Normalized rate limit result
+ */
+export interface NormalizedRateLimitResult {
+  success: boolean
+  limit: number
+  remaining: number
+  reset: Date
+  pending?: Promise<unknown>
+}
+
+/**
+ * Normalize rate limit result to consistent format
+ * Handles both Upstash (reset: number) and MemoryRatelimit (reset: Date)
+ */
+export function normalizeRateLimitResult(result: {
+  success: boolean
+  limit: number
+  remaining: number
+  reset: number | Date
+  pending?: Promise<unknown>
+}): NormalizedRateLimitResult {
+  return {
+    ...result,
+    reset: typeof result.reset === 'number' ? new Date(result.reset) : result.reset,
+  }
+}
+
+/**
  * Headers de rate limit pour la réponse
  */
 export function getRateLimitHeaders(result: {
   limit: number
   remaining: number
-  reset: Date
+  reset: Date | number
 }) {
+  const reset = typeof result.reset === 'number' ? new Date(result.reset) : result.reset
   return {
     'X-RateLimit-Limit': result.limit.toString(),
     'X-RateLimit-Remaining': result.remaining.toString(),
-    'X-RateLimit-Reset': result.reset.getTime().toString(),
+    'X-RateLimit-Reset': reset.getTime().toString(),
   }
 }
