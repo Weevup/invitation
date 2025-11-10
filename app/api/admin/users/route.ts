@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
 import { z } from 'zod'
+import { auth } from '@/auth'
 
 // Validation schema
 const createUserSchema = z.object({
@@ -14,6 +15,15 @@ const createUserSchema = z.object({
 // GET /api/admin/users - Liste tous les utilisateurs
 export async function GET() {
   try {
+    // Vérifier l'authentification
+    const session = await auth()
+    if (!session?.user) {
+      return NextResponse.json(
+        { error: 'Non authentifié' },
+        { status: 401 }
+      )
+    }
+
     const users = await prisma.user.findMany({
       select: {
         id: true,
@@ -50,6 +60,15 @@ export async function GET() {
 // POST /api/admin/users - Créer un nouvel utilisateur
 export async function POST(request: NextRequest) {
   try {
+    // Vérifier l'authentification
+    const session = await auth()
+    if (!session?.user) {
+      return NextResponse.json(
+        { error: 'Non authentifié' },
+        { status: 401 }
+      )
+    }
+
     const body = await request.json()
 
     // Validation
