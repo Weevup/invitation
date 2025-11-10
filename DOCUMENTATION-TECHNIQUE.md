@@ -221,9 +221,9 @@ const event: any = await prisma.event.findUnique(...)
 - **Multi-provider email** (20250108)
 - **Invitation tracking** (20251109)
 
-### Phase 1.5 : Corrections de Sécurité (10 Nov 2025)
+### Phase 1.5 : Corrections de Sécurité & Optimisations (10 Nov 2025)
 
-**⚠️ CRITIQUE** : 67 erreurs TypeScript identifiées et corrigées.
+**⚠️ CRITIQUE** : 67 erreurs TypeScript identifiées et corrigées + optimisation middleware Edge Function.
 
 #### 3.1 Vulnérabilités SQL Injection
 
@@ -347,6 +347,77 @@ openssl rand -hex 16
 ```
 
 **Raison** : DB pas toujours accessible pendant le build local.
+
+#### 3.6 Middleware Edge Function - Limite de Taille
+
+**Fichiers** : `middleware.ts`, `auth.config.ts`
+
+**Problème** :
+```
+Error: The Edge Function "middleware" size is 1.03 MB and your plan size limit is 1 MB.
+```
+
+**Cause** :
+```typescript
+// ❌ AVANT (1.03 MB - trop lourd)
+import { auth } from '@/auth'  // ⚠️ Importe Prisma + bcrypt + Node.js APIs
+```
+
+`auth.ts` contient :
+- ❌ `@prisma/client` (très lourd)
+- ❌ `bcryptjs` (Node.js APIs incompatibles avec Edge Runtime)
+- ❌ Logique d'authentification complète avec DB
+
+**Solution** : Séparer la configuration légère pour le middleware
+```typescript
+// ✅ APRÈS (< 1 MB - Edge compatible)
+// middleware.ts
+import NextAuth from 'next-auth'
+import { authConfig } from './auth.config'
+
+export default NextAuth(authConfig).auth
+
+// auth.config.ts - Configuration légère
+import type { NextAuthConfig } from 'next-auth'
+import { NextResponse } from 'next/server'
+
+export const authConfig = {
+  callbacks: {
+    authorized({ auth, request: { nextUrl } }) {
+      const isLoggedIn = !!auth?.user
+      const isOnAdminApi = nextUrl.pathname.startsWith('/api/admin')
+
+      if (isOnAdminApi) {
+        if (isLoggedIn) return true
+        // Return JSON 401 for API routes
+        return NextResponse.json(
+          { error: 'Unauthorized' },
+          { status: 401 }
+        )
+      }
+      // Redirect for pages
+      return isLoggedIn || !isOnAdmin
+    }
+  }
+}
+```
+
+**Architecture NextAuth v5 recommandée** :
+```
+middleware.ts → auth.config.ts (léger, Edge compatible)
+auth.ts → auth.config.ts + Prisma + bcrypt (lourd, Node.js runtime)
+```
+
+**⚠️ IMPORTANT** :
+- **NE JAMAIS** importer `auth.ts` directement dans `middleware.ts`
+- **NE JAMAIS** importer Prisma dans des fichiers utilisés par le middleware
+- **TOUJOURS** utiliser `auth.config.ts` pour la logique de protection des routes
+
+**Impact** :
+- ✅ Middleware < 1 MB (compatible Vercel Free/Pro)
+- ✅ Edge Runtime compatible
+- ✅ Même fonctionnalité de protection des routes
+- ✅ JSON 401 pour les API routes
 
 ---
 
