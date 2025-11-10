@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { requireAdmin, handleAuthError } from '@/lib/auth-utils'
 
 // GET single template
 export async function GET(
@@ -7,6 +8,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    await requireAdmin()
     const { id } = await params
 
     const template = await prisma.emailTemplate.findUnique({
@@ -22,11 +24,7 @@ export async function GET(
 
     return NextResponse.json(template)
   } catch (error) {
-    console.error('Error fetching template:', error)
-    return NextResponse.json(
-      { error: 'Failed to fetch template' },
-      { status: 500 }
-    )
+    return handleAuthError(error)
   }
 }
 
@@ -36,6 +34,7 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    await requireAdmin()
     const { id } = await params
     const body = await request.json()
 
@@ -59,11 +58,7 @@ export async function PUT(
 
     return NextResponse.json(template)
   } catch (error) {
-    console.error('Error updating template:', error)
-    return NextResponse.json(
-      { error: 'Failed to update template' },
-      { status: 500 }
-    )
+    return handleAuthError(error)
   }
 }
 
@@ -73,6 +68,7 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    await requireAdmin()
     const { id } = await params
 
     // Prevent deletion of default templates
@@ -93,10 +89,6 @@ export async function DELETE(
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error('Error deleting template:', error)
-    return NextResponse.json(
-      { error: 'Failed to delete template' },
-      { status: 500 }
-    )
+    return handleAuthError(error)
   }
 }

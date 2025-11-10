@@ -1,10 +1,15 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { requireAdmin, handleAuthError } from '@/lib/auth-utils'
+import { getEventFilter } from '@/lib/permissions'
 
 export async function GET() {
   try {
-    // Get all events with their RSVPs
+    const session = await requireAdmin()
+
+    // Get only current admin's events with their RSVPs
     const events = await prisma.event.findMany({
+      where: getEventFilter(session.user.id),
       include: {
         rsvps: {
           select: {
@@ -112,9 +117,6 @@ export async function GET() {
     })
   } catch (error) {
     console.error('Analytics error:', error)
-    return NextResponse.json(
-      { error: 'Failed to fetch analytics' },
-      { status: 500 }
-    )
+    return handleAuthError(error)
   }
 }

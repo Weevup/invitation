@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
 import { encrypt, decrypt } from '@/lib/encryption'
+import { requireAdmin, handleAuthError } from '@/lib/auth-utils'
 
 const EmailIntegrationSchema = z.object({
   provider: z.enum(['SENDGRID', 'RESEND', 'MAILGUN', 'SMTP']),
@@ -19,9 +20,14 @@ const EmailIntegrationSchema = z.object({
   isPrimary: z.boolean().default(false),
 })
 
-// GET - List all integrations
+/**
+ * GET /api/admin/integrations/email
+ * Liste toutes les intégrations email (SENSIBLE - clés API)
+ */
 export async function GET() {
   try {
+    const session = await requireAdmin()
+
     const integrations = await prisma.emailIntegration.findMany({
       orderBy: [
         { isPrimary: 'desc' },
@@ -41,17 +47,17 @@ export async function GET() {
 
     return NextResponse.json(safeIntegrations)
   } catch (error) {
-    console.error('Error fetching integrations:', error)
-    return NextResponse.json(
-      { error: 'Failed to fetch integrations' },
-      { status: 500 }
-    )
+    return handleAuthError(error)
   }
 }
 
-// POST - Create or update an integration
+/**
+ * POST /api/admin/integrations/email
+ * Crée ou met à jour une intégration email (SENSIBLE - clés API)
+ */
 export async function POST(request: NextRequest) {
   try {
+    const session = await requireAdmin()
     const body = await request.json()
     const validated = EmailIntegrationSchema.parse(body)
 
@@ -120,23 +126,23 @@ export async function POST(request: NextRequest) {
       },
     })
   } catch (error) {
-    console.error('Error saving integration:', error)
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: 'Invalid data', details: error.errors },
         { status: 400 }
       )
     }
-    return NextResponse.json(
-      { error: 'Failed to save integration' },
-      { status: 500 }
-    )
+    return handleAuthError(error)
   }
 }
 
-// DELETE - Remove an integration
+/**
+ * DELETE /api/admin/integrations/email
+ * Supprime une intégration email (SENSIBLE)
+ */
 export async function DELETE(request: NextRequest) {
   try {
+    const session = await requireAdmin()
     const { searchParams } = new URL(request.url)
     const id = searchParams.get('id')
 
@@ -153,10 +159,6 @@ export async function DELETE(request: NextRequest) {
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error('Error deleting integration:', error)
-    return NextResponse.json(
-      { error: 'Failed to delete integration' },
-      { status: 500 }
-    )
+    return handleAuthError(error)
   }
 }

@@ -188,7 +188,7 @@ export function AdminSidebar() {
           Retour au site
         </Link>
         <Button
-          onClick={() => signOut({ callbackUrl: '/admin/login' })}
+          onClick={() => signOut({ callbackUrl: '/auth/admin' })}
           variant="ghost"
           className="w-full justify-start gap-2 text-sm text-white/60 hover:text-white hover:bg-white/5"
         >

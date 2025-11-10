@@ -2,13 +2,20 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { sendEmail, getInvitationEmailTemplate, getReminderEmailTemplate } from '@/lib/email'
 import { formatDateTime } from '@/lib/utils'
+import { requireAdmin, handleAuthError } from '@/lib/auth-utils'
+import { requireEventOwnership } from '@/lib/permissions'
 
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const session = await requireAdmin()
     const { id: eventId } = await params
+
+    // Verify admin owns this event before sending emails
+    await requireEventOwnership(eventId, session.user.id)
+
     const body = await request.json()
     const { type = 'INVITE', guestIds } = body // type: INVITE or REMINDER
 
@@ -130,12 +137,6 @@ export async function POST(
     })
   } catch (error) {
     console.error('Error sending invitations:', error)
-    return NextResponse.json(
-      {
-        error: 'Erreur lors de l\'envoi des invitations',
-        details: error instanceof Error ? error.message : 'Unknown error',
-      },
-      { status: 500 }
-    )
+    return handleAuthError(error)
   }
 }

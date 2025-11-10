@@ -1,10 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import bcrypt from 'bcryptjs'
+import { requireAdmin, handleAuthError } from '@/lib/auth-utils'
+import { getEventFilter } from '@/lib/permissions'
 
+/**
+ * GET /api/admin/events
+ * Liste tous les événements de l'administrateur connecté
+ */
 export async function GET() {
   try {
+    const session = await requireAdmin()
+
+    // Filtrer les événements par propriétaire
     const events = await prisma.event.findMany({
+      where: getEventFilter(session.user.id),
       orderBy: { createdAt: 'desc' },
       include: {
         _count: {
@@ -18,16 +27,17 @@ export async function GET() {
 
     return NextResponse.json(events)
   } catch (error) {
-    console.error('Error fetching events:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+    return handleAuthError(error)
   }
 }
 
+/**
+ * POST /api/admin/events
+ * Crée un nouvel événement pour l'administrateur connecté
+ */
 export async function POST(request: NextRequest) {
   try {
+    const session = await requireAdmin()
     const body = await request.json()
 
     // Generate slug from name
@@ -39,20 +49,6 @@ export async function POST(request: NextRequest) {
       .replace(/^-|-$/g, '')
       + '-' + Date.now()
 
-    // Create a dummy admin user if none exists
-    let adminUser = await prisma.user.findFirst({ where: { role: 'ADMIN' } })
-    if (!adminUser) {
-      const defaultPassword = await bcrypt.hash('admin123', 10)
-      adminUser = await prisma.user.create({
-        data: {
-          email: 'admin@weevup.com',
-          password: defaultPassword,
-          role: 'ADMIN',
-          name: 'Admin',
-        },
-      })
-    }
-
     const event = await prisma.event.create({
       data: {
         name: body.name,
@@ -62,22 +58,12 @@ export async function POST(request: NextRequest) {
         venueName: body.location || body.venueName,
         address: body.address,
         city: body.city,
-        adminId: adminUser.id,
+        adminId: session.user.id, // Utiliser l'ID de l'utilisateur connecté
       },
     })
 
     return NextResponse.json(event, { status: 201 })
   } catch (error) {
-    console.error('Error creating event:', error)
-
-    // Return detailed error message
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-    return NextResponse.json(
-      {
-        error: 'Erreur lors de la création de l\'événement',
-        details: errorMessage
-      },
-      { status: 500 }
-    )
+    return handleAuthError(error)
   }
 }

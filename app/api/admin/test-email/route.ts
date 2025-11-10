@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { sendEmail } from '@/lib/email/resend'
+import { requireAdmin, handleAuthError } from '@/lib/auth-utils'
 
 /**
  * POST /api/admin/test-email
@@ -7,6 +8,8 @@ import { sendEmail } from '@/lib/email/resend'
  */
 export async function POST(request: NextRequest) {
   try {
+    await requireAdmin()
+
     const body = await request.json()
     const { email, to = email, subject = 'Test Email from Weevup' } = body
 
@@ -126,12 +129,6 @@ export async function POST(request: NextRequest) {
     }
   } catch (error) {
     console.error('Error in test-email API:', error)
-    return NextResponse.json(
-      {
-        error: 'Failed to send test email',
-        details: error instanceof Error ? error.message : 'Unknown error'
-      },
-      { status: 500 }
-    )
+    return handleAuthError(error)
   }
 }
