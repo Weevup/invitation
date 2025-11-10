@@ -85,7 +85,7 @@ export async function POST(
         eventId,
         moduleType,
         isActive: isActive ?? true,
-        config: config ?? null
+        config: config ?? undefined
       },
       update: {
         isActive: isActive ?? undefined,
