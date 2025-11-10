@@ -12,6 +12,7 @@ import Link from 'next/link'
 import { AddGuestDialog } from '@/components/add-guest-dialog'
 import { ImportCSVDialog } from '@/components/import-csv-dialog'
 import { SendInvitationsDialog } from '@/components/send-invitations-dialog'
+import { ModuleSelector } from '@/components/admin/module-selector'
 
 interface Guest {
   id: string
@@ -401,6 +402,14 @@ export default function EventOverviewPage() {
             </Card>
           </Link>
         </div>
+      </div>
+
+      {/* Modules avancés */}
+      <div>
+        <h2 className="text-2xl font-bold text-[#004645] mb-4" style={{ fontFamily: "var(--font-abril)" }}>
+          Fonctionnalités avancées
+        </h2>
+        <ModuleSelector eventId={eventId} />
       </div>
 
       {/* Gestion des communications */}

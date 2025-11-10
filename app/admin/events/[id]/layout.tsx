@@ -15,9 +15,11 @@ import {
   Settings,
   ChevronLeft,
   Calendar,
-  MapPin
+  MapPin,
+  Plane
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useEventModules } from '@/lib/modules'
 
 interface EventData {
   name: string
@@ -36,6 +38,9 @@ export default function EventLayout({
   const eventId = params.id as string
   const [event, setEvent] = useState<EventData | null>(null)
 
+  // Check which modules are active
+  const { hasModule } = useEventModules(eventId)
+
   useEffect(() => {
     fetch(`/api/admin/events/${eventId}`)
       .then(res => res.json())
@@ -43,7 +48,8 @@ export default function EventLayout({
       .catch(console.error)
   }, [eventId])
 
-  const navItems = [
+  // Base navigation items (always visible)
+  const baseNavItems = [
     {
       label: 'Vue d\'ensemble',
       href: `/admin/events/${eventId}`,
@@ -86,6 +92,20 @@ export default function EventLayout({
       icon: Settings,
     },
   ]
+
+  // Module-based navigation items (conditionally added)
+  const moduleNavItems = []
+
+  if (hasModule('TRANSPORT')) {
+    moduleNavItems.push({
+      label: 'Transport',
+      href: `/admin/events/${eventId}/transport`,
+      icon: Plane,
+    })
+  }
+
+  // Combine all nav items
+  const navItems = [...baseNavItems, ...moduleNavItems]
 
   const isActive = (item: typeof navItems[0]) => {
     if (item.exact) {
