@@ -1,13 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { emailService, sendEmailWithTemplate, TemplateVariables } from '@/lib/email-service';
+import { requireAdmin, handleAuthError } from '@/lib/auth-utils';
+import { requireEventOwnership } from '@/lib/permissions';
 
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const session = await requireAdmin();
     const { id: eventId } = await params;
+
+    // Verify admin owns this event before sending emails
+    await requireEventOwnership(eventId, session.user.id);
+
     const body = await request.json();
     const { type, guestIds, scheduleFor, templateId } = body;
 
@@ -205,9 +212,6 @@ export async function POST(
     });
   } catch (error) {
     console.error('Error in send-emails route:', error);
-    return NextResponse.json(
-      { error: 'Erreur lors de l\'envoi des emails' },
-      { status: 500 }
-    );
+    return handleAuthError(error);
   }
 }

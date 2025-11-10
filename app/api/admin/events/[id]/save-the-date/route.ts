@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { requireAdmin, handleAuthError } from '@/lib/auth-utils';
+import { requireEventOwnership } from '@/lib/permissions';
 
 // GET - Récupérer la configuration Save the Date
 export async function GET(
@@ -7,7 +9,11 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const session = await requireAdmin();
     const { id: eventId } = await params;
+
+    // Verify ownership
+    await requireEventOwnership(eventId, session.user.id);
 
     const event = await prisma.event.findUnique({
       where: { id: eventId },
@@ -26,11 +32,7 @@ export async function GET(
 
     return NextResponse.json(event.saveTheDateConfig || {});
   } catch (error) {
-    console.error('Error fetching Save the Date config:', error);
-    return NextResponse.json(
-      { error: 'Erreur lors de la récupération de la configuration' },
-      { status: 500 }
-    );
+    return handleAuthError(error);
   }
 }
 
@@ -40,7 +42,12 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const session = await requireAdmin();
     const { id: eventId } = await params;
+
+    // Verify ownership before updating config
+    await requireEventOwnership(eventId, session.user.id);
+
     const config = await request.json();
 
     const updatedEvent = await prisma.event.update({
@@ -55,10 +62,6 @@ export async function POST(
       config: updatedEvent.saveTheDateConfig,
     });
   } catch (error) {
-    console.error('Error saving Save the Date config:', error);
-    return NextResponse.json(
-      { error: 'Erreur lors de la sauvegarde de la configuration' },
-      { status: 500 }
-    );
+    return handleAuthError(error);
   }
 }
