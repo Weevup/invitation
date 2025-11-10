@@ -14,10 +14,13 @@ import {
   Plug,
   FileText,
   Activity,
-  Mail
+  Mail,
+  LogOut
 } from 'lucide-react'
 import { WeevupLogo } from '@/components/weevup-logo'
 import { cn } from '@/lib/utils'
+import { signOut } from 'next-auth/react'
+import { Button } from '@/components/ui/button'
 
 interface NavSection {
   title: string
@@ -169,7 +172,7 @@ export function AdminSidebar() {
       </nav>
 
       {/* Footer */}
-      <div className="border-t border-white/10 p-4">
+      <div className="border-t border-white/10 p-4 space-y-2">
         <Link
           href="/"
           className="flex items-center gap-2 text-sm text-white/60 hover:text-white transition-colors"
@@ -177,6 +180,14 @@ export function AdminSidebar() {
           <Home className="h-4 w-4" />
           Retour au site
         </Link>
+        <Button
+          onClick={() => signOut({ callbackUrl: '/admin/login' })}
+          variant="ghost"
+          className="w-full justify-start gap-2 text-sm text-white/60 hover:text-white hover:bg-white/5"
+        >
+          <LogOut className="h-4 w-4" />
+          Déconnexion
+        </Button>
       </div>
     </div>
   )
