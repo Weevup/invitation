@@ -2,7 +2,15 @@ import jwt, { Secret, SignOptions } from 'jsonwebtoken'
 import { prisma } from './prisma'
 import crypto from 'crypto'
 
-const JWT_SECRET = (process.env.JWT_SECRET || 'your-secret-key-change-in-production') as Secret
+// Valider que JWT_SECRET est défini en production
+const JWT_SECRET = process.env.JWT_SECRET as Secret
+
+if (!JWT_SECRET && process.env.NODE_ENV === 'production') {
+  throw new Error('JWT_SECRET must be defined in production environment')
+}
+
+// Fallback pour développement uniquement
+const JWT_SECRET_DEV = JWT_SECRET || 'dev-secret-key-not-for-production' as Secret
 
 export interface TokenPayload {
   guestId: string
@@ -12,12 +20,13 @@ export interface TokenPayload {
 }
 
 export function generateToken(payload: TokenPayload, expiresIn: string = '30d'): string {
-  return jwt.sign(payload, JWT_SECRET, { expiresIn } as any)
+  const options: SignOptions = { expiresIn }
+  return jwt.sign(payload, JWT_SECRET_DEV, options)
 }
 
 export function verifyToken(token: string): TokenPayload | null {
   try {
-    return jwt.verify(token, JWT_SECRET) as TokenPayload
+    return jwt.verify(token, JWT_SECRET_DEV) as TokenPayload
   } catch (error) {
     return null
   }
