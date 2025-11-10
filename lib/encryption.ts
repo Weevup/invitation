@@ -5,8 +5,14 @@ import crypto from 'crypto'
  * Uses AES-256-CBC encryption algorithm
  */
 
-// Validate and get encryption key
-const ENCRYPTION_KEY = (() => {
+// Validate and get encryption key (lazy initialization to avoid build-time errors)
+let ENCRYPTION_KEY: string | null = null
+
+function getEncryptionKey(): string {
+  if (ENCRYPTION_KEY !== null) {
+    return ENCRYPTION_KEY
+  }
+
   const key = process.env.ENCRYPTION_KEY
 
   if (!key) {
@@ -21,7 +27,8 @@ const ENCRYPTION_KEY = (() => {
       'Set ENCRYPTION_KEY in .env for production.'
     )
     // Use a random key in development to avoid accidental dependency on default
-    return crypto.randomBytes(32).toString('hex')
+    ENCRYPTION_KEY = crypto.randomBytes(32).toString('hex')
+    return ENCRYPTION_KEY
   }
 
   if (key.length < 32) {
@@ -31,8 +38,9 @@ const ENCRYPTION_KEY = (() => {
     )
   }
 
-  return key
-})()
+  ENCRYPTION_KEY = key
+  return ENCRYPTION_KEY
+}
 
 /**
  * Generate a 32-byte key from the encryption key (for AES-256)
@@ -41,7 +49,7 @@ function getKey(): Buffer {
   return Buffer.from(
     crypto
       .createHash('sha256')
-      .update(ENCRYPTION_KEY)
+      .update(getEncryptionKey())
       .digest('hex')
       .slice(0, 64),
     'hex'
