@@ -1,16 +1,28 @@
-import jwt, { Secret, SignOptions } from 'jsonwebtoken'
+import jwt from 'jsonwebtoken'
 import { prisma } from './prisma'
 import crypto from 'crypto'
 
-// Valider que JWT_SECRET est défini en production
-const JWT_SECRET = process.env.JWT_SECRET as Secret
+// Lazy initialization to avoid build-time errors
+let JWT_SECRET: string | null = null
 
-if (!JWT_SECRET && process.env.NODE_ENV === 'production') {
-  throw new Error('JWT_SECRET must be defined in production environment')
+function getJwtSecret(): string {
+  if (JWT_SECRET !== null) {
+    return JWT_SECRET
+  }
+
+  const secret = process.env.JWT_SECRET
+  if (!secret) {
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('JWT_SECRET must be defined in production')
+    }
+    console.warn('⚠️  Using default JWT_SECRET in development. Set JWT_SECRET in .env for production.')
+    JWT_SECRET = 'dev-secret-change-in-production'
+    return JWT_SECRET
+  }
+
+  JWT_SECRET = secret
+  return JWT_SECRET
 }
-
-// Fallback pour développement uniquement
-const JWT_SECRET_DEV = JWT_SECRET || 'dev-secret-key-not-for-production' as Secret
 
 export interface TokenPayload {
   guestId: string
@@ -19,14 +31,14 @@ export interface TokenPayload {
   type: 'guest' | 'admin'
 }
 
-export function generateToken(payload: TokenPayload, expiresIn: string = '30d'): string {
-  // Cast en any pour éviter les problèmes de compatibilité de types entre versions de jsonwebtoken
-  return jwt.sign(payload, JWT_SECRET_DEV, { expiresIn } as any)
+export function generateToken(payload: TokenPayload, expiresIn: string | number = '30d'): string {
+  // Cast en any pour compatibilité avec différentes versions de @types/jsonwebtoken
+  return jwt.sign(payload, getJwtSecret(), { expiresIn } as any)
 }
 
 export function verifyToken(token: string): TokenPayload | null {
   try {
-    return jwt.verify(token, JWT_SECRET_DEV) as TokenPayload
+    return jwt.verify(token, getJwtSecret()) as TokenPayload
   } catch (error) {
     return null
   }

@@ -12,7 +12,7 @@ export async function GET() {
     })
 
     // Serialize dates to strings to avoid client-side errors
-    const serializedTemplates = templates.map(template => ({
+    const serializedTemplates = templates.map((template: typeof templates[number]) => ({
       ...template,
       createdAt: template.createdAt.toISOString(),
       updatedAt: template.updatedAt.toISOString(),

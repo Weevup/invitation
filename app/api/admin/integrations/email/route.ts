@@ -1,30 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
-import crypto from 'crypto'
-
-// Simple encryption for storing API keys
-// In production, use a proper secret management service like AWS Secrets Manager, Vault, etc.
-const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || 'change-this-in-production-32chr'
-const ALGORITHM = 'aes-256-cbc'
-
-function encrypt(text: string): string {
-  const iv = crypto.randomBytes(16)
-  const cipher = crypto.createCipheriv(ALGORITHM, Buffer.from(ENCRYPTION_KEY.slice(0, 32)), iv)
-  let encrypted = cipher.update(text)
-  encrypted = Buffer.concat([encrypted, cipher.final()])
-  return iv.toString('hex') + ':' + encrypted.toString('hex')
-}
-
-function decrypt(text: string): string {
-  const textParts = text.split(':')
-  const iv = Buffer.from(textParts.shift()!, 'hex')
-  const encryptedText = Buffer.from(textParts.join(':'), 'hex')
-  const decipher = crypto.createDecipheriv(ALGORITHM, Buffer.from(ENCRYPTION_KEY.slice(0, 32)), iv)
-  let decrypted = decipher.update(encryptedText)
-  decrypted = Buffer.concat([decrypted, decipher.final()])
-  return decrypted.toString()
-}
+import { encrypt, decrypt } from '@/lib/encryption'
 
 const EmailIntegrationSchema = z.object({
   provider: z.enum(['SENDGRID', 'RESEND', 'MAILGUN', 'SMTP']),
@@ -54,7 +31,7 @@ export async function GET() {
     })
 
     // Decrypt sensitive fields for display (masked)
-    const safeIntegrations = integrations.map((integration) => ({
+    const safeIntegrations = integrations.map((integration: typeof integrations[number]) => ({
       ...integration,
       apiKey: integration.apiKey ? '••••••••' + integration.apiKey.slice(-4) : undefined,
       apiSecret: integration.apiSecret ? '••••••••' : undefined,

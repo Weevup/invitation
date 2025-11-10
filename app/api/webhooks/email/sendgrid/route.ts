@@ -43,15 +43,28 @@ export async function POST(request: NextRequest) {
     const body = await request.text()
     const events: SendGridEvent[] = JSON.parse(body)
 
-    // Optional: Verify webhook signature for security
+    // REQUIRED: Verify webhook signature for security
     const signature = request.headers.get('x-twilio-email-event-webhook-signature')
     const timestamp = request.headers.get('x-twilio-email-event-webhook-timestamp')
     const webhookPublicKey = process.env.SENDGRID_WEBHOOK_PUBLIC_KEY
 
-    if (signature && timestamp && webhookPublicKey) {
+    // Webhook verification is mandatory in production
+    if (process.env.NODE_ENV === 'production' && !webhookPublicKey) {
+      console.error('SENDGRID_WEBHOOK_PUBLIC_KEY must be configured in production')
+      return NextResponse.json({ error: 'Webhook not configured' }, { status: 500 })
+    }
+
+    // Verify signature if configured
+    if (webhookPublicKey) {
+      if (!signature || !timestamp) {
+        return NextResponse.json({ error: 'Missing signature headers' }, { status: 401 })
+      }
       if (!verifySignature(body, signature, timestamp, webhookPublicKey)) {
         return NextResponse.json({ error: 'Invalid signature' }, { status: 401 })
       }
+    } else if (process.env.NODE_ENV !== 'development') {
+      // In non-dev environments without key, log warning but allow (for staging)
+      console.warn('⚠️  SendGrid webhook signature verification is disabled - configure SENDGRID_WEBHOOK_PUBLIC_KEY')
     }
 
     // Process each event

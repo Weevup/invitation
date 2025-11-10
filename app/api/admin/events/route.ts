@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import bcrypt from 'bcryptjs'
 
 export async function GET() {
   try {
@@ -41,10 +42,13 @@ export async function POST(request: NextRequest) {
     // Create a dummy admin user if none exists
     let adminUser = await prisma.user.findFirst({ where: { role: 'ADMIN' } })
     if (!adminUser) {
+      const defaultPassword = await bcrypt.hash('admin123', 10)
       adminUser = await prisma.user.create({
         data: {
           email: 'admin@weevup.com',
+          password: defaultPassword,
           role: 'ADMIN',
+          name: 'Admin',
         },
       })
     }

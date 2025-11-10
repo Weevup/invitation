@@ -1,5 +1,6 @@
 import { PrismaClient, UserRole, GuestStatus, EmailStatus, EmailType, EmailProvider } from '@prisma/client'
 import * as crypto from 'crypto'
+import bcrypt from 'bcryptjs'
 
 const prisma = new PrismaClient()
 
@@ -85,9 +86,12 @@ async function main() {
 
   // 1. Créer un utilisateur admin
   console.log('👤 Création de l\'utilisateur admin...')
+  const defaultPassword = await bcrypt.hash('admin123', 10)
   const admin = await prisma.user.create({
     data: {
       email: 'admin@weevup.com',
+      password: defaultPassword,
+      name: 'Admin Weevup',
       role: UserRole.ADMIN
     }
   })
