@@ -26,7 +26,7 @@ export default async function AdminLayout({
   return (
     <SessionProvider>
       <div className="min-h-screen bg-gray-50">
-        <AdminSidebar user={session.user} />
+        <AdminSidebar />
         <div className="pl-64">
           <main className="p-8">
             {children}
