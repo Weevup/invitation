@@ -7,8 +7,8 @@ import bcrypt from 'bcryptjs'
  */
 export async function POST() {
   try {
-    const issues = []
-    const fixes = []
+    const issues: string[] = []
+    const fixes: string[] = []
 
     // 1. Vérifier la connexion DB
     try {
