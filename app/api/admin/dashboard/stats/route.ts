@@ -15,10 +15,12 @@ export async function GET() {
       }
     })
 
+    type EventWithCount = typeof events[number]
+
     const now = new Date()
-    const upcomingEvents = events.filter(e => new Date(e.startsAt) > now)
-    const pastEvents = events.filter(e => new Date(e.startsAt) <= now)
-    const todayEvents = events.filter(e => {
+    const upcomingEvents = events.filter((e: EventWithCount) => new Date(e.startsAt) > now)
+    const pastEvents = events.filter((e: EventWithCount) => new Date(e.startsAt) <= now)
+    const todayEvents = events.filter((e: EventWithCount) => {
       const eventDate = new Date(e.startsAt)
       return eventDate.toDateString() === now.toDateString()
     })
@@ -50,13 +52,15 @@ export async function GET() {
       }
     })
 
-    const totalEmails = emailStats.reduce((sum, stat) => sum + stat._count._all, 0)
-    const openedEmails = emailStats.find(s => s.status === 'opened')?._count._all || 0
-    const clickedEmails = emailStats.find(s => s.status === 'clicked')?._count._all || 0
+    type EmailStat = typeof emailStats[number]
+
+    const totalEmails = emailStats.reduce((sum: number, stat: EmailStat) => sum + stat._count._all, 0)
+    const openedEmails = emailStats.find((s: EmailStat) => s.status === 'opened')?._count._all || 0
+    const clickedEmails = emailStats.find((s: EmailStat) => s.status === 'clicked')?._count._all || 0
 
     // Calculate totals
-    const totalGuests = events.reduce((sum, e) => sum + e._count.guests, 0)
-    const totalRsvps = events.reduce((sum, e) => sum + e._count.rsvps, 0)
+    const totalGuests = events.reduce((sum: number, e: EventWithCount) => sum + e._count.guests, 0)
+    const totalRsvps = events.reduce((sum: number, e: EventWithCount) => sum + e._count.rsvps, 0)
     const responseRate = totalGuests > 0 ? Math.round((totalRsvps / totalGuests) * 100) : 0
     const openRate = totalEmails > 0 ? Math.round((openedEmails / totalEmails) * 100) : 0
     const clickRate = totalEmails > 0 ? Math.round((clickedEmails / totalEmails) * 100) : 0
@@ -100,7 +104,7 @@ export async function GET() {
         activeIntegrations: emailIntegrations,
         activeTemplates: emailTemplates
       },
-      recentActivity: recentRsvps.map(rsvp => ({
+      recentActivity: recentRsvps.map((rsvp: typeof recentRsvps[number]) => ({
         id: rsvp.id,
         guestName: `${rsvp.guest.firstName} ${rsvp.guest.lastName}`,
         eventName: rsvp.event.name,
@@ -108,9 +112,9 @@ export async function GET() {
         createdAt: rsvp.createdAt
       })),
       topEvents: events
-        .sort((a, b) => b._count.rsvps - a._count.rsvps)
+        .sort((a: EventWithCount, b: EventWithCount) => b._count.rsvps - a._count.rsvps)
         .slice(0, 3)
-        .map(e => ({
+        .map((e: EventWithCount) => ({
           id: e.id,
           name: e.name,
           guests: e._count.guests,

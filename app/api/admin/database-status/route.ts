@@ -42,11 +42,11 @@ export async function GET() {
 
     for (const enumName of enumsToCheck) {
       try {
-        const result = await prisma.$queryRawUnsafe<any[]>(`
+        const result = await prisma.$queryRawUnsafe(`
           SELECT EXISTS (
             SELECT 1 FROM pg_type WHERE typname = '${enumName}'
           ) as exists
-        `)
+        `) as any[]
         const exists = result[0]?.exists || false
         status.enums.push({ name: enumName, exists })
         if (exists) status.overall.enumsComplete++
@@ -105,13 +105,13 @@ export async function GET() {
     for (const table of tablesToCheck) {
       try {
         // Vérifier si la table existe
-        const tableExists = await prisma.$queryRawUnsafe<any[]>(`
+        const tableExists = await prisma.$queryRawUnsafe(`
           SELECT EXISTS (
             SELECT FROM information_schema.tables
             WHERE table_schema = 'public'
             AND table_name = '${table.name}'
           ) as exists
-        `)
+        `) as any[]
 
         const exists = tableExists[0]?.exists || false
 
@@ -124,12 +124,12 @@ export async function GET() {
         }
 
         // Vérifier les colonnes
-        const columns = await prisma.$queryRawUnsafe<any[]>(`
+        const columns = await prisma.$queryRawUnsafe(`
           SELECT column_name
           FROM information_schema.columns
           WHERE table_schema = 'public'
           AND table_name = '${table.name}'
-        `)
+        `) as any[]
 
         const existingColumns = columns.map(col => col.column_name)
         const missingColumns = table.requiredColumns.filter(

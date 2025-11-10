@@ -1,8 +1,8 @@
-import jwt, { Secret, SignOptions } from 'jsonwebtoken'
+import jwt from 'jsonwebtoken'
 import { prisma } from './prisma'
 import crypto from 'crypto'
 
-const JWT_SECRET = (() => {
+const JWT_SECRET: string = (() => {
   const secret = process.env.JWT_SECRET
   if (!secret) {
     if (process.env.NODE_ENV === 'production') {
@@ -12,7 +12,7 @@ const JWT_SECRET = (() => {
     return 'dev-secret-change-in-production'
   }
   return secret
-})() as Secret
+})()
 
 export interface TokenPayload {
   guestId: string
@@ -22,8 +22,7 @@ export interface TokenPayload {
 }
 
 export function generateToken(payload: TokenPayload, expiresIn: string = '30d'): string {
-  const options: SignOptions = { expiresIn }
-  return jwt.sign(payload, JWT_SECRET, options)
+  return jwt.sign(payload, JWT_SECRET, { expiresIn })
 }
 
 export function verifyToken(token: string): TokenPayload | null {

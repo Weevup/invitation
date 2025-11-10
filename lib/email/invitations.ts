@@ -88,8 +88,9 @@ export async function sendBulkInvitations(
     }
 
     // Send emails in batch
+    type GuestType = typeof guests[number]
     const results = await Promise.allSettled(
-      guests.map(guest => sendInvitation(event, guest, emailType))
+      guests.map((guest: GuestType) => sendInvitation(event, guest, emailType))
     )
 
     const sent = results.filter(
@@ -141,7 +142,7 @@ export async function sendReminders(eventId: string) {
   })
 
   const results = await Promise.allSettled(
-    guests.map(guest => sendInvitation(event, guest, 'REMINDER'))
+    guests.map((guest: typeof guests[number]) => sendInvitation(event, guest, 'REMINDER'))
   )
 
   const sent = results.filter(
