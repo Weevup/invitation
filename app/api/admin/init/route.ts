@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { generateGuestToken, hashToken } from '@/lib/auth'
+import bcrypt from 'bcryptjs'
 
 export async function POST() {
   try {
@@ -16,9 +17,12 @@ export async function POST() {
     // Create admin user if not exists
     let adminUser = await prisma.user.findFirst({ where: { role: 'ADMIN' } })
     if (!adminUser) {
+      const defaultPassword = await bcrypt.hash('admin123', 10)
       adminUser = await prisma.user.create({
         data: {
           email: 'admin@weevup.com',
+          password: defaultPassword,
+          name: 'Admin',
           role: 'ADMIN',
         },
       })
