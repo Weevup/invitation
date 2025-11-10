@@ -20,8 +20,8 @@ export interface TokenPayload {
 }
 
 export function generateToken(payload: TokenPayload, expiresIn: string = '30d'): string {
-  // Laisser TypeScript inférer le type pour éviter les erreurs de typage strict
-  return jwt.sign(payload, JWT_SECRET_DEV, { expiresIn })
+  // Cast en any pour éviter les problèmes de compatibilité de types entre versions de jsonwebtoken
+  return jwt.sign(payload, JWT_SECRET_DEV, { expiresIn } as any)
 }
 
 export function verifyToken(token: string): TokenPayload | null {
