@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
 import { z } from 'zod'
+import { requireAdmin, handleAuthError } from '@/lib/auth-utils'
+import { requireUserModificationAccess } from '@/lib/permissions'
 
 // Validation schema pour la mise à jour
 const updateUserSchema = z.object({
@@ -12,12 +14,16 @@ const updateUserSchema = z.object({
   isActive: z.boolean().optional(),
 })
 
-// GET /api/admin/users/[id] - Récupérer un utilisateur
+/**
+ * GET /api/admin/users/[id]
+ * Récupère les détails d'un utilisateur
+ */
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const session = await requireAdmin()
     const { id } = await params
 
     const user = await prisma.user.findUnique({
@@ -50,22 +56,26 @@ export async function GET(
 
     return NextResponse.json({ user })
   } catch (error) {
-    console.error('Error fetching user:', error)
-    return NextResponse.json(
-      { error: 'Erreur lors de la récupération de l\'utilisateur' },
-      { status: 500 }
-    )
+    return handleAuthError(error)
   }
 }
 
-// PUT /api/admin/users/[id] - Mettre à jour un utilisateur
+/**
+ * PUT /api/admin/users/[id]
+ * Met à jour un utilisateur (avec vérification des droits)
+ */
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const session = await requireAdmin()
     const { id } = await params
     const body = await request.json()
+
+    // Vérifier que l'admin peut modifier cet utilisateur
+    // (actuellement : uniquement ses propres infos, sauf super-admin)
+    await requireUserModificationAccess(id, session.user.id)
 
     // Validation
     const validation = updateUserSchema.safeParse(body)
@@ -141,21 +151,24 @@ export async function PUT(
       user,
     })
   } catch (error) {
-    console.error('Error updating user:', error)
-    return NextResponse.json(
-      { error: 'Erreur lors de la mise à jour de l\'utilisateur' },
-      { status: 500 }
-    )
+    return handleAuthError(error)
   }
 }
 
-// DELETE /api/admin/users/[id] - Supprimer un utilisateur
+/**
+ * DELETE /api/admin/users/[id]
+ * Supprime un utilisateur (avec vérification des droits)
+ */
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = await params
+    const session = await requireAdmin()
+    const { id} = await params
+
+    // Vérifier que l'admin peut supprimer cet utilisateur
+    await requireUserModificationAccess(id, session.user.id)
 
     // Vérifier si l'utilisateur existe
     const user = await prisma.user.findUnique({
@@ -199,10 +212,6 @@ export async function DELETE(
       message: 'Utilisateur supprimé avec succès',
     })
   } catch (error) {
-    console.error('Error deleting user:', error)
-    return NextResponse.json(
-      { error: 'Erreur lors de la suppression de l\'utilisateur' },
-      { status: 500 }
-    )
+    return handleAuthError(error)
   }
 }
