@@ -23,6 +23,7 @@ export default async function middleware(request: NextRequest) {
     '/env-check',
     '/api/check-env',
     '/api/test-db',
+    '/api/admin/check-and-fix',
     '/_next',
     '/api/auth',
     '/api/setup-admin',

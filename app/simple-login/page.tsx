@@ -36,6 +36,7 @@ export default function SimpleLoginPage() {
         }}>
           <p style={{ margin: 0, marginBottom: '0.5rem' }}><strong>Tests à faire :</strong></p>
           <ol style={{ margin: 0, paddingLeft: '1.5rem' }}>
+            <li><a href="/api/admin/check-and-fix" target="_blank" style={{ color: '#004645', fontWeight: 'bold' }}>🔧 Vérifier et Réparer DB</a></li>
             <li><a href="/api/test-db" target="_blank" style={{ color: '#004645' }}>Test DB</a></li>
             <li><a href="/env-check" style={{ color: '#004645' }}>Test Env</a></li>
             <li><a href="/auth/admin" style={{ color: '#004645' }}>Page Login NextAuth</a></li>
