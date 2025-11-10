@@ -74,7 +74,7 @@ export async function POST(
     }
 
     // Upsert le module
-    const module = await prisma.eventModule.upsert({
+    const eventModule = await prisma.eventModule.upsert({
       where: {
         eventId_moduleType: {
           eventId,
@@ -96,9 +96,9 @@ export async function POST(
     return NextResponse.json({
       success: true,
       module: {
-        type: module.moduleType,
-        isActive: module.isActive,
-        config: module.config
+        type: eventModule.moduleType,
+        isActive: eventModule.isActive,
+        config: eventModule.config
       }
     })
 

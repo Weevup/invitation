@@ -4,7 +4,7 @@
 
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { ModuleType } from '@prisma/client'
 import { ModuleStatus } from './types'
 
@@ -22,7 +22,7 @@ export function useEventModules(eventId: string): UseEventModulesReturn {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<Error | null>(null)
 
-  const fetchModules = async () => {
+  const fetchModules = useCallback(async () => {
     if (!eventId) return
 
     setIsLoading(true)
@@ -42,11 +42,11 @@ export function useEventModules(eventId: string): UseEventModulesReturn {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [eventId])
 
   useEffect(() => {
     fetchModules()
-  }, [eventId])
+  }, [fetchModules])
 
   const hasModule = (type: ModuleType): boolean => {
     return modules.some(m => m.type === type && m.isActive)

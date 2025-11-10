@@ -13,7 +13,7 @@ export async function hasModule(
   eventId: string,
   moduleType: ModuleType
 ): Promise<boolean> {
-  const module = await prisma.eventModule.findUnique({
+  const eventModule = await prisma.eventModule.findUnique({
     where: {
       eventId_moduleType: {
         eventId,
@@ -23,7 +23,7 @@ export async function hasModule(
     select: { isActive: true }
   })
 
-  return module?.isActive ?? false
+  return eventModule?.isActive ?? false
 }
 
 /**
@@ -134,7 +134,7 @@ export async function toggleModule(
   eventId: string,
   moduleType: ModuleType
 ): Promise<boolean> {
-  const module = await prisma.eventModule.findUnique({
+  const eventModule = await prisma.eventModule.findUnique({
     where: {
       eventId_moduleType: {
         eventId,
@@ -143,7 +143,7 @@ export async function toggleModule(
     }
   })
 
-  const newState = !(module?.isActive ?? false)
+  const newState = !(eventModule?.isActive ?? false)
 
   await prisma.eventModule.upsert({
     where: {
