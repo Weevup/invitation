@@ -21,8 +21,8 @@ export interface TokenPayload {
   type: 'guest' | 'admin'
 }
 
-export function generateToken(payload: TokenPayload, expiresIn: string = '30d'): string {
-  return jwt.sign(payload, JWT_SECRET, { expiresIn })
+export function generateToken(payload: TokenPayload, expiresIn: string | number = '30d'): string {
+  return jwt.sign(payload, JWT_SECRET, { expiresIn } as jwt.SignOptions)
 }
 
 export function verifyToken(token: string): TokenPayload | null {
