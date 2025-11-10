@@ -3,13 +3,19 @@ import { prisma } from '@/lib/prisma'
 import { generateGuestToken, hashToken } from '@/lib/auth'
 import { adminApiRateLimit, getRateLimitIdentifier, getRateLimitHeaders, normalizeRateLimitResult } from '@/lib/rate-limit'
 import { createGuestSchema, validateSchema } from '@/lib/validations'
+import { requireAdmin, handleAuthError } from '@/lib/auth-utils'
+import { requireEventOwnership } from '@/lib/permissions'
 
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const session = await requireAdmin()
     const { id: eventId } = await params
+
+    // Verify admin owns this event
+    await requireEventOwnership(eventId, session.user.id)
 
     // Rate limiting
     const identifier = getRateLimitIdentifier(request, eventId)
@@ -102,12 +108,6 @@ export async function POST(
     }, { status: 201 })
   } catch (error) {
     console.error('Error creating guest:', error)
-    return NextResponse.json(
-      {
-        error: 'Erreur lors de la création de l\'invité',
-        details: error instanceof Error ? error.message : 'Unknown error',
-      },
-      { status: 500 }
-    )
+    return handleAuthError(error)
   }
 }
