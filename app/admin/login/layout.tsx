@@ -1,10 +1,10 @@
 import { ReactNode } from 'react'
 
 /**
- * Layout pour la page de login
- * N'hérite pas du layout admin parent pour éviter les redirections
+ * Layout pour la redirection de login
+ * Évite l'exécution du layout admin parent
  */
-export default function LoginLayout({
+export default function LoginRedirectLayout({
   children,
 }: {
   children: ReactNode
