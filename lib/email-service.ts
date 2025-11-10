@@ -452,7 +452,21 @@ import nodemailer from 'nodemailer'
 import crypto from 'crypto'
 
 // Encryption helpers
-const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || 'change-this-in-production-32chr'
+const ENCRYPTION_KEY = (() => {
+  const key = process.env.ENCRYPTION_KEY
+  if (!key) {
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('ENCRYPTION_KEY must be defined in production (32+ characters)')
+    }
+    console.warn('⚠️  Using default ENCRYPTION_KEY in development. Set ENCRYPTION_KEY in .env for production.')
+    return 'dev-key-only-change-this-32chr!!'
+  }
+  if (key.length < 32) {
+    throw new Error('ENCRYPTION_KEY must be at least 32 characters long')
+  }
+  return key
+})()
+
 const ALGORITHM = 'aes-256-cbc'
 
 function decrypt(text: string): string {
