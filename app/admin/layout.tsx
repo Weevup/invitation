@@ -15,7 +15,7 @@ export default async function AdminLayout({
 
   // Rediriger vers login si non authentifié
   if (!session?.user) {
-    redirect('/admin/login')
+    redirect('/auth/admin')
   }
 
   // Vérifier que l'utilisateur a le rôle ADMIN

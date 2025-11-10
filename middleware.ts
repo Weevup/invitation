@@ -16,7 +16,8 @@ export default async function middleware(request: NextRequest) {
 
   // Pages publiques - toujours accessibles
   const publicPaths = [
-    '/admin/login',
+    '/auth/admin',
+    '/admin/login', // Keep for backward compatibility
     '/_next',
     '/api/auth',
     '/api/setup-admin',
@@ -53,7 +54,7 @@ export default async function middleware(request: NextRequest) {
   // Protection des pages admin
   if (pathname.startsWith('/admin')) {
     if (!hasSession) {
-      const loginUrl = new URL('/admin/login', request.url)
+      const loginUrl = new URL('/auth/admin', request.url)
       loginUrl.searchParams.set('callbackUrl', pathname)
       return NextResponse.redirect(loginUrl)
     }
