@@ -19,8 +19,10 @@ export default async function middleware(request: NextRequest) {
     '/auth/admin',
     '/admin/login', // Keep for backward compatibility
     '/test-login',
+    '/simple-login',
     '/env-check',
     '/api/check-env',
+    '/api/test-db',
     '/_next',
     '/api/auth',
     '/api/setup-admin',
