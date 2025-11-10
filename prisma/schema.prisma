@@ -49,6 +49,43 @@ enum EmailProvider {
   SMTP
 }
 
+enum ModuleType {
+  REGISTRATION_PAYMENT
+  TRANSPORT
+  ACCOMMODATION
+  PROGRAM
+  BUDGET
+  MULTILANG
+}
+
+enum TransportType {
+  FLIGHT
+  TRAIN
+  SHUTTLE
+  TAXI
+  CAR_RENTAL
+  PERSONAL_CAR
+}
+
+enum BookingStatus {
+  REQUESTED
+  PENDING
+  CONFIRMED
+  BOOKED
+  CANCELLED
+  COMPLETED
+}
+
+enum ManifestStatus {
+  DRAFT
+  OPEN
+  FULL
+  CONFIRMED
+  DEPARTED
+  COMPLETED
+  CANCELLED
+}
+
 model User {
   id        String   @id @default(cuid())
   email     String   @unique
@@ -139,6 +176,11 @@ model Event {
   emailLogs      EmailLog[]
   emailTrackings EmailTracking[] // @deprecated
 
+  // Phase 2: Modular features
+  modules              EventModule[]        @relation("EventModules")
+  transportBookings    TransportBooking[]   @relation("EventTransportBookings")
+  transportManifests   TransportManifest[]  @relation("EventTransportManifests")
+
   @@index([slug])
   @@index([adminId])
 }
@@ -175,6 +217,10 @@ model Guest {
   checkins       Checkin[]
   emailLogs      EmailLog[]
   emailTrackings EmailTracking[] // @deprecated
+
+  // Phase 2: Modular features
+  transportBookings TransportBooking[]    @relation("GuestTransportBookings")
+  manifests         ManifestParticipant[] @relation("GuestManifests")
 
   @@unique([eventId, email])
   @@index([tokenHash])
@@ -359,4 +405,114 @@ model EmailTemplate {
   @@index([type])
   @@index([isActive])
   @@index([isDefault])
+}
+
+// ============================================
+// PHASE 2: MODULAR FEATURES
+// ============================================
+
+model EventModule {
+  id         String     @id @default(cuid())
+  eventId    String
+  event      Event      @relation("EventModules", fields: [eventId], references: [id], onDelete: Cascade)
+
+  moduleType ModuleType
+  isActive   Boolean    @default(true)
+  config     Json?      // Module-specific configuration
+
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+
+  @@unique([eventId, moduleType])
+  @@index([eventId])
+  @@index([moduleType])
+}
+
+model TransportBooking {
+  id        String        @id @default(cuid())
+  eventId   String
+  event     Event         @relation("EventTransportBookings", fields: [eventId], references: [id], onDelete: Cascade)
+  guestId   String
+  guest     Guest         @relation("GuestTransportBookings", fields: [guestId], references: [id], onDelete: Cascade)
+
+  // Transport details
+  type      TransportType
+  status    BookingStatus @default(REQUESTED)
+
+  // Journey details (flexible JSON for different transport types)
+  departure      Json?     // { city, airport, station, address, date, time }
+  arrival        Json?     // { city, airport, station, address, date, time }
+  carrier        String?   // Company name (Air France, SNCF, etc.)
+  bookingRef     String?   // Booking reference
+  seatNumber     String?   // Seat number
+
+  // Costs
+  estimatedCost  Float?
+  actualCost     Float?
+  currency       String    @default("EUR")
+  isPaidByCompany Boolean  @default(true)
+
+  // Notes
+  notes          String?   @db.Text
+  internalNotes  String?   @db.Text  // Admin-only notes
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([eventId])
+  @@index([guestId])
+  @@index([status])
+  @@index([type])
+}
+
+model TransportManifest {
+  id          String             @id @default(cuid())
+  eventId     String
+  event       Event              @relation("EventTransportManifests", fields: [eventId], references: [id], onDelete: Cascade)
+
+  type        TransportType
+  name        String             // e.g., "Airport Shuttle - Hotel"
+  description String?            @db.Text
+
+  // Journey details
+  departure   Json               // { location, date, time }
+  arrival     Json               // { location, date, time }
+
+  // Capacity
+  maxCapacity Int?
+  currentCount Int              @default(0)
+
+  // Cost
+  costPerPerson Float?
+  currency      String           @default("EUR")
+
+  // Status
+  status        ManifestStatus   @default(DRAFT)
+
+  // Participants (many-to-many via pivot table)
+  participants  ManifestParticipant[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([eventId])
+  @@index([status])
+}
+
+// Pivot table for many-to-many relationship
+model ManifestParticipant {
+  id          String             @id @default(cuid())
+  manifestId  String
+  manifest    TransportManifest  @relation(fields: [manifestId], references: [id], onDelete: Cascade)
+  guestId     String
+  guest       Guest              @relation("GuestManifests", fields: [guestId], references: [id], onDelete: Cascade)
+
+  seatNumber  String?
+  confirmedAt DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@unique([manifestId, guestId])
+  @@index([manifestId])
+  @@index([guestId])
 }
