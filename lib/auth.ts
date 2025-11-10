@@ -2,17 +2,27 @@ import jwt from 'jsonwebtoken'
 import { prisma } from './prisma'
 import crypto from 'crypto'
 
-const JWT_SECRET: string = (() => {
+// Lazy initialization to avoid build-time errors
+let JWT_SECRET: string | null = null
+
+function getJwtSecret(): string {
+  if (JWT_SECRET !== null) {
+    return JWT_SECRET
+  }
+
   const secret = process.env.JWT_SECRET
   if (!secret) {
     if (process.env.NODE_ENV === 'production') {
       throw new Error('JWT_SECRET must be defined in production')
     }
     console.warn('⚠️  Using default JWT_SECRET in development. Set JWT_SECRET in .env for production.')
-    return 'dev-secret-change-in-production'
+    JWT_SECRET = 'dev-secret-change-in-production'
+    return JWT_SECRET
   }
-  return secret
-})()
+
+  JWT_SECRET = secret
+  return JWT_SECRET
+}
 
 export interface TokenPayload {
   guestId: string
@@ -22,12 +32,12 @@ export interface TokenPayload {
 }
 
 export function generateToken(payload: TokenPayload, expiresIn: string | number = '30d'): string {
-  return jwt.sign(payload, JWT_SECRET, { expiresIn } as jwt.SignOptions)
+  return jwt.sign(payload, getJwtSecret(), { expiresIn } as jwt.SignOptions)
 }
 
 export function verifyToken(token: string): TokenPayload | null {
   try {
-    return jwt.verify(token, JWT_SECRET) as TokenPayload
+    return jwt.verify(token, getJwtSecret()) as TokenPayload
   } catch (error) {
     return null
   }
