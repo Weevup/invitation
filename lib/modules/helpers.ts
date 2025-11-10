@@ -79,7 +79,7 @@ export async function activateModule(
       eventId,
       moduleType,
       isActive: true,
-      config: config ?? null
+      config: config ?? undefined
     },
     update: {
       isActive: true,
