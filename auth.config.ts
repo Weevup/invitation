@@ -2,7 +2,7 @@ import type { NextAuthConfig } from 'next-auth'
 
 export const authConfig = {
   pages: {
-    signIn: '/admin/login',
+    signIn: '/auth/admin',
   },
   callbacks: {
     // Note: Route protection is now handled by middleware.ts
