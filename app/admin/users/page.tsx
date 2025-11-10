@@ -92,10 +92,12 @@ export default function UsersPage() {
 
   useEffect(() => {
     fetchUsers()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   useEffect(() => {
     filterUsers()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [users, searchTerm, roleFilter, statusFilter])
 
   const fetchUsers = async () => {
@@ -634,9 +636,9 @@ export default function UsersPage() {
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Modifier l'Utilisateur</DialogTitle>
+            <DialogTitle>Modifier l&apos;Utilisateur</DialogTitle>
             <DialogDescription>
-              Modifiez les informations de l'utilisateur
+              Modifiez les informations de l&apos;utilisateur
             </DialogDescription>
           </DialogHeader>
 
@@ -728,7 +730,7 @@ export default function UsersPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle>
             <AlertDialogDescription>
-              Cette action est irréversible. L'utilisateur{' '}
+              Cette action est irréversible. L&apos;utilisateur{' '}
               <strong>{selectedUser?.email}</strong> sera définitivement supprimé.
             </AlertDialogDescription>
           </AlertDialogHeader>
