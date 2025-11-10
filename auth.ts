@@ -12,7 +12,6 @@ async function getUser(email: string) {
       select: {
         id: true,
         email: true,
-        name: true,
         password: true,
         role: true,
         isActive: true,
@@ -68,7 +67,6 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
             return {
               id: user.id,
               email: user.email,
-              name: user.name,
               role: user.role,
             }
           } else {

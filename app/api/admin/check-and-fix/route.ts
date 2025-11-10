@@ -7,8 +7,8 @@ import bcrypt from 'bcryptjs'
  */
 export async function POST() {
   try {
-    const issues = []
-    const fixes = []
+    const issues: string[] = []
+    const fixes: string[] = []
 
     // 1. Vérifier la connexion DB
     try {
@@ -24,23 +24,49 @@ export async function POST() {
     const adminPassword = 'admin123'
 
     let adminUser = await prisma.user.findUnique({
-      where: { email: adminEmail }
+      where: { email: adminEmail },
+      select: {
+        id: true,
+        email: true,
+        password: true,
+        role: true,
+        isActive: true,
+        loginAttempts: true,
+        lockedUntil: true,
+      }
     })
 
     if (!adminUser) {
       // Créer le compte admin
       const hashedPassword = await bcrypt.hash(adminPassword, 10)
 
-      adminUser = await prisma.user.create({
-        data: {
-          email: adminEmail,
-          password: hashedPassword,
-          name: 'Admin Weevup',
-          role: 'ADMIN',
-          isActive: true,
-          loginAttempts: 0,
+      try {
+        adminUser = await prisma.user.create({
+          data: {
+            email: adminEmail,
+            password: hashedPassword,
+            role: 'ADMIN',
+            isActive: true,
+            loginAttempts: 0,
+          }
+        })
+      } catch (createError: any) {
+        // Si la colonne name est requise, essayer avec name
+        if (createError.message?.includes('name')) {
+          adminUser = await prisma.user.create({
+            data: {
+              email: adminEmail,
+              password: hashedPassword,
+              name: 'Admin Weevup',
+              role: 'ADMIN',
+              isActive: true,
+              loginAttempts: 0,
+            }
+          })
+        } else {
+          throw createError
         }
-      })
+      }
 
       fixes.push(`✅ Compte admin créé: ${adminEmail}`)
     } else {
