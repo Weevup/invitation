@@ -15,7 +15,8 @@ import {
   FileText,
   Activity,
   Mail,
-  LogOut
+  LogOut,
+  Shield
 } from 'lucide-react'
 import { WeevupLogo } from '@/components/weevup-logo'
 import { cn } from '@/lib/utils'
@@ -71,6 +72,12 @@ const navigationSections: NavSection[] = [
         href: '/admin/analytics',
         icon: BarChart,
         description: 'Analyses détaillées'
+      },
+      {
+        name: 'Utilisateurs',
+        href: '/admin/users',
+        icon: Shield,
+        description: 'Gestion des comptes admin'
       },
       {
         name: 'Système & Diagnostic',
