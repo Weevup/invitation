@@ -90,7 +90,8 @@ export async function POST(
     }
 
     // Validate plusOnes limit
-    if (attending && plusOnes > guest.event.maxPlusOnes) {
+    const finalPlusOnes = plusOnes ?? 0
+    if (attending && finalPlusOnes > guest.event.maxPlusOnes) {
       return NextResponse.json(
         {
           error: 'TOO_MANY_PLUS_ONES',
@@ -120,7 +121,7 @@ export async function POST(
         eventId: guest.eventId,
         guestId: guest.id,
         attending: attending ?? null,
-        plusOnes: plusOnes || 0,
+        plusOnes: finalPlusOnes,
         mealChoice,
         allergies,
         accessibilityNotes,
@@ -130,7 +131,7 @@ export async function POST(
       },
       update: {
         attending: attending ?? null,
-        plusOnes: plusOnes || 0,
+        plusOnes: finalPlusOnes,
         mealChoice,
         allergies,
         accessibilityNotes,
