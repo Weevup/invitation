@@ -1,5 +1,6 @@
 import { AdminSidebar } from '@/components/admin/sidebar'
 import { SonnerToaster } from '@/components/ui/sonner'
+import { Toaster } from '@/components/ui/toaster'
 import { SessionProvider } from '@/components/session-provider'
 
 export default function AdminLayout({
@@ -17,6 +18,7 @@ export default function AdminLayout({
           </main>
         </div>
         <SonnerToaster />
+        <Toaster />
       </div>
     </SessionProvider>
   )
