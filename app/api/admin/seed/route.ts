@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { generateGuestToken, hashToken } from '@/lib/auth'
+import bcrypt from 'bcryptjs'
 
 function generateToken(): string {
   return generateGuestToken()
@@ -20,11 +21,14 @@ export async function POST() {
     // ====================================
     // 1. UTILISATEUR ADMIN
     // ====================================
+    const defaultPassword = await bcrypt.hash('admin123', 10)
     const adminWeevup = await prisma.user.upsert({
       where: { email: 'contact@weevup.com' },
       update: {},
       create: {
         email: 'contact@weevup.com',
+        password: defaultPassword,
+        name: 'Admin Weevup',
         role: 'ADMIN'
       }
     })
