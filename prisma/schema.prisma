@@ -137,6 +137,7 @@ model Event {
   rsvps          RSVP[]
   checkins       Checkin[]
   emailLogs      EmailLog[]
+  emailTrackings EmailTracking[] // @deprecated
 
   @@index([slug])
   @@index([adminId])
@@ -251,6 +252,27 @@ model EmailLog {
 
   @@index([eventId])
   @@index([guestId])
+  @@index([status])
+}
+
+// @deprecated Use EmailLog instead. Kept for backward compatibility.
+model EmailTracking {
+  id        String   @id // Format: eventId-guestId-type-timestamp
+  eventId   String
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  guestId   String
+  guest     Guest    @relation(fields: [guestId], references: [id], onDelete: Cascade)
+
+  type      String   // "save-the-date", "invitation", "reminder", "follow-up"
+  status    String   // "sent", "delivered", "opened", "clicked", "failed"
+
+  sentAt    DateTime @default(now())
+  openedAt  DateTime?
+  clickedAt DateTime?
+
+  @@index([eventId])
+  @@index([guestId])
+  @@index([type])
   @@index([status])
 }
 
