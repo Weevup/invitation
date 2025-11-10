@@ -1,3 +1,10 @@
+/**
+ * @deprecated This is the legacy email system. For new features, use email-service.ts
+ * which supports multiple providers (SendGrid, Resend, Mailgun, SMTP).
+ * This file is kept for backward compatibility with existing routes.
+ * Migration to email-service.ts is planned for Phase 1.5.
+ */
+
 import nodemailer from 'nodemailer'
 import { prisma } from './prisma'
 import { EmailType, EmailStatus } from '@prisma/client'

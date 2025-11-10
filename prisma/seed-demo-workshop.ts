@@ -1,5 +1,6 @@
 import { PrismaClient, UserRole, GuestStatus } from '@prisma/client'
 import * as crypto from 'crypto'
+import bcrypt from 'bcryptjs'
 
 const prisma = new PrismaClient()
 
@@ -18,11 +19,14 @@ async function main() {
   console.log('')
 
   // Créer un utilisateur pour le workshop
+  const defaultPassword = await bcrypt.hash('admin123', 10)
   const admin = await prisma.user.upsert({
     where: { email: 'workshop@weevup.com' },
     update: {},
     create: {
       email: 'workshop@weevup.com',
+      password: defaultPassword,
+      name: 'Admin Workshop',
       role: UserRole.ADMIN
     }
   })

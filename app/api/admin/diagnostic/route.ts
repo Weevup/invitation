@@ -265,9 +265,11 @@ export async function GET() {
       }
     })
 
-    const totalGuests = guestsWithRSVP.reduce((sum, g) => sum + g._count._all, 0)
+    type GuestGroupBy = typeof guestsWithRSVP[number]
+
+    const totalGuests = guestsWithRSVP.reduce((sum: number, g: GuestGroupBy) => sum + g._count._all, 0)
     if (totalGuests > 0) {
-      const statusBreakdown = guestsWithRSVP.map(g => `${g.status}: ${g._count._all}`).join(', ')
+      const statusBreakdown = guestsWithRSVP.map((g: GuestGroupBy) => `${g.status}: ${g._count._all}`).join(', ')
       checks.data.push({
         name: 'RSVP',
         status: 'success',

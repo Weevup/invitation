@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { checkinRateLimit, getRateLimitIdentifier, getRateLimitHeaders, normalizeRateLimitResult } from '@/lib/rate-limit'
+import { checkinSchema, validateSchema } from '@/lib/validations'
 
 export async function POST(
   request: NextRequest,
@@ -7,8 +9,41 @@ export async function POST(
 ) {
   try {
     const { qrCodeId } = await params
+
+    // Rate limiting
+    const identifier = getRateLimitIdentifier(request, qrCodeId)
+    const rawResult = await checkinRateLimit.limit(identifier)
+    const rateLimitResult = normalizeRateLimitResult(rawResult)
+
+    if (!rateLimitResult.success) {
+      return NextResponse.json(
+        {
+          error: 'RATE_LIMIT_EXCEEDED',
+          message: 'Trop de scans en peu de temps. Veuillez ralentir.',
+        },
+        {
+          status: 429,
+          headers: getRateLimitHeaders(rateLimitResult)
+        }
+      )
+    }
+
     const body = await request.json()
-    const { desk, eventId, manualGuestId } = body
+
+    // Validate data with Zod
+    const validation = validateSchema(checkinSchema, body)
+    if (!validation.success) {
+      return NextResponse.json(
+        {
+          error: 'VALIDATION_ERROR',
+          message: 'Les données sont invalides',
+          errors: validation.errors,
+        },
+        { status: 400 }
+      )
+    }
+
+    const { desk, notes } = validation.data
 
     // Find the RSVP with this QR code
     const rsvp = await prisma.rSVP.findFirst({
@@ -53,6 +88,7 @@ export async function POST(
         guestId: rsvp.guestId,
         qrCodeId: qrCodeId,
         desk: desk || 'A',
+        notes: notes,
         checkedInAt: new Date()
       }
     })

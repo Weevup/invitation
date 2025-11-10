@@ -449,21 +449,7 @@ export const emailService = new EmailService();
  */
 
 import nodemailer from 'nodemailer'
-import crypto from 'crypto'
-
-// Encryption helpers
-const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || 'change-this-in-production-32chr'
-const ALGORITHM = 'aes-256-cbc'
-
-function decrypt(text: string): string {
-  const textParts = text.split(':')
-  const iv = Buffer.from(textParts.shift()!, 'hex')
-  const encryptedText = Buffer.from(textParts.join(':'), 'hex')
-  const decipher = crypto.createDecipheriv(ALGORITHM, Buffer.from(ENCRYPTION_KEY.slice(0, 32)), iv)
-  let decrypted = decipher.update(encryptedText)
-  decrypted = Buffer.concat([decrypted, decipher.final()])
-  return decrypted.toString()
-}
+import { decrypt } from './encryption'
 
 export interface EmailData {
   to: string | string[]

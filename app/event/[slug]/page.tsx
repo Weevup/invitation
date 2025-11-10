@@ -11,6 +11,42 @@ import { ScrollReveal } from '@/components/scroll-reveal'
 import Link from 'next/link'
 import { migrateLegacySections, getActiveSections, getSectionWrapperProps } from '@/lib/showcase-utils'
 import { type SectionConfig } from '@/lib/showcase-templates'
+import DOMPurify from 'isomorphic-dompurify'
+
+/**
+ * Sanitize CSS to prevent XSS attacks
+ * Removes dangerous patterns like javascript:, data:, and expressions
+ */
+function sanitizeCSS(css: string): string {
+  // Remove dangerous patterns
+  const dangerous = [
+    /javascript:/gi,
+    /data:/gi,
+    /vbscript:/gi,
+    /@import/gi,
+    /expression\s*\(/gi,
+    /behavior\s*:/gi,
+    /-moz-binding/gi,
+  ]
+
+  let sanitized = css
+  dangerous.forEach(pattern => {
+    sanitized = sanitized.replace(pattern, '')
+  })
+
+  return sanitized
+}
+
+/**
+ * Sanitize HTML content allowing basic formatting tags
+ */
+function sanitizeHTML(html: string): string {
+  return DOMPurify.sanitize(html, {
+    ALLOWED_TAGS: ['p', 'br', 'b', 'i', 'em', 'strong', 'u', 'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'a'],
+    ALLOWED_ATTR: ['href', 'target', 'rel'],
+    ALLOW_DATA_ATTR: false,
+  })
+}
 
 interface PageProps {
   params: Promise<{
@@ -89,7 +125,7 @@ export default async function EventShowcasePage({ params }: PageProps) {
     <div className="min-h-screen bg-gradient-to-br from-[#9CD9F6] via-white to-[#9CD9F6]">
       {/* Custom CSS if provided */}
       {event.showcaseCustomCSS && (
-        <style dangerouslySetInnerHTML={{ __html: event.showcaseCustomCSS }} />
+        <style dangerouslySetInnerHTML={{ __html: sanitizeCSS(event.showcaseCustomCSS) }} />
       )}
 
       {/* Decorative elements */}
@@ -249,7 +285,7 @@ export default async function EventShowcasePage({ params }: PageProps) {
                       <div
                         className="prose max-w-none"
                         style={{ color: `${primaryColor}cc` }}
-                        dangerouslySetInnerHTML={{ __html: event.description.replace(/\n/g, '<br/>') }}
+                        dangerouslySetInnerHTML={{ __html: sanitizeHTML(event.description.replace(/\n/g, '<br/>')) }}
                       />
                     </CardContent>
                   </Card>
@@ -274,7 +310,7 @@ export default async function EventShowcasePage({ params }: PageProps) {
                         <div
                           className="prose max-w-none"
                           style={{ color: `${primaryColor}cc` }}
-                          dangerouslySetInnerHTML={{ __html: event.program.replace(/\n/g, '<br/>') }}
+                          dangerouslySetInnerHTML={{ __html: sanitizeHTML(event.program.replace(/\n/g, '<br/>')) }}
                         />
                       </CardContent>
                     </Card>

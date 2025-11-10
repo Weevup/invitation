@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client'
 import { hashToken, generateGuestToken } from '../lib/auth'
+import bcrypt from 'bcryptjs'
 
 const prisma = new PrismaClient()
 
@@ -7,11 +8,14 @@ async function main() {
   console.log('🎉 Creating Complete Demo Event with Full Data...')
 
   // Create admin user
+  const defaultPassword = await bcrypt.hash('admin123', 10)
   const admin = await prisma.user.upsert({
     where: { email: 'admin@weevup.com' },
     update: {},
     create: {
       email: 'admin@weevup.com',
+      password: defaultPassword,
+      name: 'Admin Weevup',
       role: 'ADMIN',
     },
   })

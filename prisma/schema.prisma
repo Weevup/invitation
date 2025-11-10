@@ -52,12 +52,23 @@ enum EmailProvider {
 model User {
   id        String   @id @default(cuid())
   email     String   @unique
-  role      UserRole @default(GUEST)
+  name      String?
+  password  String   // Hashed with bcrypt
+  role      UserRole @default(ADMIN)
+
+  // Security
+  isActive     Boolean   @default(true)
+  lastLoginAt  DateTime?
+  loginAttempts Int      @default(0)
+  lockedUntil  DateTime?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   // Relations
   adminEvents Event[] @relation("AdminEvents")
+
+  @@index([email])
 }
 
 model Event {
@@ -126,7 +137,7 @@ model Event {
   rsvps          RSVP[]
   checkins       Checkin[]
   emailLogs      EmailLog[]
-  emailTrackings EmailTracking[]
+  emailTrackings EmailTracking[] // @deprecated
 
   @@index([slug])
   @@index([adminId])
@@ -163,7 +174,7 @@ model Guest {
   rsvp           RSVP?
   checkins       Checkin[]
   emailLogs      EmailLog[]
-  emailTrackings EmailTracking[]
+  emailTrackings EmailTracking[] // @deprecated
 
   @@unique([eventId, email])
   @@index([tokenHash])
@@ -245,6 +256,7 @@ model EmailLog {
   @@index([status])
 }
 
+// @deprecated Use EmailLog instead. Kept for backward compatibility.
 model EmailTracking {
   id        String   @id // Format: eventId-guestId-type-timestamp
   eventId   String
