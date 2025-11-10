@@ -1,8 +1,12 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { requireAdmin, handleAuthError } from '@/lib/auth-utils'
 
 export async function GET() {
-  const status: any = {
+  try {
+    await requireAdmin()
+
+    const status: any = {
     timestamp: new Date().toISOString(),
     database: {
       connected: false,
@@ -41,5 +45,8 @@ export async function GET() {
     await prisma.$disconnect()
   }
 
-  return NextResponse.json(status)
+    return NextResponse.json(status)
+  } catch (error) {
+    return handleAuthError(error)
+  }
 }

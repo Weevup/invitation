@@ -1,8 +1,23 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { requireAdmin, handleAuthError } from '@/lib/auth-utils'
 
 export async function POST() {
   try {
+    // CRITICAL: Verify admin authentication before clearing database
+    await requireAdmin()
+
+    // Additional safety: Only allow in development
+    if (process.env.NODE_ENV === 'production') {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Cette opération est désactivée en production',
+        },
+        { status: 403 }
+      )
+    }
+
     // Delete in correct order to respect foreign key constraints
 
     // 1. Delete EmailLogs (depends on Guest and Event)
@@ -37,13 +52,6 @@ export async function POST() {
     })
   } catch (error) {
     console.error('Error clearing database:', error)
-    return NextResponse.json(
-      {
-        success: false,
-        error: 'Erreur lors de la suppression des données',
-        details: error instanceof Error ? error.message : 'Unknown error'
-      },
-      { status: 500 }
-    )
+    return handleAuthError(error)
   }
 }

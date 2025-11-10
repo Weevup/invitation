@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { requireAdmin, handleAuthError } from '@/lib/auth-utils'
 
 interface TableStatus {
   name: string
@@ -15,6 +16,8 @@ interface EnumStatus {
 
 export async function GET() {
   try {
+    await requireAdmin()
+
     const status = {
       enums: [] as EnumStatus[],
       tables: [] as TableStatus[],
@@ -178,12 +181,6 @@ export async function GET() {
     })
   } catch (error) {
     console.error('Error checking database status:', error)
-    return NextResponse.json(
-      {
-        error: 'Impossible de vérifier l\'état de la base de données',
-        details: error instanceof Error ? error.message : 'Unknown error'
-      },
-      { status: 500 }
-    )
+    return handleAuthError(error)
   }
 }
