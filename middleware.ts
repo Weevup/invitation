@@ -18,6 +18,9 @@ export default async function middleware(request: NextRequest) {
   const publicPaths = [
     '/auth/admin',
     '/admin/login', // Keep for backward compatibility
+    '/test-login',
+    '/env-check',
+    '/api/check-env',
     '/_next',
     '/api/auth',
     '/api/setup-admin',
