@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
+import { requireAdmin, handleAuthError } from '@/lib/auth-utils'
+import { requireEventOwnership } from '@/lib/permissions'
 
 interface RouteContext {
   params: Promise<{
@@ -36,7 +38,12 @@ export async function PATCH(
   context: RouteContext
 ) {
   try {
+    const session = await requireAdmin()
     const { id } = await context.params
+
+    // Verify ownership before updating showcase
+    await requireEventOwnership(id, session.user.id)
+
     const body = await request.json()
 
     const {
@@ -98,13 +105,6 @@ export async function PATCH(
     })
   } catch (error) {
     console.error('Error updating showcase:', error)
-    return NextResponse.json(
-      {
-        success: false,
-        error: 'Erreur lors de la mise à jour',
-        details: error instanceof Error ? error.message : 'Unknown error'
-      },
-      { status: 500 }
-    )
+    return handleAuthError(error)
   }
 }
