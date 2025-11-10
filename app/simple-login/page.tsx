@@ -25,7 +25,7 @@ export default function SimpleLoginPage() {
           borderRadius: '6px',
           marginBottom: '1rem'
         }}>
-          <p style={{ margin: 0, fontWeight: 'bold' }}>✅ Cette page s'affiche = Routing OK</p>
+          <p style={{ margin: 0, fontWeight: 'bold' }}>✅ Cette page s&apos;affiche = Routing OK</p>
         </div>
 
         <div style={{
