@@ -27,7 +27,7 @@ export default function ShowcasePage() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetch(`/api/admin/events/${eventId}`)
+    fetch(`/api/admin/events/${eventId}/showcase-data`)
       .then(res => res.json())
       .then(data => {
         setEvent(data)
