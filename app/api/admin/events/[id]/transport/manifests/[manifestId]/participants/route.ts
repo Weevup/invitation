@@ -104,8 +104,7 @@ export async function POST(
             id: true,
             firstName: true,
             lastName: true,
-            email: true,
-            phone: true
+            email: true
           }
         }
       }
