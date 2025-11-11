@@ -5,9 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
-  Calendar, Users, CheckCircle, Clock, TrendingUp, Plus,
-  Mail, Eye, MousePointer, AlertCircle, RefreshCw, Activity,
-  Target, Award, BookOpen, Layers
+  Calendar, Users, TrendingUp, Plus, Mail, RefreshCw,
+  AlertCircle, Activity, Award
 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
@@ -41,22 +40,7 @@ interface DashboardStats {
     openRate: number;
     clickRate: number;
     activeIntegrations: number;
-    activeTemplates: number;
   };
-  recentActivity: Array<{
-    id: string;
-    guestName: string;
-    eventName: string;
-    status: string;
-    createdAt: string;
-  }>;
-  topEvents: Array<{
-    id: string;
-    name: string;
-    guests: number;
-    rsvps: number;
-    responseRate: number;
-  }>;
 }
 
 export default function AdminDashboard() {
@@ -123,25 +107,12 @@ export default function AdminDashboard() {
     }
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'CONFIRMED':
-        return 'bg-green-100 text-green-800';
-      case 'DECLINED':
-        return 'bg-red-100 text-red-800';
-      case 'PENDING':
-        return 'bg-yellow-100 text-yellow-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
-
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
-          <Clock className="h-12 w-12 animate-spin text-[#009197] mx-auto mb-4" />
-          <p className="text-[#004645]/70">Chargement du dashboard...</p>
+          <RefreshCw className="h-12 w-12 animate-spin text-[#009197] mx-auto mb-4" />
+          <p className="text-[#004645]/70">Chargement...</p>
         </div>
       </div>
     );
@@ -156,7 +127,7 @@ export default function AdminDashboard() {
             Tableau de bord
           </h1>
           <p className="text-[#004645]/70 mt-1">
-            Vue d&apos;ensemble de vos événements et statistiques
+            Vue d&apos;ensemble de vos événements
           </p>
         </div>
         <div className="flex gap-2">
@@ -178,7 +149,7 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* Alerts Section */}
+      {/* Alerts */}
       {stats && (stats.email.activeIntegrations === 0 || stats.overview.todayEvents > 0) && (
         <div className="space-y-3">
           {stats.email.activeIntegrations === 0 && (
@@ -187,7 +158,7 @@ export default function AdminDashboard() {
                 <AlertCircle className="h-5 w-5 text-yellow-600" />
                 <div className="flex-1">
                   <p className="font-medium text-yellow-900">Aucune intégration email configurée</p>
-                  <p className="text-sm text-yellow-700">Configurez une intégration pour envoyer des invitations</p>
+                  <p className="text-sm text-yellow-700">Configurez SendGrid, Resend ou SMTP pour envoyer des emails</p>
                 </div>
                 <Link href="/admin/settings/integrations">
                   <Button size="sm" variant="outline" className="border-yellow-600 text-yellow-900">
@@ -205,7 +176,7 @@ export default function AdminDashboard() {
                   <p className="font-medium text-[#004645]">
                     {stats.overview.todayEvents} événement{stats.overview.todayEvents > 1 ? 's' : ''} aujourd&apos;hui !
                   </p>
-                  <p className="text-sm text-[#004645]/70">N&apos;oubliez pas de vérifier la liste des invités</p>
+                  <p className="text-sm text-[#004645]/70">Vérifiez la liste des invités et les préparatifs</p>
                 </div>
               </CardContent>
             </Card>
@@ -213,7 +184,7 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      {/* Main Stats Grid */}
+      {/* Stats Grid */}
       {stats && (
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
           <Card className="border-[#9CD9F6]/30 bg-white/80 backdrop-blur hover:shadow-lg transition-shadow">
@@ -278,276 +249,26 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      {/* Modules de Planification */}
-      <div>
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h2 className="text-2xl font-bold text-[#004645]" style={{ fontFamily: "var(--font-abril)" }}>
-              Modules de Planification
-            </h2>
-            <p className="text-[#004645]/70 mt-1">
-              Organisez vos événements de A à Z avec nos modules intégrés
-            </p>
-          </div>
-          <Link href="/admin/modules-showcase">
-            <Button variant="outline" className="gap-2 border-[#FF4713] text-[#FF4713] hover:bg-[#FF4713] hover:text-white">
-              <Layers className="h-4 w-4" />
-              Voir tous les modules
-            </Button>
-          </Link>
-        </div>
-
-        <div className="grid md:grid-cols-3 gap-6">
-          {/* Module Programme */}
-          <Card className="border-blue-200 bg-gradient-to-br from-blue-50 to-white hover:shadow-xl transition-all">
-            <CardHeader>
-              <div className="rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 p-3 w-fit mb-3">
-                <Calendar className="h-6 w-6 text-white" />
-              </div>
-              <CardTitle className="text-[#004645]">Programme & Sessions</CardTitle>
-              <CardDescription>
-                Créez et gérez le programme complet de votre événement
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-2 text-sm text-[#004645]/80">
-                <li className="flex items-start gap-2">
-                  <CheckCircle className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
-                  <span>14 types de sessions personnalisables</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
-                  <span>Gestion des inscriptions et capacités</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
-                  <span>Timeline globale avec filtres avancés</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
-                  <span>Détection automatique des conflits</span>
-                </li>
-              </ul>
-            </CardContent>
-          </Card>
-
-          {/* Module Transport */}
-          <Card className="border-teal-200 bg-gradient-to-br from-teal-50 to-white hover:shadow-xl transition-all">
-            <CardHeader>
-              <div className="rounded-lg bg-gradient-to-br from-teal-500 to-teal-600 p-3 w-fit mb-3">
-                <Activity className="h-6 w-6 text-white" />
-              </div>
-              <CardTitle className="text-[#004645]">Transport & Logistique</CardTitle>
-              <CardDescription>
-                Centralisez tous les déplacements de vos participants
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-2 text-sm text-[#004645]/80">
-                <li className="flex items-start gap-2">
-                  <CheckCircle className="h-4 w-4 text-teal-600 mt-0.5 flex-shrink-0" />
-                  <span>6 types de transport (vol, train, navette...)</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle className="h-4 w-4 text-teal-600 mt-0.5 flex-shrink-0" />
-                  <span>Navettes collectives avec manifestes</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle className="h-4 w-4 text-teal-600 mt-0.5 flex-shrink-0" />
-                  <span>Suivi des arrivées en temps réel</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle className="h-4 w-4 text-teal-600 mt-0.5 flex-shrink-0" />
-                  <span>Alertes confirmations manquantes</span>
-                </li>
-              </ul>
-            </CardContent>
-          </Card>
-
-          {/* Module Hébergement */}
-          <Card className="border-purple-200 bg-gradient-to-br from-purple-50 to-white hover:shadow-xl transition-all">
-            <CardHeader>
-              <div className="rounded-lg bg-gradient-to-br from-purple-500 to-purple-600 p-3 w-fit mb-3">
-                <Activity className="h-6 w-6 text-white" />
-              </div>
-              <CardTitle className="text-[#004645]">Hébergement & Rooming</CardTitle>
-              <CardDescription>
-                Gérez les réservations d&apos;hôtel et rooming list
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-2 text-sm text-[#004645]/80">
-                <li className="flex items-start gap-2">
-                  <CheckCircle className="h-4 w-4 text-purple-600 mt-0.5 flex-shrink-0" />
-                  <span>Gestion multi-hébergements</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle className="h-4 w-4 text-purple-600 mt-0.5 flex-shrink-0" />
-                  <span>7 types de chambres configurables</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle className="h-4 w-4 text-purple-600 mt-0.5 flex-shrink-0" />
-                  <span>Rooming list complète et assignations</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle className="h-4 w-4 text-purple-600 mt-0.5 flex-shrink-0" />
-                  <span>Suivi capacités et alertes automatiques</span>
-                </li>
-              </ul>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* CTA Documentation */}
-        <Card className="mt-6 border-[#009197]/30 bg-gradient-to-r from-[#004645]/5 to-[#009197]/5">
-          <CardContent className="py-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="rounded-lg bg-[#009197]/10 p-3">
-                  <BookOpen className="h-6 w-6 text-[#009197]" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-[#004645] mb-1">
-                    Découvrez comment utiliser tous les modules
-                  </h3>
-                  <p className="text-sm text-[#004645]/70">
-                    Tutoriels complets, user stories et exemples d&apos;usage
-                  </p>
-                </div>
-              </div>
-              <Link href="/admin/modules-showcase/documentation">
-                <Button className="bg-gradient-to-r from-[#004645] to-[#009197] hover:from-[#006C51] hover:to-[#009197] text-white">
-                  <BookOpen className="h-4 w-4 mr-2" />
-                  Documentation
-                </Button>
-              </Link>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Secondary Stats and Activity */}
-      <div className="grid md:grid-cols-3 gap-6">
-        {/* Top Events */}
-        {stats && stats.topEvents.length > 0 && (
-          <Card className="border-[#9CD9F6]/30 bg-white/80 backdrop-blur">
-            <CardHeader>
-              <CardTitle className="text-[#004645] flex items-center gap-2">
-                <Award className="h-5 w-5 text-[#FF4713]" />
-                Top événements
-              </CardTitle>
-              <CardDescription>Meilleur taux de réponse</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {stats.topEvents.map((event, index) => (
-                <div key={event.id} className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <p className="font-medium text-sm text-[#004645]">{event.name}</p>
-                    <p className="text-xs text-[#004645]/70">
-                      {event.rsvps}/{event.guests} réponses
-                    </p>
-                  </div>
-                  <Badge className="bg-[#009197] text-white">
-                    {event.responseRate}%
-                  </Badge>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Recent Activity */}
-        {stats && stats.recentActivity.length > 0 && (
-          <Card className="border-[#9CD9F6]/30 bg-white/80 backdrop-blur">
-            <CardHeader>
-              <CardTitle className="text-[#004645] flex items-center gap-2">
-                <Activity className="h-5 w-5 text-[#009197]" />
-                Activité récente
-              </CardTitle>
-              <CardDescription>Dernières réponses RSVP</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {stats.recentActivity.map((activity) => (
-                <div key={activity.id} className="flex items-start gap-3">
-                  <CheckCircle className="h-4 w-4 text-[#009197] mt-0.5" />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-[#004645] truncate">
-                      {activity.guestName}
-                    </p>
-                    <p className="text-xs text-[#004645]/70 truncate">{activity.eventName}</p>
-                  </div>
-                  <Badge variant="outline" className={getStatusColor(activity.status)}>
-                    {activity.status === 'CONFIRMED' ? 'Confirmé' :
-                     activity.status === 'DECLINED' ? 'Décliné' : 'En attente'}
-                  </Badge>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Quick Actions */}
-        <Card className="border-[#9CD9F6]/30 bg-white/80 backdrop-blur">
-          <CardHeader>
-            <CardTitle className="text-[#004645] flex items-center gap-2">
-              <Target className="h-5 w-5 text-[#FF4713]" />
-              Actions rapides
-            </CardTitle>
-            <CardDescription>Gérez vos événements</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <Link href="/admin/events/new" className="block">
-              <Button variant="outline" className="w-full justify-start border-[#009197] text-[#009197] hover:bg-[#009197] hover:text-white">
-                <Plus className="h-4 w-4 mr-2" />
-                Créer un événement
-              </Button>
-            </Link>
-            <Link href="/admin/modules-showcase" className="block">
-              <Button variant="outline" className="w-full justify-start border-[#FF4713] text-[#FF4713] hover:bg-[#FF4713] hover:text-white">
-                <Layers className="h-4 w-4 mr-2" />
-                Modules de planification
-              </Button>
-            </Link>
-            <Link href="/admin/modules-showcase/documentation" className="block">
-              <Button variant="outline" className="w-full justify-start border-[#004645] text-[#004645] hover:bg-[#004645] hover:text-white">
-                <BookOpen className="h-4 w-4 mr-2" />
-                Documentation & Tutoriels
-              </Button>
-            </Link>
-            <Link href="/admin/settings/integrations" className="block">
-              <Button variant="outline" className="w-full justify-start">
-                <Mail className="h-4 w-4 mr-2" />
-                Intégrations email
-              </Button>
-            </Link>
-            <Link href="/admin/templates" className="block">
-              <Button variant="outline" className="w-full justify-start">
-                <Eye className="h-4 w-4 mr-2" />
-                Templates d&apos;emails
-              </Button>
-            </Link>
-            <Link href="/admin/diagnostic" className="block">
-              <Button variant="outline" className="w-full justify-start">
-                <Activity className="h-4 w-4 mr-2" />
-                Diagnostic système
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
-      </div>
-
       {/* Events List */}
       <div>
-        <h2 className="text-2xl font-bold text-[#004645] mb-6" style={{ fontFamily: "var(--font-abril)" }}>
-          Mes événements
-        </h2>
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-2xl font-bold text-[#004645]" style={{ fontFamily: "var(--font-abril)" }}>
+            Mes événements
+          </h2>
+          {events.length > 0 && (
+            <Link href="/admin/rsvp">
+              <Button variant="outline" className="border-[#009197] text-[#009197]">
+                Voir tous les invités
+              </Button>
+            </Link>
+          )}
+        </div>
 
         {events.length === 0 ? (
           <Card className="border-[#9CD9F6]/30 bg-gradient-to-br from-white via-[#9CD9F6]/5 to-white backdrop-blur">
             <CardContent className="py-16 px-8">
-              {/* Illustration et message principal */}
               <div className="max-w-2xl mx-auto text-center space-y-6">
-                {/* Icon with gradient background */}
+                {/* Icon */}
                 <div className="relative inline-flex">
                   <div className="absolute inset-0 bg-gradient-to-r from-[#004645] to-[#009197] rounded-full blur-xl opacity-20 animate-pulse" />
                   <div className="relative bg-gradient-to-r from-[#004645] to-[#009197] p-6 rounded-full">
@@ -558,10 +279,10 @@ export default function AdminDashboard() {
                 {/* Title */}
                 <div>
                   <h3 className="text-3xl font-bold mb-3 text-[#004645]" style={{ fontFamily: "var(--font-abril)" }}>
-                    Bienvenue sur votre dashboard !
+                    Bienvenue sur Weevup !
                   </h3>
                   <p className="text-lg text-[#004645]/70">
-                    Commencez par créer votre premier événement
+                    Créez votre premier événement pour commencer
                   </p>
                 </div>
 
@@ -572,7 +293,7 @@ export default function AdminDashboard() {
                       1
                     </div>
                     <p className="text-sm font-medium text-[#004645]">Créez votre événement</p>
-                    <p className="text-xs text-[#004645]/60">Configurez les détails et paramètres</p>
+                    <p className="text-xs text-[#004645]/60">Nom, date, lieu et paramètres</p>
                   </div>
                   <div className="space-y-2">
                     <div className="w-10 h-10 rounded-full bg-[#009197] text-white flex items-center justify-center font-bold mx-auto">
@@ -586,11 +307,11 @@ export default function AdminDashboard() {
                       3
                     </div>
                     <p className="text-sm font-medium text-[#004645]">Suivez les réponses</p>
-                    <p className="text-xs text-[#004645]/60">Gérez les RSVP et analytics</p>
+                    <p className="text-xs text-[#004645]/60">Gérez les RSVP en temps réel</p>
                   </div>
                 </div>
 
-                {/* Main CTA */}
+                {/* CTA */}
                 <div className="space-y-4">
                   <Link href="/admin/events/new">
                     <Button
@@ -602,7 +323,6 @@ export default function AdminDashboard() {
                     </Button>
                   </Link>
 
-                  {/* Secondary action - less prominent */}
                   <div className="pt-4 border-t border-gray-200">
                     <p className="text-xs text-[#004645]/50 mb-2">Ou découvrez avec un exemple</p>
                     <Button
@@ -632,7 +352,7 @@ export default function AdminDashboard() {
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {events.map((event) => (
-              <Card key={event.id} className="border-[#9CD9F6]/30 bg-white/80 backdrop-blur hover:shadow-xl transition-all duration-300 group">
+              <Card key={event.id} className="border-[#9CD9F6]/30 bg-white/80 backdrop-blur hover:shadow-xl transition-all duration-300">
                 <CardHeader>
                   <CardTitle className="text-[#004645]" style={{ fontFamily: "var(--font-abril)" }}>
                     {event.name}
