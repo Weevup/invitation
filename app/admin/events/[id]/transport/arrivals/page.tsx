@@ -48,7 +48,6 @@ interface TransportArrival {
     firstName: string
     lastName: string
     email: string
-    phone?: string
   }
   manifestId?: string
   manifest?: {
@@ -335,9 +334,6 @@ export default function TransportArrivalsPage() {
                             )}
                           </div>
                           <p className="text-sm text-muted-foreground">{arrival.guest.email}</p>
-                          {arrival.guest.phone && (
-                            <p className="text-sm text-muted-foreground">{arrival.guest.phone}</p>
-                          )}
                         </div>
                         <div className="flex flex-col items-end gap-2">
                           <Badge className={statusColors[arrival.status]}>
