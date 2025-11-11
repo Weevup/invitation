@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   Calendar, Users, CheckCircle, Clock, TrendingUp, Plus,
   Mail, Eye, MousePointer, AlertCircle, RefreshCw, Activity,
-  Target, Award
+  Target, Award, BookOpen, Layers
 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
@@ -352,6 +352,18 @@ export default function AdminDashboard() {
               <Button variant="outline" className="w-full justify-start border-[#009197] text-[#009197] hover:bg-[#009197] hover:text-white">
                 <Plus className="h-4 w-4 mr-2" />
                 Créer un événement
+              </Button>
+            </Link>
+            <Link href="/admin/modules-showcase" className="block">
+              <Button variant="outline" className="w-full justify-start border-[#FF4713] text-[#FF4713] hover:bg-[#FF4713] hover:text-white">
+                <Layers className="h-4 w-4 mr-2" />
+                Modules de planification
+              </Button>
+            </Link>
+            <Link href="/admin/modules-showcase/documentation" className="block">
+              <Button variant="outline" className="w-full justify-start border-[#004645] text-[#004645] hover:bg-[#004645] hover:text-white">
+                <BookOpen className="h-4 w-4 mr-2" />
+                Documentation & Tutoriels
               </Button>
             </Link>
             <Link href="/admin/settings/integrations" className="block">

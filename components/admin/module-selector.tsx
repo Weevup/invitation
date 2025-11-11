@@ -15,9 +15,9 @@ import { toast } from 'sonner'
 
 // Mapping des modules vers leurs routes
 const MODULE_ROUTES: Record<ModuleType, string> = {
+  PROGRAM: '/sessions',
   TRANSPORT: '/transport',
   ACCOMMODATION: '/accommodation',
-  PROGRAM: '/program',
   BUDGET: '/budget',
   REGISTRATION_PAYMENT: '/registration',
   MULTILANG: '/settings',

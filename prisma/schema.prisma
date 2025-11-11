@@ -124,6 +124,23 @@ enum TimelineType {
   CUSTOM
 }
 
+enum RoomType {
+  SINGLE
+  DOUBLE
+  TWIN
+  TRIPLE
+  SUITE
+  STUDIO
+  APARTMENT
+}
+
+enum RoomStatus {
+  AVAILABLE
+  ASSIGNED
+  BLOCKED
+  MAINTENANCE
+}
+
 model User {
   id        String   @id @default(cuid())
   email     String   @unique
@@ -220,6 +237,7 @@ model Event {
   transportManifests   TransportManifest[]  @relation("EventTransportManifests")
   sessions             Session[]            @relation("EventSessions")
   timelineEvents       TimelineEvent[]      @relation("EventTimelineEvents")
+  accommodations       Accommodation[]      @relation("EventAccommodations")
 
   @@index([slug])
   @@index([adminId])
@@ -262,6 +280,7 @@ model Guest {
   transportBookings TransportBooking[]    @relation("GuestTransportBookings")
   manifests         ManifestParticipant[] @relation("GuestManifests")
   sessionParticipations SessionParticipant[] @relation("GuestSessions")
+  roomAssignments   RoomAssignment[]      @relation("GuestRoomAssignments")
 
   @@unique([eventId, email])
   @@index([tokenHash])
@@ -721,4 +740,164 @@ model TimelineEvent {
   @@index([eventId, startTime])
   @@index([type])
   @@index([isPublic])
+}
+
+// ============================================
+// PHASE 2: ACCOMMODATION MODULE
+// ============================================
+
+model Accommodation {
+  id              String   @id @default(cuid())
+  eventId         String
+  event           Event    @relation("EventAccommodations", fields: [eventId], references: [id], onDelete: Cascade)
+
+  // Basic information
+  name            String   // Hotel name
+  type            String   @default("HOTEL") // HOTEL, APARTMENT, HOSTEL, etc.
+  address         String?
+  city            String?
+  country         String?
+  postalCode      String?
+
+  // Contact
+  phone           String?
+  email           String?
+  website         String?
+  contactPerson   String?
+
+  // Location
+  latitude        Float?
+  longitude       Float?
+  distanceFromVenue Float? // Distance in km
+
+  // Facilities
+  starRating      Int?     // 1-5 stars
+  amenities       String[] @default([]) // ["WiFi", "Pool", "Gym", "Restaurant"]
+  description     String?  @db.Text
+
+  // Capacity
+  totalRooms      Int      @default(0)
+  allocatedRooms  Int      @default(0) // Rooms booked for the event
+
+  // Check-in/out details
+  checkInTime     String?  // "14:00"
+  checkOutTime    String?  // "11:00"
+  earlyCheckIn    Boolean  @default(false)
+  lateCheckOut    Boolean  @default(false)
+
+  // Costs
+  contractRate    Float?   // Negotiated rate per room per night
+  currency        String   @default("EUR")
+
+  // Booking details
+  blockStartDate  DateTime? // Start of room block
+  blockEndDate    DateTime? // End of room block
+  bookingDeadline DateTime? // Deadline for booking
+  bookingRef      String?   // Hotel booking reference
+
+  // Status
+  isActive        Boolean  @default(true)
+  isPreferred     Boolean  @default(false) // Official/preferred hotel
+
+  // Internal notes
+  notes           String?  @db.Text
+  internalNotes   String?  @db.Text
+
+  // Relations
+  rooms           Room[]   @relation("AccommodationRooms")
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([eventId])
+  @@index([isActive])
+}
+
+model Room {
+  id              String         @id @default(cuid())
+  accommodationId String
+  accommodation   Accommodation  @relation("AccommodationRooms", fields: [accommodationId], references: [id], onDelete: Cascade)
+
+  // Room identification
+  roomNumber      String         // "101", "Suite 5", etc.
+  floor           Int?
+  type            RoomType
+  status          RoomStatus     @default(AVAILABLE)
+
+  // Capacity
+  maxOccupancy    Int            @default(1) // Max guests
+  currentOccupancy Int           @default(0) // Current assigned guests
+
+  // Features
+  bedConfiguration String?       // "1 King", "2 Singles", etc.
+  view            String?        // "Sea view", "Garden view", etc.
+  isAccessible    Boolean        @default(false) // Wheelchair accessible
+  isSmokingAllowed Boolean       @default(false)
+  amenities       String[]       @default([])
+
+  // Pricing
+  ratePerNight    Float?
+  currency        String         @default("EUR")
+
+  // Availability
+  availableFrom   DateTime?
+  availableUntil  DateTime?
+
+  // Notes
+  notes           String?        @db.Text
+
+  // Relations
+  assignments     RoomAssignment[] @relation("RoomAssignments")
+
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  @@unique([accommodationId, roomNumber])
+  @@index([accommodationId])
+  @@index([status])
+  @@index([type])
+}
+
+model RoomAssignment {
+  id              String        @id @default(cuid())
+  roomId          String
+  room            Room          @relation("RoomAssignments", fields: [roomId], references: [id], onDelete: Cascade)
+  guestId         String
+  guest           Guest         @relation("GuestRoomAssignments", fields: [guestId], references: [id], onDelete: Cascade)
+
+  // Stay details
+  checkInDate     DateTime
+  checkOutDate    DateTime
+  numberOfNights  Int           @default(1)
+
+  // Primary guest indicator (for shared rooms)
+  isPrimaryGuest  Boolean       @default(true)
+
+  // Preferences matched
+  preferencesMet  String[]      @default([]) // ["Non-smoking", "Ground floor"]
+
+  // Special requests
+  specialRequests String?       @db.Text
+
+  // Status
+  isConfirmed     Boolean       @default(false)
+  confirmedAt     DateTime?
+  confirmedBy     String?       // Admin ID
+
+  // Payment
+  isPaid          Boolean       @default(false)
+  paidAmount      Float?
+  currency        String        @default("EUR")
+
+  // Notes
+  notes           String?       @db.Text
+
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@unique([roomId, guestId])
+  @@index([roomId])
+  @@index([guestId])
+  @@index([checkInDate])
+  @@index([checkOutDate])
 }
