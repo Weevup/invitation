@@ -94,6 +94,10 @@ export default function GuestsPage() {
     toast.success("Le lien d'invitation a été copié dans le presse-papier")
   }
 
+  const handleExportParticipantPDF = (guestId: string) => {
+    window.open(`/api/admin/events/${eventId}/export/participant/${guestId}`, '_blank')
+  }
+
   const handleExportCSV = () => {
     if (!event) return
 
@@ -432,6 +436,15 @@ export default function GuestsPage() {
                             title="Copier le lien d'invitation"
                           >
                             <LinkIcon className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleExportParticipantPDF(guest.id)}
+                            className="text-[#004645] hover:text-[#FF4713] hover:bg-[#9CD9F6]/20"
+                            title="Exporter le programme PDF"
+                          >
+                            <Download className="h-4 w-4" />
                           </Button>
                         </div>
                       </td>

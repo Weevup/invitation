@@ -18,6 +18,8 @@ import {
   Activity,
   Clock,
   MapPin,
+  Download,
+  FileSpreadsheet,
 } from 'lucide-react'
 import Link from 'next/link'
 import { format } from 'date-fns'
@@ -135,6 +137,14 @@ export default function DashboardPage() {
     }
   }
 
+  const handleExportManifeste = () => {
+    window.open(`/api/admin/events/${eventId}/export/manifeste`, '_blank')
+  }
+
+  const handleExportTimelinePDF = () => {
+    window.open(`/api/admin/events/${eventId}/export/timeline-pdf`, '_blank')
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-96">
@@ -160,15 +170,37 @@ export default function DashboardPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Dashboard Planification</h1>
-        <p className="text-muted-foreground">
-          Vue d&apos;ensemble de l&apos;organisation - {data.event.name}
-        </p>
-        <p className="text-sm text-muted-foreground mt-1">
-          {format(new Date(data.event.startsAt), 'd MMMM yyyy', { locale: fr })} -{' '}
-          {format(new Date(data.event.endsAt), 'd MMMM yyyy', { locale: fr })}
-        </p>
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Dashboard Planification</h1>
+          <p className="text-muted-foreground">
+            Vue d&apos;ensemble de l&apos;organisation - {data.event.name}
+          </p>
+          <p className="text-sm text-muted-foreground mt-1">
+            {format(new Date(data.event.startsAt), 'd MMMM yyyy', { locale: fr })} -{' '}
+            {format(new Date(data.event.endsAt), 'd MMMM yyyy', { locale: fr })}
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <Button
+            onClick={handleExportTimelinePDF}
+            variant="outline"
+            size="sm"
+            className="gap-2"
+          >
+            <Download className="h-4 w-4" />
+            Timeline PDF
+          </Button>
+          <Button
+            onClick={handleExportManifeste}
+            variant="outline"
+            size="sm"
+            className="gap-2"
+          >
+            <FileSpreadsheet className="h-4 w-4" />
+            Manifeste Excel
+          </Button>
+        </div>
       </div>
 
       {/* High Priority Alerts */}

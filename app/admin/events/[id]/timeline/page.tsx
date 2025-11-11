@@ -20,6 +20,7 @@ import {
   X,
   Search,
   ChevronDown,
+  FileSpreadsheet,
 } from 'lucide-react'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
@@ -212,6 +213,14 @@ export default function TimelinePage() {
     setGuestSearch('')
   }
 
+  const handleExportTimelinePDF = () => {
+    window.open(`/api/admin/events/${eventId}/export/timeline-pdf`, '_blank')
+  }
+
+  const handleExportManifeste = () => {
+    window.open(`/api/admin/events/${eventId}/export/manifeste`, '_blank')
+  }
+
   const hasActiveFilters = selectedGuest || selectedTypes.size > 0 || startDate || endDate
 
   // Filter guests based on search
@@ -272,9 +281,13 @@ export default function TimelinePage() {
               </Badge>
             )}
           </Button>
-          <Button variant="outline">
+          <Button variant="outline" onClick={handleExportTimelinePDF}>
             <Download className="h-4 w-4 mr-2" />
-            Exporter
+            Timeline PDF
+          </Button>
+          <Button variant="outline" onClick={handleExportManifeste}>
+            <FileSpreadsheet className="h-4 w-4 mr-2" />
+            Manifeste Excel
           </Button>
         </div>
       </div>
