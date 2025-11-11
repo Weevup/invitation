@@ -212,25 +212,53 @@ export default function IntegrationsPage() {
           </p>
         </div>
 
-        {/* Active Integration Card */}
-        {integrations.some(i => i.isPrimary) && (
-          <Card className="border-green-500/30 bg-green-50/50 backdrop-blur">
+        {/* Quick Provider Switcher */}
+        {integrations.length > 0 && (
+          <Card className="border-[#9CD9F6]/30 bg-white/80 backdrop-blur">
             <CardHeader>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-green-100">
-                    <Check className="h-5 w-5 text-green-600" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-[#004645]">Intégration active</CardTitle>
-                    <CardDescription>
-                      {providers.find(p => p.id === integrations.find(i => i.isPrimary)?.provider)?.name} est configuré comme provider principal
-                    </CardDescription>
-                  </div>
-                </div>
-                <Badge className="bg-green-600">Actif</Badge>
-              </div>
+              <CardTitle className="text-[#004645]">Sélection rapide du provider</CardTitle>
+              <CardDescription>
+                Cliquez sur un provider pour l&apos;utiliser immédiatement pour tous vos envois
+              </CardDescription>
             </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {integrations.map(integration => {
+                  const providerInfo = providers.find(p => p.id === integration.provider)
+                  if (!providerInfo) return null
+
+                  return (
+                    <button
+                      key={integration.id}
+                      onClick={() => handleSetPrimary(integration.id)}
+                      disabled={integration.isPrimary}
+                      className={`
+                        relative p-4 rounded-lg border-2 transition-all
+                        ${integration.isPrimary
+                          ? 'border-green-500 bg-green-50 cursor-default'
+                          : 'border-gray-200 hover:border-[#009197] hover:bg-[#9CD9F6]/10 cursor-pointer'
+                        }
+                      `}
+                    >
+                      <div className="flex flex-col items-center gap-2">
+                        <providerInfo.icon
+                          className="h-8 w-8"
+                          style={{ color: integration.isPrimary ? '#22c55e' : providerInfo.color }}
+                        />
+                        <span className={`font-semibold text-sm ${integration.isPrimary ? 'text-green-700' : 'text-[#004645]'}`}>
+                          {providerInfo.name}
+                        </span>
+                        {integration.isPrimary && (
+                          <Badge className="bg-green-600 text-white text-xs">
+                            ✓ Actif
+                          </Badge>
+                        )}
+                      </div>
+                    </button>
+                  )
+                })}
+              </div>
+            </CardContent>
           </Card>
         )}
 
@@ -334,36 +362,18 @@ function ProviderConfig({ provider, integration, onSave, onTest, onSetPrimary, o
           <div className="flex items-center gap-2">
             {integration && (
               <>
-                {!integration.isPrimary && integration.isActive && (
+                {!integration.isPrimary && (
                   <Button
                     type="button"
                     size="sm"
                     onClick={() => onSetPrimary(integration.id)}
                     className="bg-green-600 hover:bg-green-700 text-white"
                   >
-                    Définir comme principal
+                    Utiliser ce provider
                   </Button>
                 )}
-                {integration.isActive ? (
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="outline"
-                    onClick={() => onToggleActive(integration.id, integration.isActive)}
-                    className="border-red-600 text-red-600 hover:bg-red-600 hover:text-white"
-                  >
-                    Désactiver
-                  </Button>
-                ) : (
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="outline"
-                    onClick={() => onToggleActive(integration.id, integration.isActive)}
-                    className="border-green-600 text-green-600 hover:bg-green-600 hover:text-white"
-                  >
-                    Activer
-                  </Button>
+                {integration.isPrimary && integration.isActive && (
+                  <Badge className="bg-green-600 text-white px-3 py-1">✓ En cours d&apos;utilisation</Badge>
                 )}
               </>
             )}

@@ -189,12 +189,21 @@ export async function PATCH(request: NextRequest) {
     }
 
     // Mettre à jour l'intégration
+    // Si on définit comme primary, on l'active automatiquement
+    const updateData: any = {}
+    if (isPrimary !== undefined) {
+      updateData.isPrimary = isPrimary
+      if (isPrimary === true) {
+        updateData.isActive = true // Auto-activer quand on définit comme principal
+      }
+    }
+    if (isActive !== undefined && isPrimary === undefined) {
+      updateData.isActive = isActive
+    }
+
     const integration = await prisma.emailIntegration.update({
       where: { id },
-      data: {
-        ...(isPrimary !== undefined && { isPrimary }),
-        ...(isActive !== undefined && { isActive }),
-      },
+      data: updateData,
     })
 
     return NextResponse.json({
