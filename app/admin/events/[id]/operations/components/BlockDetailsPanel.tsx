@@ -301,10 +301,12 @@ export function BlockDetailsPanel({ slot, rawData, onClose }: BlockDetailsPanelP
                     <span className="text-muted-foreground">Type</span>
                     <span className="font-medium">{slot.manifest.type}</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Direction</span>
-                    <span className="font-medium">{slot.manifest.direction}</span>
-                  </div>
+                  {slot.manifest.route && (
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Trajet</span>
+                      <span className="font-medium text-xs">{slot.manifest.route}</span>
+                    </div>
+                  )}
                   {slot.manifest.driverName && (
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Chauffeur</span>

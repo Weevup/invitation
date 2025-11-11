@@ -567,6 +567,11 @@ model TransportManifest {
   // Status
   status        ManifestStatus   @default(DRAFT)
 
+  // Driver & Vehicle info (for operational planning)
+  driverName    String?
+  driverPhone   String?
+  vehicleInfo   String?          // Vehicle plate, model, color, etc.
+
   // Participants (many-to-many via pivot table)
   participants  ManifestParticipant[]
 

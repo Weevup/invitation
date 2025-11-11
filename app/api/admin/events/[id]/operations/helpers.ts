@@ -282,28 +282,36 @@ export function groupTransportsByTime(
 
   // Ajouter les manifests (transports groupés)
   transportManifests.forEach(manifest => {
+    // Parse departure and arrival Json fields
+    const departure = manifest.departure as any
+    const arrival = manifest.arrival as any
+    const departureTime = departure?.date ? new Date(departure.date) : new Date()
+    const arrivalTime = arrival?.date ? new Date(arrival.date) : undefined
+
+    const route = `${departure?.location || departure?.city || 'Départ'} → ${arrival?.location || arrival?.city || 'Arrivée'}`
+
     groups.push({
       id: `manifest-${manifest.id}`,
       type: manifest.type,
-      subType: manifest.direction === 'ARRIVAL' ? 'arrival' : 'departure',
-      startTime: manifest.departureTime,
-      endTime: manifest.arrivalTime || undefined,
-      title: `${getTransportTypeLabel(manifest.type)} - ${manifest.route}`,
-      route: manifest.route,
+      subType: 'departure', // Default, could be determined from timing or context
+      startTime: departureTime,
+      endTime: arrivalTime,
+      title: `${getTransportTypeLabel(manifest.type)} - ${manifest.name}`,
+      route: route,
       participants: manifest.participants.map(p => p.guest),
       manifest: {
         id: manifest.id,
         type: manifest.type,
-        direction: manifest.direction,
-        route: manifest.route,
-        departureTime: manifest.departureTime,
-        arrivalTime: manifest.arrivalTime,
-        capacity: manifest.capacity,
+        name: manifest.name,
+        route: route,
+        departureTime: departureTime,
+        arrivalTime: arrivalTime,
+        capacity: manifest.maxCapacity,
         currentCount: manifest.currentCount,
+        description: manifest.description,
         driverName: manifest.driverName,
         driverPhone: manifest.driverPhone,
-        vehicleInfo: manifest.vehicleInfo,
-        notes: manifest.notes
+        vehicleInfo: manifest.vehicleInfo
       },
       warnings: []
     })
@@ -327,14 +335,20 @@ export function groupTransportsByTime(
 
   bookingGroups.forEach((bookings, key) => {
     const firstBooking = bookings[0]
+
+    // Parse departure and arrival Json fields
+    const departure = firstBooking.departure as any
+    const arrival = firstBooking.arrival as any
+    const route = `${departure?.city || departure?.location || 'Départ'} → ${arrival?.city || arrival?.location || 'Arrivée'}`
+
     groups.push({
       id: `transport-group-${key}`,
       type: firstBooking.type,
-      subType: firstBooking.direction === 'ARRIVAL' ? 'arrival' : 'departure',
-      startTime: firstBooking.departureTime,
+      subType: 'departure', // Default
+      startTime: firstBooking.departureTime || new Date(),
       endTime: firstBooking.arrivalTime || undefined,
       title: `${getTransportTypeLabel(firstBooking.type)} - Arrivées individuelles`,
-      route: `${firstBooking.origin} → ${firstBooking.destination}`,
+      route: route,
       participants: bookings.map(b => b.guest),
       manifest: null,
       warnings: []
