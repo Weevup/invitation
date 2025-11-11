@@ -3,7 +3,7 @@
 import { Calendar, MapPin, Users, Check, Clock, AlertTriangle } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import type { KPIs } from '../../operations/helpers'
+import type { KPIs } from '@/app/api/admin/events/[id]/operations/helpers'
 
 interface OperationsHeaderProps {
   event: {

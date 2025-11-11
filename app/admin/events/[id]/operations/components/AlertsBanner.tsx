@@ -5,7 +5,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
-import type { Alert as AlertType } from '../../operations/helpers'
+import type { Alert as AlertType } from '@/app/api/admin/events/[id]/operations/helpers'
 
 interface AlertsBannerProps {
   alerts: AlertType[]

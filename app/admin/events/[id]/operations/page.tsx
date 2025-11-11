@@ -7,7 +7,7 @@ import { OperationsHeader } from './components/OperationsHeader'
 import { AlertsBanner } from './components/AlertsBanner'
 import { TimeSlotBlock } from './components/TimeSlotBlock'
 import { BlockDetailsPanel } from './components/BlockDetailsPanel'
-import type { TimeSlot, Alert, KPIs } from '../operations/helpers'
+import type { TimeSlot, Alert, KPIs } from '@/app/api/admin/events/[id]/operations/helpers'
 import type { Guest, RSVP } from '@prisma/client'
 
 interface OperationsData {

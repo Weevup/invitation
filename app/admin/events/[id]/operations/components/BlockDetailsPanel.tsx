@@ -21,7 +21,7 @@ import { Separator } from '@/components/ui/separator'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { cn } from '@/lib/utils'
-import type { TimeSlot, Warning } from '../../operations/helpers'
+import type { TimeSlot, Warning } from '@/app/api/admin/events/[id]/operations/helpers'
 import type { Guest, RSVP } from '@prisma/client'
 
 interface BlockDetailsPanelProps {
