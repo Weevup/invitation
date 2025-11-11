@@ -19,11 +19,11 @@ import {
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await requireAdmin()
-    const eventId = params.id
+    const { id: eventId } = await params
 
     // Vérifier que l'événement appartient à l'admin connecté
     const event = await prisma.event.findFirst({
