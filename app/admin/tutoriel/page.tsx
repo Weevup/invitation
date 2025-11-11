@@ -11,7 +11,7 @@ import Link from 'next/link'
 import { useState } from 'react'
 
 export default function TutorielPage() {
-  const [activeStep, setActiveStep] = useState<number | null>(null)
+  const [activeStep, setActiveStep] = useState<number | string | null>(null)
 
   const steps = [
     {
