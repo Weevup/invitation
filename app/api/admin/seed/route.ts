@@ -679,9 +679,380 @@ JOUR 2 - Mardi 16 septembre
       guestsTechSummit.push(createdGuest)
     }
 
+    // ====================================
+    // 6. MODULE TRANSPORT - 10 ANS WEEVUP
+    // ====================================
+    // Activer le module Transport
+    await prisma.eventModule.create({
+      data: {
+        eventId: event10AnsWeevup.id,
+        moduleType: 'TRANSPORT',
+        isActive: true
+      }
+    })
+
+    // Réservations individuelles de transport
+    const transportBookingsWeevup = [
+      {
+        guest: guestsWeevup[0], // Marie Dupont
+        type: 'FLIGHT',
+        status: 'BOOKED',
+        departure: { city: 'Lyon', airport: 'LYS', date: '2025-06-20', time: '15:30' },
+        arrival: { city: 'Paris', airport: 'CDG', date: '2025-06-20', time: '16:45' },
+        carrier: 'Air France',
+        bookingRef: 'AF7823',
+        seatNumber: '12A',
+        estimatedCost: 180,
+        actualCost: 175,
+        isPaidByCompany: true
+      },
+      {
+        guest: guestsWeevup[1], // Thomas Bernard
+        type: 'TRAIN',
+        status: 'CONFIRMED',
+        departure: { city: 'Marseille', station: 'Gare Saint-Charles', date: '2025-06-20', time: '13:15' },
+        arrival: { city: 'Paris', station: 'Gare de Lyon', date: '2025-06-20', time: '16:30' },
+        carrier: 'SNCF TGV',
+        bookingRef: 'TGV9462',
+        seatNumber: '45',
+        estimatedCost: 120,
+        actualCost: 115,
+        isPaidByCompany: true
+      },
+      {
+        guest: guestsWeevup[2], // Sophie Leroy
+        type: 'TRAIN',
+        status: 'BOOKED',
+        departure: { city: 'Bordeaux', station: 'Gare Saint-Jean', date: '2025-06-20', time: '12:00' },
+        arrival: { city: 'Paris', station: 'Gare Montparnasse', date: '2025-06-20', time: '15:05' },
+        carrier: 'SNCF TGV',
+        bookingRef: 'TGV7721',
+        seatNumber: '23',
+        estimatedCost: 140,
+        actualCost: 140,
+        isPaidByCompany: true,
+        notes: 'Préférence siège couloir'
+      },
+      {
+        guest: guestsWeevup[3], // Pierre Moreau
+        type: 'PERSONAL_CAR',
+        status: 'CONFIRMED',
+        departure: { city: 'Versailles', address: '12 Rue de la Paroisse', date: '2025-06-20', time: '17:30' },
+        arrival: { address: '148 Avenue des Champs-Élysées', city: 'Paris', date: '2025-06-20', time: '18:15' },
+        notes: 'Arrivée en Tesla Model S',
+        isPaidByCompany: false
+      }
+    ]
+
+    for (const booking of transportBookingsWeevup) {
+      await prisma.transportBooking.create({
+        data: {
+          eventId: event10AnsWeevup.id,
+          guestId: booking.guest.id,
+          type: booking.type,
+          status: booking.status,
+          departure: booking.departure,
+          arrival: booking.arrival,
+          carrier: booking.carrier,
+          bookingRef: booking.bookingRef,
+          seatNumber: booking.seatNumber,
+          estimatedCost: booking.estimatedCost,
+          actualCost: booking.actualCost,
+          currency: 'EUR',
+          isPaidByCompany: booking.isPaidByCompany,
+          notes: booking.notes
+        }
+      })
+    }
+
+    // Manifeste : Navette Aéroport CDG → Hôtel
+    const manifestCDG = await prisma.transportManifest.create({
+      data: {
+        eventId: event10AnsWeevup.id,
+        type: 'SHUTTLE',
+        name: 'Navette Aéroport CDG → Pavillon Royal',
+        description: 'Navette groupée depuis l\'aéroport Charles de Gaulle vers le lieu de la soirée',
+        departure: {
+          city: 'Roissy-en-France',
+          address: 'Terminal 2E - Porte 8',
+          date: '2025-06-20',
+          time: '17:00'
+        },
+        arrival: {
+          city: 'Paris',
+          address: '148 Avenue des Champs-Élysées',
+          date: '2025-06-20',
+          time: '18:00'
+        },
+        maxCapacity: 20,
+        currentCount: 0,
+        costPerPerson: 0,
+        currency: 'EUR',
+        status: 'OPEN'
+      }
+    })
+
+    // Ajouter des participants au manifeste CDG
+    const cdgParticipants = [guestsWeevup[5], guestsWeevup[6], guestsWeevup[7]] // Équipe membres
+    for (let i = 0; i < cdgParticipants.length; i++) {
+      await prisma.manifestParticipant.create({
+        data: {
+          manifestId: manifestCDG.id,
+          guestId: cdgParticipants[i].id,
+          seatNumber: `${i + 1}`
+        }
+      })
+    }
+
+    // Mettre à jour le compteur
+    await prisma.transportManifest.update({
+      where: { id: manifestCDG.id },
+      data: { currentCount: cdgParticipants.length }
+    })
+
+    // ====================================
+    // 7. MODULE TRANSPORT - TECH SUMMIT
+    // ====================================
+    // Activer le module Transport
+    await prisma.eventModule.create({
+      data: {
+        eventId: eventTechSummit.id,
+        moduleType: 'TRANSPORT',
+        isActive: true
+      }
+    })
+
+    // Réservations VIP pour speakers
+    const transportBookingsSummit = [
+      {
+        guest: guestsTechSummit[0], // Yann LeCun
+        type: 'FLIGHT',
+        status: 'BOOKED',
+        departure: { city: 'New York', airport: 'JFK', date: '2025-09-14', time: '18:00' },
+        arrival: { city: 'Paris', airport: 'CDG', date: '2025-09-15', time: '07:30' },
+        carrier: 'Air France',
+        bookingRef: 'AF007',
+        seatNumber: '2A',
+        estimatedCost: 4500,
+        actualCost: 4200,
+        isPaidByCompany: true,
+        internalNotes: 'VIP Speaker - Business Class confirmée'
+      },
+      {
+        guest: guestsTechSummit[1], // Vitalik Buterin
+        type: 'FLIGHT',
+        status: 'CONFIRMED',
+        departure: { city: 'Singapore', airport: 'SIN', date: '2025-09-14', time: '01:00' },
+        arrival: { city: 'Paris', airport: 'CDG', date: '2025-09-14', time: '08:45' },
+        carrier: 'Singapore Airlines',
+        bookingRef: 'SQ334',
+        seatNumber: '1K',
+        estimatedCost: 5200,
+        actualCost: 5200,
+        isPaidByCompany: true,
+        internalNotes: 'VIP Speaker - Suite réservée'
+      },
+      {
+        guest: guestsTechSummit[2], // Cassie Kozyrkov
+        type: 'FLIGHT',
+        status: 'BOOKED',
+        departure: { city: 'San Francisco', airport: 'SFO', date: '2025-09-14', time: '12:00' },
+        arrival: { city: 'Paris', airport: 'CDG', date: '2025-09-15', time: '07:00' },
+        carrier: 'United Airlines',
+        bookingRef: 'UA990',
+        seatNumber: '3F',
+        estimatedCost: 3800,
+        actualCost: 3600,
+        isPaidByCompany: true
+      },
+      {
+        guest: guestsTechSummit[3], // Julie Fontaine
+        type: 'TRAIN',
+        status: 'BOOKED',
+        departure: { city: 'Lille', station: 'Lille Europe', date: '2025-09-15', time: '06:30' },
+        arrival: { city: 'Paris', station: 'Gare du Nord', date: '2025-09-15', time: '07:30' },
+        carrier: 'SNCF TGV',
+        bookingRef: 'TGV5512',
+        seatNumber: '12',
+        estimatedCost: 45,
+        actualCost: 42,
+        isPaidByCompany: true
+      },
+      {
+        guest: guestsTechSummit[4], // Marc Durand
+        type: 'TAXI',
+        status: 'REQUESTED',
+        departure: { city: 'Paris', address: 'Hôtel Hilton Opera', date: '2025-09-15', time: '08:00' },
+        arrival: { city: 'Paris', address: '2 Place de la Porte de Versailles', date: '2025-09-15', time: '08:30' },
+        estimatedCost: 35,
+        isPaidByCompany: false,
+        notes: 'Taxi standard'
+      }
+    ]
+
+    for (const booking of transportBookingsSummit) {
+      await prisma.transportBooking.create({
+        data: {
+          eventId: eventTechSummit.id,
+          guestId: booking.guest.id,
+          type: booking.type,
+          status: booking.status,
+          departure: booking.departure,
+          arrival: booking.arrival,
+          carrier: booking.carrier,
+          bookingRef: booking.bookingRef,
+          seatNumber: booking.seatNumber,
+          estimatedCost: booking.estimatedCost,
+          actualCost: booking.actualCost,
+          currency: 'EUR',
+          isPaidByCompany: booking.isPaidByCompany,
+          notes: booking.notes,
+          internalNotes: booking.internalNotes
+        }
+      })
+    }
+
+    // Manifeste 1 : Navette Hôtel → Convention Center (Matin Jour 1)
+    const manifestMorning1 = await prisma.transportManifest.create({
+      data: {
+        eventId: eventTechSummit.id,
+        type: 'SHUTTLE',
+        name: 'Navette Hôtels → Convention Center (Matin J1)',
+        description: 'Circuit des hôtels partenaires vers le Paris Convention Center',
+        departure: {
+          city: 'Paris',
+          address: 'Départ circuit hôtels - Premier départ Hilton Opera',
+          date: '2025-09-15',
+          time: '07:30'
+        },
+        arrival: {
+          city: 'Paris',
+          address: '2 Place de la Porte de Versailles',
+          date: '2025-09-15',
+          time: '08:15'
+        },
+        maxCapacity: 50,
+        currentCount: 0,
+        costPerPerson: 0,
+        currency: 'EUR',
+        status: 'OPEN'
+      }
+    })
+
+    // Manifeste 2 : Navette retour (Soir Jour 1)
+    const manifestEvening1 = await prisma.transportManifest.create({
+      data: {
+        eventId: eventTechSummit.id,
+        type: 'SHUTTLE',
+        name: 'Navette Convention Center → Hôtels (Soir J1)',
+        description: 'Retour vers les hôtels après la soirée networking',
+        departure: {
+          city: 'Paris',
+          address: '2 Place de la Porte de Versailles',
+          date: '2025-09-15',
+          time: '22:00'
+        },
+        arrival: {
+          city: 'Paris',
+          address: 'Circuit hôtels - Dernier arrêt Marriott Rive Gauche',
+          date: '2025-09-15',
+          time: '23:00'
+        },
+        maxCapacity: 50,
+        currentCount: 0,
+        costPerPerson: 0,
+        currency: 'EUR',
+        status: 'OPEN'
+      }
+    })
+
+    // Manifeste 3 : Bus VIP Aéroport (Jour 2 - fin)
+    const manifestAirport = await prisma.transportManifest.create({
+      data: {
+        eventId: eventTechSummit.id,
+        type: 'SHUTTLE',
+        name: 'Navette VIP Convention Center → CDG',
+        description: 'Navette express pour les participants ayant un vol le soir même',
+        departure: {
+          city: 'Paris',
+          address: '2 Place de la Porte de Versailles',
+          date: '2025-09-16',
+          time: '18:30'
+        },
+        arrival: {
+          city: 'Roissy-en-France',
+          address: 'Aéroport CDG - Terminaux 1 et 2',
+          date: '2025-09-16',
+          time: '19:45'
+        },
+        maxCapacity: 30,
+        currentCount: 0,
+        costPerPerson: 25,
+        currency: 'EUR',
+        status: 'CONFIRMED'
+      }
+    })
+
+    // Ajouter participants aux manifestes
+    const morning1Participants = [guestsTechSummit[3], guestsTechSummit[5], guestsTechSummit[6]]
+    for (let i = 0; i < morning1Participants.length; i++) {
+      await prisma.manifestParticipant.create({
+        data: {
+          manifestId: manifestMorning1.id,
+          guestId: morning1Participants[i].id,
+          seatNumber: `${i + 1}`
+        }
+      })
+    }
+    await prisma.transportManifest.update({
+      where: { id: manifestMorning1.id },
+      data: { currentCount: morning1Participants.length }
+    })
+
+    const airportParticipants = [guestsTechSummit[0], guestsTechSummit[1], guestsTechSummit[2]]
+    for (let i = 0; i < airportParticipants.length; i++) {
+      await prisma.manifestParticipant.create({
+        data: {
+          manifestId: manifestAirport.id,
+          guestId: airportParticipants[i].id,
+          seatNumber: `A${i + 1}`
+        }
+      })
+    }
+    await prisma.transportManifest.update({
+      where: { id: manifestAirport.id },
+      data: { currentCount: airportParticipants.length }
+    })
+
     return NextResponse.json({
       success: true,
-      message: 'Database seeded successfully with rich data!',
+      message: 'Database seeded successfully with Transport module!',
+      totalEventsCreated: 2,
+      totalGuestsCreated: guestsWeevup.length + guestsTechSummit.length,
+      events: [
+        {
+          name: event10AnsWeevup.name,
+          date: '20 juin 2025',
+          location: 'Paris',
+          showcaseUrl: `/event/${event10AnsWeevup.slug}`,
+          transport: {
+            bookings: transportBookingsWeevup.length,
+            manifests: 1,
+            manifestParticipants: 3
+          }
+        },
+        {
+          name: eventTechSummit.name,
+          date: '15-16 septembre 2025',
+          location: 'Paris',
+          showcaseUrl: `/event/${eventTechSummit.slug}`,
+          transport: {
+            bookings: transportBookingsSummit.length,
+            manifests: 3,
+            manifestParticipants: 6
+          }
+        }
+      ],
       data: {
         users: 1,
         events: 2,
@@ -689,6 +1060,11 @@ JOUR 2 - Mardi 16 septembre
           weevup10Ans: guestsWeevup.length,
           techSummit: guestsTechSummit.length,
           total: guestsWeevup.length + guestsTechSummit.length
+        },
+        transport: {
+          totalBookings: transportBookingsWeevup.length + transportBookingsSummit.length,
+          totalManifests: 4,
+          totalManifestParticipants: 9
         }
       }
     })
