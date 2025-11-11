@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -101,13 +101,7 @@ export function TransportBookingDialog({
   })
 
   // Charger la liste des invités
-  useEffect(() => {
-    if (open) {
-      fetchGuests()
-    }
-  }, [open, eventId])
-
-  const fetchGuests = async () => {
+  const fetchGuests = useCallback(async () => {
     setLoadingGuests(true)
     try {
       const response = await fetch(`/api/admin/events/${eventId}`)
@@ -121,7 +115,13 @@ export function TransportBookingDialog({
     } finally {
       setLoadingGuests(false)
     }
-  }
+  }, [eventId])
+
+  useEffect(() => {
+    if (open) {
+      fetchGuests()
+    }
+  }, [open, fetchGuests])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -520,14 +520,14 @@ export function TransportBookingDialog({
                 checked={formData.isPaidByCompany}
                 onCheckedChange={(checked) => setFormData({ ...formData, isPaidByCompany: checked })}
               />
-              <Label htmlFor="isPaidByCompany">Pris en charge par l'entreprise</Label>
+              <Label htmlFor="isPaidByCompany">Pris en charge par l&apos;entreprise</Label>
             </div>
           </div>
 
           {/* Notes */}
           <div className="space-y-4 border-t pt-4">
             <div className="space-y-2">
-              <Label htmlFor="notes">Notes (visibles par l'invité)</Label>
+              <Label htmlFor="notes">Notes (visibles par l&apos;invité)</Label>
               <Textarea
                 id="notes"
                 value={formData.notes}

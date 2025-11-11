@@ -67,7 +67,7 @@ export async function POST(
     }
 
     // Vérifier la capacité
-    if (manifest.participants.length >= manifest.maxCapacity) {
+    if (manifest.maxCapacity && manifest.participants.length >= manifest.maxCapacity) {
       return NextResponse.json(
         {
           error: 'Manifest is full',
@@ -104,8 +104,7 @@ export async function POST(
             id: true,
             firstName: true,
             lastName: true,
-            email: true,
-            phone: true
+            email: true
           }
         }
       }
@@ -117,7 +116,7 @@ export async function POST(
       data: {
         currentCount: manifest.participants.length + 1,
         // Passer le statut à FULL si la capacité est atteinte
-        ...(manifest.participants.length + 1 >= manifest.maxCapacity && {
+        ...(manifest.maxCapacity && manifest.participants.length + 1 >= manifest.maxCapacity && {
           status: 'FULL'
         })
       }

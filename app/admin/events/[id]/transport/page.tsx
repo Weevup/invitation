@@ -76,7 +76,7 @@ interface TransportManifest {
   description?: string | null
   departure: any
   arrival: any
-  maxCapacity: number
+  maxCapacity: number | null
   currentCount: number
   costPerPerson?: number | null
   currency: string
@@ -630,7 +630,7 @@ export default function TransportPage() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-yellow-600" style={{ fontFamily: "var(--font-abril)" }}>
-                  {manifests.reduce((sum, m) => sum + (m.maxCapacity - m.currentCount), 0)}
+                  {manifests.reduce((sum, m) => sum + (m.maxCapacity ? m.maxCapacity - m.currentCount : 0), 0)}
                 </div>
                 <p className="text-xs text-[#004645]/70">places restantes</p>
               </CardContent>
@@ -668,7 +668,7 @@ export default function TransportPage() {
                 <div className="space-y-4">
                   {manifests.map((manifest) => {
                     const Icon = manifest.type === 'SHUTTLE' ? Bus : manifest.type === 'TRAIN' ? Train : Plane
-                    const isFull = manifest.currentCount >= manifest.maxCapacity
+                    const isFull = manifest.maxCapacity ? manifest.currentCount >= manifest.maxCapacity : false
                     const statusColor =
                       manifest.status === 'DRAFT' ? 'bg-gray-100 text-gray-800' :
                       manifest.status === 'OPEN' ? 'bg-blue-100 text-blue-800' :
@@ -706,7 +706,7 @@ export default function TransportPage() {
                               </div>
                               <div className="flex items-center gap-1">
                                 <Users className="h-3 w-3" />
-                                {manifest.currentCount}/{manifest.maxCapacity} places
+                                {manifest.currentCount}/{manifest.maxCapacity || '∞'} places
                               </div>
                               {manifest.costPerPerson && (
                                 <div className="flex items-center gap-1 text-[#FF4713]">

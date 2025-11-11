@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -132,14 +132,7 @@ export function TransportBookingDetailsDialog({
     internalNotes: '',
   })
 
-  useEffect(() => {
-    if (open) {
-      fetchBooking()
-      fetchGuests()
-    }
-  }, [open, bookingId])
-
-  const fetchBooking = async () => {
+  const fetchBooking = useCallback(async () => {
     setLoadingData(true)
     try {
       const response = await fetch(`/api/admin/events/${eventId}/transport/${bookingId}`)
@@ -186,9 +179,9 @@ export function TransportBookingDetailsDialog({
     } finally {
       setLoadingData(false)
     }
-  }
+  }, [eventId, bookingId, onOpenChange])
 
-  const fetchGuests = async () => {
+  const fetchGuests = useCallback(async () => {
     try {
       const response = await fetch(`/api/admin/events/${eventId}`)
       if (response.ok) {
@@ -198,7 +191,14 @@ export function TransportBookingDetailsDialog({
     } catch (error) {
       console.error('Error fetching guests:', error)
     }
-  }
+  }, [eventId])
+
+  useEffect(() => {
+    if (open) {
+      fetchBooking()
+      fetchGuests()
+    }
+  }, [open, fetchBooking, fetchGuests])
 
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault()

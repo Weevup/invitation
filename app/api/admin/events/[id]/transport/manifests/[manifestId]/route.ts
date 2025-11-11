@@ -24,8 +24,7 @@ export async function GET(
                 id: true,
                 firstName: true,
                 lastName: true,
-                email: true,
-                phone: true
+                email: true
               }
             }
           },
@@ -136,8 +135,7 @@ export async function PUT(
                 id: true,
                 firstName: true,
                 lastName: true,
-                email: true,
-                phone: true
+                email: true
               }
             }
           }
