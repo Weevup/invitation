@@ -11,7 +11,8 @@ function generateToken(): string {
 
 export async function POST() {
   try {
-    await requireAdmin()
+    // Get the current logged-in admin
+    const session = await requireAdmin()
 
     // Additional safety: Only allow in development OR if explicitly enabled in production
     if (process.env.NODE_ENV === 'production' && process.env.ALLOW_SEED !== 'true') {
@@ -30,55 +31,81 @@ export async function POST() {
     // ====================================
     // Supprimer les événements existants et leurs données associées
     // Les comptes admin sont préservés
-    const existingEvents = await prisma.event.findMany()
+    const existingEvents = await prisma.event.findMany({
+      where: { adminId: session.user.id }
+    })
+
     if (existingEvents.length > 0) {
-      console.log(`[SEED] Suppression de ${existingEvents.length} événement(s) existant(s)...`)
+      console.log(`[SEED] Suppression de ${existingEvents.length} événement(s) existant(s) pour ${session.user.email}...`)
 
       // Supprimer dans l'ordre pour respecter les contraintes de clés étrangères
-      await prisma.manifestParticipant.deleteMany({})
-      await prisma.transportManifest.deleteMany({})
-      await prisma.transportBooking.deleteMany({})
-      await prisma.roomAssignment.deleteMany({})
-      await prisma.room.deleteMany({})
-      await prisma.accommodation.deleteMany({})
-      await prisma.eventModule.deleteMany({})
-      await prisma.emailLog.deleteMany({})
-      await prisma.emailTracking.deleteMany({})
-      await prisma.checkin.deleteMany({})
-      await prisma.rSVP.deleteMany({})
-      await prisma.guest.deleteMany({})
-      await prisma.scheduledEmail.deleteMany({})
-      await prisma.eventRemindersConfig.deleteMany({})
-      await prisma.sessionParticipant.deleteMany({})
-      await prisma.session.deleteMany({})
-      await prisma.timelineEvent.deleteMany({})
-      await prisma.event.deleteMany({})
+      // Supprimer uniquement les données liées aux événements de cet admin
+      const eventIds = existingEvents.map(e => e.id)
+
+      await prisma.manifestParticipant.deleteMany({
+        where: { manifest: { eventId: { in: eventIds } } }
+      })
+      await prisma.transportManifest.deleteMany({
+        where: { eventId: { in: eventIds } }
+      })
+      await prisma.transportBooking.deleteMany({
+        where: { eventId: { in: eventIds } }
+      })
+      await prisma.roomAssignment.deleteMany({
+        where: { room: { accommodation: { eventId: { in: eventIds } } } }
+      })
+      await prisma.room.deleteMany({
+        where: { accommodation: { eventId: { in: eventIds } } }
+      })
+      await prisma.accommodation.deleteMany({
+        where: { eventId: { in: eventIds } }
+      })
+      await prisma.eventModule.deleteMany({
+        where: { eventId: { in: eventIds } }
+      })
+      await prisma.emailLog.deleteMany({
+        where: { eventId: { in: eventIds } }
+      })
+      await prisma.emailTracking.deleteMany({
+        where: { eventId: { in: eventIds } }
+      })
+      await prisma.checkin.deleteMany({
+        where: { eventId: { in: eventIds } }
+      })
+      await prisma.rSVP.deleteMany({
+        where: { eventId: { in: eventIds } }
+      })
+      await prisma.guest.deleteMany({
+        where: { eventId: { in: eventIds } }
+      })
+      await prisma.scheduledEmail.deleteMany({
+        where: { eventId: { in: eventIds } }
+      })
+      await prisma.eventRemindersConfig.deleteMany({
+        where: { eventId: { in: eventIds } }
+      })
+      await prisma.sessionParticipant.deleteMany({
+        where: { session: { eventId: { in: eventIds } } }
+      })
+      await prisma.session.deleteMany({
+        where: { eventId: { in: eventIds } }
+      })
+      await prisma.timelineEvent.deleteMany({
+        where: { eventId: { in: eventIds } }
+      })
+      await prisma.event.deleteMany({
+        where: { id: { in: eventIds } }
+      })
 
       console.log('[SEED] Événements existants supprimés avec succès')
     }
 
     // ====================================
-    // 1. UTILISATEUR ADMIN
+    // 1. UTILISER L'ADMIN CONNECTÉ
     // ====================================
-    // Chercher un admin existant ou créer l'admin par défaut
-    let adminUser = await prisma.user.findFirst({
-      where: { role: 'ADMIN' }
-    })
-
-    // Si aucun admin n'existe, créer l'admin par défaut
-    if (!adminUser) {
-      const defaultPassword = await bcrypt.hash('admin123', 10)
-      adminUser = await prisma.user.create({
-        data: {
-          email: 'contact@weevup.com',
-          password: defaultPassword,
-          name: 'Admin Weevup',
-          role: 'ADMIN'
-        }
-      })
-    }
-
-    const adminWeevup = adminUser
+    // Utiliser l'admin qui lance le seed pour créer les événements
+    // Cela garantit que l'admin verra les événements créés
+    const adminWeevup = { id: session.user.id }
 
     // ====================================
     // 2. ÉVÉNEMENT 1 - 10 ANS WEEVUP
