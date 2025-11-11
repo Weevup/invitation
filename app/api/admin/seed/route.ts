@@ -13,12 +13,13 @@ export async function POST() {
   try {
     await requireAdmin()
 
-    // Additional safety: Only allow in development
-    if (process.env.NODE_ENV === 'production') {
+    // Additional safety: Only allow in development OR if explicitly enabled in production
+    if (process.env.NODE_ENV === 'production' && process.env.ALLOW_SEED !== 'true') {
       return NextResponse.json(
         {
           success: false,
           error: 'Cette opération est désactivée en production',
+          help: 'Pour activer le seed en production, ajoutez la variable d\'environnement ALLOW_SEED=true dans Vercel'
         },
         { status: 403 }
       )
