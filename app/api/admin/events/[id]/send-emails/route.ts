@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { emailService, sendEmailWithTemplate, TemplateVariables } from '@/lib/email-service';
+import { sendEmail, sendEmailWithTemplate, TemplateVariables } from '@/lib/email-service';
+import {
+  generateSaveTheDateEmail,
+  generateInvitationEmail,
+  generateReminderEmail
+} from '@/lib/email-templates';
 import { requireAdmin, handleAuthError } from '@/lib/auth-utils';
 import { requireEventOwnership } from '@/lib/permissions';
 
@@ -35,22 +40,22 @@ export async function POST(
       );
     }
 
-    // Récupère l'intégration email primaire si un template est utilisé
-    let emailIntegration = null;
-    if (templateId) {
-      emailIntegration = await prisma.emailIntegration.findFirst({
-        where: {
-          isPrimary: true,
-          isActive: true
-        }
-      });
-
-      if (!emailIntegration) {
-        return NextResponse.json(
-          { error: 'Aucune intégration email active configurée' },
-          { status: 400 }
-        );
+    // Récupère l'intégration email primaire (TOUJOURS nécessaire)
+    const emailIntegration = await prisma.emailIntegration.findFirst({
+      where: {
+        isPrimary: true,
+        isActive: true
       }
+    });
+
+    if (!emailIntegration) {
+      return NextResponse.json(
+        {
+          error: 'Aucune intégration email active configurée',
+          help: 'Veuillez configurer une intégration email (Resend, SendGrid, etc.) dans Paramètres > Intégrations'
+        },
+        { status: 400 }
+      );
     }
 
     // Si c'est un envoi programmé
@@ -115,9 +120,7 @@ export async function POST(
         } else if (type === 'save-the-date') {
           const config = event.saveTheDateConfig as any || {};
 
-          await emailService.sendSaveTheDate({
-            to: guest.email,
-            toName: `${guest.firstName} ${guest.lastName}`,
+          const html = generateSaveTheDateEmail({
             eventName: config.eventName || event.name,
             tagline: config.tagline || 'Réservez la date !',
             dateAnnouncement: config.dateAnnouncement || new Date(event.startsAt).toLocaleDateString('fr-FR'),
@@ -130,16 +133,23 @@ export async function POST(
             ctaText: config.ctaText || 'Je bloque la date',
             ctaLink: config.showInterestForm ? `${baseUrl}/event/${event.slug}` : undefined,
             footerMessage: config.footerMessage || 'Invitation officielle à venir',
+            guestName: `${guest.firstName} ${guest.lastName}`,
             logoUrl: config.logoImage,
             headerImage: config.headerImage,
-            trackingId,
           });
+
+          await sendEmail(
+            {
+              to: guest.email,
+              subject: `${config.eventName || event.name} - Save the Date`,
+              html,
+            },
+            emailIntegration as any
+          );
         } else if (type === 'invitation') {
           const invitationConfig = event.invitationConfig as any || {};
 
-          await emailService.sendInvitation({
-            to: guest.email,
-            toName: `${guest.firstName} ${guest.lastName}`,
+          const html = generateInvitationEmail({
             eventName: event.name,
             welcomeMessage: invitationConfig.welcomeMessage || 'Vous êtes invité(e) à',
             description: invitationConfig.description || '',
@@ -159,14 +169,21 @@ export async function POST(
             secondaryColor: invitationConfig.secondaryColor || '#009197',
             accentColor: invitationConfig.accentColor || '#FF4713',
             rsvpLink: `${baseUrl}/guest/${guest.token}`,
+            guestName: `${guest.firstName} ${guest.lastName}`,
             logoUrl: invitationConfig.logoUrl,
             headerImage: invitationConfig.headerImage,
-            trackingId,
           });
+
+          await sendEmail(
+            {
+              to: guest.email,
+              subject: `Vous êtes invité(e) - ${event.name}`,
+              html,
+            },
+            emailIntegration as any
+          );
         } else if (type === 'reminder') {
-          await emailService.sendReminder({
-            to: guest.email,
-            toName: `${guest.firstName} ${guest.lastName}`,
+          const html = generateReminderEmail({
             eventName: event.name,
             date: new Date(event.startsAt).toLocaleDateString('fr-FR', {
               weekday: 'long',
@@ -180,10 +197,19 @@ export async function POST(
             }),
             location: event.venueName || '',
             address: event.address || '',
-            primaryColor: '#004645',
+            guestName: `${guest.firstName} ${guest.lastName}`,
             qrCodeUrl: `${baseUrl}/api/qr/${guest.token}`,
-            trackingId,
+            primaryColor: '#004645',
           });
+
+          await sendEmail(
+            {
+              to: guest.email,
+              subject: `Rappel - ${event.name}`,
+              html,
+            },
+            emailIntegration as any
+          );
         }
 
         // Enregistre le tracking dans la base de données
