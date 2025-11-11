@@ -42,20 +42,61 @@ export async function POST() {
       // Supprimer uniquement les données liées aux événements de cet admin
       const eventIds = existingEvents.map(e => e.id)
 
-      await prisma.manifestParticipant.deleteMany({
-        where: { manifest: { eventId: { in: eventIds } } }
+      // Get all transport manifests for these events
+      const manifests = await prisma.transportManifest.findMany({
+        where: { eventId: { in: eventIds } },
+        select: { id: true }
       })
+      const manifestIds = manifests.map(m => m.id)
+
+      // Get all accommodations for these events
+      const accommodations = await prisma.accommodation.findMany({
+        where: { eventId: { in: eventIds } },
+        select: { id: true }
+      })
+      const accommodationIds = accommodations.map(a => a.id)
+
+      // Get all rooms for these accommodations
+      const rooms = await prisma.room.findMany({
+        where: { accommodationId: { in: accommodationIds } },
+        select: { id: true }
+      })
+      const roomIds = rooms.map(r => r.id)
+
+      // Get all sessions for these events
+      const sessions = await prisma.session.findMany({
+        where: { eventId: { in: eventIds } },
+        select: { id: true }
+      })
+      const sessionIds = sessions.map(s => s.id)
+
+      // Delete in correct order
+      if (manifestIds.length > 0) {
+        await prisma.manifestParticipant.deleteMany({
+          where: { manifestId: { in: manifestIds } }
+        })
+      }
+
+      if (roomIds.length > 0) {
+        await prisma.roomAssignment.deleteMany({
+          where: { roomId: { in: roomIds } }
+        })
+      }
+
+      if (sessionIds.length > 0) {
+        await prisma.sessionParticipant.deleteMany({
+          where: { sessionId: { in: sessionIds } }
+        })
+      }
+
       await prisma.transportManifest.deleteMany({
         where: { eventId: { in: eventIds } }
       })
       await prisma.transportBooking.deleteMany({
         where: { eventId: { in: eventIds } }
       })
-      await prisma.roomAssignment.deleteMany({
-        where: { room: { accommodation: { eventId: { in: eventIds } } } }
-      })
       await prisma.room.deleteMany({
-        where: { accommodation: { eventId: { in: eventIds } } }
+        where: { accommodationId: { in: accommodationIds } }
       })
       await prisma.accommodation.deleteMany({
         where: { eventId: { in: eventIds } }
@@ -83,9 +124,6 @@ export async function POST() {
       })
       await prisma.eventRemindersConfig.deleteMany({
         where: { eventId: { in: eventIds } }
-      })
-      await prisma.sessionParticipant.deleteMany({
-        where: { session: { eventId: { in: eventIds } } }
       })
       await prisma.session.deleteMany({
         where: { eventId: { in: eventIds } }
