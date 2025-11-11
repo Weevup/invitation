@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { TransportType, BookingStatus } from '@prisma/client'
+import { TransportType, BookingStatus, RoomType, RoomStatus, EmailType, EmailStatus } from '@prisma/client'
 import { generateGuestToken, hashToken } from '@/lib/auth'
 import bcrypt from 'bcryptjs'
 import { requireAdmin, handleAuthError } from '@/lib/auth-utils'
@@ -37,17 +37,25 @@ export async function POST() {
     // ====================================
     // 1. UTILISATEUR ADMIN
     // ====================================
-    const defaultPassword = await bcrypt.hash('admin123', 10)
-    const adminWeevup = await prisma.user.upsert({
-      where: { email: 'contact@weevup.com' },
-      update: {},
-      create: {
-        email: 'contact@weevup.com',
-        password: defaultPassword,
-        name: 'Admin Weevup',
-        role: 'ADMIN'
-      }
+    // Chercher un admin existant ou créer l'admin par défaut
+    let adminUser = await prisma.user.findFirst({
+      where: { role: 'ADMIN' }
     })
+
+    // Si aucun admin n'existe, créer l'admin par défaut
+    if (!adminUser) {
+      const defaultPassword = await bcrypt.hash('admin123', 10)
+      adminUser = await prisma.user.create({
+        data: {
+          email: 'contact@weevup.com',
+          password: defaultPassword,
+          name: 'Admin Weevup',
+          role: 'ADMIN'
+        }
+      })
+    }
+
+    const adminWeevup = adminUser
 
     // ====================================
     // 2. ÉVÉNEMENT 1 - 10 ANS WEEVUP
@@ -1026,36 +1034,566 @@ JOUR 2 - Mardi 16 septembre
       data: { currentCount: airportParticipants.length }
     })
 
+    // ====================================
+    // 8. MODULE HÉBERGEMENT - 10 ANS WEEVUP
+    // ====================================
+    // Activer le module Hébergement
+    await prisma.eventModule.create({
+      data: {
+        eventId: event10AnsWeevup.id,
+        moduleType: 'ACCOMMODATION',
+        isActive: true
+      }
+    })
+
+    // Hôtel 1 : Le Pavillon Royal (Hôtel haut de gamme)
+    const hotelPavillonRoyal = await prisma.accommodation.create({
+      data: {
+        eventId: event10AnsWeevup.id,
+        name: 'Le Pavillon Royal',
+        type: 'HOTEL',
+        address: '148 Avenue des Champs-Élysées',
+        city: 'Paris',
+        country: 'France',
+        postalCode: '75008',
+        phone: '+33 1 42 25 14 15',
+        email: 'contact@pavillonroyal.fr',
+        website: 'https://pavillonroyal.fr',
+        starRating: 5,
+        amenities: ['WiFi Gratuit', 'Spa', 'Restaurant Gastronomique', 'Bar', 'Room Service 24/7', 'Parking Voiturier'],
+        description: 'Hôtel 5 étoiles situé directement sur les Champs-Élysées, lieu même de la soirée. Luxe et élégance.',
+        totalRooms: 120,
+        availableRooms: 15,
+        latitude: 48.8698,
+        longitude: 2.3074,
+        distanceFromVenue: 0.0, // C'est le lieu de l'événement
+        blockDeadline: new Date('2025-06-01'),
+        groupCode: 'WEEVUP10',
+        specialRates: true,
+        contactPerson: 'Marie Fontaine'
+      }
+    })
+
+    // Hôtel 2 : Hôtel de la Paix (Plus abordable, à proximité)
+    const hotelDeLaPaix = await prisma.accommodation.create({
+      data: {
+        eventId: event10AnsWeevup.id,
+        name: 'Hôtel de la Paix',
+        type: 'HOTEL',
+        address: '12 Rue Balzac',
+        city: 'Paris',
+        country: 'France',
+        postalCode: '75008',
+        phone: '+33 1 40 76 34 56',
+        email: 'reservations@hoteldelapaix.fr',
+        website: 'https://hoteldelapaix-paris.com',
+        starRating: 4,
+        amenities: ['WiFi Gratuit', 'Petit-déjeuner', 'Concierge', 'Parking'],
+        description: 'Hôtel 4 étoiles à 5 minutes à pied du lieu de la soirée. Confort et proximité garantis.',
+        totalRooms: 80,
+        availableRooms: 20,
+        latitude: 48.8745,
+        longitude: 2.3012,
+        distanceFromVenue: 0.4,
+        blockDeadline: new Date('2025-06-01'),
+        groupCode: 'WV10YEARS',
+        specialRates: true,
+        contactPerson: 'Jean Dupuis'
+      }
+    })
+
+    // Créer des chambres pour Le Pavillon Royal
+    const roomsPavillonRoyal = []
+    // 5 Suites
+    for (let i = 1; i <= 5; i++) {
+      const room = await prisma.room.create({
+        data: {
+          accommodationId: hotelPavillonRoyal.id,
+          roomNumber: `Suite ${i}`,
+          floor: Math.floor((i - 1) / 5) + 5,
+          type: 'SUITE',
+          status: i <= 3 ? 'ASSIGNED' : 'AVAILABLE',
+          maxOccupancy: 2,
+          currentOccupancy: i <= 3 ? 2 : 0,
+          bedConfiguration: '1 King Size Bed + Salon',
+          view: 'Vue sur les Champs-Élysées',
+          isAccessible: i === 1,
+          isSmokingAllowed: false,
+          amenities: ['Mini-bar', 'Nespresso', 'Baignoire Jacuzzi', 'Télé 65"', 'Coffre-fort'],
+          ratePerNight: 450.0,
+          currency: 'EUR',
+          availableFrom: new Date('2025-06-19'),
+          availableUntil: new Date('2025-06-21')
+        }
+      })
+      roomsPavillonRoyal.push(room)
+    }
+
+    // 10 Chambres Doubles
+    for (let i = 1; i <= 10; i++) {
+      const room = await prisma.room.create({
+        data: {
+          accommodationId: hotelPavillonRoyal.id,
+          roomNumber: `${300 + i}`,
+          floor: 3,
+          type: 'DOUBLE',
+          status: i <= 5 ? 'ASSIGNED' : 'AVAILABLE',
+          maxOccupancy: 2,
+          currentOccupancy: i <= 5 ? 1 : 0,
+          bedConfiguration: '1 Lit Double Queen Size',
+          view: i % 2 === 0 ? 'Vue Jardin' : 'Vue Ville',
+          isAccessible: i === 10,
+          isSmokingAllowed: false,
+          amenities: ['Mini-bar', 'Nespresso', 'Télé 50"', 'Coffre-fort'],
+          ratePerNight: 280.0,
+          currency: 'EUR',
+          availableFrom: new Date('2025-06-19'),
+          availableUntil: new Date('2025-06-21')
+        }
+      })
+      roomsPavillonRoyal.push(room)
+    }
+
+    // Créer des chambres pour Hôtel de la Paix
+    const roomsDeLaPaix = []
+    for (let i = 1; i <= 15; i++) {
+      const room = await prisma.room.create({
+        data: {
+          accommodationId: hotelDeLaPaix.id,
+          roomNumber: `${200 + i}`,
+          floor: Math.floor((i - 1) / 5) + 2,
+          type: i <= 3 ? 'TWIN' : 'DOUBLE',
+          status: i <= 7 ? 'ASSIGNED' : 'AVAILABLE',
+          maxOccupancy: 2,
+          currentOccupancy: i <= 7 ? 1 : 0,
+          bedConfiguration: i <= 3 ? '2 Lits Simples' : '1 Lit Double',
+          view: i % 3 === 0 ? 'Vue Cour' : 'Vue Rue',
+          isAccessible: i === 15,
+          isSmokingAllowed: false,
+          amenities: ['WiFi', 'Télé', 'Bureau', 'Sèche-cheveux'],
+          ratePerNight: 180.0,
+          currency: 'EUR',
+          availableFrom: new Date('2025-06-19'),
+          availableUntil: new Date('2025-06-21')
+        }
+      })
+      roomsDeLaPaix.push(room)
+    }
+
+    // Assigner des chambres aux invités VIP de 10 ans Weevup
+    const roomAssignmentsWeevup = [
+      {
+        guest: guestsWeevup[0], // Marie Dupont (VIP)
+        room: roomsPavillonRoyal[0], // Suite 1
+        checkIn: '2025-06-20',
+        checkOut: '2025-06-21',
+        nights: 1,
+        notes: 'Suite accessible, préférence lit king size'
+      },
+      {
+        guest: guestsWeevup[1], // Thomas Bernard (VIP)
+        room: roomsPavillonRoyal[1], // Suite 2
+        checkIn: '2025-06-20',
+        checkOut: '2025-06-21',
+        nights: 1,
+        notes: 'Arrivée tardive prévue vers 18h'
+      },
+      {
+        guest: guestsWeevup[2], // Sophie Leroy (VIP Partenaire)
+        room: roomsPavillonRoyal[2], // Suite 3
+        checkIn: '2025-06-19',
+        checkOut: '2025-06-21',
+        nights: 2,
+        notes: 'Arrivée la veille, besoin de calme'
+      },
+      {
+        guest: guestsWeevup[3], // Pierre Moreau (VIP Investisseur)
+        room: roomsPavillonRoyal[5], // Chambre Double 301
+        checkIn: '2025-06-20',
+        checkOut: '2025-06-21',
+        nights: 1,
+        notes: 'Préférence vue ville'
+      },
+      {
+        guest: guestsWeevup[5], // Lucas Dubois (Équipe)
+        room: roomsDeLaPaix[0], // 201
+        checkIn: '2025-06-19',
+        checkOut: '2025-06-21',
+        nights: 2,
+        notes: 'Arrivée le 19 pour préparation'
+      },
+      {
+        guest: guestsWeevup[6], // Emma Martin (Équipe)
+        room: roomsDeLaPaix[1], // 202
+        checkIn: '2025-06-19',
+        checkOut: '2025-06-21',
+        nights: 2
+      },
+      {
+        guest: guestsWeevup[7], // Alexandre Rousseau (Équipe)
+        room: roomsDeLaPaix[2], // 203
+        checkIn: '2025-06-19',
+        checkOut: '2025-06-21',
+        nights: 2
+      }
+    ]
+
+    for (const assignment of roomAssignmentsWeevup) {
+      await prisma.roomAssignment.create({
+        data: {
+          roomId: assignment.room.id,
+          guestId: assignment.guest.id,
+          checkInDate: new Date(assignment.checkIn),
+          checkOutDate: new Date(assignment.checkOut),
+          numberOfNights: assignment.nights,
+          isPrimaryGuest: true,
+          specialRequests: assignment.notes,
+          isConfirmed: true,
+          confirmedAt: new Date(Date.now() - Math.random() * 10 * 24 * 60 * 60 * 1000),
+          isPaid: true,
+          paidAmount: assignment.room.ratePerNight! * assignment.nights,
+          currency: 'EUR'
+        }
+      })
+    }
+
+    // ====================================
+    // 9. MODULE HÉBERGEMENT - TECH SUMMIT
+    // ====================================
+    // Activer le module Hébergement
+    await prisma.eventModule.create({
+      data: {
+        eventId: eventTechSummit.id,
+        moduleType: 'ACCOMMODATION',
+        isActive: true
+      }
+    })
+
+    // Hôtel 1 : Hilton Paris Opera
+    const hotelHiltonOpera = await prisma.accommodation.create({
+      data: {
+        eventId: eventTechSummit.id,
+        name: 'Hilton Paris Opera',
+        type: 'HOTEL',
+        address: '108 Rue Saint-Lazare',
+        city: 'Paris',
+        country: 'France',
+        postalCode: '75008',
+        phone: '+33 1 40 08 44 44',
+        email: 'events@hiltonparis.com',
+        website: 'https://www.hilton.com/paris-opera',
+        starRating: 4,
+        amenities: ['WiFi Gratuit', 'Salle de Sport', 'Restaurant', 'Bar', 'Business Center', 'Parking'],
+        description: 'Hôtel 4 étoiles moderne idéalement situé. Navette gratuite vers le Convention Center.',
+        totalRooms: 268,
+        availableRooms: 50,
+        latitude: 48.8765,
+        longitude: 2.3272,
+        distanceFromVenue: 4.2,
+        blockDeadline: new Date('2025-08-15'),
+        groupCode: 'TECHSUM25',
+        specialRates: true,
+        contactPerson: 'Sarah Williams'
+      }
+    })
+
+    // Hôtel 2 : Marriott Rive Gauche
+    const hotelMarriottRiveGauche = await prisma.accommodation.create({
+      data: {
+        eventId: eventTechSummit.id,
+        name: 'Marriott Rive Gauche',
+        type: 'HOTEL',
+        address: '17 Boulevard Saint-Jacques',
+        city: 'Paris',
+        country: 'France',
+        postalCode: '75014',
+        phone: '+33 1 40 78 79 80',
+        email: 'reservations@marriott-paris.fr',
+        website: 'https://www.marriott.com/paris-rive-gauche',
+        starRating: 4,
+        amenities: ['WiFi', 'Piscine', 'Restaurant', 'Bar', 'Salle de Sport', 'Navette'],
+        description: 'À 10 minutes du Convention Center. Confort Marriott avec piscine intérieure.',
+        totalRooms: 200,
+        availableRooms: 40,
+        latitude: 48.8322,
+        longitude: 2.3369,
+        distanceFromVenue: 2.1,
+        blockDeadline: new Date('2025-08-15'),
+        groupCode: 'TS2025',
+        specialRates: true,
+        contactPerson: 'Pierre Dubois'
+      }
+    })
+
+    // Créer des chambres pour Hilton Opera (20 chambres exemple)
+    const roomsHilton = []
+    for (let i = 1; i <= 20; i++) {
+      const room = await prisma.room.create({
+        data: {
+          accommodationId: hotelHiltonOpera.id,
+          roomNumber: `${500 + i}`,
+          floor: 5 + Math.floor((i - 1) / 10),
+          type: i <= 3 ? 'SUITE' : 'DOUBLE',
+          status: i <= 8 ? 'ASSIGNED' : 'AVAILABLE',
+          maxOccupancy: i <= 3 ? 3 : 2,
+          currentOccupancy: i <= 8 ? 1 : 0,
+          bedConfiguration: i <= 3 ? '1 King + Salon' : '1 Queen Bed',
+          view: i % 2 === 0 ? 'Vue Ville' : 'Vue Cour',
+          isAccessible: i === 20,
+          isSmokingAllowed: false,
+          amenities: ['WiFi', 'Télé Smart', 'Mini-bar', 'Coffre-fort', 'Bureau'],
+          ratePerNight: i <= 3 ? 350.0 : 220.0,
+          currency: 'EUR',
+          availableFrom: new Date('2025-09-14'),
+          availableUntil: new Date('2025-09-17')
+        }
+      })
+      roomsHilton.push(room)
+    }
+
+    // Créer des chambres pour Marriott (15 chambres exemple)
+    const roomsMarriott = []
+    for (let i = 1; i <= 15; i++) {
+      const room = await prisma.room.create({
+        data: {
+          accommodationId: hotelMarriottRiveGauche.id,
+          roomNumber: `${400 + i}`,
+          floor: 4,
+          type: i <= 2 ? 'SUITE' : 'DOUBLE',
+          status: i <= 6 ? 'ASSIGNED' : 'AVAILABLE',
+          maxOccupancy: 2,
+          currentOccupancy: i <= 6 ? 1 : 0,
+          bedConfiguration: i <= 2 ? '1 King + Salon' : '1 Queen Bed',
+          view: i % 3 === 0 ? 'Vue Seine' : 'Vue Jardin',
+          isAccessible: i === 15,
+          isSmokingAllowed: false,
+          amenities: ['WiFi', 'Télé', 'Mini-frigo', 'Bureau'],
+          ratePerNight: i <= 2 ? 320.0 : 200.0,
+          currency: 'EUR',
+          availableFrom: new Date('2025-09-14'),
+          availableUntil: new Date('2025-09-17')
+        }
+      })
+      roomsMarriott.push(room)
+    }
+
+    // Assigner des chambres aux speakers et participants VIP
+    const roomAssignmentsSummit = [
+      {
+        guest: guestsTechSummit[0], // Yann LeCun (Speaker VIP)
+        room: roomsHilton[0], // Suite
+        checkIn: '2025-09-14',
+        checkOut: '2025-09-17',
+        nights: 3,
+        notes: 'Speaker VIP - Suite avec vue, arrivée le 14 au soir'
+      },
+      {
+        guest: guestsTechSummit[1], // Vitalik Buterin (Speaker VIP)
+        room: roomsHilton[1], // Suite
+        checkIn: '2025-09-14',
+        checkOut: '2025-09-17',
+        nights: 3,
+        notes: 'Speaker VIP - Suite, préférence calme'
+      },
+      {
+        guest: guestsTechSummit[2], // Cassie Kozyrkov (Speaker VIP)
+        room: roomsHilton[2], // Suite
+        checkIn: '2025-09-14',
+        checkOut: '2025-09-17',
+        nights: 3,
+        notes: 'Speaker VIP - Suite avec bureau'
+      },
+      {
+        guest: guestsTechSummit[3], // Julie Fontaine
+        room: roomsHilton[3], // Double
+        checkIn: '2025-09-14',
+        checkOut: '2025-09-17',
+        nights: 3
+      },
+      {
+        guest: guestsTechSummit[4], // Marc Durand
+        room: roomsHilton[4], // Double
+        checkIn: '2025-09-15',
+        checkOut: '2025-09-17',
+        nights: 2
+      },
+      {
+        guest: guestsTechSummit[5], // Laura Chen
+        room: roomsMarriott[0], // Suite
+        checkIn: '2025-09-14',
+        checkOut: '2025-09-17',
+        nights: 3
+      },
+      {
+        guest: guestsTechSummit[6], // Antoine Mercier
+        room: roomsMarriott[2], // Double
+        checkIn: '2025-09-14',
+        checkOut: '2025-09-16',
+        nights: 2
+      },
+      {
+        guest: guestsTechSummit[7], // Sarah Johnson
+        room: roomsMarriott[3], // Double
+        checkIn: '2025-09-15',
+        checkOut: '2025-09-17',
+        nights: 2
+      }
+    ]
+
+    for (const assignment of roomAssignmentsSummit) {
+      await prisma.roomAssignment.create({
+        data: {
+          roomId: assignment.room.id,
+          guestId: assignment.guest.id,
+          checkInDate: new Date(assignment.checkIn),
+          checkOutDate: new Date(assignment.checkOut),
+          numberOfNights: assignment.nights,
+          isPrimaryGuest: true,
+          specialRequests: assignment.notes,
+          isConfirmed: true,
+          confirmedAt: new Date(Date.now() - Math.random() * 20 * 24 * 60 * 60 * 1000),
+          isPaid: assignment.guest === guestsTechSummit[0] || assignment.guest === guestsTechSummit[1] || assignment.guest === guestsTechSummit[2],
+          paidAmount: assignment.room.ratePerNight! * assignment.nights,
+          currency: 'EUR'
+        }
+      })
+    }
+
+    // ====================================
+    // 10. EMAIL LOGS - ENVOI & SUIVI
+    // ====================================
+    // Créer des EmailLogs pour montrer l'historique d'envoi
+    const emailLogTypes: Array<{ type: EmailType; subject: string; days: number }> = [
+      { type: 'SAVE_THE_DATE', subject: 'Save the Date - 10 ans Weevup', days: 60 },
+      { type: 'INVITE', subject: 'Invitation - 10 ans Weevup Célébration', days: 30 },
+      { type: 'REMINDER', subject: 'Rappel - Soirée 10 ans Weevup ce vendredi', days: 2 }
+    ]
+
+    // Envoyer des emails aux invités de 10 ans Weevup
+    for (const guest of guestsWeevup.slice(0, 8)) {
+      for (const emailType of emailLogTypes) {
+        const sentDate = new Date(Date.now() - emailType.days * 24 * 60 * 60 * 1000)
+
+        // Déterminer le status aléatoirement pour simuler un vrai scénario
+        let status: EmailStatus
+        if (emailType.type === 'SAVE_THE_DATE' || emailType.type === 'INVITE') {
+          const rand = Math.random()
+          if (rand > 0.8) status = 'CLICKED'
+          else if (rand > 0.5) status = 'OPENED'
+          else if (rand > 0.1) status = 'DELIVERED'
+          else status = 'SENT'
+        } else {
+          status = Math.random() > 0.3 ? 'OPENED' : 'DELIVERED'
+        }
+
+        await prisma.emailLog.create({
+          data: {
+            eventId: event10AnsWeevup.id,
+            guestId: guest.id,
+            type: emailType.type,
+            subject: emailType.subject,
+            status: status,
+            sentAt: sentDate,
+            deliveredAt: ['DELIVERED', 'OPENED', 'CLICKED'].includes(status) ? new Date(sentDate.getTime() + 3000) : undefined,
+            openedAt: ['OPENED', 'CLICKED'].includes(status) ? new Date(sentDate.getTime() + Math.random() * 48 * 60 * 60 * 1000) : undefined,
+            clickedAt: status === 'CLICKED' ? new Date(sentDate.getTime() + Math.random() * 72 * 60 * 60 * 1000) : undefined
+          }
+        })
+      }
+    }
+
+    // Envoyer des emails aux participants de Tech Summit
+    const emailLogTypesSummit: Array<{ type: EmailType; subject: string; days: number }> = [
+      { type: 'SAVE_THE_DATE', subject: 'Save the Date - Tech Summit 2025', days: 90 },
+      { type: 'INVITE', subject: 'Votre invitation au Tech Summit 2025', days: 45 },
+      { type: 'REMINDER', subject: 'Tech Summit 2025 - C\'est dans 2 semaines !', days: 14 }
+    ]
+
+    for (const guest of guestsTechSummit.slice(0, 8)) {
+      for (const emailType of emailLogTypesSummit) {
+        const sentDate = new Date(Date.now() - emailType.days * 24 * 60 * 60 * 1000)
+
+        let status: EmailStatus
+        if (emailType.type === 'SAVE_THE_DATE' || emailType.type === 'INVITE') {
+          const rand = Math.random()
+          if (rand > 0.7) status = 'CLICKED'
+          else if (rand > 0.4) status = 'OPENED'
+          else if (rand > 0.1) status = 'DELIVERED'
+          else status = 'SENT'
+        } else {
+          status = Math.random() > 0.5 ? 'OPENED' : 'SENT'
+        }
+
+        await prisma.emailLog.create({
+          data: {
+            eventId: eventTechSummit.id,
+            guestId: guest.id,
+            type: emailType.type,
+            subject: emailType.subject,
+            status: status,
+            sentAt: sentDate,
+            deliveredAt: ['DELIVERED', 'OPENED', 'CLICKED'].includes(status) ? new Date(sentDate.getTime() + 5000) : undefined,
+            openedAt: ['OPENED', 'CLICKED'].includes(status) ? new Date(sentDate.getTime() + Math.random() * 24 * 60 * 60 * 1000) : undefined,
+            clickedAt: status === 'CLICKED' ? new Date(sentDate.getTime() + Math.random() * 48 * 60 * 60 * 1000) : undefined
+          }
+        })
+      }
+    }
+
+    // ====================================
+    // 11. RÉSUMÉ FINAL
+    // ====================================
+    const totalEmailLogs = await prisma.emailLog.count()
+    const totalAccommodations = await prisma.accommodation.count()
+    const totalRooms = await prisma.room.count()
+    const totalRoomAssignments = await prisma.roomAssignment.count()
+
     return NextResponse.json({
       success: true,
-      message: 'Database seeded successfully with Transport module!',
+      message: '🎉 Base de données remplie avec succès ! 2 événements complets avec toutes les fonctionnalités',
       totalEventsCreated: 2,
       totalGuestsCreated: guestsWeevup.length + guestsTechSummit.length,
       events: [
         {
           name: event10AnsWeevup.name,
           date: '20 juin 2025',
-          location: 'Paris',
+          location: 'Paris - Le Pavillon Royal',
           showcaseUrl: `/event/${event10AnsWeevup.slug}`,
-          transport: {
-            bookings: transportBookingsWeevup.length,
-            manifests: 1,
-            manifestParticipants: 3
+          adminUrl: `/admin/events/${event10AnsWeevup.id}`,
+          modules: {
+            transport: {
+              bookings: transportBookingsWeevup.length,
+              manifests: 1,
+              manifestParticipants: 3
+            },
+            accommodation: {
+              hotels: 2,
+              rooms: 30,
+              assignments: roomAssignmentsWeevup.length
+            }
           }
         },
         {
           name: eventTechSummit.name,
           date: '15-16 septembre 2025',
-          location: 'Paris',
+          location: 'Paris - Convention Center',
           showcaseUrl: `/event/${eventTechSummit.slug}`,
-          transport: {
-            bookings: transportBookingsSummit.length,
-            manifests: 3,
-            manifestParticipants: 6
+          adminUrl: `/admin/events/${eventTechSummit.id}`,
+          modules: {
+            transport: {
+              bookings: transportBookingsSummit.length,
+              manifests: 3,
+              manifestParticipants: 6
+            },
+            accommodation: {
+              hotels: 2,
+              rooms: 35,
+              assignments: roomAssignmentsSummit.length
+            }
           }
         }
       ],
-      data: {
+      statistics: {
         users: 1,
         events: 2,
         guests: {
@@ -1067,7 +1605,28 @@ JOUR 2 - Mardi 16 septembre
           totalBookings: transportBookingsWeevup.length + transportBookingsSummit.length,
           totalManifests: 4,
           totalManifestParticipants: 9
+        },
+        accommodation: {
+          totalAccommodations: totalAccommodations,
+          totalRooms: totalRooms,
+          totalAssignments: totalRoomAssignments
+        },
+        emails: {
+          totalEmailLogs: totalEmailLogs,
+          eventsTracked: 2
         }
+      },
+      features: {
+        '✅ Vue d\'ensemble': 'Événements créés avec détails complets',
+        '✅ Showcase': 'Pages publiques avec timeline, speakers, sponsors, gallery, FAQ',
+        '✅ Invités': `${guestsWeevup.length + guestsTechSummit.length} invités avec tags, entreprises, statuts`,
+        '✅ Check-in': 'QR codes générés, check-ins simulés',
+        '✅ RSVP': 'Confirmations avec choix de repas, allergies, +1',
+        '✅ Envoi & Suivi': `${totalEmailLogs} emails envoyés (Save the Date, Invitation, Rappel)`,
+        '✅ Dashboard Planif.': 'Données complètes pour analytics',
+        '✅ Programme': 'Programme détaillé + timeline showcase',
+        '✅ Transport': `${transportBookingsWeevup.length + transportBookingsSummit.length} réservations (vol, train, navettes)`,
+        '✅ Hébergement': `${totalAccommodations} hôtels, ${totalRooms} chambres, ${totalRoomAssignments} assignations`
       }
     })
 
