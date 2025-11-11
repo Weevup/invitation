@@ -233,8 +233,8 @@ async function sendViaSendGrid(
     from: { email: from, ...(fromName && { name: fromName }) },
     ...(replyTo && { reply_to: { email: replyTo } }),
     content: [
-      { type: 'text/html', value: data.html },
       ...(data.text ? [{ type: 'text/plain', value: data.text }] : []),
+      { type: 'text/html', value: data.html },
     ],
     tracking_settings: {
       click_tracking: { enable: integration.trackClicks },
