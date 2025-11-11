@@ -15,6 +15,7 @@
     "db:sync": "tsx scripts/sync-database.ts",
     "db:setup": "bash scripts/setup-database.sh",
     "db:seed": "tsx prisma/seed.ts",
+    "db:seed:production": "tsx prisma/seed-production-safe.ts",
     "db:seed:weevup": "tsx prisma/seed-weevup.ts",
     "db:seed:complete": "tsx prisma/seed-complete.ts",
     "db:seed:templates": "tsx prisma/seed-templates.ts",

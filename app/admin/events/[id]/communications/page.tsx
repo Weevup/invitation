@@ -458,11 +458,42 @@ export default function CommunicationsPage() {
 
           {/* Settings Tab */}
           <TabsContent value="settings" className="space-y-4">
+            {/* Info Alert - Scheduled Emails Coming Soon */}
+            <Card className="border-blue-200 bg-blue-50/50">
+              <CardContent className="pt-6">
+                <div className="flex gap-4">
+                  <Info className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                  <div className="space-y-2">
+                    <h3 className="font-semibold text-blue-900">
+                      📅 Envois programmés et rappels automatiques
+                    </h3>
+                    <div className="text-sm text-blue-800 space-y-2">
+                      <p>
+                        <strong>Envois immédiats :</strong> Vous pouvez envoyer des rappels <strong>maintenant</strong> via le bouton &quot;Envoyer des invitations&quot; sur la page Invités ou Vue d&apos;ensemble.
+                      </p>
+                      <p>
+                        <strong>Envois programmés :</strong> La planification d&apos;emails pour une date future nécessite une infrastructure de job queue (Vercel Cron, Upstash QStash, etc.) qui sera ajoutée prochainement.
+                      </p>
+                      <p className="pt-2">
+                        En attendant, pour envoyer des rappels à vos invités :
+                      </p>
+                      <ol className="list-decimal list-inside space-y-1 ml-2">
+                        <li>Allez sur <strong>Invités</strong></li>
+                        <li>Cliquez sur <strong>&quot;Envoyer des invitations&quot;</strong></li>
+                        <li>Sélectionnez <strong>&quot;Rappel&quot;</strong> comme type d&apos;email</li>
+                        <li>Choisissez vos invités et envoyez immédiatement</li>
+                      </ol>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
             <Card>
               <CardHeader>
                 <div className="flex items-center gap-2">
                   <Settings className="h-5 w-5 text-[#004645]" />
-                  <CardTitle>Relances automatiques</CardTitle>
+                  <CardTitle>Relances automatiques (À venir)</CardTitle>
                 </div>
                 <CardDescription>
                   Configurez l&apos;envoi automatique de relances pour les non-répondants
