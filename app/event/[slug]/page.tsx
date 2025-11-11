@@ -113,9 +113,18 @@ export default async function EventShowcasePage({ params }: PageProps) {
 
   // Migrate and get active sections
   const defaultSections = ['hero', 'description', 'details', 'cta']
-  const rawSections = event.showcaseSections || defaultSections
+  // S'assurer que showcaseSections est bien un tableau
+  let rawSections = event.showcaseSections
+  if (!rawSections || !Array.isArray(rawSections)) {
+    rawSections = defaultSections
+  }
   const sectionConfigs = migrateLegacySections(rawSections)
-  const activeSections = getActiveSections(sectionConfigs)
+  let activeSections = getActiveSections(sectionConfigs)
+
+  // Si aucune section n'est active, utiliser les sections par défaut
+  if (activeSections.length === 0) {
+    activeSections = migrateLegacySections(defaultSections)
+  }
 
   // Theme colors
   const primaryColor = event.showcasePrimaryColor || '#004645'
