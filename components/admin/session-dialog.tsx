@@ -376,7 +376,7 @@ export function SessionDialog({ open, onOpenChange, eventId, session, onSuccess 
 
             {formData.requiresRegistration && (
               <div>
-                <Label htmlFor="registrationDeadline">Date limite d'inscription</Label>
+                <Label htmlFor="registrationDeadline">Date limite d&apos;inscription</Label>
                 <Input
                   id="registrationDeadline"
                   type="datetime-local"

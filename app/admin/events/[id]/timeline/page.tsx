@@ -141,7 +141,7 @@ export default function TimelinePage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Timeline Globale</h1>
           <p className="text-muted-foreground">
-            Vue chronologique complète de l'événement
+            Vue chronologique complète de l&apos;événement
           </p>
         </div>
         <div className="flex gap-2">

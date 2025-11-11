@@ -275,7 +275,7 @@ export function SessionParticipantsDialog({
           </Card>
           <Card>
             <CardContent className="p-3">
-              <div className="text-xs text-muted-foreground">Liste d'attente</div>
+              <div className="text-xs text-muted-foreground">Liste d&apos;attente</div>
               <div className="text-2xl font-bold">{waitlistCount}</div>
             </CardContent>
           </Card>
@@ -294,7 +294,7 @@ export function SessionParticipantsDialog({
           <div className="flex items-center gap-2 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
             <AlertCircle className="h-4 w-4 text-yellow-600" />
             <span className="text-sm text-yellow-800">
-              Session complète. Les nouveaux participants seront ajoutés à la liste d'attente.
+              Session complète. Les nouveaux participants seront ajoutés à la liste d&apos;attente.
             </span>
           </div>
         )}
