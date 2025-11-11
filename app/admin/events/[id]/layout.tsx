@@ -17,7 +17,8 @@ import {
   Calendar,
   MapPin,
   Plane,
-  Activity
+  Activity,
+  Hotel
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useEventModules } from '@/lib/modules'
@@ -115,6 +116,14 @@ export default function EventLayout({
       label: 'Transport',
       href: `/admin/events/${eventId}/transport`,
       icon: Plane,
+    })
+  }
+
+  if (hasModule('ACCOMMODATION')) {
+    moduleNavItems.push({
+      label: 'Hébergement',
+      href: `/admin/events/${eventId}/accommodation`,
+      icon: Hotel,
     })
   }
 

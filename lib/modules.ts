@@ -57,10 +57,9 @@ export const AVAILABLE_MODULES: Module[] = [
   {
     type: 'ACCOMMODATION',
     name: 'Hébergement',
-    description: 'Gérez les réservations d\'hôtel et l\'attribution des chambres',
+    description: 'Gérez les réservations d\'hôtel et l\'attribution des chambres (rooming list)',
     icon: '🏨',
-    category: 'logistics',
-    comingSoon: true
+    category: 'logistics'
   },
   {
     type: 'REGISTRATION_PAYMENT',
