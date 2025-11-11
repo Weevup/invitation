@@ -26,6 +26,9 @@ BEGIN;
 -- 1. NETTOYAGE (supprimer les données existantes)
 -- ========================================
 
+-- ⚠️ CE SCRIPT GARDE VOS COMPTES ADMIN EXISTANTS
+-- Il supprime uniquement les événements et invités de test
+
 -- Ordre important à cause des clés étrangères
 DELETE FROM "ManifestParticipant";
 DELETE FROM "TransportManifest";
@@ -35,26 +38,29 @@ DELETE FROM "EmailTracking";
 DELETE FROM "CheckIn";
 DELETE FROM "RSVP";
 DELETE FROM "Guest";
-DELETE FROM "EmailIntegration";
 DELETE FROM "Event";
-DELETE FROM "User";
+-- ON NE SUPPRIME PAS LES USERS pour garder vos comptes admin
+
+-- Note: Les EmailIntegration seront mises à jour, pas supprimées
 
 -- ========================================
--- 2. UTILISATEUR ADMIN
+-- 2. UTILISATEUR ADMIN (si n'existe pas déjà)
 -- ========================================
 
+-- Créer l'admin de test uniquement s'il n'existe pas
 INSERT INTO "User" (id, email, password, name, role, "createdAt", "updatedAt")
-VALUES
-  (
-    gen_random_uuid(),
-    'contact@weevup.com',
-    -- Password: admin123 (bcrypt hash)
-    '$2a$10$rOz3qKvBL8K5rE9yGxGZxOZB.d9mO7qxCZGQXZ5bXqKVvHxPwXY5C',
-    'Admin Weevup',
-    'ADMIN',
-    NOW(),
-    NOW()
-  );
+SELECT
+  gen_random_uuid(),
+  'contact@weevup.com',
+  -- Password: admin123 (bcrypt hash)
+  '$2a$10$rOz3qKvBL8K5rE9yGxGZxOZB.d9mO7qxCZGQXZ5bXqKVvHxPwXY5C',
+  'Admin Weevup',
+  'ADMIN',
+  NOW(),
+  NOW()
+WHERE NOT EXISTS (
+  SELECT 1 FROM "User" WHERE email = 'contact@weevup.com'
+);
 
 -- Variable pour stocker l'ID de l'admin
 DO $$
@@ -724,9 +730,10 @@ END $$;
 -- 13. INTÉGRATIONS EMAIL
 -- ========================================
 
--- IMPORTANT: Remplacez 'YOUR_ENCRYPTED_KEY' par vos vraies clés API encryptées
--- Pour l'instant on utilise des placeholders
+-- Les intégrations email existantes sont CONSERVÉES
+-- Si vous voulez créer des intégrations de test, décommentez ci-dessous
 
+/*
 -- Resend (Principal)
 INSERT INTO "EmailIntegration" (
   id, provider, "apiKey", "fromEmail", "fromName", "replyTo",
@@ -741,7 +748,8 @@ INSERT INTO "EmailIntegration" (
   'contact@weevup.com',
   true, true, true, true,
   NOW(), NOW()
-);
+)
+ON CONFLICT (provider) DO NOTHING;
 
 -- SendGrid (Backup)
 INSERT INTO "EmailIntegration" (
@@ -757,7 +765,9 @@ INSERT INTO "EmailIntegration" (
   'contact@weevup.com',
   true, true, false, true,
   NOW(), NOW()
-);
+)
+ON CONFLICT (provider) DO NOTHING;
+*/
 
 -- ========================================
 -- FIN DU SCRIPT
