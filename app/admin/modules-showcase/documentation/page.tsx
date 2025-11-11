@@ -55,8 +55,7 @@ export default function DocumentationPage() {
             <Lightbulb className="h-5 w-5 text-yellow-500 mt-1" />
             <div>
               <h2 className="text-xl font-bold mb-2">🚀 Guide de démarrage rapide</h2>
-              <p className="text-sm text-muted-foreground mb-4">
-                Activez les modules dont vous avez besoin depuis la vue d'ensemble de votre événement
+              <p className="text-sm text-muted-foreground mb-4">Activez les modules dont vous avez besoin depuis la vue d&apos;ensemble de votre événement
               </p>
             </div>
           </div>
@@ -65,12 +64,12 @@ export default function DocumentationPage() {
             <div>
               <h3 className="font-semibold mb-2">1. Activer les modules</h3>
               <p className="text-sm text-muted-foreground mb-2">
-                <strong>Navigation :</strong> Vue d'ensemble de l'événement → Section "Modules disponibles"
+                <strong>Navigation :</strong>Vue d&apos;ensemble de l&apos;événement → Section &quot;Modules disponibles&quot;
               </p>
               <div className="bg-gray-50 rounded-lg p-4 space-y-2">
                 <div className="flex items-center gap-2 text-sm">
                   <Calendar className="h-4 w-4 text-blue-500" />
-                  <strong>Programme & Sessions</strong> : Gérer l'agenda et les inscriptions
+                  <strong>Programme & Sessions</strong>: Gérer l&apos;agenda et les inscriptions
                 </div>
                 <div className="flex items-center gap-2 text-sm">
                   <Plane className="h-4 w-4 text-teal-500" />
@@ -82,7 +81,7 @@ export default function DocumentationPage() {
                 </div>
               </div>
               <p className="text-sm text-muted-foreground mt-2">
-                <strong>Action :</strong> Cliquer sur "Activer" pour chaque module souhaité.
+                <strong>Action :</strong>Cliquer sur &quot;Activer&quot; pour chaque module souhaité.
               </p>
             </div>
           </div>
@@ -108,14 +107,14 @@ export default function DocumentationPage() {
                 </li>
                 <li className="flex gap-2">
                   <span className="font-semibold min-w-[20px]">2.</span>
-                  <span><strong>Cliquer :</strong> "Nouvelle session"</span>
+                  <span><strong>Cliquer :</strong>&quot;Nouvelle session&quot;</span>
                 </li>
                 <li className="flex gap-2">
                   <span className="font-semibold min-w-[20px]">3.</span>
                   <div>
                     <strong>Remplir le formulaire :</strong>
                     <ul className="ml-4 mt-2 space-y-1">
-                      <li>• <strong>Titre</strong> : Ex. "Keynote d'ouverture"</li>
+                      <li>• <strong>Titre</strong>: Ex. &quot;Keynote d&apos;ouverture&quot;</li>
                       <li>• <strong>Type</strong> : Choisir parmi 14 types (Keynote, Workshop, Conférence, etc.)</li>
                       <li>• <strong>Date et horaires</strong> : Date, heure début, heure fin</li>
                       <li>• <strong>Lieu</strong> : Venue, salle, adresse si différente</li>
@@ -141,7 +140,7 @@ export default function DocumentationPage() {
 
             {/* Gérer les participants */}
             <div>
-              <h3 className="font-semibold text-lg mb-3">Gérer les participants d'une session</h3>
+              <h3 className="font-semibold text-lg mb-3">Gérer les participants d&apos;une session</h3>
               <ol className="space-y-2 text-sm">
                 <li className="flex gap-2">
                   <span className="font-semibold min-w-[20px]">1.</span>
@@ -149,7 +148,7 @@ export default function DocumentationPage() {
                 </li>
                 <li className="flex gap-2">
                   <span className="font-semibold min-w-[20px]">2.</span>
-                  <span><strong>Cliquer :</strong> "Gérer les participants"</span>
+                  <span><strong>Cliquer :</strong>&quot;Gérer les participants&quot;</span>
                 </li>
                 <li className="flex gap-2">
                   <span className="font-semibold min-w-[20px]">3.</span>
@@ -157,8 +156,8 @@ export default function DocumentationPage() {
                     <strong>Ajouter des participants :</strong>
                     <ul className="ml-4 mt-2 space-y-1">
                       <li>• Rechercher un invité par nom/email</li>
-                      <li>• Cliquer pour l'ajouter</li>
-                      <li>• Le statut passe à "Inscrit"</li>
+                      <li>• Cliquer pour l&apos;ajouter</li>
+                      <li>• Le statut passe à &quot;Inscrit&quot;</li>
                     </ul>
                   </div>
                 </li>
@@ -167,8 +166,8 @@ export default function DocumentationPage() {
                   <div>
                     <strong>Gérer la capacité :</strong>
                     <ul className="ml-4 mt-2 space-y-1">
-                      <li>• Si la session est pleine → Les nouveaux participants vont en liste d'attente</li>
-                      <li>• Vous pouvez promouvoir depuis la liste d'attente</li>
+                      <li>• Si la session est pleine → Les nouveaux participants vont en liste d&apos;attente</li>
+                      <li>• Vous pouvez promouvoir depuis la liste d&apos;attente</li>
                     </ul>
                   </div>
                 </li>
@@ -189,7 +188,7 @@ export default function DocumentationPage() {
                     <li>
                       • <strong>Filtres disponibles</strong> :
                       <ul className="ml-4 mt-1 space-y-1">
-                        <li>- Par participant : Voir le planning d'un invité spécifique</li>
+                        <li>- Par participant : Voir le planning d&apos;un invité spécifique</li>
                         <li>- Par type : Sessions, Arrivées, Départs, Check-in/out, etc.</li>
                         <li>- Par date : Période personnalisée</li>
                       </ul>
@@ -227,19 +226,19 @@ export default function DocumentationPage() {
                 <div>
                   <p className="font-semibold mb-2">Voir les alertes :</p>
                   <ol className="space-y-1 ml-4">
-                    <li>1. Dashboard Planif. → Section "Alertes Critiques"</li>
-                    <li>2. Alerte : "X participant(s) inscrit(s) à des sessions qui se chevauchent"</li>
-                    <li>3. Cliquer sur l'alerte → Voir les détails</li>
+                    <li>1. Dashboard Planif. → Section &quot;Alertes Critiques&quot;</li>
+                    <li>2. Alerte : &quot;X participant(s) inscrit(s) à des sessions qui se chevauchent&quot;</li>
+                    <li>3. Cliquer sur l&apos;alerte → Voir les détails</li>
                     <li>4. Voir la liste des conflits avec noms et sessions</li>
                   </ol>
                 </div>
                 <div>
                   <p className="font-semibold mb-2">Résoudre :</p>
                   <ol className="space-y-1 ml-4">
-                    <li>1. Aller à la timeline (lien dans l'alerte)</li>
+                    <li>1. Aller à la timeline (lien dans l&apos;alerte)</li>
                     <li>2. Filtrer par participant concerné</li>
-                    <li>3. Retirer de l'une des sessions en conflit</li>
-                    <li>4. Retour au dashboard → L'alerte disparaît ✅</li>
+                    <li>3. Retirer de l&apos;une des sessions en conflit</li>
+                    <li>4. Retour au dashboard → L&apos;alerte disparaît ✅</li>
                   </ol>
                 </div>
               </div>
@@ -263,11 +262,11 @@ export default function DocumentationPage() {
               <ol className="space-y-2 text-sm">
                 <li className="flex gap-2">
                   <span className="font-semibold min-w-[20px]">1.</span>
-                  <span><strong>Accéder :</strong> Transport → "Nouveau transport"</span>
+                  <span><strong>Accéder :</strong>Transport → &quot;Nouveau transport&quot;</span>
                 </li>
                 <li className="flex gap-2">
                   <span className="font-semibold min-w-[20px]">2.</span>
-                  <span><strong>Sélectionner l'invité</strong> : Recherche par nom/email</span>
+                  <span><strong>Sélectionner l&apos;invité</strong> : Recherche par nom/email</span>
                 </li>
                 <li className="flex gap-2">
                   <span className="font-semibold min-w-[20px]">3.</span>
@@ -290,9 +289,9 @@ export default function DocumentationPage() {
                     <ul className="ml-4 mt-2 space-y-1">
                       <li>• <strong>Départ</strong> : Ville/Aéroport, Date, Heure</li>
                       <li>• <strong>Arrivée</strong> : Ville/Aéroport, Date, Heure</li>
-                      <li>• <strong>Compagnie</strong> : Ex. "Air France"</li>
+                      <li>• <strong>Compagnie</strong>: Ex. &quot;Air France&quot;</li>
                       <li>• <strong>Référence</strong> : N° de vol/train</li>
-                      <li>• <strong>Siège</strong> : Ex. "12A"</li>
+                      <li>• <strong>Siège</strong>: Ex. &quot;12A&quot;</li>
                     </ul>
                   </div>
                 </li>
@@ -309,7 +308,7 @@ export default function DocumentationPage() {
                 <div className="flex items-start gap-2">
                   <Lightbulb className="h-4 w-4 text-teal-600 mt-0.5 flex-shrink-0" />
                   <p className="text-sm text-teal-900">
-                    <strong>Astuce :</strong> Marquez "Pris en charge par l'entreprise" pour le suivi budget.
+                    <strong>Astuce :</strong>Marquez &quot;Pris en charge par l&apos;entreprise&quot; pour le suivi budget.
                   </p>
                 </div>
               </div>
@@ -319,19 +318,19 @@ export default function DocumentationPage() {
             <div>
               <h3 className="font-semibold text-lg mb-3">Créer une navette collective (Manifeste)</h3>
               <p className="text-sm text-muted-foreground mb-3">
-                <strong>Cas d'usage :</strong> Navette aéroport → hôtel pour 15 personnes
+                <strong>Cas d&apos;usage :</strong> Navette aéroport → hôtel pour 15 personnes
               </p>
               <ol className="space-y-2 text-sm">
                 <li className="flex gap-2">
                   <span className="font-semibold min-w-[20px]">1.</span>
-                  <span><strong>Accéder :</strong> Transport → Manifestes → "Nouveau manifeste"</span>
+                  <span><strong>Accéder :</strong>Transport → Manifestes → &quot;Nouveau manifeste&quot;</span>
                 </li>
                 <li className="flex gap-2">
                   <span className="font-semibold min-w-[20px]">2.</span>
                   <div>
                     <strong>Remplir :</strong>
                     <ul className="ml-4 mt-2 space-y-1">
-                      <li>• <strong>Nom</strong> : "Navette Aéroport CDG → Hôtel Marriott"</li>
+                      <li>• <strong>Nom</strong>: &quot;Navette Aéroport CDG → Hôtel Marriott&quot;</li>
                       <li>• <strong>Type</strong> : SHUTTLE</li>
                       <li>• <strong>Départ</strong> : Terminal 2E, 15h00</li>
                       <li>• <strong>Arrivée</strong> : Hôtel Marriott, 16h00</li>
@@ -376,7 +375,7 @@ export default function DocumentationPage() {
               <ol className="space-y-2 text-sm">
                 <li className="flex gap-2">
                   <span className="font-semibold min-w-[20px]">1.</span>
-                  <span><strong>Accéder :</strong> Hébergement → "Nouvel hébergement"</span>
+                  <span><strong>Accéder :</strong>Hébergement → &quot;Nouvel hébergement&quot;</span>
                 </li>
                 <li className="flex gap-2">
                   <span className="font-semibold min-w-[20px]">2.</span>
@@ -386,7 +385,7 @@ export default function DocumentationPage() {
                       <li>
                         • <strong>Informations de base</strong> :
                         <ul className="ml-4 mt-1">
-                          <li>- Nom : "Hôtel Marriott Paris"</li>
+                          <li>- Nom : &quot;Hôtel Marriott Paris&quot;</li>
                           <li>- Type : Hôtel</li>
                           <li>- Étoiles : ⭐⭐⭐⭐</li>
                         </ul>
@@ -408,7 +407,7 @@ export default function DocumentationPage() {
                         • <strong>Capacité & Horaires</strong> :
                         <ul className="ml-4 mt-1">
                           <li>- Chambres totales : 100</li>
-                          <li>- Chambres allouées pour l'événement : 30</li>
+                          <li>- Chambres allouées pour l&apos;événement : 30</li>
                           <li>- Check-in : 14:00 / Check-out : 11:00</li>
                         </ul>
                       </li>
@@ -424,7 +423,7 @@ export default function DocumentationPage() {
                 </li>
                 <li className="flex gap-2">
                   <span className="font-semibold min-w-[20px]">3.</span>
-                  <span><strong>Options</strong> : ✅ "Hébergement préféré" pour marquer comme officiel</span>
+                  <span><strong>Options</strong>: ✅ &quot;Hébergement préféré&quot; pour marquer comme officiel</span>
                 </li>
                 <li className="flex gap-2">
                   <span className="font-semibold min-w-[20px]">4.</span>
@@ -443,19 +442,19 @@ export default function DocumentationPage() {
                 </li>
                 <li className="flex gap-2">
                   <span className="font-semibold min-w-[20px]">2.</span>
-                  <span><strong>Cliquer</strong> : "Ajouter des chambres"</span>
+                  <span><strong>Cliquer</strong>: &quot;Ajouter des chambres&quot;</span>
                 </li>
                 <li className="flex gap-2">
                   <span className="font-semibold min-w-[20px]">3.</span>
                   <div>
                     <strong>Pour chaque chambre :</strong>
                     <ul className="ml-4 mt-2 space-y-1">
-                      <li>• N° : "101", "Suite Présidentielle", etc.</li>
+                      <li>• N° : &quot;101&quot;, &quot;Suite Présidentielle&quot;, etc.</li>
                       <li>• Étage : 1</li>
                       <li>• Type : Simple, Double, Twin, Triple, Suite, Studio, Appartement</li>
                       <li>• Capacité max : 2</li>
-                      <li>• Configuration lits : "1 lit King"</li>
-                      <li>• Vue : "Vue mer"</li>
+                      <li>• Configuration lits : &quot;1 lit King&quot;</li>
+                      <li>• Vue : &quot;Vue mer&quot;</li>
                       <li>• ♿ Accessible PMR</li>
                       <li>• 🚭 Fumeurs autorisés</li>
                       <li>• Tarif : 150€/nuit</li>
@@ -477,7 +476,7 @@ export default function DocumentationPage() {
             <div>
               <h3 className="font-semibold text-lg mb-3">Créer la Rooming List (Assigner les invités)</h3>
               <p className="text-sm mb-3">
-                <strong>Vue d'ensemble :</strong> Hébergement → Cliquer sur un hôtel → Rooming List complète
+                <strong>Vue d&apos;ensemble :</strong> Hébergement → Cliquer sur un hôtel → Rooming List complète
               </p>
               <div className="space-y-3 text-sm">
                 <div>
@@ -485,18 +484,18 @@ export default function DocumentationPage() {
                   <ol className="space-y-2 ml-4">
                     <li className="flex gap-2">
                       <span className="font-semibold min-w-[20px]">1.</span>
-                      <span><strong>Sur une chambre disponible</strong> : Cliquer "Assigner"</span>
+                      <span><strong>Sur une chambre disponible</strong>: Cliquer &quot;Assigner&quot;</span>
                     </li>
                     <li className="flex gap-2">
                       <span className="font-semibold min-w-[20px]">2.</span>
                       <div>
-                        <strong>Dialog d'assignation :</strong>
+                        <strong>Dialog d&apos;assignation :</strong>
                         <ul className="ml-4 mt-2 space-y-1">
-                          <li>• Rechercher l'invité : Taper nom/email → Sélectionner</li>
+                          <li>• Rechercher l&apos;invité : Taper nom/email → Sélectionner</li>
                           <li>• Dates : Check-in + Check-out</li>
                           <li>• Le système calcule le nombre de nuits</li>
-                          <li>• Chambre partagée : Marquer l'invité principal</li>
-                          <li>• Demandes spéciales : "Lit bébé", "Étage élevé", etc.</li>
+                          <li>• Chambre partagée : Marquer l&apos;invité principal</li>
+                          <li>• Demandes spéciales : &quot;Lit bébé&quot;, &quot;Étage élevé&quot;, etc.</li>
                         </ul>
                       </div>
                     </li>
@@ -506,7 +505,7 @@ export default function DocumentationPage() {
                     </li>
                     <li className="flex gap-2">
                       <span className="font-semibold min-w-[20px]">4.</span>
-                      <span>La chambre passe en statut "Assignée" ✅</span>
+                      <span>La chambre passe en statut &quot;Assignée&quot; ✅</span>
                     </li>
                   </ol>
                 </div>
@@ -515,7 +514,7 @@ export default function DocumentationPage() {
                   <ul className="space-y-1">
                     <li className="flex items-start gap-2">
                       <span className="text-red-500">❌</span>
-                      <span>Impossible d'assigner si capacité atteinte</span>
+                      <span>Impossible d&apos;assigner si capacité atteinte</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="text-red-500">❌</span>
@@ -543,7 +542,7 @@ export default function DocumentationPage() {
 
           <div className="space-y-6">
             <div>
-              <h3 className="font-semibold text-lg mb-3">Vue d'ensemble</h3>
+              <h3 className="font-semibold text-lg mb-3">Vue d&apos;ensemble</h3>
               <p className="text-sm mb-3">
                 <strong>Accès :</strong> Dashboard Planif. (icône Activity dans sidebar)
               </p>
@@ -583,12 +582,12 @@ export default function DocumentationPage() {
                 <div>
                   <p className="font-semibold mb-2">Workflow :</p>
                   <ol className="ml-4 space-y-1">
-                    <li>1. Dashboard affiche l'alerte avec compteur</li>
-                    <li>2. Cliquer sur l'alerte</li>
+                    <li>1. Dashboard affiche l&apos;alerte avec compteur</li>
+                    <li>2. Cliquer sur l&apos;alerte</li>
                     <li>3. Voir les détails (liste invités, sessions, etc.)</li>
                     <li>4. Action directe via bouton (lien vers page appropriée)</li>
                     <li>5. Résoudre le problème</li>
-                    <li>6. L'alerte disparaît automatiquement ✅</li>
+                    <li>6. L&apos;alerte disparaît automatiquement ✅</li>
                   </ol>
                 </div>
               </div>
@@ -609,13 +608,13 @@ export default function DocumentationPage() {
             <div>
               <h3 className="font-semibold text-lg mb-3">Export Manifeste Excel complet</h3>
               <p className="text-sm mb-3">
-                <strong>Accès :</strong> Dashboard ou Timeline → Bouton "Manifeste Excel"
+                <strong>Accès :</strong>Dashboard ou Timeline → Bouton &quot;Manifeste Excel&quot;
               </p>
               <div className="space-y-3 text-sm">
                 <div>
                   <p className="font-semibold mb-2">Contenu du fichier (6 feuilles) :</p>
                   <ol className="ml-4 space-y-1">
-                    <li>1. <strong>Vue d'ensemble</strong> : Stats événement</li>
+                    <li>1. <strong>Vue d&apos;ensemble</strong> : Stats événement</li>
                     <li>2. <strong>Invités</strong> : Liste complète avec RSVP, sessions, transports</li>
                     <li>3. <strong>Sessions</strong> : Détails + participants</li>
                     <li>4. <strong>Transports</strong> : Tous les transports avec invités</li>
@@ -624,7 +623,7 @@ export default function DocumentationPage() {
                   </ol>
                 </div>
                 <p className="text-muted-foreground">
-                  <strong>Usage :</strong> Partagez avec l'équipe, imprimez, analysez dans Excel.
+                  <strong>Usage :</strong>Partagez avec l&apos;équipe, imprimez, analysez dans Excel.
                 </p>
               </div>
             </div>
@@ -632,7 +631,7 @@ export default function DocumentationPage() {
             <div>
               <h3 className="font-semibold text-lg mb-3">Export Timeline PDF</h3>
               <p className="text-sm mb-3">
-                <strong>Accès :</strong> Dashboard ou Timeline → Bouton "Timeline PDF"
+                <strong>Accès :</strong>Dashboard ou Timeline → Bouton &quot;Timeline PDF&quot;
               </p>
               <ul className="ml-4 space-y-1 text-sm">
                 <li>• Timeline visuelle formatée</li>
@@ -676,8 +675,7 @@ export default function DocumentationPage() {
       <Card>
         <CardContent className="pt-6">
           <h2 className="text-2xl font-bold mb-6">❓ FAQ</h2>
-          <div className="space-y-4">
-            {[
+          <div className="space-y-4">{[
               {
                 q: 'Comment activer un module ?',
                 a: 'Vue d\'ensemble événement → Modules disponibles → Activer',
@@ -700,7 +698,7 @@ export default function DocumentationPage() {
               },
               {
                 q: 'Les participants peuvent-ils voir leur planning ?',
-                a: 'Exportez leur fiche individuelle en PDF et envoyez-la.',
+                a: 'Exportez leur fiche individuelle en PDF et envoyez-la.&apos;,
               },
             ].map((faq, i) => (
               <div key={i} className="border-b last:border-0 pb-4 last:pb-0">
@@ -720,7 +718,7 @@ export default function DocumentationPage() {
               <BookOpen className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <h2 className="text-xl font-bold mb-2">🆘 Besoin d'aide ?</h2>
+              <h2 className="text-xl font-bold mb-2">🆘 Besoin d&apos;aide ?</h2>
               <p className="text-sm text-muted-foreground mb-4">
                 Consultez les tooltips (🛈) dans chaque page pour des informations contextuelles.
               </p>
