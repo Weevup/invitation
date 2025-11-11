@@ -25,13 +25,36 @@ export async function POST() {
       )
     }
 
-    // Check if events already exist
+    // ====================================
+    // NETTOYAGE DES DONNÉES EXISTANTES
+    // ====================================
+    // Supprimer les événements existants et leurs données associées
+    // Les comptes admin sont préservés
     const existingEvents = await prisma.event.findMany()
     if (existingEvents.length > 0) {
-      return NextResponse.json(
-        { error: 'Database already contains events. Clear the database first if you want to reseed.' },
-        { status: 400 }
-      )
+      console.log(`[SEED] Suppression de ${existingEvents.length} événement(s) existant(s)...`)
+
+      // Supprimer dans l'ordre pour respecter les contraintes de clés étrangères
+      await prisma.manifestParticipant.deleteMany({})
+      await prisma.transportManifest.deleteMany({})
+      await prisma.transportBooking.deleteMany({})
+      await prisma.roomAssignment.deleteMany({})
+      await prisma.room.deleteMany({})
+      await prisma.accommodation.deleteMany({})
+      await prisma.eventModule.deleteMany({})
+      await prisma.emailLog.deleteMany({})
+      await prisma.emailTracking.deleteMany({})
+      await prisma.checkin.deleteMany({})
+      await prisma.rSVP.deleteMany({})
+      await prisma.guest.deleteMany({})
+      await prisma.scheduledEmail.deleteMany({})
+      await prisma.eventRemindersConfig.deleteMany({})
+      await prisma.sessionParticipant.deleteMany({})
+      await prisma.session.deleteMany({})
+      await prisma.timelineEvent.deleteMany({})
+      await prisma.event.deleteMany({})
+
+      console.log('[SEED] Événements existants supprimés avec succès')
     }
 
     // ====================================
