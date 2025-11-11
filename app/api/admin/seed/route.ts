@@ -1502,7 +1502,6 @@ JOUR 2 - Mardi 16 septembre
             subject: emailType.subject,
             status: status,
             sentAt: sentDate,
-            deliveredAt: ['DELIVERED', 'OPENED', 'CLICKED'].includes(status) ? new Date(sentDate.getTime() + 3000) : undefined,
             openedAt: ['OPENED', 'CLICKED'].includes(status) ? new Date(sentDate.getTime() + Math.random() * 48 * 60 * 60 * 1000) : undefined,
             clickedAt: status === 'CLICKED' ? new Date(sentDate.getTime() + Math.random() * 72 * 60 * 60 * 1000) : undefined
           }
@@ -1540,7 +1539,6 @@ JOUR 2 - Mardi 16 septembre
             subject: emailType.subject,
             status: status,
             sentAt: sentDate,
-            deliveredAt: ['DELIVERED', 'OPENED', 'CLICKED'].includes(status) ? new Date(sentDate.getTime() + 5000) : undefined,
             openedAt: ['OPENED', 'CLICKED'].includes(status) ? new Date(sentDate.getTime() + Math.random() * 24 * 60 * 60 * 1000) : undefined,
             clickedAt: status === 'CLICKED' ? new Date(sentDate.getTime() + Math.random() * 48 * 60 * 60 * 1000) : undefined
           }
