@@ -37,22 +37,22 @@ interface NavItem {
 
 const navigationSections: NavSection[] = [
   {
-    title: "Vue d'ensemble",
+    title: "Tableau de bord",
     items: [
       {
-        name: 'Tableau de bord',
+        name: 'Vue d\'ensemble',
         href: '/admin',
         icon: LayoutDashboard,
-        description: 'Vue globale de vos événements'
+        description: 'Statistiques et aperçu global'
       },
     ]
   },
   {
-    title: "Gestion des événements",
+    title: "Événements",
     items: [
       {
-        name: 'Événements',
-        href: '/admin/events',
+        name: 'Mes événements',
+        href: '/admin',
         icon: Calendar,
         description: 'Créer et gérer vos événements'
       },
@@ -62,17 +62,34 @@ const navigationSections: NavSection[] = [
         icon: CheckSquare,
         description: 'Gérer invités et réponses'
       },
-    ]
-  },
-  {
-    title: "Analyse & Configuration",
-    items: [
       {
         name: 'Statistiques',
         href: '/admin/analytics',
         icon: BarChart,
-        description: 'Analyses détaillées'
+        description: 'Analyses et performances'
       },
+    ]
+  },
+  {
+    title: "Communication",
+    items: [
+      {
+        name: 'Templates Email',
+        href: '/admin/templates',
+        icon: Mail,
+        description: 'Personnaliser vos emails'
+      },
+      {
+        name: 'Intégrations',
+        href: '/admin/settings/integrations',
+        icon: Plug,
+        description: 'SendGrid, Resend, SMTP...'
+      },
+    ]
+  },
+  {
+    title: "Paramètres",
+    items: [
       {
         name: 'Utilisateurs',
         href: '/admin/users',
@@ -80,22 +97,10 @@ const navigationSections: NavSection[] = [
         description: 'Gestion des comptes admin'
       },
       {
-        name: 'Système & Diagnostic',
+        name: 'Système',
         href: '/admin/system',
         icon: Settings,
-        description: 'Configuration et santé du système'
-      },
-      {
-        name: 'Templates Emails',
-        href: '/admin/templates',
-        icon: Mail,
-        description: 'Personnaliser les emails'
-      },
-      {
-        name: 'Intégrations',
-        href: '/admin/settings/integrations',
-        icon: Plug,
-        description: 'Configuration des emails'
+        description: 'Diagnostic et configuration'
       },
     ]
   },
@@ -103,16 +108,10 @@ const navigationSections: NavSection[] = [
     title: "Aide",
     items: [
       {
-        name: 'Guide de démarrage',
-        href: '/admin/tutoriel',
-        icon: BookOpen,
-        description: 'Apprendre à utiliser l\'outil'
-      },
-      {
         name: 'Documentation',
-        href: '/admin/documentation',
-        icon: FileText,
-        description: 'Documentation technique complète'
+        href: '/admin/help',
+        icon: BookOpen,
+        description: 'Guides et ressources'
       },
     ]
   }
