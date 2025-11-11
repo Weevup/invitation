@@ -322,6 +322,9 @@ export function groupTransportsByTime(
   const bookingGroups = new Map<string, typeof individualBookings>()
 
   individualBookings.forEach(booking => {
+    // Skip bookings without departure time
+    if (!booking.departureTime) return
+
     // Créer une clé basée sur l'heure arrondie à 30 minutes
     const roundedTime = new Date(booking.departureTime)
     roundedTime.setMinutes(Math.floor(roundedTime.getMinutes() / 30) * 30)
