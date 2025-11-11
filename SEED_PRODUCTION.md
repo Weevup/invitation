@@ -60,6 +60,8 @@ Le seed crée **2 événements complets** avec toutes les fonctionnalités :
 - **Lieu** : Le Pavillon Royal, Paris
 - **Invités** : 10 (5 VIP clients + 5 équipe)
 - **RSVP** : 10 confirmations avec check-ins
+- **Agenda** : 5 sessions (cocktail, cérémonie, témoignages, dîner, soirée)
+- **Timeline** : 9 événements sur 3 jours (arrivées, check-in, sessions, départs)
 - **Transport** : 4 réservations individuelles + 1 navette CDG
 - **Hébergement** : 2 hôtels (30 chambres), 7 assignations
 - **Emails** : 24 emails envoyés (Save the Date, Invitations, Rappels)
@@ -70,6 +72,8 @@ Le seed crée **2 événements complets** avec toutes les fonctionnalités :
 - **Lieu** : Paris Convention Center
 - **Invités** : 10 (3 speakers VIP + 7 participants)
 - **RSVP** : 8 confirmations
+- **Agenda** : 13 sessions sur 2 jours (keynotes, workshops, panels, networking)
+- **Timeline** : 10 événements sur 4 jours (J-1 check-in → conférence → départs)
 - **Transport** : 5 réservations VIP + 3 navettes
 - **Hébergement** : 2 hôtels (35 chambres), 8 assignations
 - **Emails** : 24 emails envoyés
@@ -84,9 +88,11 @@ Le seed crée **2 événements complets** avec toutes les fonctionnalités :
 - ✅ **RSVP** : Confirmations avec choix de repas, allergies, accompagnants
 - ✅ **Envoi & Suivi** : 48 emails avec statuts (SENT, DELIVERED, OPENED, CLICKED)
 - ✅ **Dashboard Planif.** : Données complètes pour analytics
-- ✅ **Programme** : Programme détaillé + timeline showcase
-- ✅ **Transport** : 9 réservations (vol, train, taxi, navettes) + 4 manifestes
-- ✅ **Hébergement** : 4 hôtels, 65 chambres, 15 assignations confirmées
+- ✅ **Agenda** : 18 sessions (gala 1 jour + conférence 2 jours) avec speakers, horaires, salles
+- ✅ **Timeline** : 19 événements intégrés montrant le parcours complet (arrivées → hébergement → sessions → départs)
+- ✅ **Programme** : Programme détaillé affiché sur showcase public
+- ✅ **Transport** : 9 réservations (vol, train, taxi, navettes) + 4 manifestes **synchronisés avec timeline**
+- ✅ **Hébergement** : 4 hôtels, 65 chambres, 15 assignations **liées aux arrivées/départs dans timeline**
 
 ## 🔄 Étape 3 : Vider la base de données (optionnel)
 
