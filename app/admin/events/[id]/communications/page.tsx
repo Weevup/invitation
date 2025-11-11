@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   ArrowLeft, Bell, Sparkles, CheckCircle, Send, Calendar,
-  Clock, Users, Mail, TrendingUp, BarChart3, Settings, Save
+  Clock, Users, Mail, TrendingUp, BarChart3, Settings, Save, Info
 } from "lucide-react";
 import Link from "next/link";
 import { useToast } from "@/components/ui/use-toast";
