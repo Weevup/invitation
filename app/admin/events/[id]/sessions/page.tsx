@@ -19,6 +19,8 @@ import {
 } from 'lucide-react'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
+import { SessionDialog } from '@/components/admin/session-dialog'
+import { toast } from 'sonner'
 
 interface Session {
   id: string
@@ -99,6 +101,8 @@ export default function SessionsPage() {
   const [loading, setLoading] = useState(true)
   const [filterType, setFilterType] = useState<string>('ALL')
   const [filterStatus, setFilterStatus] = useState<string>('ALL')
+  const [dialogOpen, setDialogOpen] = useState(false)
+  const [selectedSession, setSelectedSession] = useState<Session | undefined>(undefined)
 
   useEffect(() => {
     fetchSessions()
@@ -114,8 +118,41 @@ export default function SessionsPage() {
       }
     } catch (error) {
       console.error('Error fetching sessions:', error)
+      toast.error('Erreur lors du chargement des sessions')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleOpenDialog = (session?: Session) => {
+    setSelectedSession(session)
+    setDialogOpen(true)
+  }
+
+  const handleCloseDialog = () => {
+    setDialogOpen(false)
+    setSelectedSession(undefined)
+  }
+
+  const handleDeleteSession = async (sessionId: string) => {
+    if (!confirm('Êtes-vous sûr de vouloir supprimer cette session ?')) {
+      return
+    }
+
+    try {
+      const response = await fetch(`/api/admin/events/${eventId}/sessions/${sessionId}`, {
+        method: 'DELETE',
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || 'Erreur lors de la suppression')
+      }
+
+      toast.success('Session supprimée')
+      fetchSessions()
+    } catch (error: any) {
+      toast.error(error.message || 'Erreur lors de la suppression')
     }
   }
 
@@ -161,7 +198,7 @@ export default function SessionsPage() {
             <Download className="h-4 w-4 mr-2" />
             Exporter
           </Button>
-          <Button>
+          <Button onClick={() => handleOpenDialog()}>
             <Plus className="h-4 w-4 mr-2" />
             Nouvelle session
           </Button>
@@ -338,10 +375,10 @@ export default function SessionsPage() {
                         </div>
 
                         <div className="flex gap-2 ml-4">
-                          <Button variant="ghost" size="sm">
+                          <Button variant="ghost" size="sm" onClick={() => handleOpenDialog(session)}>
                             <Edit className="h-4 w-4" />
                           </Button>
-                          <Button variant="ghost" size="sm">
+                          <Button variant="ghost" size="sm" onClick={() => handleDeleteSession(session.id)}>
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
@@ -354,6 +391,15 @@ export default function SessionsPage() {
           ))
         )}
       </div>
+
+      {/* Session Dialog */}
+      <SessionDialog
+        open={dialogOpen}
+        onOpenChange={handleCloseDialog}
+        eventId={eventId}
+        session={selectedSession}
+        onSuccess={fetchSessions}
+      />
     </div>
   )
 }
