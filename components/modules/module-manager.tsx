@@ -76,7 +76,7 @@ export function ModuleManager({ eventId }: ModuleManagerProps) {
     <div className="space-y-6">
       <div>
         <h2 className="text-2xl font-bold text-[#004645] mb-2" style={{ fontFamily: "var(--font-abril)" }}>
-          Modules de l'événement
+          Modules de l&apos;événement
         </h2>
         <p className="text-[#004645]/70">
           Activez les modules dont vous avez besoin pour votre événement
