@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge'
 import { Switch } from '@/components/ui/switch'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
-  Mail, Check, AlertCircle, Send, Settings, Zap, Shield, BarChart3, ExternalLink, Info, Copy
+  Mail, Check, AlertCircle, Send, Settings, Zap, Shield, BarChart3, ExternalLink, Info, Copy, Trash2
 } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -184,6 +184,29 @@ export default function IntegrationsPage() {
     }
   }
 
+  const handleResetAll = async () => {
+    if (!confirm('⚠️ ATTENTION : Cette action va supprimer TOUTES les intégrations email configurées.\n\nCeci est utile après avoir changé votre ENCRYPTION_KEY.\n\nVoulez-vous continuer ?')) {
+      return
+    }
+
+    try {
+      const response = await fetch('/api/admin/integrations/email/reset', {
+        method: 'DELETE',
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        toast.success(data.message || 'Toutes les intégrations ont été supprimées')
+        fetchIntegrations()
+      } else {
+        const error = await response.json()
+        toast.error(error.error || 'Impossible de supprimer les intégrations')
+      }
+    } catch (error) {
+      toast.error('Une erreur est survenue')
+    }
+  }
+
   const getIntegration = (provider: string) => {
     return integrations.find(i => i.provider === provider)
   }
@@ -203,13 +226,26 @@ export default function IntegrationsPage() {
     <div className="min-h-screen bg-gradient-to-br from-[#9CD9F6] via-white to-[#9CD9F6] p-8">
       <div className="max-w-6xl mx-auto space-y-8">
         {/* Header */}
-        <div>
-          <h1 className="text-4xl font-bold text-[#004645] mb-2" style={{ fontFamily: "var(--font-abril)" }}>
-            Intégrations Email
-          </h1>
-          <p className="text-[#004645]/70">
-            Configurez vos services d&apos;envoi d&apos;emails et gérez vos intégrations
-          </p>
+        <div className="flex items-start justify-between">
+          <div>
+            <h1 className="text-4xl font-bold text-[#004645] mb-2" style={{ fontFamily: "var(--font-abril)" }}>
+              Intégrations Email
+            </h1>
+            <p className="text-[#004645]/70">
+              Configurez vos services d&apos;envoi d&apos;emails et gérez vos intégrations
+            </p>
+          </div>
+          {integrations.length > 0 && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleResetAll}
+              className="border-red-300 text-red-600 hover:bg-red-50 hover:text-red-700"
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Supprimer tout
+            </Button>
+          )}
         </div>
 
         {/* Quick Provider Switcher */}
