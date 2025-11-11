@@ -313,7 +313,7 @@ export async function GET(
     }
 
     // Sort alerts by severity (high -> medium -> low)
-    const severityOrder = { high: 0, medium: 1, low: 2 }
+    const severityOrder: Record<string, number> = { high: 0, medium: 1, low: 2 }
     alerts.sort((a, b) => severityOrder[a.severity] - severityOrder[b.severity])
 
     // Session capacity stats
