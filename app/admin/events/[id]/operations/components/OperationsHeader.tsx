@@ -9,14 +9,19 @@ interface OperationsHeaderProps {
   event: {
     id: string
     name: string
-    date: Date
-    location: string | null
+    startsAt: Date
+    endsAt?: Date | null
+    venueName?: string | null
+    city?: string | null
   }
   kpis: KPIs
 }
 
 export function OperationsHeader({ event, kpis }: OperationsHeaderProps) {
-  const eventDate = new Date(event.date)
+  const eventDate = new Date(event.startsAt)
+  const location = event.venueName && event.city
+    ? `${event.venueName}, ${event.city}`
+    : event.venueName || event.city || null
 
   return (
     <div className="space-y-4">
@@ -33,10 +38,10 @@ export function OperationsHeader({ event, kpis }: OperationsHeaderProps) {
               day: 'numeric'
             })}</span>
           </div>
-          {event.location && (
+          {location && (
             <div className="flex items-center gap-1">
               <MapPin size={16} />
-              <span>{event.location}</span>
+              <span>{location}</span>
             </div>
           )}
         </div>

@@ -215,8 +215,10 @@ export async function GET(
       event: {
         id: event.id,
         name: event.name,
-        date: event.date,
-        location: event.location,
+        startsAt: event.startsAt,
+        endsAt: event.endsAt,
+        venueName: event.venueName,
+        city: event.city,
         description: event.description
       },
       timeSlots,
