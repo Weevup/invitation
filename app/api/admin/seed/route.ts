@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { TransportType, BookingStatus } from '@prisma/client'
 import { generateGuestToken, hashToken } from '@/lib/auth'
 import bcrypt from 'bcryptjs'
 import { requireAdmin, handleAuthError } from '@/lib/auth-utils'
@@ -695,8 +696,8 @@ JOUR 2 - Mardi 16 septembre
     const transportBookingsWeevup = [
       {
         guest: guestsWeevup[0], // Marie Dupont
-        type: 'FLIGHT',
-        status: 'BOOKED',
+        type: 'FLIGHT' as TransportType,
+        status: 'BOOKED' as BookingStatus,
         departure: { city: 'Lyon', airport: 'LYS', date: '2025-06-20', time: '15:30' },
         arrival: { city: 'Paris', airport: 'CDG', date: '2025-06-20', time: '16:45' },
         carrier: 'Air France',
@@ -708,8 +709,8 @@ JOUR 2 - Mardi 16 septembre
       },
       {
         guest: guestsWeevup[1], // Thomas Bernard
-        type: 'TRAIN',
-        status: 'CONFIRMED',
+        type: 'TRAIN' as TransportType,
+        status: 'CONFIRMED' as BookingStatus,
         departure: { city: 'Marseille', station: 'Gare Saint-Charles', date: '2025-06-20', time: '13:15' },
         arrival: { city: 'Paris', station: 'Gare de Lyon', date: '2025-06-20', time: '16:30' },
         carrier: 'SNCF TGV',
@@ -721,8 +722,8 @@ JOUR 2 - Mardi 16 septembre
       },
       {
         guest: guestsWeevup[2], // Sophie Leroy
-        type: 'TRAIN',
-        status: 'BOOKED',
+        type: 'TRAIN' as TransportType,
+        status: 'BOOKED' as BookingStatus,
         departure: { city: 'Bordeaux', station: 'Gare Saint-Jean', date: '2025-06-20', time: '12:00' },
         arrival: { city: 'Paris', station: 'Gare Montparnasse', date: '2025-06-20', time: '15:05' },
         carrier: 'SNCF TGV',
@@ -735,8 +736,8 @@ JOUR 2 - Mardi 16 septembre
       },
       {
         guest: guestsWeevup[3], // Pierre Moreau
-        type: 'PERSONAL_CAR',
-        status: 'CONFIRMED',
+        type: 'PERSONAL_CAR' as TransportType,
+        status: 'CONFIRMED' as BookingStatus,
         departure: { city: 'Versailles', address: '12 Rue de la Paroisse', date: '2025-06-20', time: '17:30' },
         arrival: { address: '148 Avenue des Champs-Élysées', city: 'Paris', date: '2025-06-20', time: '18:15' },
         notes: 'Arrivée en Tesla Model S',
@@ -826,8 +827,8 @@ JOUR 2 - Mardi 16 septembre
     const transportBookingsSummit = [
       {
         guest: guestsTechSummit[0], // Yann LeCun
-        type: 'FLIGHT',
-        status: 'BOOKED',
+        type: 'FLIGHT' as TransportType,
+        status: 'BOOKED' as BookingStatus,
         departure: { city: 'New York', airport: 'JFK', date: '2025-09-14', time: '18:00' },
         arrival: { city: 'Paris', airport: 'CDG', date: '2025-09-15', time: '07:30' },
         carrier: 'Air France',
@@ -840,8 +841,8 @@ JOUR 2 - Mardi 16 septembre
       },
       {
         guest: guestsTechSummit[1], // Vitalik Buterin
-        type: 'FLIGHT',
-        status: 'CONFIRMED',
+        type: 'FLIGHT' as TransportType,
+        status: 'CONFIRMED' as BookingStatus,
         departure: { city: 'Singapore', airport: 'SIN', date: '2025-09-14', time: '01:00' },
         arrival: { city: 'Paris', airport: 'CDG', date: '2025-09-14', time: '08:45' },
         carrier: 'Singapore Airlines',
@@ -854,8 +855,8 @@ JOUR 2 - Mardi 16 septembre
       },
       {
         guest: guestsTechSummit[2], // Cassie Kozyrkov
-        type: 'FLIGHT',
-        status: 'BOOKED',
+        type: 'FLIGHT' as TransportType,
+        status: 'BOOKED' as BookingStatus,
         departure: { city: 'San Francisco', airport: 'SFO', date: '2025-09-14', time: '12:00' },
         arrival: { city: 'Paris', airport: 'CDG', date: '2025-09-15', time: '07:00' },
         carrier: 'United Airlines',
@@ -867,8 +868,8 @@ JOUR 2 - Mardi 16 septembre
       },
       {
         guest: guestsTechSummit[3], // Julie Fontaine
-        type: 'TRAIN',
-        status: 'BOOKED',
+        type: 'TRAIN' as TransportType,
+        status: 'BOOKED' as BookingStatus,
         departure: { city: 'Lille', station: 'Lille Europe', date: '2025-09-15', time: '06:30' },
         arrival: { city: 'Paris', station: 'Gare du Nord', date: '2025-09-15', time: '07:30' },
         carrier: 'SNCF TGV',
@@ -880,8 +881,8 @@ JOUR 2 - Mardi 16 septembre
       },
       {
         guest: guestsTechSummit[4], // Marc Durand
-        type: 'TAXI',
-        status: 'REQUESTED',
+        type: 'TAXI' as TransportType,
+        status: 'REQUESTED' as BookingStatus,
         departure: { city: 'Paris', address: 'Hôtel Hilton Opera', date: '2025-09-15', time: '08:00' },
         arrival: { city: 'Paris', address: '2 Place de la Porte de Versailles', date: '2025-09-15', time: '08:30' },
         estimatedCost: 35,
