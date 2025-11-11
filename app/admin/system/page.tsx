@@ -63,6 +63,7 @@ export default function SystemPage() {
   // États pour la BDD
   const [dbStatus, setDbStatus] = useState<any>(null);
   const [dbStatusLoading, setDbStatusLoading] = useState(true);
+  const [lastDbCheck, setLastDbCheck] = useState<Date | null>(null);
 
   // États pour le diagnostic
   const [diagnostic, setDiagnostic] = useState<DiagnosticData | null>(null);
@@ -77,13 +78,18 @@ export default function SystemPage() {
   const fetchDatabaseStatus = async () => {
     setDbStatusLoading(true);
     try {
-      const response = await fetch('/api/admin/database-status');
+      // Add timestamp to prevent caching
+      const response = await fetch(`/api/admin/database-status?t=${Date.now()}`, {
+        cache: 'no-store'
+      });
       if (response.ok) {
         const data = await response.json();
         setDbStatus(data);
+        setLastDbCheck(new Date());
       }
     } catch (error) {
       console.error('Error fetching database status:', error);
+      toast.error('Erreur lors de la vérification de la base de données');
     } finally {
       setDbStatusLoading(false);
     }
@@ -92,7 +98,10 @@ export default function SystemPage() {
   const runDiagnostic = async () => {
     setDiagnosticLoading(true);
     try {
-      const response = await fetch('/api/admin/diagnostic');
+      // Add timestamp to prevent caching
+      const response = await fetch(`/api/admin/diagnostic?t=${Date.now()}`, {
+        cache: 'no-store'
+      });
       if (response.ok) {
         const data = await response.json();
         setDiagnostic(data);
@@ -100,6 +109,7 @@ export default function SystemPage() {
       }
     } catch (error) {
       console.error('Diagnostic failed:', error);
+      toast.error('Erreur lors du diagnostic');
     } finally {
       setDiagnosticLoading(false);
     }
@@ -284,11 +294,21 @@ export default function SystemPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          {(lastDbCheck || lastDiagnostic) && (
+            <div className="text-xs text-muted-foreground mr-2">
+              Dernière mise à jour : {(lastDbCheck && lastDiagnostic ?
+                (lastDbCheck > lastDiagnostic ? lastDbCheck : lastDiagnostic) :
+                (lastDbCheck || lastDiagnostic))?.toLocaleTimeString('fr-FR')}
+            </div>
+          )}
           <Button
             variant="outline"
-            onClick={() => {
-              fetchDatabaseStatus();
-              runDiagnostic();
+            onClick={async () => {
+              await Promise.all([
+                fetchDatabaseStatus(),
+                runDiagnostic()
+              ]);
+              toast.success('Données actualisées avec succès');
             }}
             disabled={dbStatusLoading || diagnosticLoading}
           >
@@ -403,14 +423,20 @@ export default function SystemPage() {
                       <p className="text-sm text-green-600 mt-1">
                         Toutes les tables et colonnes sont présentes ({dbStatus.summary.tablesOk} tables, {dbStatus.summary.enumsOk} ENUMs)
                       </p>
+                      {lastDbCheck && (
+                        <p className="text-xs text-green-500 mt-1">
+                          Dernière vérification : {lastDbCheck.toLocaleTimeString('fr-FR')}
+                        </p>
+                      )}
                     </div>
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={fetchDatabaseStatus}
+                      disabled={dbStatusLoading}
                       className="text-green-600 hover:text-green-700 hover:bg-green-100"
                     >
-                      <RefreshCw className="h-4 w-4" />
+                      <RefreshCw className={`h-4 w-4 ${dbStatusLoading ? 'animate-spin' : ''}`} />
                     </Button>
                   </div>
 
@@ -435,6 +461,11 @@ export default function SystemPage() {
                       <p className="text-xs text-orange-600 mt-1">
                         Tables: {dbStatus.summary.tablesOk} • ENUMs: {dbStatus.summary.enumsOk}
                       </p>
+                      {lastDbCheck && (
+                        <p className="text-xs text-orange-500 mt-1">
+                          Dernière vérification : {lastDbCheck.toLocaleTimeString('fr-FR')}
+                        </p>
+                      )}
                     </div>
                     <Button
                       variant="ghost"
