@@ -343,7 +343,7 @@ export default function HelpPage() {
                     Architecture & Technologies
                   </CardTitle>
                   <CardDescription>
-                    Stack technique et architecture de l'application
+                    Stack technique et architecture de l&apos;application
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
@@ -417,7 +417,7 @@ export default function HelpPage() {
                         <strong>AES-256-CBC</strong> - Chiffrement des clés API et données sensibles
                       </li>
                       <li className="text-sm text-[#004645]/80">
-                        <strong>ENCRYPTION_KEY</strong> - Variable d'environnement pour le chiffrement
+                        <strong>ENCRYPTION_KEY</strong> - Variable d&apos;environnement pour le chiffrement
                       </li>
                       <li className="text-sm text-[#004645]/80">
                         <strong>Role-based access</strong> - Gestion des permissions (ADMIN, GUEST)
@@ -431,7 +431,7 @@ export default function HelpPage() {
                 <CardHeader>
                   <CardTitle className="text-[#004645] flex items-center gap-2">
                     <Settings className="h-6 w-6 text-[#009197]" />
-                    Variables d'environnement
+                    Variables d&apos;environnement
                   </CardTitle>
                   <CardDescription>
                     Configuration requise pour le déploiement
