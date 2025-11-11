@@ -20,6 +20,7 @@ import {
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import { SessionDialog } from '@/components/admin/session-dialog'
+import { SessionParticipantsDialog } from '@/components/admin/session-participants-dialog'
 import { toast } from 'sonner'
 
 interface Session {
@@ -103,6 +104,8 @@ export default function SessionsPage() {
   const [filterStatus, setFilterStatus] = useState<string>('ALL')
   const [dialogOpen, setDialogOpen] = useState(false)
   const [selectedSession, setSelectedSession] = useState<Session | undefined>(undefined)
+  const [participantsDialogOpen, setParticipantsDialogOpen] = useState(false)
+  const [selectedSessionForParticipants, setSelectedSessionForParticipants] = useState<Session | undefined>(undefined)
 
   useEffect(() => {
     fetchSessions()
@@ -132,6 +135,16 @@ export default function SessionsPage() {
   const handleCloseDialog = () => {
     setDialogOpen(false)
     setSelectedSession(undefined)
+  }
+
+  const handleOpenParticipantsDialog = (session: Session) => {
+    setSelectedSessionForParticipants(session)
+    setParticipantsDialogOpen(true)
+  }
+
+  const handleCloseParticipantsDialog = () => {
+    setParticipantsDialogOpen(false)
+    setSelectedSessionForParticipants(undefined)
   }
 
   const handleDeleteSession = async (sessionId: string) => {
@@ -351,7 +364,10 @@ export default function SessionsPage() {
                               </div>
                             )}
 
-                            <div className="flex items-center gap-1">
+                            <button
+                              onClick={() => handleOpenParticipantsDialog(session)}
+                              className="flex items-center gap-1 hover:text-primary transition-colors"
+                            >
                               <Users className="h-4 w-4" />
                               {session.participantCount}
                               {session.capacity && ` / ${session.capacity}`}
@@ -360,7 +376,7 @@ export default function SessionsPage() {
                                   ({session.availableSpots} places restantes)
                                 </span>
                               )}
-                            </div>
+                            </button>
                           </div>
 
                           {session.tags.length > 0 && (
@@ -372,9 +388,53 @@ export default function SessionsPage() {
                               ))}
                             </div>
                           )}
+
+                          {/* Capacity Indicator */}
+                          {session.capacity && (
+                            <div className="mt-3 space-y-1">
+                              <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                                <div
+                                  className={`h-2 rounded-full transition-all ${
+                                    session.participantCount >= session.capacity
+                                      ? 'bg-red-500'
+                                      : session.participantCount / session.capacity > 0.8
+                                      ? 'bg-yellow-500'
+                                      : 'bg-green-500'
+                                  }`}
+                                  style={{
+                                    width: `${Math.min((session.participantCount / session.capacity) * 100, 100)}%`,
+                                  }}
+                                />
+                              </div>
+                              <div className="flex items-center justify-between text-xs text-muted-foreground">
+                                <span>
+                                  {session.participantCount} / {session.capacity} participants
+                                </span>
+                                {session.participantCount >= session.capacity && (
+                                  <Badge variant="outline" className="bg-red-50 text-red-700 text-xs">
+                                    Complet
+                                  </Badge>
+                                )}
+                                {session.participantCount / session.capacity > 0.8 &&
+                                  session.participantCount < session.capacity && (
+                                    <Badge variant="outline" className="bg-yellow-50 text-yellow-700 text-xs">
+                                      Bientôt complet
+                                    </Badge>
+                                  )}
+                              </div>
+                            </div>
+                          )}
                         </div>
 
                         <div className="flex gap-2 ml-4">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleOpenParticipantsDialog(session)}
+                            title="Gérer les participants"
+                          >
+                            <Users className="h-4 w-4" />
+                          </Button>
                           <Button variant="ghost" size="sm" onClick={() => handleOpenDialog(session)}>
                             <Edit className="h-4 w-4" />
                           </Button>
@@ -400,6 +460,17 @@ export default function SessionsPage() {
         session={selectedSession}
         onSuccess={fetchSessions}
       />
+
+      {/* Participants Dialog */}
+      {selectedSessionForParticipants && (
+        <SessionParticipantsDialog
+          open={participantsDialogOpen}
+          onOpenChange={handleCloseParticipantsDialog}
+          eventId={eventId}
+          session={selectedSessionForParticipants}
+          onSuccess={fetchSessions}
+        />
+      )}
     </div>
   )
 }

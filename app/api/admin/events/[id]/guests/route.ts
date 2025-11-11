@@ -6,6 +6,61 @@ import { createGuestSchema, validateSchema } from '@/lib/validations'
 import { requireAdmin, handleAuthError } from '@/lib/auth-utils'
 import { requireEventOwnership } from '@/lib/permissions'
 
+/**
+ * GET /api/admin/events/[id]/guests
+ * Get all guests for an event
+ */
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id: eventId } = await params
+
+    // Check if event exists
+    const event = await prisma.event.findUnique({
+      where: { id: eventId },
+    })
+
+    if (!event) {
+      return NextResponse.json(
+        { error: 'Événement non trouvé' },
+        { status: 404 }
+      )
+    }
+
+    // Get all guests for the event
+    const guests = await prisma.guest.findMany({
+      where: { eventId },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        company: true,
+        rsvpStatus: true,
+        dietaryRestrictions: true,
+        plusOne: true,
+      },
+      orderBy: [
+        { lastName: 'asc' },
+        { firstName: 'asc' },
+      ],
+    })
+
+    return NextResponse.json({
+      guests,
+      total: guests.length,
+    })
+  } catch (error) {
+    console.error('Error fetching guests:', error)
+    return NextResponse.json(
+      { error: 'Erreur lors du chargement des invités' },
+      { status: 500 }
+    )
+  }
+}
+
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
