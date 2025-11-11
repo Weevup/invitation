@@ -37,24 +37,13 @@ interface NavItem {
 
 const navigationSections: NavSection[] = [
   {
-    title: "Tableau de bord",
+    title: "Principal",
     items: [
       {
-        name: 'Vue d\'ensemble',
+        name: 'Tableau de bord',
         href: '/admin',
         icon: LayoutDashboard,
-        description: 'Statistiques et aperçu global'
-      },
-    ]
-  },
-  {
-    title: "Événements",
-    items: [
-      {
-        name: 'Mes événements',
-        href: '/admin',
-        icon: Calendar,
-        description: 'Créer et gérer vos événements'
+        description: 'Vue d\'ensemble et événements'
       },
       {
         name: 'Invités & RSVP',
