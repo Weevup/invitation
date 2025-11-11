@@ -26,11 +26,15 @@ import {
   Sparkles,
   Search,
   Filter,
-  X
+  X,
+  Users
 } from 'lucide-react'
 import { TransportType, BookingStatus } from '@prisma/client'
 import { TransportBookingDialog } from '@/components/admin/transport-booking-dialog'
 import { TransportBookingDetailsDialog } from '@/components/admin/transport-booking-details-dialog'
+import { TransportManifestDialog } from '@/components/admin/transport-manifest-dialog'
+import { TransportManifestDetailsDialog } from '@/components/admin/transport-manifest-details-dialog'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 interface TransportBooking {
   id: string
@@ -63,6 +67,21 @@ interface TransportBooking {
     lastName: string
     email: string
   }
+}
+
+interface TransportManifest {
+  id: string
+  type: string
+  name: string
+  description?: string | null
+  departure: any
+  arrival: any
+  maxCapacity: number
+  currentCount: number
+  costPerPerson?: number | null
+  currency: string
+  status: string
+  participants: any[]
 }
 
 const transportIcons = {
@@ -111,6 +130,12 @@ export default function TransportPage() {
   const [selectedBookingId, setSelectedBookingId] = useState<string | null>(null)
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false)
 
+  // Manifests state
+  const [manifests, setManifests] = useState<TransportManifest[]>([])
+  const [manifestsLoading, setManifestsLoading] = useState(true)
+  const [selectedManifestId, setSelectedManifestId] = useState<string | null>(null)
+  const [manifestDetailsOpen, setManifestDetailsOpen] = useState(false)
+
   // Filtres
   const [searchQuery, setSearchQuery] = useState('')
   const [filterType, setFilterType] = useState<TransportType | 'ALL'>('ALL')
@@ -132,9 +157,25 @@ export default function TransportPage() {
     }
   }, [eventId])
 
+  const fetchManifests = useCallback(async () => {
+    try {
+      const response = await fetch(`/api/admin/events/${eventId}/transport/manifests`)
+      if (!response.ok) {
+        throw new Error('Failed to fetch manifests')
+      }
+      const data = await response.json()
+      setManifests(data.manifests || [])
+    } catch (err) {
+      console.error('Error fetching manifests:', err)
+    } finally {
+      setManifestsLoading(false)
+    }
+  }, [eventId])
+
   useEffect(() => {
     fetchBookings()
-  }, [fetchBookings])
+    fetchManifests()
+  }, [fetchBookings, fetchManifests])
 
   // Filtrer les réservations
   const filteredBookings = bookings.filter((booking) => {
@@ -224,8 +265,26 @@ export default function TransportPage() {
             Gérez les réservations de transport pour vos invités
           </p>
         </div>
-        <TransportBookingDialog eventId={eventId} onSuccess={fetchBookings} />
       </div>
+
+      {/* Tabs */}
+      <Tabs defaultValue="bookings" className="space-y-6">
+        <TabsList className="grid w-full max-w-md grid-cols-2">
+          <TabsTrigger value="bookings" className="flex items-center gap-2">
+            <Car className="h-4 w-4" />
+            Réservations individuelles
+          </TabsTrigger>
+          <TabsTrigger value="manifests" className="flex items-center gap-2">
+            <Bus className="h-4 w-4" />
+            Manifestes groupés
+          </TabsTrigger>
+        </TabsList>
+
+        {/* Bookings Tab */}
+        <TabsContent value="bookings" className="space-y-6">
+          <div className="flex justify-end">
+            <TransportBookingDialog eventId={eventId} onSuccess={fetchBookings} />
+          </div>
 
       {/* Stats */}
       <div className="grid md:grid-cols-4 gap-4">
@@ -515,6 +574,183 @@ export default function TransportPage() {
           onSuccess={fetchBookings}
         />
       )}
+        </TabsContent>
+
+        {/* Manifests Tab */}
+        <TabsContent value="manifests" className="space-y-6">
+          <div className="flex justify-end">
+            <TransportManifestDialog eventId={eventId} onSuccess={fetchManifests} />
+          </div>
+
+          {/* Manifests Stats */}
+          <div className="grid md:grid-cols-4 gap-4">
+            <Card className="border-[#9CD9F6]/30 bg-white/80 backdrop-blur">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-[#004645]">Total manifestes</CardTitle>
+                <Bus className="h-4 w-4 text-[#009197]" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-[#004645]" style={{ fontFamily: "var(--font-abril)" }}>
+                  {manifests.length}
+                </div>
+                <p className="text-xs text-[#004645]/70">navettes/bus</p>
+              </CardContent>
+            </Card>
+
+            <Card className="border-green-200 bg-green-50/80 backdrop-blur">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-[#004645]">Confirmés</CardTitle>
+                <ArrowRight className="h-4 w-4 text-green-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-green-600" style={{ fontFamily: "var(--font-abril)" }}>
+                  {manifests.filter(m => m.status === 'CONFIRMED' || m.status === 'DEPARTED').length}
+                </div>
+                <p className="text-xs text-[#004645]/70">prêts à partir</p>
+              </CardContent>
+            </Card>
+
+            <Card className="border-[#9CD9F6]/30 bg-white/80 backdrop-blur">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-[#004645]">Participants</CardTitle>
+                <Calendar className="h-4 w-4 text-[#009197]" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-[#009197]" style={{ fontFamily: "var(--font-abril)" }}>
+                  {manifests.reduce((sum, m) => sum + m.currentCount, 0)}
+                </div>
+                <p className="text-xs text-[#004645]/70">invités inscrits</p>
+              </CardContent>
+            </Card>
+
+            <Card className="border-yellow-200 bg-yellow-50/80 backdrop-blur">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-[#004645]">Places disponibles</CardTitle>
+                <Users className="h-4 w-4 text-yellow-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-yellow-600" style={{ fontFamily: "var(--font-abril)" }}>
+                  {manifests.reduce((sum, m) => sum + (m.maxCapacity - m.currentCount), 0)}
+                </div>
+                <p className="text-xs text-[#004645]/70">places restantes</p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Manifests List */}
+          <Card className="border-[#9CD9F6]/30 bg-white/80 backdrop-blur">
+            <CardHeader>
+              <CardTitle className="text-[#004645]">Manifestes de transport</CardTitle>
+              <CardDescription>Navettes et transports groupés</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {manifestsLoading ? (
+                <div className="text-center py-12">
+                  <Sparkles className="h-12 w-12 text-[#009197] mx-auto mb-4 animate-pulse" />
+                  <p className="text-[#004645]/70">Chargement des manifestes...</p>
+                </div>
+              ) : manifests.length === 0 ? (
+                <div className="text-center py-12">
+                  <Bus className="h-12 w-12 text-[#009197]/30 mx-auto mb-4" />
+                  <p className="text-[#004645]/70 mb-4">Aucun manifeste créé</p>
+                  <TransportManifestDialog
+                    eventId={eventId}
+                    onSuccess={fetchManifests}
+                    trigger={
+                      <Button variant="outline" className="border-[#004645] text-[#004645]">
+                        <Plus className="h-4 w-4 mr-2" />
+                        Créer le premier manifeste
+                      </Button>
+                    }
+                  />
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {manifests.map((manifest) => {
+                    const Icon = manifest.type === 'SHUTTLE' ? Bus : manifest.type === 'TRAIN' ? Train : Plane
+                    const isFull = manifest.currentCount >= manifest.maxCapacity
+                    const statusColor =
+                      manifest.status === 'DRAFT' ? 'bg-gray-100 text-gray-800' :
+                      manifest.status === 'OPEN' ? 'bg-blue-100 text-blue-800' :
+                      manifest.status === 'FULL' ? 'bg-yellow-100 text-yellow-800' :
+                      manifest.status === 'CONFIRMED' ? 'bg-green-100 text-green-800' :
+                      'bg-purple-100 text-purple-800'
+
+                    return (
+                      <div
+                        key={manifest.id}
+                        className="flex items-center justify-between p-4 border border-[#9CD9F6]/30 rounded-lg hover:shadow-md transition-shadow"
+                      >
+                        <div className="flex items-center gap-4 flex-1">
+                          <div className="p-3 rounded-lg bg-[#009197]/10">
+                            <Icon className="h-6 w-6 text-[#009197]" />
+                          </div>
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <h3 className="font-semibold text-[#004645]">
+                                {manifest.name}
+                              </h3>
+                              <Badge className={statusColor}>
+                                {manifest.status}
+                              </Badge>
+                              {isFull && (
+                                <Badge variant="destructive" className="text-xs">
+                                  Complet
+                                </Badge>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-4 text-sm text-[#004645]/70">
+                              <div className="flex items-center gap-1">
+                                <MapPin className="h-3 w-3" />
+                                {manifest.departure?.city || 'N/A'} → {manifest.arrival?.city || 'N/A'}
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <Users className="h-3 w-3" />
+                                {manifest.currentCount}/{manifest.maxCapacity} places
+                              </div>
+                              {manifest.costPerPerson && (
+                                <div className="flex items-center gap-1 text-[#FF4713]">
+                                  <DollarSign className="h-3 w-3" />
+                                  {manifest.costPerPerson} {manifest.currency}/pers.
+                                </div>
+                              )}
+                            </div>
+                            {manifest.description && (
+                              <p className="text-xs text-[#004645]/50 mt-1">{manifest.description}</p>
+                            )}
+                          </div>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-[#009197]"
+                          onClick={() => {
+                            setSelectedManifestId(manifest.id)
+                            setManifestDetailsOpen(true)
+                          }}
+                        >
+                          Gérer
+                        </Button>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Manifest Details Dialog */}
+          {selectedManifestId && (
+            <TransportManifestDetailsDialog
+              eventId={eventId}
+              manifestId={selectedManifestId}
+              open={manifestDetailsOpen}
+              onOpenChange={setManifestDetailsOpen}
+              onSuccess={fetchManifests}
+            />
+          )}
+        </TabsContent>
+      </Tabs>
     </div>
   )
 }
