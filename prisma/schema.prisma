@@ -556,6 +556,10 @@ model TransportManifest {
   departure   Json               // { location, date, time }
   arrival     Json               // { location, date, time }
 
+  // Timing (parsed from JSON for easy querying and sorting)
+  departureTime  DateTime?
+  arrivalTime    DateTime?
+
   // Capacity
   maxCapacity Int?
   currentCount Int              @default(0)
@@ -566,6 +570,11 @@ model TransportManifest {
 
   // Status
   status        ManifestStatus   @default(DRAFT)
+
+  // Driver & Vehicle info (for operational planning)
+  driverName    String?
+  driverPhone   String?
+  vehicleInfo   String?          // Vehicle plate, model, color, etc.
 
   // Participants (many-to-many via pivot table)
   participants  ManifestParticipant[]

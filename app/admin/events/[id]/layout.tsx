@@ -16,9 +16,7 @@ import {
   ChevronLeft,
   Calendar,
   MapPin,
-  Plane,
-  Activity,
-  Hotel
+  BarChart3
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useEventModules } from '@/lib/modules'
@@ -51,34 +49,17 @@ export default function EventLayout({
   }, [eventId])
 
   // Module-based navigation items (conditionally added)
+  // Check if any advanced modules are active
+  const hasAdvancedModules = hasModule('PROGRAM') || hasModule('TRANSPORT') || hasModule('ACCOMMODATION')
+
   const moduleNavItems = []
 
-  if (hasModule('PROGRAM')) {
+  // Single unified operations page if any module is active
+  if (hasAdvancedModules) {
     moduleNavItems.push({
-      label: 'Dashboard Planif.',
-      href: `/admin/events/${eventId}/dashboard`,
-      icon: Activity,
-    })
-    moduleNavItems.push({
-      label: 'Programme',
-      href: `/admin/events/${eventId}/program`,
-      icon: Calendar,
-    })
-  }
-
-  if (hasModule('TRANSPORT')) {
-    moduleNavItems.push({
-      label: 'Transport',
-      href: `/admin/events/${eventId}/transport`,
-      icon: Plane,
-    })
-  }
-
-  if (hasModule('ACCOMMODATION')) {
-    moduleNavItems.push({
-      label: 'Hébergement',
-      href: `/admin/events/${eventId}/accommodation`,
-      icon: Hotel,
+      label: 'Planning Opérationnel',
+      href: `/admin/events/${eventId}/operations`,
+      icon: BarChart3,
     })
   }
 
