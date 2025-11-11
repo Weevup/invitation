@@ -185,7 +185,7 @@ export default function OperationsPage() {
               <div className="text-center py-12 text-muted-foreground">
                 <p className="text-lg mb-2">Aucun événement programmé</p>
                 <p className="text-sm">
-                  Créez des sessions, ajoutez du transport ou configurez l'hébergement pour voir la timeline.
+                  Créez des sessions, ajoutez du transport ou configurez l&apos;hébergement pour voir la timeline.
                 </p>
               </div>
             )}
