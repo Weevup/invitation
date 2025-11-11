@@ -24,10 +24,10 @@ const updateParticipantSchema = z.object({
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string; sessionId: string } }
+  { params }: { params: Promise<{ id: string; sessionId: string }> }
 ) {
   try {
-    const { id: eventId, sessionId } = params
+    const { id: eventId, sessionId } = await params
     const body = await request.json()
 
     // Validate input
@@ -180,10 +180,10 @@ export async function POST(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string; sessionId: string } }
+  { params }: { params: Promise<{ id: string; sessionId: string }> }
 ) {
   try {
-    const { id: eventId, sessionId } = params
+    const { id: eventId, sessionId } = await params
     const { searchParams } = new URL(request.url)
     const participantId = searchParams.get('participantId')
 
@@ -264,10 +264,10 @@ export async function DELETE(
  */
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string; sessionId: string } }
+  { params }: { params: Promise<{ id: string; sessionId: string }> }
 ) {
   try {
-    const { id: eventId, sessionId } = params
+    const { id: eventId, sessionId } = await params
     const body = await request.json()
     const participantId = body.participantId
 

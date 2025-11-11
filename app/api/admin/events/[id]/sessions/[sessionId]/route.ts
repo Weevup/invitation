@@ -57,10 +57,10 @@ const updateSessionSchema = z.object({
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string; sessionId: string } }
+  { params }: { params: Promise<{ id: string; sessionId: string }> }
 ) {
   try {
-    const { id: eventId, sessionId } = params
+    const { id: eventId, sessionId } = await params
 
     const session = await prisma.session.findFirst({
       where: {
@@ -144,10 +144,10 @@ export async function GET(
  */
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string; sessionId: string } }
+  { params }: { params: Promise<{ id: string; sessionId: string }> }
 ) {
   try {
-    const { id: eventId, sessionId } = params
+    const { id: eventId, sessionId } = await params
     const body = await request.json()
 
     // Validate input
@@ -257,10 +257,10 @@ export async function PUT(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string; sessionId: string } }
+  { params }: { params: Promise<{ id: string; sessionId: string }> }
 ) {
   try {
-    const { id: eventId, sessionId } = params
+    const { id: eventId, sessionId } = await params
 
     // Check if session exists
     const session = await prisma.session.findFirst({
