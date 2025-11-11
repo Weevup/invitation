@@ -1346,7 +1346,7 @@ JOUR 2 - Mardi 16 septembre
           icon: session.icon || 'calendar',
           color: session.color || '#6366F1',
           isPublic: true,
-          relatedId: session.id
+          sessionId: session.id
         }
       })
     }
@@ -2024,7 +2024,7 @@ JOUR 2 - Mardi 16 septembre
           icon: session.icon || 'calendar',
           color: session.color || '#6366F1',
           isPublic: true,
-          relatedId: session.id
+          sessionId: session.id
         }
       })
     }
