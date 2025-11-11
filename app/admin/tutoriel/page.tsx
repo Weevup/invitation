@@ -112,6 +112,54 @@ export default function TutorielPage() {
     }
   ]
 
+  const planningModules = [
+    {
+      id: 'programme',
+      title: "Module Programme & Sessions",
+      icon: Calendar,
+      color: "text-blue-600",
+      description: "Gérez le programme complet de votre événement avec 14 types de sessions",
+      details: [
+        "Créer des sessions : Keynote, Workshop, Conférence, Table ronde, etc.",
+        "Gérer les inscriptions avec capacité maximale et liste d'attente",
+        "Utiliser la timeline globale pour voir tout le planning",
+        "Détecter automatiquement les conflits horaires entre sessions",
+        "Filtrer par participant pour voir son planning individuel"
+      ],
+      link: "/admin/modules-showcase/documentation"
+    },
+    {
+      id: 'transport',
+      title: "Module Transport & Logistique",
+      icon: Play,
+      color: "text-teal-600",
+      description: "Centralisez tous les déplacements de vos participants",
+      details: [
+        "6 types de transport : Vol, Train, Navette, Taxi, Location, Voiture perso",
+        "Créer des navettes collectives avec manifestes et capacités",
+        "Suivre les arrivées en temps réel depuis la page dédiée",
+        "Gérer les statuts : Demandé → Confirmé → Réservé",
+        "Alertes automatiques pour les confirmations manquantes"
+      ],
+      link: "/admin/modules-showcase/documentation"
+    },
+    {
+      id: 'hebergement',
+      title: "Module Hébergement & Rooming",
+      icon: CheckCircle,
+      color: "text-purple-600",
+      description: "Gérez les réservations d'hôtel et créez votre rooming list",
+      details: [
+        "Ajouter plusieurs hébergements avec toutes leurs informations",
+        "Créer les chambres : 7 types (Simple, Double, Twin, Suite...)",
+        "Assigner les invités aux chambres (rooming list complète)",
+        "Suivi des capacités et alertes automatiques",
+        "Gérer les demandes spéciales et les dates de séjour"
+      ],
+      link: "/admin/modules-showcase/documentation"
+    }
+  ]
+
   const features = [
     {
       title: "Gestion multi-événements",
@@ -225,6 +273,59 @@ export default function TutorielPage() {
           </div>
         </CardHeader>
       </Card>
+
+      {/* Planning Modules Section */}
+      <div className="mb-8">
+        <h2 className="text-2xl font-bold text-[#004645] mb-4" style={{ fontFamily: "var(--font-abril)" }}>
+          Modules de planification avancés
+        </h2>
+        <p className="text-[#004645]/70 mb-6">
+          Gérez le programme, les transports et l&apos;hébergement de vos participants avec nos modules dédiés
+        </p>
+        <div className="space-y-4">
+          {planningModules.map((module, index) => (
+            <Card
+              key={module.id}
+              className="border-[#9CD9F6]/30 bg-white/80 backdrop-blur hover:shadow-lg transition-all cursor-pointer"
+              onClick={() => setActiveStep(activeStep === module.id ? null : module.id)}
+            >
+              <CardHeader>
+                <div className="flex items-start justify-between">
+                  <div className="flex items-start gap-4 flex-1">
+                    <div className={`p-3 rounded-lg bg-gradient-to-br from-white to-gray-50 shadow-sm`}>
+                      <module.icon className={`h-6 w-6 ${module.color}`} />
+                    </div>
+                    <div className="flex-1">
+                      <CardTitle className="text-[#004645] mb-2">{module.title}</CardTitle>
+                      <CardDescription className="text-base">{module.description}</CardDescription>
+
+                      {activeStep === module.id && (
+                        <div className="mt-4 space-y-3">
+                          <ul className="space-y-2">
+                            {module.details.map((detail, idx) => (
+                              <li key={idx} className="flex items-start gap-2 text-sm text-[#004645]/80">
+                                <CheckCircle className="h-4 w-4 text-[#009197] mt-0.5 flex-shrink-0" />
+                                <span>{detail}</span>
+                              </li>
+                            ))}
+                          </ul>
+                          <Link href={module.link}>
+                            <Button className="bg-gradient-to-r from-[#004645] to-[#009197] hover:from-[#006C51] hover:to-[#009197] text-white mt-2">
+                              Voir la documentation complète
+                              <ArrowRight className="h-4 w-4 ml-2" />
+                            </Button>
+                          </Link>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <ArrowRight className={`h-5 w-5 text-[#004645]/40 transition-transform ${activeStep === module.id ? 'rotate-90' : ''}`} />
+                </div>
+              </CardHeader>
+            </Card>
+          ))}
+        </div>
+      </div>
 
       {/* Steps */}
       <div className="mb-8">
