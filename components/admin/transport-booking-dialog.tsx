@@ -520,14 +520,14 @@ export function TransportBookingDialog({
                 checked={formData.isPaidByCompany}
                 onCheckedChange={(checked) => setFormData({ ...formData, isPaidByCompany: checked })}
               />
-              <Label htmlFor="isPaidByCompany">Pris en charge par l'entreprise</Label>
+              <Label htmlFor="isPaidByCompany">Pris en charge par l&apos;entreprise</Label>
             </div>
           </div>
 
           {/* Notes */}
           <div className="space-y-4 border-t pt-4">
             <div className="space-y-2">
-              <Label htmlFor="notes">Notes (visibles par l'invité)</Label>
+              <Label htmlFor="notes">Notes (visibles par l&apos;invité)</Label>
               <Textarea
                 id="notes"
                 value={formData.notes}
