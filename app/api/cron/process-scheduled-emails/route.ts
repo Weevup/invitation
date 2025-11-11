@@ -184,13 +184,16 @@ export async function GET(request: NextRequest) {
                 throw new Error(`Unknown email type: ${scheduled.type}`)
             }
 
+            // Préparer le sujet de l'email
+            const emailSubject = `${scheduled.event.name} - ${scheduled.type === 'SAVE_THE_DATE' ? 'Save the Date' : scheduled.type === 'INVITE' ? 'Invitation' : 'Rappel'}`
+
             // Envoyer l'email
             const result = await sendEmail(
               {
                 to: guest.email,
-                from: emailIntegration.fromEmail,
-                fromName: emailIntegration.fromName,
-                subject: `${scheduled.event.name} - ${scheduled.type === 'SAVE_THE_DATE' ? 'Save the Date' : scheduled.type === 'INVITE' ? 'Invitation' : 'Rappel'}`,
+                from: emailIntegration.fromEmail ?? undefined,
+                fromName: emailIntegration.fromName ?? undefined,
+                subject: emailSubject,
                 html,
               },
               emailIntegration
@@ -205,6 +208,7 @@ export async function GET(request: NextRequest) {
                   eventId: scheduled.event.id,
                   guestId: guest.id,
                   type: scheduled.type,
+                  subject: emailSubject,
                   status: 'SENT',
                   sentAt: new Date(),
                 },
