@@ -38,9 +38,7 @@ export async function GET(
         lastName: true,
         email: true,
         company: true,
-        rsvpStatus: true,
-        dietaryRestrictions: true,
-        plusOne: true,
+        status: true,
       },
       orderBy: [
         { lastName: 'asc' },
