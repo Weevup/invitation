@@ -16,7 +16,8 @@ import {
   ChevronLeft,
   Calendar,
   MapPin,
-  Plane
+  Plane,
+  Activity
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useEventModules } from '@/lib/modules'
@@ -97,6 +98,11 @@ export default function EventLayout({
   const moduleNavItems = []
 
   if (hasModule('PROGRAM')) {
+    moduleNavItems.push({
+      label: 'Dashboard Planif.',
+      href: `/admin/events/${eventId}/dashboard`,
+      icon: Activity,
+    })
     moduleNavItems.push({
       label: 'Programme',
       href: `/admin/events/${eventId}/program`,
