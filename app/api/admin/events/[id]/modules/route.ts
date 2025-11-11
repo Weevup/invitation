@@ -73,6 +73,22 @@ export async function POST(
       )
     }
 
+    // Valider la configuration si fournie
+    if (config) {
+      const { validateModuleConfig } = await import('@/lib/modules/permissions')
+      const validation = validateModuleConfig(moduleType, config)
+
+      if (!validation.valid) {
+        return NextResponse.json(
+          {
+            error: 'Configuration invalide',
+            details: validation.errors
+          },
+          { status: 400 }
+        )
+      }
+    }
+
     // Upsert le module
     const eventModule = await prisma.eventModule.upsert({
       where: {
