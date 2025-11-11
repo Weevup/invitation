@@ -86,6 +86,44 @@ enum ManifestStatus {
   CANCELLED
 }
 
+enum SessionType {
+  KEYNOTE
+  WORKSHOP
+  CONFERENCE
+  TEAMBUILDING
+  MEAL
+  BREAK
+  TRANSFER
+  ARRIVAL
+  DEPARTURE
+  FREE_TIME
+  NETWORKING
+  TRAINING
+  PANEL
+  OTHER
+}
+
+enum SessionStatus {
+  DRAFT
+  PUBLISHED
+  ONGOING
+  COMPLETED
+  CANCELLED
+}
+
+enum TimelineType {
+  SESSION
+  TRANSPORT_ARRIVAL
+  TRANSPORT_DEPARTURE
+  HOTEL_CHECKIN
+  HOTEL_CHECKOUT
+  MEAL
+  BREAK
+  TRANSFER
+  FREE_TIME
+  CUSTOM
+}
+
 model User {
   id        String   @id @default(cuid())
   email     String   @unique
@@ -180,6 +218,8 @@ model Event {
   modules              EventModule[]        @relation("EventModules")
   transportBookings    TransportBooking[]   @relation("EventTransportBookings")
   transportManifests   TransportManifest[]  @relation("EventTransportManifests")
+  sessions             Session[]            @relation("EventSessions")
+  timelineEvents       TimelineEvent[]      @relation("EventTimelineEvents")
 
   @@index([slug])
   @@index([adminId])
@@ -221,6 +261,7 @@ model Guest {
   // Phase 2: Modular features
   transportBookings TransportBooking[]    @relation("GuestTransportBookings")
   manifests         ManifestParticipant[] @relation("GuestManifests")
+  sessionParticipations SessionParticipant[] @relation("GuestSessions")
 
   @@unique([eventId, email])
   @@index([tokenHash])
@@ -446,6 +487,10 @@ model TransportBooking {
   bookingRef     String?   // Booking reference
   seatNumber     String?   // Seat number
 
+  // Timing (parsed from JSON for easy querying)
+  departureTime  DateTime?
+  arrivalTime    DateTime?
+
   // Costs
   estimatedCost  Float?
   actualCost     Float?
@@ -456,6 +501,14 @@ model TransportBooking {
   notes          String?   @db.Text
   internalNotes  String?   @db.Text  // Admin-only notes
 
+  // Link to manifest (shuttle)
+  manifestId     String?
+  manifest       TransportManifest? @relation("ManifestBookings", fields: [manifestId], references: [id])
+
+  // Link to arrival/departure session
+  linkedSessionId String?
+  linkedSession   Session?   @relation("SessionTransports", fields: [linkedSessionId], references: [id])
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -463,6 +516,8 @@ model TransportBooking {
   @@index([guestId])
   @@index([status])
   @@index([type])
+  @@index([departureTime])
+  @@index([arrivalTime])
 }
 
 model TransportManifest {
@@ -492,6 +547,9 @@ model TransportManifest {
   // Participants (many-to-many via pivot table)
   participants  ManifestParticipant[]
 
+  // Bookings linked to this manifest
+  bookings      TransportBooking[] @relation("ManifestBookings")
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -515,4 +573,152 @@ model ManifestParticipant {
   @@unique([manifestId, guestId])
   @@index([manifestId])
   @@index([guestId])
+}
+
+// ============================================
+// PHASE 2: AGENDA & TIMELINE MODULE
+// ============================================
+
+model Session {
+  id              String         @id @default(cuid())
+  eventId         String
+  event           Event          @relation("EventSessions", fields: [eventId], references: [id], onDelete: Cascade)
+
+  // Session information
+  title           String
+  description     String?        @db.Text
+  type            SessionType
+  status          SessionStatus  @default(DRAFT)
+
+  // Timing
+  startTime       DateTime       // Date + heure de début
+  endTime         DateTime       // Date + heure de fin
+  duration        Int            // Duration in minutes
+
+  // Location
+  venue           String?        // "Hôtel Marriott"
+  room            String?        // "Salle Lumière"
+  address         String?        // Full address if different from event venue
+
+  // Capacity management
+  capacity        Int?           // Maximum participants
+  minParticipants Int?           // Minimum for session to run
+  requiresRegistration Boolean   @default(false)
+  registrationDeadline DateTime?
+  registrationsClosed  Boolean   @default(false)
+
+  // Speakers/Facilitators
+  speakers        Json?          // Array of {name, title, bio, photo, email}
+
+  // Logistics
+  equipment       String[]       @default([]) // ["Projector", "Microphone", "Whiteboard"]
+  materials       String?        @db.Text     // Materials needed
+  catering        String?        // Coffee break, lunch, etc.
+
+  // Display settings
+  color           String?        // Color for calendar display
+  icon            String?        // Icon name for display
+  isPublic        Boolean        @default(true) // Visible to participants?
+  isHighlighted   Boolean        @default(false) // Featured session
+
+  // Relations
+  participants    SessionParticipant[]   @relation("SessionParticipants")
+  transports      TransportBooking[]     @relation("SessionTransports")
+
+  // Timeline position
+  timelineOrder   Int?           // Order in timeline
+
+  // Metadata
+  notes           String?        @db.Text   // Internal notes
+  tags            String[]       @default([])
+
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  @@index([eventId, startTime])
+  @@index([type])
+  @@index([status])
+}
+
+model SessionParticipant {
+  id              String   @id @default(cuid())
+  sessionId       String
+  session         Session  @relation("SessionParticipants", fields: [sessionId], references: [id], onDelete: Cascade)
+  guestId         String
+  guest           Guest    @relation("GuestSessions", fields: [guestId], references: [id], onDelete: Cascade)
+
+  // Registration status
+  status          String   @default("registered") // registered, confirmed, waitlist, cancelled, attended
+  waitlistPosition Int?
+
+  // Check-in
+  checkedInAt     DateTime?
+  checkedInBy     String?  // Admin who checked in
+
+  // Feedback (post-session)
+  rating          Int?     // 1-5 stars
+  feedback        String?  @db.Text
+
+  // Metadata
+  registeredAt    DateTime @default(now())
+  notes           String?  @db.Text  // Special requests
+
+  @@unique([sessionId, guestId])
+  @@index([sessionId])
+  @@index([guestId])
+  @@index([status])
+}
+
+model TimelineEvent {
+  id          String         @id @default(cuid())
+  eventId     String
+  event       Event          @relation("EventTimelineEvents", fields: [eventId], references: [id], onDelete: Cascade)
+
+  // Type of timeline event
+  type        TimelineType
+
+  // Timing
+  startTime   DateTime
+  endTime     DateTime?
+  allDay      Boolean        @default(false)
+
+  // Links to related entities
+  sessionId         String?
+  transportId       String?
+  accommodationId   String?
+
+  // Participants affected by this event
+  affectedGuestIds  String[]  @default([]) // Array of guest IDs
+  isGlobalEvent     Boolean   @default(false) // Affects all participants
+
+  // Display information
+  title       String
+  description String?        @db.Text
+  icon        String?        // Icon identifier (lucide icon name)
+  color       String?        // Hex color for display
+  location    String?        // Location summary
+
+  // Priority and visibility
+  priority    Int            @default(0) // Higher = more important
+  isPublic    Boolean        @default(true) // Visible to participants?
+
+  // Notifications
+  notifyParticipants Boolean @default(false)
+  notificationSent   Boolean @default(false)
+  notifyBefore       Int?    // Minutes before to send notification
+
+  // Order and grouping
+  order       Int            @default(0)
+  category    String?        // For grouping events
+
+  // Metadata
+  metadata    Json?          // Additional flexible data
+  notes       String?        @db.Text
+
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  @@index([eventId, startTime])
+  @@index([type])
+  @@index([isPublic])
 }
