@@ -648,8 +648,8 @@ export function calculateKPIs({
   accommodations: any[]
   roomAssignments: any[]
 }): KPIs {
-  const confirmedRSVPs = rsvps.filter(r => r.status === 'CONFIRMED')
-  const pendingRSVPs = rsvps.filter(r => r.status === 'PENDING')
+  const confirmedRSVPs = rsvps.filter(r => r.attending === true)
+  const pendingRSVPs = rsvps.filter(r => r.attending === null || r.attending === undefined)
 
   const allAllergies = rsvps.filter(r => {
     if (!r.allergies || !r.allergies.trim()) return false
