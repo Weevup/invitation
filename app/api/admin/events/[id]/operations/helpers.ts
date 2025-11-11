@@ -282,7 +282,9 @@ export function groupTransportsByTime(
 
   // Ajouter les manifests (transports groupés)
   transportManifests.forEach(manifest => {
-    // Parse departure and arrival Json fields
+    // Parse departure and arrival Json fields (should not be null per schema, but add safety check)
+    if (!manifest.departure || !manifest.arrival) return
+
     const departure = manifest.departure as any
     const arrival = manifest.arrival as any
     const departureTime = departure?.date ? new Date(departure.date) : new Date()
@@ -339,16 +341,19 @@ export function groupTransportsByTime(
   bookingGroups.forEach((bookings, key) => {
     const firstBooking = bookings[0]
 
-    // Parse departure and arrival Json fields
+    // Parse departure and arrival Json fields (can be null for TransportBooking)
     const departure = firstBooking.departure as any
     const arrival = firstBooking.arrival as any
     const route = `${departure?.city || departure?.location || 'Départ'} → ${arrival?.city || arrival?.location || 'Arrivée'}`
+
+    // Use departureTime from booking (already checked for null in forEach above)
+    const startTime = firstBooking.departureTime!
 
     groups.push({
       id: `transport-group-${key}`,
       type: firstBooking.type,
       subType: 'departure', // Default
-      startTime: firstBooking.departureTime || new Date(),
+      startTime: startTime,
       endTime: firstBooking.arrivalTime || undefined,
       title: `${getTransportTypeLabel(firstBooking.type)} - Arrivées individuelles`,
       route: route,

@@ -556,6 +556,10 @@ model TransportManifest {
   departure   Json               // { location, date, time }
   arrival     Json               // { location, date, time }
 
+  // Timing (parsed from JSON for easy querying and sorting)
+  departureTime  DateTime?
+  arrivalTime    DateTime?
+
   // Capacity
   maxCapacity Int?
   currentCount Int              @default(0)
