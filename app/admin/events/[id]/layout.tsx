@@ -96,6 +96,14 @@ export default function EventLayout({
   // Module-based navigation items (conditionally added)
   const moduleNavItems = []
 
+  if (hasModule('PROGRAM')) {
+    moduleNavItems.push({
+      label: 'Programme',
+      href: `/admin/events/${eventId}/program`,
+      icon: Calendar,
+    })
+  }
+
   if (hasModule('TRANSPORT')) {
     moduleNavItems.push({
       label: 'Transport',
