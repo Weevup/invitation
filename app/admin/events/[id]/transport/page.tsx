@@ -18,6 +18,7 @@ import {
   Sparkles
 } from 'lucide-react'
 import { TransportType, BookingStatus } from '@prisma/client'
+import { TransportBookingDialog } from '@/components/admin/transport-booking-dialog'
 
 interface TransportBooking {
   id: string
@@ -153,10 +154,7 @@ export default function TransportPage() {
             Gérez les réservations de transport pour vos invités
           </p>
         </div>
-        <Button className="bg-gradient-to-r from-[#004645] to-[#009197] hover:from-[#006C51] hover:to-[#009197] text-white">
-          <Plus className="h-4 w-4 mr-2" />
-          Ajouter un transport
-        </Button>
+        <TransportBookingDialog eventId={eventId} onSuccess={fetchBookings} />
       </div>
 
       {/* Stats */}
@@ -225,10 +223,16 @@ export default function TransportPage() {
             <div className="text-center py-12">
               <Bus className="h-12 w-12 text-[#009197]/30 mx-auto mb-4" />
               <p className="text-[#004645]/70 mb-4">Aucune réservation de transport</p>
-              <Button variant="outline" className="border-[#004645] text-[#004645]">
-                <Plus className="h-4 w-4 mr-2" />
-                Créer la première réservation
-              </Button>
+              <TransportBookingDialog
+                eventId={eventId}
+                onSuccess={fetchBookings}
+                trigger={
+                  <Button variant="outline" className="border-[#004645] text-[#004645]">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Créer la première réservation
+                  </Button>
+                }
+              />
             </div>
           ) : (
             <div className="space-y-4">
