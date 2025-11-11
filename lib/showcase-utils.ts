@@ -170,12 +170,13 @@ export function getSectionWrapperProps(section: SectionConfig) {
  * Convertit les anciennes sections (string[]) vers SectionConfig[]
  */
 export function migrateLegacySections(sections: any): SectionConfig[] {
-  if (!sections || sections.length === 0) {
+  // Vérifier si sections est null, undefined ou pas un tableau
+  if (!sections || !Array.isArray(sections) || sections.length === 0) {
     return []
   }
 
   // Si c'est déjà des SectionConfig
-  if (typeof sections[0] === 'object' && 'type' in sections[0]) {
+  if (typeof sections[0] === 'object' && sections[0] !== null && 'type' in sections[0]) {
     return sections as SectionConfig[]
   }
 
