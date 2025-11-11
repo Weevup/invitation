@@ -1704,7 +1704,7 @@ JOUR 2 - Mardi 16 septembre
             photo: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=400'
           }
         ],
-        prerequisites: ['Connaissance de base en programmation', 'Laptop avec Node.js installé']
+        materials: 'Prérequis : Connaissance de base en programmation, Laptop avec Node.js installé'
       }
     })
     sessionsTechSummit.push(summitSession3)
