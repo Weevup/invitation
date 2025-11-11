@@ -5,6 +5,14 @@ import { useParams } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Input } from '@/components/ui/input'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import {
   Plane,
   Train,
@@ -15,7 +23,10 @@ import {
   Calendar,
   MapPin,
   DollarSign,
-  Sparkles
+  Sparkles,
+  Search,
+  Filter,
+  X
 } from 'lucide-react'
 import { TransportType, BookingStatus } from '@prisma/client'
 import { TransportBookingDialog } from '@/components/admin/transport-booking-dialog'
@@ -100,6 +111,12 @@ export default function TransportPage() {
   const [selectedBookingId, setSelectedBookingId] = useState<string | null>(null)
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false)
 
+  // Filtres
+  const [searchQuery, setSearchQuery] = useState('')
+  const [filterType, setFilterType] = useState<TransportType | 'ALL'>('ALL')
+  const [filterStatus, setFilterStatus] = useState<BookingStatus | 'ALL'>('ALL')
+  const [filterCity, setFilterCity] = useState('ALL')
+
   const fetchBookings = useCallback(async () => {
     try {
       const response = await fetch(`/api/admin/events/${eventId}/transport`)
@@ -118,6 +135,56 @@ export default function TransportPage() {
   useEffect(() => {
     fetchBookings()
   }, [fetchBookings])
+
+  // Filtrer les réservations
+  const filteredBookings = bookings.filter((booking) => {
+    // Recherche par nom
+    if (searchQuery) {
+      const fullName = `${booking.guest.firstName} ${booking.guest.lastName}`.toLowerCase()
+      if (!fullName.includes(searchQuery.toLowerCase())) {
+        return false
+      }
+    }
+
+    // Filtre par type
+    if (filterType !== 'ALL' && booking.type !== filterType) {
+      return false
+    }
+
+    // Filtre par statut
+    if (filterStatus !== 'ALL' && booking.status !== filterStatus) {
+      return false
+    }
+
+    // Filtre par ville
+    if (filterCity !== 'ALL') {
+      const departureCity = booking.departure?.city?.toLowerCase()
+      if (departureCity !== filterCity.toLowerCase()) {
+        return false
+      }
+    }
+
+    return true
+  })
+
+  // Extraire les villes uniques pour le filtre
+  const uniqueCities = Array.from(
+    new Set(
+      bookings
+        .map(b => b.departure?.city)
+        .filter(Boolean)
+    )
+  ).sort()
+
+  // Réinitialiser les filtres
+  const resetFilters = () => {
+    setSearchQuery('')
+    setFilterType('ALL')
+    setFilterStatus('ALL')
+    setFilterCity('ALL')
+  }
+
+  const hasActiveFilters = searchQuery || filterType !== 'ALL' || filterStatus !== 'ALL' || filterCity !== 'ALL'
 
   if (loading) {
     return (
@@ -140,10 +207,10 @@ export default function TransportPage() {
     )
   }
 
-  const totalBookings = bookings.length
-  const confirmedBookings = bookings.filter(b => b.status === 'BOOKED' || b.status === 'CONFIRMED').length
-  const pendingBookings = bookings.filter(b => b.status === 'REQUESTED' || b.status === 'PENDING').length
-  const totalCost = bookings.reduce((sum, b) => sum + (b.actualCost || b.estimatedCost || 0), 0)
+  const totalBookings = filteredBookings.length
+  const confirmedBookings = filteredBookings.filter(b => b.status === 'BOOKED' || b.status === 'CONFIRMED').length
+  const pendingBookings = filteredBookings.filter(b => b.status === 'REQUESTED' || b.status === 'PENDING').length
+  const totalCost = filteredBookings.reduce((sum, b) => sum + (b.actualCost || b.estimatedCost || 0), 0)
 
   return (
     <div className="space-y-8">
@@ -215,6 +282,113 @@ export default function TransportPage() {
         </Card>
       </div>
 
+      {/* Filtres */}
+      {bookings.length > 0 && (
+        <Card className="border-[#9CD9F6]/30 bg-white/80 backdrop-blur">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Filter className="h-5 w-5 text-[#009197]" />
+                <CardTitle className="text-[#004645]">Filtres</CardTitle>
+              </div>
+              {hasActiveFilters && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={resetFilters}
+                  className="text-[#FF4713] hover:text-[#FF4713] hover:bg-[#FF4713]/10"
+                >
+                  <X className="h-4 w-4 mr-1" />
+                  Réinitialiser
+                </Button>
+              )}
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              {/* Recherche */}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Rechercher un invité..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-9"
+                />
+              </div>
+
+              {/* Filtre Type */}
+              <Select
+                value={filterType}
+                onValueChange={(value) => setFilterType(value as TransportType | 'ALL')}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Type de transport" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ALL">Tous les types</SelectItem>
+                  <SelectItem value="FLIGHT">✈️ Vol</SelectItem>
+                  <SelectItem value="TRAIN">🚂 Train</SelectItem>
+                  <SelectItem value="SHUTTLE">🚌 Navette</SelectItem>
+                  <SelectItem value="TAXI">🚕 Taxi</SelectItem>
+                  <SelectItem value="CAR_RENTAL">🚗 Location</SelectItem>
+                  <SelectItem value="PERSONAL_CAR">🚙 Véhicule personnel</SelectItem>
+                </SelectContent>
+              </Select>
+
+              {/* Filtre Statut */}
+              <Select
+                value={filterStatus}
+                onValueChange={(value) => setFilterStatus(value as BookingStatus | 'ALL')}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Statut" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ALL">Tous les statuts</SelectItem>
+                  <SelectItem value="REQUESTED">Demandé</SelectItem>
+                  <SelectItem value="PENDING">En attente</SelectItem>
+                  <SelectItem value="CONFIRMED">Confirmé</SelectItem>
+                  <SelectItem value="BOOKED">Réservé</SelectItem>
+                  <SelectItem value="CANCELLED">Annulé</SelectItem>
+                  <SelectItem value="COMPLETED">Terminé</SelectItem>
+                </SelectContent>
+              </Select>
+
+              {/* Filtre Ville */}
+              <Select
+                value={filterCity}
+                onValueChange={setFilterCity}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Ville de départ" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ALL">Toutes les villes</SelectItem>
+                  {uniqueCities.map((city) => (
+                    <SelectItem key={city} value={city!}>
+                      {city}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Résumé des filtres actifs */}
+            {hasActiveFilters && (
+              <div className="mt-4 flex items-center gap-2 text-sm text-muted-foreground">
+                <span className="font-medium text-[#004645]">
+                  {filteredBookings.length} résultat{filteredBookings.length > 1 ? 's' : ''}
+                </span>
+                {totalBookings < bookings.length && (
+                  <span>sur {bookings.length} au total</span>
+                )}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
       {/* Bookings List */}
       <Card className="border-[#9CD9F6]/30 bg-white/80 backdrop-blur">
         <CardHeader>
@@ -237,9 +411,22 @@ export default function TransportPage() {
                 }
               />
             </div>
+          ) : filteredBookings.length === 0 ? (
+            <div className="text-center py-12">
+              <Filter className="h-12 w-12 text-[#009197]/30 mx-auto mb-4" />
+              <p className="text-[#004645]/70 mb-2">Aucune réservation ne correspond aux filtres</p>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={resetFilters}
+                className="text-[#009197]"
+              >
+                Réinitialiser les filtres
+              </Button>
+            </div>
           ) : (
             <div className="space-y-4">
-              {bookings.map((booking) => {
+              {filteredBookings.map((booking) => {
                 const Icon = transportIcons[booking.type]
                 return (
                   <div
