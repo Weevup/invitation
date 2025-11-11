@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { useParams } from 'next/navigation'
+import Link from 'next/link'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -265,6 +266,12 @@ export default function TransportPage() {
             Gérez les réservations de transport pour vos invités
           </p>
         </div>
+        <Link href={`/admin/events/${eventId}/transport/arrivals`}>
+          <Button variant="outline" className="gap-2">
+            <Calendar className="h-4 w-4" />
+            Arrivées à venir
+          </Button>
+        </Link>
       </div>
 
       {/* Tabs */}

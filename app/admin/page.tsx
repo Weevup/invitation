@@ -278,6 +278,154 @@ export default function AdminDashboard() {
         </div>
       )}
 
+      {/* Modules de Planification */}
+      <div>
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h2 className="text-2xl font-bold text-[#004645]" style={{ fontFamily: "var(--font-abril)" }}>
+              Modules de Planification
+            </h2>
+            <p className="text-[#004645]/70 mt-1">
+              Organisez vos événements de A à Z avec nos modules intégrés
+            </p>
+          </div>
+          <Link href="/admin/modules-showcase">
+            <Button variant="outline" className="gap-2 border-[#FF4713] text-[#FF4713] hover:bg-[#FF4713] hover:text-white">
+              <Layers className="h-4 w-4" />
+              Voir tous les modules
+            </Button>
+          </Link>
+        </div>
+
+        <div className="grid md:grid-cols-3 gap-6">
+          {/* Module Programme */}
+          <Card className="border-blue-200 bg-gradient-to-br from-blue-50 to-white hover:shadow-xl transition-all">
+            <CardHeader>
+              <div className="rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 p-3 w-fit mb-3">
+                <Calendar className="h-6 w-6 text-white" />
+              </div>
+              <CardTitle className="text-[#004645]">Programme & Sessions</CardTitle>
+              <CardDescription>
+                Créez et gérez le programme complet de votre événement
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ul className="space-y-2 text-sm text-[#004645]/80">
+                <li className="flex items-start gap-2">
+                  <CheckCircle className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                  <span>14 types de sessions personnalisables</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                  <span>Gestion des inscriptions et capacités</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                  <span>Timeline globale avec filtres avancés</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                  <span>Détection automatique des conflits</span>
+                </li>
+              </ul>
+            </CardContent>
+          </Card>
+
+          {/* Module Transport */}
+          <Card className="border-teal-200 bg-gradient-to-br from-teal-50 to-white hover:shadow-xl transition-all">
+            <CardHeader>
+              <div className="rounded-lg bg-gradient-to-br from-teal-500 to-teal-600 p-3 w-fit mb-3">
+                <Activity className="h-6 w-6 text-white" />
+              </div>
+              <CardTitle className="text-[#004645]">Transport & Logistique</CardTitle>
+              <CardDescription>
+                Centralisez tous les déplacements de vos participants
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ul className="space-y-2 text-sm text-[#004645]/80">
+                <li className="flex items-start gap-2">
+                  <CheckCircle className="h-4 w-4 text-teal-600 mt-0.5 flex-shrink-0" />
+                  <span>6 types de transport (vol, train, navette...)</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle className="h-4 w-4 text-teal-600 mt-0.5 flex-shrink-0" />
+                  <span>Navettes collectives avec manifestes</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle className="h-4 w-4 text-teal-600 mt-0.5 flex-shrink-0" />
+                  <span>Suivi des arrivées en temps réel</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle className="h-4 w-4 text-teal-600 mt-0.5 flex-shrink-0" />
+                  <span>Alertes confirmations manquantes</span>
+                </li>
+              </ul>
+            </CardContent>
+          </Card>
+
+          {/* Module Hébergement */}
+          <Card className="border-purple-200 bg-gradient-to-br from-purple-50 to-white hover:shadow-xl transition-all">
+            <CardHeader>
+              <div className="rounded-lg bg-gradient-to-br from-purple-500 to-purple-600 p-3 w-fit mb-3">
+                <Activity className="h-6 w-6 text-white" />
+              </div>
+              <CardTitle className="text-[#004645]">Hébergement & Rooming</CardTitle>
+              <CardDescription>
+                Gérez les réservations d&apos;hôtel et rooming list
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ul className="space-y-2 text-sm text-[#004645]/80">
+                <li className="flex items-start gap-2">
+                  <CheckCircle className="h-4 w-4 text-purple-600 mt-0.5 flex-shrink-0" />
+                  <span>Gestion multi-hébergements</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle className="h-4 w-4 text-purple-600 mt-0.5 flex-shrink-0" />
+                  <span>7 types de chambres configurables</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle className="h-4 w-4 text-purple-600 mt-0.5 flex-shrink-0" />
+                  <span>Rooming list complète et assignations</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle className="h-4 w-4 text-purple-600 mt-0.5 flex-shrink-0" />
+                  <span>Suivi capacités et alertes automatiques</span>
+                </li>
+              </ul>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* CTA Documentation */}
+        <Card className="mt-6 border-[#009197]/30 bg-gradient-to-r from-[#004645]/5 to-[#009197]/5">
+          <CardContent className="py-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="rounded-lg bg-[#009197]/10 p-3">
+                  <BookOpen className="h-6 w-6 text-[#009197]" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-[#004645] mb-1">
+                    Découvrez comment utiliser tous les modules
+                  </h3>
+                  <p className="text-sm text-[#004645]/70">
+                    Tutoriels complets, user stories et exemples d&apos;usage
+                  </p>
+                </div>
+              </div>
+              <Link href="/admin/modules-showcase/documentation">
+                <Button className="bg-gradient-to-r from-[#004645] to-[#009197] hover:from-[#006C51] hover:to-[#009197] text-white">
+                  <BookOpen className="h-4 w-4 mr-2" />
+                  Documentation
+                </Button>
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
       {/* Secondary Stats and Activity */}
       <div className="grid md:grid-cols-3 gap-6">
         {/* Top Events */}
