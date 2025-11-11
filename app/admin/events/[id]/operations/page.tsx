@@ -14,8 +14,10 @@ interface OperationsData {
   event: {
     id: string
     name: string
-    date: Date
-    location: string | null
+    startsAt: Date
+    endsAt?: Date | null
+    venueName?: string | null
+    city?: string | null
     description: string | null
   }
   timeSlots: TimeSlot[]
