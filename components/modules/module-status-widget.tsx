@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { ArrowRight, Loader2 } from 'lucide-react'
-import { useEventModules } from '@/lib/modules'
+import { useEventModules } from '@/lib/modules/use-event-modules'
 import { AVAILABLE_MODULES } from '@/lib/modules/types'
 import Link from 'next/link'
 

@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
 import { Badge } from '@/components/ui/badge'
 import { Loader2, CheckCircle2, AlertCircle } from 'lucide-react'
-import { useEventModules } from '@/lib/modules'
+import { useEventModules } from '@/lib/modules/use-event-modules'
 import { AVAILABLE_MODULES, MODULE_CATEGORIES, type ModuleType } from '@/lib/modules/types'
 
 interface ModuleManagerProps {
