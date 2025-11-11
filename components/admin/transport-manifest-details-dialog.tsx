@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -124,14 +124,7 @@ export function TransportManifestDetailsDialog({
   const [selectedGuestId, setSelectedGuestId] = useState('')
   const [seatNumber, setSeatNumber] = useState('')
 
-  useEffect(() => {
-    if (open && manifestId) {
-      fetchManifest()
-      fetchAvailableGuests()
-    }
-  }, [open, manifestId])
-
-  const fetchManifest = async () => {
+  const fetchManifest = useCallback(async () => {
     setLoading(true)
     try {
       const response = await fetch(`/api/admin/events/${eventId}/transport/manifests/${manifestId}`)
@@ -146,9 +139,9 @@ export function TransportManifestDetailsDialog({
     } finally {
       setLoading(false)
     }
-  }
+  }, [eventId, manifestId])
 
-  const fetchAvailableGuests = async () => {
+  const fetchAvailableGuests = useCallback(async () => {
     try {
       const response = await fetch(`/api/admin/events/${eventId}/guests`)
       if (!response.ok) {
@@ -159,7 +152,14 @@ export function TransportManifestDetailsDialog({
     } catch (error) {
       console.error('Error fetching guests:', error)
     }
-  }
+  }, [eventId])
+
+  useEffect(() => {
+    if (open && manifestId) {
+      fetchManifest()
+      fetchAvailableGuests()
+    }
+  }, [open, manifestId, fetchManifest, fetchAvailableGuests])
 
   const handleAddParticipant = async () => {
     if (!selectedGuestId) {
