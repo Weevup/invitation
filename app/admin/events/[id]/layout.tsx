@@ -50,51 +50,6 @@ export default function EventLayout({
       .catch(console.error)
   }, [eventId])
 
-  // Base navigation items (always visible)
-  const baseNavItems = [
-    {
-      label: 'Vue d\'ensemble',
-      href: `/admin/events/${eventId}`,
-      icon: LayoutDashboard,
-      exact: true,
-    },
-    {
-      label: 'Save the Date',
-      href: `/admin/events/${eventId}/save-the-date`,
-      icon: Bell,
-    },
-    {
-      label: 'Invitation',
-      href: `/admin/events/${eventId}/invitation`,
-      icon: Mail,
-    },
-    {
-      label: 'RSVP',
-      href: `/admin/events/${eventId}/rsvp-config`,
-      icon: UserCheck,
-    },
-    {
-      label: 'Showcase',
-      href: `/admin/events/${eventId}/showcase`,
-      icon: Sparkles,
-    },
-    {
-      label: 'Invités',
-      href: `/admin/events/${eventId}/guests`,
-      icon: Users,
-    },
-    {
-      label: 'Check-in',
-      href: `/admin/events/${eventId}/checkin`,
-      icon: QrCode,
-    },
-    {
-      label: 'Communications',
-      href: `/admin/events/${eventId}/communications`,
-      icon: Settings,
-    },
-  ]
-
   // Module-based navigation items (conditionally added)
   const moduleNavItems = []
 
@@ -127,10 +82,70 @@ export default function EventLayout({
     })
   }
 
-  // Combine all nav items
-  const navItems = [...baseNavItems, ...moduleNavItems]
+  // Navigation organized by sections for better UX
+  const navigationSections = [
+    {
+      title: "GESTION ÉVÉNEMENT",
+      items: [
+        {
+          label: 'Vue d\'ensemble',
+          href: `/admin/events/${eventId}`,
+          icon: LayoutDashboard,
+          exact: true,
+        },
+        {
+          label: 'Showcase',
+          href: `/admin/events/${eventId}/showcase`,
+          icon: Sparkles,
+        },
+        {
+          label: 'Invités',
+          href: `/admin/events/${eventId}/guests`,
+          icon: Users,
+        },
+        {
+          label: 'Check-in',
+          href: `/admin/events/${eventId}/checkin`,
+          icon: QrCode,
+        },
+      ],
+    },
+    {
+      title: "EMAIL & COMMUNICATIONS",
+      items: [
+        {
+          label: 'Save the Date',
+          href: `/admin/events/${eventId}/save-the-date`,
+          icon: Bell,
+        },
+        {
+          label: 'Invitation',
+          href: `/admin/events/${eventId}/invitation`,
+          icon: Mail,
+        },
+        {
+          label: 'RSVP',
+          href: `/admin/events/${eventId}/rsvp-config`,
+          icon: UserCheck,
+        },
+        {
+          label: 'Envoi & Suivi',
+          href: `/admin/events/${eventId}/communications`,
+          icon: Settings,
+        },
+      ],
+    },
+  ]
 
-  const isActive = (item: typeof navItems[0]) => {
+  // Add modules section if any modules are active
+  if (moduleNavItems.length > 0) {
+    navigationSections.push({
+      title: "MODULES AVANCÉS",
+      items: moduleNavItems,
+    })
+  }
+
+  const isActive = (item: { href: string; exact?: boolean }) => {
     if (item.exact) {
       return pathname === item.href
     }
@@ -209,28 +224,45 @@ export default function EventLayout({
       <div className="relative flex">
         {/* Sidebar */}
         <aside className="w-64 border-r border-[#9CD9F6]/30 bg-white/60 backdrop-blur min-h-[calc(100vh-88px)] sticky top-[88px]">
-          <nav className="p-4 space-y-1">
-            {navItems.map((item) => {
-              const Icon = item.icon
-              const active = isActive(item)
+          <nav className="p-4 space-y-6">
+            {navigationSections.map((section, sectionIndex) => (
+              <div key={section.title}>
+                {/* Section Header */}
+                <h3 className="px-4 mb-2 text-xs font-semibold text-[#004645]/50 tracking-wider">
+                  {section.title}
+                </h3>
 
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={cn(
-                    "flex items-center gap-3 px-4 py-3 rounded-lg transition-all",
-                    "text-sm font-medium",
-                    active
-                      ? "bg-gradient-to-r from-[#004645] to-[#009197] text-white shadow-lg"
-                      : "text-[#004645]/70 hover:bg-[#9CD9F6]/20 hover:text-[#004645]"
-                  )}
-                >
-                  <Icon className={cn("h-5 w-5", active ? "text-white" : "text-[#009197]")} />
-                  {item.label}
-                </Link>
-              )
-            })}
+                {/* Section Items */}
+                <div className="space-y-1">
+                  {section.items.map((item) => {
+                    const Icon = item.icon
+                    const active = isActive(item)
+
+                    return (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        className={cn(
+                          "flex items-center gap-3 px-4 py-3 rounded-lg transition-all",
+                          "text-sm font-medium",
+                          active
+                            ? "bg-gradient-to-r from-[#004645] to-[#009197] text-white shadow-lg"
+                            : "text-[#004645]/70 hover:bg-[#9CD9F6]/20 hover:text-[#004645]"
+                        )}
+                      >
+                        <Icon className={cn("h-5 w-5", active ? "text-white" : "text-[#009197]")} />
+                        {item.label}
+                      </Link>
+                    )
+                  })}
+                </div>
+
+                {/* Divider (except for last section) */}
+                {sectionIndex < navigationSections.length - 1 && (
+                  <div className="mt-4 border-t border-[#9CD9F6]/30" />
+                )}
+              </div>
+            ))}
           </nav>
         </aside>
 

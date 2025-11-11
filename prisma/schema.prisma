@@ -239,6 +239,10 @@ model Event {
   timelineEvents       TimelineEvent[]      @relation("EventTimelineEvents")
   accommodations       Accommodation[]      @relation("EventAccommodations")
 
+  // Phase 3: Scheduled emails & auto-reminders
+  scheduledEmails      ScheduledEmail[]     @relation("EventScheduledEmails")
+  remindersConfig      EventRemindersConfig? @relation("EventRemindersConfig")
+
   @@index([slug])
   @@index([adminId])
 }
@@ -900,4 +904,68 @@ model RoomAssignment {
   @@index([guestId])
   @@index([checkInDate])
   @@index([checkOutDate])
+}
+
+// ============================================
+// Phase 3: Scheduled Emails & Auto-Reminders
+// ============================================
+
+model ScheduledEmail {
+  id        String   @id @default(cuid())
+
+  // Event & Email info
+  eventId   String
+  event     Event    @relation("EventScheduledEmails", fields: [eventId], references: [id], onDelete: Cascade)
+
+  type      EmailType // SAVE_THE_DATE, INVITE, REMINDER, FOLLOW_UP
+
+  // Recipients (guests or specific list)
+  guestIds  String[] // Array of guest IDs to send to
+
+  // Schedule
+  scheduledFor DateTime
+  status       ScheduledEmailStatus @default(PENDING)
+
+  // Optional template
+  templateId   String?
+
+  // Execution info
+  sentAt       DateTime?
+  errorMessage String?
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([eventId])
+  @@index([scheduledFor])
+  @@index([status])
+}
+
+model EventRemindersConfig {
+  id       String  @id @default(cuid())
+
+  eventId  String  @unique
+  event    Event   @relation("EventRemindersConfig", fields: [eventId], references: [id], onDelete: Cascade)
+
+  // Auto-reminders settings
+  enabled  Boolean @default(false)
+
+  // Follow-up reminder for non-responders
+  followUpEnabled    Boolean @default(false)
+  followUpDays       Int?     // Days after invitation to send follow-up
+
+  // Pre-event reminder for confirmed guests
+  preEventEnabled    Boolean @default(false)
+  preEventDays       Int?     // Days before event to send reminder
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum ScheduledEmailStatus {
+  PENDING
+  PROCESSING
+  SENT
+  FAILED
+  CANCELLED
 }

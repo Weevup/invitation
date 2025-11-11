@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   ArrowLeft, Bell, Sparkles, CheckCircle, Send, Calendar,
-  Clock, Users, Mail, TrendingUp, BarChart3, Settings, Save
+  Clock, Users, Mail, TrendingUp, BarChart3, Settings, Save, Info
 } from "lucide-react";
 import Link from "next/link";
 import { useToast } from "@/components/ui/use-toast";
@@ -56,9 +56,19 @@ export default function CommunicationsPage() {
 
   const [autoReminders, setAutoReminders] = useState({
     enabled: false,
-    daysBeforeEvent: 7,
-    followUpDays: 14,
+    followUpEnabled: false,
+    followUpDays: 7,
+    preEventEnabled: false,
+    preEventDays: 3,
   });
+
+  // Charger la config des auto-reminders au montage
+  useEffect(() => {
+    fetch(`/api/admin/events/${eventId}/reminders-config`)
+      .then(res => res.json())
+      .then(data => setAutoReminders(data))
+      .catch(console.error);
+  }, [eventId]);
 
   const handleScheduleSend = async (type: "saveTheDate" | "invitation" | "reminder") => {
     const date = scheduleDates[type];
@@ -71,21 +81,101 @@ export default function CommunicationsPage() {
       return;
     }
 
-    toast({
-      title: "Envoi programmé",
-      description: `L&apos;envoi est programmé pour le ${new Date(date).toLocaleDateString("fr-FR")}`,
-    });
+    try {
+      const response = await fetch(`/api/admin/events/${eventId}/send-emails`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: type === "saveTheDate" ? "save-the-date" : type,
+          scheduleFor: date,
+        }),
+      });
 
-    // TODO: Appel API pour programmer l'envoi
+      const data = await response.json();
+
+      if (response.ok) {
+        toast({
+          title: "✅ Envoi programmé",
+          description: data.message,
+        });
+      } else {
+        toast({
+          title: "Erreur",
+          description: data.error || "Impossible de programmer l'envoi",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Une erreur est survenue",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleSendNow = async (type: "saveTheDate" | "invitation" | "reminder") => {
-    toast({
-      title: "Envoi en cours",
-      description: "Les emails sont en cours d&apos;envoi...",
-    });
+    try {
+      const response = await fetch(`/api/admin/events/${eventId}/send-emails`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: type === "saveTheDate" ? "save-the-date" : type,
+        }),
+      });
 
-    // TODO: Appel API pour envoyer immédiatement
+      const data = await response.json();
+
+      if (response.ok) {
+        toast({
+          title: "✅ Envoi réussi",
+          description: `${data.sent} email(s) envoyé(s)`,
+        });
+      } else {
+        toast({
+          title: "Erreur",
+          description: data.error || "Impossible d'envoyer les emails",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Une erreur est survenue",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleSaveReminders = async () => {
+    try {
+      const response = await fetch(`/api/admin/events/${eventId}/reminders-config`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(autoReminders),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        toast({
+          title: "✅ Sauvegardé",
+          description: "Configuration des rappels mise à jour",
+        });
+      } else {
+        toast({
+          title: "Erreur",
+          description: data.error || "Impossible de sauvegarder",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Une erreur est survenue",
+        variant: "destructive",
+      });
+    }
   };
 
   const calculateRate = (count: number, total: number) => {
@@ -458,11 +548,42 @@ export default function CommunicationsPage() {
 
           {/* Settings Tab */}
           <TabsContent value="settings" className="space-y-4">
+            {/* Info Alert - Scheduled Emails Coming Soon */}
+            <Card className="border-blue-200 bg-blue-50/50">
+              <CardContent className="pt-6">
+                <div className="flex gap-4">
+                  <Info className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                  <div className="space-y-2">
+                    <h3 className="font-semibold text-blue-900">
+                      📅 Envois programmés et rappels automatiques
+                    </h3>
+                    <div className="text-sm text-blue-800 space-y-2">
+                      <p>
+                        <strong>Envois immédiats :</strong> Vous pouvez envoyer des rappels <strong>maintenant</strong> via le bouton &quot;Envoyer des invitations&quot; sur la page Invités ou Vue d&apos;ensemble.
+                      </p>
+                      <p>
+                        <strong>Envois programmés :</strong> La planification d&apos;emails pour une date future nécessite une infrastructure de job queue (Vercel Cron, Upstash QStash, etc.) qui sera ajoutée prochainement.
+                      </p>
+                      <p className="pt-2">
+                        En attendant, pour envoyer des rappels à vos invités :
+                      </p>
+                      <ol className="list-decimal list-inside space-y-1 ml-2">
+                        <li>Allez sur <strong>Invités</strong></li>
+                        <li>Cliquez sur <strong>&quot;Envoyer des invitations&quot;</strong></li>
+                        <li>Sélectionnez <strong>&quot;Rappel&quot;</strong> comme type d&apos;email</li>
+                        <li>Choisissez vos invités et envoyez immédiatement</li>
+                      </ol>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
             <Card>
               <CardHeader>
                 <div className="flex items-center gap-2">
                   <Settings className="h-5 w-5 text-[#004645]" />
-                  <CardTitle>Relances automatiques</CardTitle>
+                  <CardTitle>Relances automatiques (À venir)</CardTitle>
                 </div>
                 <CardDescription>
                   Configurez l&apos;envoi automatique de relances pour les non-répondants
@@ -487,41 +608,81 @@ export default function CommunicationsPage() {
 
                 {autoReminders.enabled && (
                   <>
-                    <div>
-                      <Label htmlFor="follow-up-days">Relance après (jours)</Label>
-                      <Input
-                        id="follow-up-days"
-                        type="number"
-                        value={autoReminders.followUpDays}
-                        onChange={(e) =>
-                          setAutoReminders({ ...autoReminders, followUpDays: parseInt(e.target.value) })
-                        }
-                        min="1"
-                        max="30"
-                      />
-                      <p className="text-xs text-[#004645]/60 mt-1">
-                        Nombre de jours après l&apos;invitation avant d&apos;envoyer une relance
-                      </p>
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between p-3 bg-white rounded-lg border">
+                        <div className="flex-1">
+                          <Label htmlFor="follow-up-enabled">Relance pour non-répondants</Label>
+                          <p className="text-xs text-[#004645]/60 mt-1">
+                            Envoyer automatiquement une relance aux invités n&apos;ayant pas répondu
+                          </p>
+                        </div>
+                        <input
+                          id="follow-up-enabled"
+                          type="checkbox"
+                          checked={autoReminders.followUpEnabled}
+                          onChange={(e) => setAutoReminders({ ...autoReminders, followUpEnabled: e.target.checked })}
+                          className="w-10 h-5"
+                        />
+                      </div>
+
+                      {autoReminders.followUpEnabled && (
+                        <div className="ml-4">
+                          <Label htmlFor="follow-up-days">Jours après l&apos;invitation</Label>
+                          <Input
+                            id="follow-up-days"
+                            type="number"
+                            value={autoReminders.followUpDays}
+                            onChange={(e) =>
+                              setAutoReminders({ ...autoReminders, followUpDays: parseInt(e.target.value) })
+                            }
+                            min="1"
+                            max="30"
+                          />
+                          <p className="text-xs text-[#004645]/60 mt-1">
+                            Envoyer la relance {autoReminders.followUpDays} jour(s) après l&apos;invitation
+                          </p>
+                        </div>
+                      )}
                     </div>
 
-                    <div>
-                      <Label htmlFor="days-before-event">Rappel avant événement (jours)</Label>
-                      <Input
-                        id="days-before-event"
-                        type="number"
-                        value={autoReminders.daysBeforeEvent}
-                        onChange={(e) =>
-                          setAutoReminders({ ...autoReminders, daysBeforeEvent: parseInt(e.target.value) })
-                        }
-                        min="1"
-                        max="14"
-                      />
-                      <p className="text-xs text-[#004645]/60 mt-1">
-                        Envoyer un rappel aux participants confirmés X jours avant l&apos;événement
-                      </p>
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between p-3 bg-white rounded-lg border">
+                        <div className="flex-1">
+                          <Label htmlFor="pre-event-enabled">Rappel avant événement</Label>
+                          <p className="text-xs text-[#004645]/60 mt-1">
+                            Envoyer un rappel aux participants confirmés avant l&apos;événement
+                          </p>
+                        </div>
+                        <input
+                          id="pre-event-enabled"
+                          type="checkbox"
+                          checked={autoReminders.preEventEnabled}
+                          onChange={(e) => setAutoReminders({ ...autoReminders, preEventEnabled: e.target.checked })}
+                          className="w-10 h-5"
+                        />
+                      </div>
+
+                      {autoReminders.preEventEnabled && (
+                        <div className="ml-4">
+                          <Label htmlFor="pre-event-days">Jours avant l&apos;événement</Label>
+                          <Input
+                            id="pre-event-days"
+                            type="number"
+                            value={autoReminders.preEventDays}
+                            onChange={(e) =>
+                              setAutoReminders({ ...autoReminders, preEventDays: parseInt(e.target.value) })
+                            }
+                            min="1"
+                            max="14"
+                          />
+                          <p className="text-xs text-[#004645]/60 mt-1">
+                            Envoyer un rappel {autoReminders.preEventDays} jour(s) avant l&apos;événement
+                          </p>
+                        </div>
+                      )}
                     </div>
 
-                    <Button className="bg-[#004645] hover:bg-[#006C51]">
+                    <Button onClick={handleSaveReminders} className="bg-[#004645] hover:bg-[#006C51]">
                       <Save className="h-4 w-4 mr-2" />
                       Enregistrer les paramètres
                     </Button>

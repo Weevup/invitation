@@ -60,12 +60,36 @@ export async function POST(
 
     // Si c'est un envoi programmé
     if (scheduleFor) {
-      // TODO: Implémenter la logique de programmation avec un job queue
-      // Pour l'instant, on retourne juste un succès
+      const scheduledDate = new Date(scheduleFor);
+      const targetGuestIds = guestIds || event.guests.map(g => g.id);
+
+      // Sauvegarder en base de données pour traitement par le cron
+      const scheduledEmail = await prisma.scheduledEmail.create({
+        data: {
+          eventId,
+          type: type.toUpperCase().replace(/-/g, '_'), // 'save-the-date' -> 'SAVE_THE_DATE'
+          guestIds: targetGuestIds,
+          scheduledFor: scheduledDate,
+          status: 'PENDING',
+          templateId: templateId || null,
+        },
+      });
+
       return NextResponse.json({
         success: true,
-        message: `Envoi programmé pour ${new Date(scheduleFor).toLocaleString('fr-FR')}`,
-        scheduledCount: event.guests.length,
+        scheduledEmail: {
+          id: scheduledEmail.id,
+          scheduledFor: scheduledEmail.scheduledFor,
+          guestCount: targetGuestIds.length,
+        },
+        message: `✅ Envoi programmé pour le ${scheduledDate.toLocaleDateString('fr-FR', {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+        })}`,
       });
     }
 
