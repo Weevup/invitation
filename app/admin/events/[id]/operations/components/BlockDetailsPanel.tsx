@@ -155,12 +155,9 @@ export function BlockDetailsPanel({ slot, rawData, onClose }: BlockDetailsPanelP
             <div className="space-y-2 max-h-64 overflow-y-auto">
               {slot.participants.map((guest) => {
                 const rsvp = rawData.rsvps.find(r => r.guestId === guest.id)
-                const hasAllergy = rsvp?.dietaryRestrictions?.some((d: string) =>
-                  d.toLowerCase().includes('allergi')
-                )
-                const hasDietary = rsvp?.dietaryRestrictions?.some((d: string) =>
-                  !d.toLowerCase().includes('allergi')
-                )
+                const allergyText = rsvp?.allergies?.trim()
+                const hasAllergy = allergyText && allergyText.toLowerCase().includes('allergi')
+                const hasDietary = allergyText && !allergyText.toLowerCase().includes('allergi')
 
                 return (
                   <div
@@ -173,22 +170,17 @@ export function BlockDetailsPanel({ slot, rawData, onClose }: BlockDetailsPanelP
                         <div className="font-medium">
                           {guest.firstName} {guest.lastName}
                         </div>
-                        {(hasAllergy || hasDietary) && (
-                          <div className="text-xs space-y-0.5 mt-1">
-                            {rsvp?.dietaryRestrictions?.map((restriction: string, i: number) => (
-                              <div
-                                key={i}
-                                className={cn(
-                                  "flex items-center gap-1",
-                                  restriction.toLowerCase().includes('allergi')
-                                    ? "text-red-600"
-                                    : "text-orange-600"
-                                )}
-                              >
-                                <AlertTriangle size={10} />
-                                <span>{restriction}</span>
-                              </div>
-                            ))}
+                        {allergyText && (
+                          <div className="text-xs mt-1">
+                            <div
+                              className={cn(
+                                "flex items-center gap-1",
+                                hasAllergy ? "text-red-600" : "text-orange-600"
+                              )}
+                            >
+                              <AlertTriangle size={10} />
+                              <span>{allergyText}</span>
+                            </div>
                           </div>
                         )}
                       </div>

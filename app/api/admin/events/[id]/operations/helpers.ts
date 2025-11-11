@@ -224,14 +224,14 @@ function calculateSessionWarnings(
     const dietaryRestrictions: { guest: Guest; restriction: string }[] = []
 
     participantRSVPs.forEach(rsvp => {
-      if (rsvp.dietaryRestrictions && Array.isArray(rsvp.dietaryRestrictions)) {
-        rsvp.dietaryRestrictions.forEach((restriction: string) => {
-          if (restriction.toLowerCase().includes('allergi')) {
-            allergies.push({ guest: rsvp.guest, allergy: restriction })
-          } else {
-            dietaryRestrictions.push({ guest: rsvp.guest, restriction })
-          }
-        })
+      if (rsvp.allergies && rsvp.allergies.trim()) {
+        // Le champ allergies est une String contenant toutes les restrictions
+        const allergyText = rsvp.allergies.trim()
+        if (allergyText.toLowerCase().includes('allergi')) {
+          allergies.push({ guest: rsvp.guest, allergy: allergyText })
+        } else {
+          dietaryRestrictions.push({ guest: rsvp.guest, restriction: allergyText })
+        }
       }
     })
 
@@ -536,10 +536,12 @@ export function calculateAlerts({
 
   // 1. Compter les allergies totales
   const allAllergies = rsvps.flatMap(r => {
-    if (!r.dietaryRestrictions || !Array.isArray(r.dietaryRestrictions)) return []
-    return r.dietaryRestrictions
-      .filter((d: string) => d.toLowerCase().includes('allergi'))
-      .map((allergy: string) => ({ guest: r.guest, allergy }))
+    if (!r.allergies || !r.allergies.trim()) return []
+    const allergyText = r.allergies.trim()
+    if (allergyText.toLowerCase().includes('allergi')) {
+      return [{ guest: r.guest, allergy: allergyText }]
+    }
+    return []
   })
 
   if (allAllergies.length > 0) {
@@ -555,10 +557,12 @@ export function calculateAlerts({
 
   // 2. Compter les régimes spéciaux
   const allDietaryRestrictions = rsvps.flatMap(r => {
-    if (!r.dietaryRestrictions || !Array.isArray(r.dietaryRestrictions)) return []
-    return r.dietaryRestrictions
-      .filter((d: string) => !d.toLowerCase().includes('allergi'))
-      .map((restriction: string) => ({ guest: r.guest, restriction }))
+    if (!r.allergies || !r.allergies.trim()) return []
+    const allergyText = r.allergies.trim()
+    if (!allergyText.toLowerCase().includes('allergi')) {
+      return [{ guest: r.guest, restriction: allergyText }]
+    }
+    return []
   })
 
   if (allDietaryRestrictions.length > 0) {
@@ -625,14 +629,14 @@ export function calculateKPIs({
   const confirmedRSVPs = rsvps.filter(r => r.status === 'CONFIRMED')
   const pendingRSVPs = rsvps.filter(r => r.status === 'PENDING')
 
-  const allAllergies = rsvps.flatMap(r => {
-    if (!r.dietaryRestrictions || !Array.isArray(r.dietaryRestrictions)) return []
-    return r.dietaryRestrictions.filter((d: string) => d.toLowerCase().includes('allergi'))
+  const allAllergies = rsvps.filter(r => {
+    if (!r.allergies || !r.allergies.trim()) return false
+    return r.allergies.toLowerCase().includes('allergi')
   })
 
-  const allDietaryRestrictions = rsvps.flatMap(r => {
-    if (!r.dietaryRestrictions || !Array.isArray(r.dietaryRestrictions)) return []
-    return r.dietaryRestrictions.filter((d: string) => !d.toLowerCase().includes('allergi'))
+  const allDietaryRestrictions = rsvps.filter(r => {
+    if (!r.allergies || !r.allergies.trim()) return false
+    return !r.allergies.toLowerCase().includes('allergi')
   })
 
   return {
