@@ -1063,14 +1063,16 @@ JOUR 2 - Mardi 16 septembre
         amenities: ['WiFi Gratuit', 'Spa', 'Restaurant Gastronomique', 'Bar', 'Room Service 24/7', 'Parking Voiturier'],
         description: 'Hôtel 5 étoiles situé directement sur les Champs-Élysées, lieu même de la soirée. Luxe et élégance.',
         totalRooms: 120,
-        availableRooms: 15,
+        allocatedRooms: 15,
         latitude: 48.8698,
         longitude: 2.3074,
         distanceFromVenue: 0.0, // C'est le lieu de l'événement
-        blockDeadline: new Date('2025-06-01'),
-        groupCode: 'WEEVUP10',
-        specialRates: true,
-        contactPerson: 'Marie Fontaine'
+        bookingDeadline: new Date('2025-06-01'),
+        bookingRef: 'WEEVUP10',
+        isPreferred: true,
+        contactPerson: 'Marie Fontaine',
+        checkInTime: '15:00',
+        checkOutTime: '11:00'
       }
     })
 
@@ -1091,14 +1093,16 @@ JOUR 2 - Mardi 16 septembre
         amenities: ['WiFi Gratuit', 'Petit-déjeuner', 'Concierge', 'Parking'],
         description: 'Hôtel 4 étoiles à 5 minutes à pied du lieu de la soirée. Confort et proximité garantis.',
         totalRooms: 80,
-        availableRooms: 20,
+        allocatedRooms: 20,
         latitude: 48.8745,
         longitude: 2.3012,
         distanceFromVenue: 0.4,
-        blockDeadline: new Date('2025-06-01'),
-        groupCode: 'WV10YEARS',
-        specialRates: true,
-        contactPerson: 'Jean Dupuis'
+        bookingDeadline: new Date('2025-06-01'),
+        bookingRef: 'WV10YEARS',
+        isPreferred: false,
+        contactPerson: 'Jean Dupuis',
+        checkInTime: '14:00',
+        checkOutTime: '12:00'
       }
     })
 
@@ -1286,14 +1290,16 @@ JOUR 2 - Mardi 16 septembre
         amenities: ['WiFi Gratuit', 'Salle de Sport', 'Restaurant', 'Bar', 'Business Center', 'Parking'],
         description: 'Hôtel 4 étoiles moderne idéalement situé. Navette gratuite vers le Convention Center.',
         totalRooms: 268,
-        availableRooms: 50,
+        allocatedRooms: 50,
         latitude: 48.8765,
         longitude: 2.3272,
         distanceFromVenue: 4.2,
-        blockDeadline: new Date('2025-08-15'),
-        groupCode: 'TECHSUM25',
-        specialRates: true,
-        contactPerson: 'Sarah Williams'
+        bookingDeadline: new Date('2025-08-15'),
+        bookingRef: 'TECHSUM25',
+        isPreferred: true,
+        contactPerson: 'Sarah Williams',
+        checkInTime: '15:00',
+        checkOutTime: '12:00'
       }
     })
 
@@ -1314,14 +1320,16 @@ JOUR 2 - Mardi 16 septembre
         amenities: ['WiFi', 'Piscine', 'Restaurant', 'Bar', 'Salle de Sport', 'Navette'],
         description: 'À 10 minutes du Convention Center. Confort Marriott avec piscine intérieure.',
         totalRooms: 200,
-        availableRooms: 40,
+        allocatedRooms: 40,
         latitude: 48.8322,
         longitude: 2.3369,
         distanceFromVenue: 2.1,
-        blockDeadline: new Date('2025-08-15'),
-        groupCode: 'TS2025',
-        specialRates: true,
-        contactPerson: 'Pierre Dubois'
+        bookingDeadline: new Date('2025-08-15'),
+        bookingRef: 'TS2025',
+        isPreferred: false,
+        contactPerson: 'Pierre Dubois',
+        checkInTime: '15:00',
+        checkOutTime: '11:00'
       }
     })
 
