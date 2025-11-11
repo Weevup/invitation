@@ -42,20 +42,61 @@ export async function POST() {
       // Supprimer uniquement les données liées aux événements de cet admin
       const eventIds = existingEvents.map(e => e.id)
 
-      await prisma.manifestParticipant.deleteMany({
-        where: { manifest: { eventId: { in: eventIds } } }
+      // Get all transport manifests for these events
+      const manifests = await prisma.transportManifest.findMany({
+        where: { eventId: { in: eventIds } },
+        select: { id: true }
       })
+      const manifestIds = manifests.map(m => m.id)
+
+      // Get all accommodations for these events
+      const accommodations = await prisma.accommodation.findMany({
+        where: { eventId: { in: eventIds } },
+        select: { id: true }
+      })
+      const accommodationIds = accommodations.map(a => a.id)
+
+      // Get all rooms for these accommodations
+      const rooms = await prisma.room.findMany({
+        where: { accommodationId: { in: accommodationIds } },
+        select: { id: true }
+      })
+      const roomIds = rooms.map(r => r.id)
+
+      // Get all sessions for these events
+      const sessions = await prisma.session.findMany({
+        where: { eventId: { in: eventIds } },
+        select: { id: true }
+      })
+      const sessionIds = sessions.map(s => s.id)
+
+      // Delete in correct order
+      if (manifestIds.length > 0) {
+        await prisma.manifestParticipant.deleteMany({
+          where: { manifestId: { in: manifestIds } }
+        })
+      }
+
+      if (roomIds.length > 0) {
+        await prisma.roomAssignment.deleteMany({
+          where: { roomId: { in: roomIds } }
+        })
+      }
+
+      if (sessionIds.length > 0) {
+        await prisma.sessionParticipant.deleteMany({
+          where: { sessionId: { in: sessionIds } }
+        })
+      }
+
       await prisma.transportManifest.deleteMany({
         where: { eventId: { in: eventIds } }
       })
       await prisma.transportBooking.deleteMany({
         where: { eventId: { in: eventIds } }
       })
-      await prisma.roomAssignment.deleteMany({
-        where: { room: { accommodation: { eventId: { in: eventIds } } } }
-      })
       await prisma.room.deleteMany({
-        where: { accommodation: { eventId: { in: eventIds } } }
+        where: { accommodationId: { in: accommodationIds } }
       })
       await prisma.accommodation.deleteMany({
         where: { eventId: { in: eventIds } }
@@ -83,9 +124,6 @@ export async function POST() {
       })
       await prisma.eventRemindersConfig.deleteMany({
         where: { eventId: { in: eventIds } }
-      })
-      await prisma.sessionParticipant.deleteMany({
-        where: { session: { eventId: { in: eventIds } } }
       })
       await prisma.session.deleteMany({
         where: { eventId: { in: eventIds } }
@@ -1085,7 +1123,269 @@ JOUR 2 - Mardi 16 septembre
     })
 
     // ====================================
-    // 8. MODULE HÉBERGEMENT - 10 ANS WEEVUP
+    // 8. AGENDA (SESSIONS) - 10 ANS WEEVUP
+    // ====================================
+    // Créer le programme détaillé de la journée
+    const sessionsWeevup = []
+
+    // Session 1 : Accueil & Cocktail
+    const session1 = await prisma.session.create({
+      data: {
+        eventId: event10AnsWeevup.id,
+        title: 'Accueil & Cocktail de bienvenue',
+        description: 'Champagne de bienvenue, amuse-bouches gastronomiques et networking informel',
+        type: 'MEAL',
+        status: 'PUBLISHED',
+        startTime: new Date('2025-06-20T19:00:00'),
+        endTime: new Date('2025-06-20T20:00:00'),
+        duration: 60,
+        venue: 'Le Pavillon Royal',
+        room: 'Salon Principal',
+        capacity: 50,
+        requiresRegistration: false,
+        isPublic: true,
+        isHighlighted: false,
+        color: '#10B981',
+        icon: 'glass-champagne',
+        catering: 'Champagne, amuse-bouches'
+      }
+    })
+    sessionsWeevup.push(session1)
+
+    // Session 2 : Cérémonie d'ouverture
+    const session2 = await prisma.session.create({
+      data: {
+        eventId: event10AnsWeevup.id,
+        title: 'Cérémonie d\'ouverture - 10 ans en images',
+        description: 'Rétrospective vidéo de ces 10 années d\'innovation. Témoignages émouvants et surprises.',
+        type: 'KEYNOTE',
+        status: 'PUBLISHED',
+        startTime: new Date('2025-06-20T20:00:00'),
+        endTime: new Date('2025-06-20T20:45:00'),
+        duration: 45,
+        venue: 'Le Pavillon Royal',
+        room: 'Grand Auditorium',
+        capacity: 100,
+        requiresRegistration: false,
+        isPublic: true,
+        isHighlighted: true,
+        color: '#3B82F6',
+        icon: 'presentation',
+        equipment: ['Projecteur 4K', 'Micro sans fil', 'Écran géant'],
+        speakers: [
+          {
+            name: 'Jean-Michel Dubois',
+            title: 'CEO & Fondateur',
+            company: 'Weevup',
+            photo: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400'
+          }
+        ]
+      }
+    })
+    sessionsWeevup.push(session2)
+
+    // Session 3 : Témoignages & Remise de prix
+    const session3 = await prisma.session.create({
+      data: {
+        eventId: event10AnsWeevup.id,
+        title: 'Témoignages clients & Remise de prix',
+        description: 'Interventions de clients et partenaires. Remise des Weevup Awards aux collaborateurs d\'exception.',
+        type: 'CONFERENCE',
+        status: 'PUBLISHED',
+        startTime: new Date('2025-06-20T20:45:00'),
+        endTime: new Date('2025-06-20T21:00:00'),
+        duration: 15,
+        venue: 'Le Pavillon Royal',
+        room: 'Grand Auditorium',
+        capacity: 100,
+        requiresRegistration: false,
+        isPublic: true,
+        isHighlighted: false,
+        color: '#F59E0B',
+        icon: 'award',
+        speakers: [
+          {
+            name: 'Marie Dupont',
+            title: 'Directrice Innovation',
+            company: 'TechCorp France'
+          },
+          {
+            name: 'Thomas Bernard',
+            title: 'CEO',
+            company: 'Innov Solutions'
+          }
+        ]
+      }
+    })
+    sessionsWeevup.push(session3)
+
+    // Session 4 : Dîner gastronomique
+    const session4 = await prisma.session.create({
+      data: {
+        eventId: event10AnsWeevup.id,
+        title: 'Dîner gastronomique',
+        description: 'Menu d\'exception en 5 services créé par le Chef étoilé Antoine Lefèvre. Accord mets & vins.',
+        type: 'MEAL',
+        status: 'PUBLISHED',
+        startTime: new Date('2025-06-20T21:00:00'),
+        endTime: new Date('2025-06-20T22:30:00'),
+        duration: 90,
+        venue: 'Le Pavillon Royal',
+        room: 'Salle de Banquet',
+        capacity: 50,
+        requiresRegistration: false,
+        isPublic: true,
+        isHighlighted: true,
+        color: '#EF4444',
+        icon: 'utensils',
+        catering: 'Menu gastronomique 5 services + Accord mets & vins',
+        speakers: [
+          {
+            name: 'Chef Antoine Lefèvre',
+            title: 'Chef Étoilé',
+            company: 'Restaurant Le Pavillon'
+          }
+        ]
+      }
+    })
+    sessionsWeevup.push(session4)
+
+    // Session 5 : Soirée dansante
+    const session5 = await prisma.session.create({
+      data: {
+        eventId: event10AnsWeevup.id,
+        title: 'Soirée dansante & DJ Set',
+        description: 'Ambiance festive avec DJ live. Bar ouvert et photobooth.',
+        type: 'TEAMBUILDING',
+        status: 'PUBLISHED',
+        startTime: new Date('2025-06-20T22:30:00'),
+        endTime: new Date('2025-06-20T23:59:00'),
+        duration: 89,
+        venue: 'Le Pavillon Royal',
+        room: 'Salon Principal',
+        capacity: 100,
+        requiresRegistration: false,
+        isPublic: true,
+        isHighlighted: false,
+        color: '#8B5CF6',
+        icon: 'music',
+        equipment: ['DJ Setup', 'Piste de danse éclairée', 'Photobooth'],
+        catering: 'Bar ouvert'
+      }
+    })
+    sessionsWeevup.push(session5)
+
+    // Inscrire des participants aux sessions
+    for (const session of sessionsWeevup) {
+      // Inscrire tous les invités confirmés
+      const confirmedGuests = guestsWeevup.slice(0, 8)
+
+      for (const guest of confirmedGuests) {
+        await prisma.sessionParticipant.create({
+          data: {
+            sessionId: session.id,
+            guestId: guest.id,
+            status: 'confirmed',
+            registeredAt: new Date(Date.now() - Math.random() * 15 * 24 * 60 * 60 * 1000)
+          }
+        })
+      }
+    }
+
+    // ====================================
+    // 9. TIMELINE COMPLÈTE - 10 ANS WEEVUP
+    // ====================================
+    // Créer une timeline qui montre le parcours complet d'un invité
+
+    // J-1 : 19 juin - Arrivées et check-in
+    await prisma.timelineEvent.create({
+      data: {
+        eventId: event10AnsWeevup.id,
+        type: 'HOTEL_CHECKIN',
+        title: 'Arrivée des invités & Check-in hôtel',
+        description: 'Arrivée des invités de province. Check-in dans les hôtels Le Pavillon Royal et Hôtel de la Paix.',
+        startTime: new Date('2025-06-19T14:00:00'),
+        endTime: new Date('2025-06-19T20:00:00'),
+        allDay: false,
+        location: 'Hôtels partenaires - Paris 8ème',
+        icon: 'hotel',
+        color: '#06B6D4',
+        isPublic: true
+      }
+    })
+
+    // J : 20 juin matin - Arrivées tardives
+    await prisma.timelineEvent.create({
+      data: {
+        eventId: event10AnsWeevup.id,
+        type: 'TRANSPORT_ARRIVAL',
+        title: 'Arrivées le jour J',
+        description: 'Arrivées des invités de dernière minute (trains, vols). Navette CDG disponible à 17h.',
+        startTime: new Date('2025-06-20T12:00:00'),
+        endTime: new Date('2025-06-20T18:00:00'),
+        allDay: false,
+        location: 'Gares & Aéroport CDG',
+        icon: 'plane-arrival',
+        color: '#10B981',
+        isPublic: false
+      }
+    })
+
+    // J : 20 juin - Chaque session devient un événement timeline
+    for (const session of sessionsWeevup) {
+      await prisma.timelineEvent.create({
+        data: {
+          eventId: event10AnsWeevup.id,
+          type: 'SESSION',
+          title: session.title,
+          description: session.description || '',
+          startTime: session.startTime,
+          endTime: session.endTime,
+          allDay: false,
+          location: `${session.venue} - ${session.room}`,
+          icon: session.icon || 'calendar',
+          color: session.color || '#6366F1',
+          isPublic: true,
+          sessionId: session.id
+        }
+      })
+    }
+
+    // J+1 : 21 juin - Check-out
+    await prisma.timelineEvent.create({
+      data: {
+        eventId: event10AnsWeevup.id,
+        type: 'HOTEL_CHECKOUT',
+        title: 'Check-out & Départs',
+        description: 'Check-out des hôtels. Navettes organisées vers gares et aéroport pour les invités de province.',
+        startTime: new Date('2025-06-21T08:00:00'),
+        endTime: new Date('2025-06-21T12:00:00'),
+        allDay: false,
+        location: 'Hôtels partenaires',
+        icon: 'luggage',
+        color: '#F59E0B',
+        isPublic: true
+      }
+    })
+
+    await prisma.timelineEvent.create({
+      data: {
+        eventId: event10AnsWeevup.id,
+        type: 'TRANSPORT_DEPARTURE',
+        title: 'Navettes de départ',
+        description: 'Navettes organisées vers l\'aéroport CDG (9h, 11h) et gares parisiennes.',
+        startTime: new Date('2025-06-21T09:00:00'),
+        endTime: new Date('2025-06-21T12:00:00'),
+        allDay: false,
+        location: 'Hôtels → Gares & CDG',
+        icon: 'bus',
+        color: '#EF4444',
+        isPublic: false
+      }
+    })
+
+    // ====================================
+    // 10. MODULE HÉBERGEMENT - 10 ANS WEEVUP
     // ====================================
     // Activer le module Hébergement
     await prisma.eventModule.create({
@@ -1312,7 +1612,475 @@ JOUR 2 - Mardi 16 septembre
     }
 
     // ====================================
-    // 9. MODULE HÉBERGEMENT - TECH SUMMIT
+    // 8. AGENDA (SESSIONS) - TECH SUMMIT 2025
+    // ====================================
+    // Créer un programme de conférence sur 2 jours avec sessions parallèles
+    const sessionsTechSummit = []
+
+    // JOUR 1 - 15 septembre 2025
+    // Session 1 : Accueil & petit-déjeuner
+    const summitSession1 = await prisma.session.create({
+      data: {
+        eventId: eventTechSummit.id,
+        title: 'Accueil & Petit-déjeuner networking',
+        description: 'Café, viennoiseries et premier networking. Récupération des badges.',
+        type: 'MEAL',
+        status: 'PUBLISHED',
+        startTime: new Date('2025-09-15T08:00:00'),
+        endTime: new Date('2025-09-15T09:00:00'),
+        duration: 60,
+        venue: 'Paris Convention Center',
+        room: 'Hall Principal',
+        capacity: 200,
+        requiresRegistration: false,
+        isPublic: true,
+        isHighlighted: false,
+        color: '#10B981',
+        icon: 'coffee',
+        catering: 'Petit-déjeuner continental'
+      }
+    })
+    sessionsTechSummit.push(summitSession1)
+
+    // Session 2 : Keynote d'ouverture - IA
+    const summitSession2 = await prisma.session.create({
+      data: {
+        eventId: eventTechSummit.id,
+        title: 'Keynote : The Future of AI - Yann LeCun',
+        description: 'Vision de l\'avenir de l\'intelligence artificielle par le Prix Turing Yann LeCun, Chief AI Scientist chez Meta.',
+        type: 'KEYNOTE',
+        status: 'PUBLISHED',
+        startTime: new Date('2025-09-15T09:00:00'),
+        endTime: new Date('2025-09-15T10:00:00'),
+        duration: 60,
+        venue: 'Paris Convention Center',
+        room: 'Grand Auditorium',
+        capacity: 500,
+        requiresRegistration: false,
+        isPublic: true,
+        isHighlighted: true,
+        color: '#3B82F6',
+        icon: 'presentation',
+        equipment: ['Projecteur 4K', 'Micro cravate', 'Écran LED géant'],
+        speakers: [
+          {
+            name: 'Yann LeCun',
+            title: 'Chief AI Scientist & Turing Award Winner',
+            company: 'Meta',
+            bio: 'Pionnier du deep learning et Prix Turing 2018',
+            photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400'
+          }
+        ]
+      }
+    })
+    sessionsTechSummit.push(summitSession2)
+
+    // Session 3 : Workshop blockchain
+    const summitSession3 = await prisma.session.create({
+      data: {
+        eventId: eventTechSummit.id,
+        title: 'Workshop : Smart Contracts & Ethereum',
+        description: 'Atelier pratique sur le développement de smart contracts avec Vitalik Buterin. Apportez votre laptop.',
+        type: 'WORKSHOP',
+        status: 'PUBLISHED',
+        startTime: new Date('2025-09-15T10:30:00'),
+        endTime: new Date('2025-09-15T12:00:00'),
+        duration: 90,
+        venue: 'Paris Convention Center',
+        room: 'Salle Workshop A',
+        capacity: 50,
+        requiresRegistration: true,
+        isPublic: true,
+        isHighlighted: true,
+        color: '#8B5CF6',
+        icon: 'laptop-code',
+        equipment: ['WiFi haut débit', 'Prises électriques', 'Écran'],
+        speakers: [
+          {
+            name: 'Vitalik Buterin',
+            title: 'Co-founder',
+            company: 'Ethereum',
+            bio: 'Créateur d\'Ethereum et pionnier de la blockchain',
+            photo: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=400'
+          }
+        ],
+        materials: 'Prérequis : Connaissance de base en programmation, Laptop avec Node.js installé'
+      }
+    })
+    sessionsTechSummit.push(summitSession3)
+
+    // Session 4 : Panel Data Science
+    const summitSession4 = await prisma.session.create({
+      data: {
+        eventId: eventTechSummit.id,
+        title: 'Panel : Data Science in Production',
+        description: 'Discussion avec Cassie Kozyrkov (Google) sur les défis du déploiement de modèles ML en production.',
+        type: 'CONFERENCE',
+        status: 'PUBLISHED',
+        startTime: new Date('2025-09-15T10:30:00'),
+        endTime: new Date('2025-09-15T12:00:00'),
+        duration: 90,
+        venue: 'Paris Convention Center',
+        room: 'Salle Conférence B',
+        capacity: 100,
+        requiresRegistration: false,
+        isPublic: true,
+        isHighlighted: false,
+        color: '#F59E0B',
+        icon: 'chart-bar',
+        speakers: [
+          {
+            name: 'Cassie Kozyrkov',
+            title: 'Chief Decision Scientist',
+            company: 'Google',
+            bio: 'Experte en Data Science et prise de décision',
+            photo: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400'
+          }
+        ]
+      }
+    })
+    sessionsTechSummit.push(summitSession4)
+
+    // Session 5 : Déjeuner networking
+    const summitSession5 = await prisma.session.create({
+      data: {
+        eventId: eventTechSummit.id,
+        title: 'Déjeuner networking',
+        description: 'Buffet gastronomique et networking. Rencontrez les speakers et autres participants.',
+        type: 'MEAL',
+        status: 'PUBLISHED',
+        startTime: new Date('2025-09-15T12:00:00'),
+        endTime: new Date('2025-09-15T13:30:00'),
+        duration: 90,
+        venue: 'Paris Convention Center',
+        room: 'Espace Restauration',
+        capacity: 200,
+        requiresRegistration: false,
+        isPublic: true,
+        isHighlighted: false,
+        color: '#EF4444',
+        icon: 'utensils',
+        catering: 'Buffet chaud & froid, options végétariennes'
+      }
+    })
+    sessionsTechSummit.push(summitSession5)
+
+    // Session 6 : Track Tech - Cloud Native
+    const summitSession6 = await prisma.session.create({
+      data: {
+        eventId: eventTechSummit.id,
+        title: 'Cloud Native Architecture',
+        description: 'Architectures cloud-native : Kubernetes, microservices et serverless.',
+        type: 'CONFERENCE',
+        status: 'PUBLISHED',
+        startTime: new Date('2025-09-15T14:00:00'),
+        endTime: new Date('2025-09-15T15:30:00'),
+        duration: 90,
+        venue: 'Paris Convention Center',
+        room: 'Salle Conférence A',
+        capacity: 100,
+        requiresRegistration: false,
+        isPublic: true,
+        isHighlighted: false,
+        color: '#06B6D4',
+        icon: 'cloud'
+      }
+    })
+    sessionsTechSummit.push(summitSession6)
+
+    // Session 7 : Track Business - Cybersécurité
+    const summitSession7 = await prisma.session.create({
+      data: {
+        eventId: eventTechSummit.id,
+        title: 'Cybersécurité : Enjeux 2025',
+        description: 'Les nouveaux défis de la cybersécurité à l\'ère de l\'IA et du cloud.',
+        type: 'CONFERENCE',
+        status: 'PUBLISHED',
+        startTime: new Date('2025-09-15T14:00:00'),
+        endTime: new Date('2025-09-15T15:30:00'),
+        duration: 90,
+        venue: 'Paris Convention Center',
+        room: 'Salle Conférence B',
+        capacity: 80,
+        requiresRegistration: false,
+        isPublic: true,
+        isHighlighted: false,
+        color: '#DC2626',
+        icon: 'shield-check'
+      }
+    })
+    sessionsTechSummit.push(summitSession7)
+
+    // Session 8 : Pause café & networking
+    const summitSession8 = await prisma.session.create({
+      data: {
+        eventId: eventTechSummit.id,
+        title: 'Pause café & Networking',
+        description: 'Pause café, snacks et discussions informelles.',
+        type: 'BREAK',
+        status: 'PUBLISHED',
+        startTime: new Date('2025-09-15T15:30:00'),
+        endTime: new Date('2025-09-15T16:00:00'),
+        duration: 30,
+        venue: 'Paris Convention Center',
+        room: 'Espace Lounge',
+        capacity: 200,
+        requiresRegistration: false,
+        isPublic: true,
+        isHighlighted: false,
+        color: '#10B981',
+        icon: 'coffee',
+        catering: 'Café, thé, jus de fruits, snacks'
+      }
+    })
+    sessionsTechSummit.push(summitSession8)
+
+    // Session 9 : Closing keynote jour 1
+    const summitSession9 = await prisma.session.create({
+      data: {
+        eventId: eventTechSummit.id,
+        title: 'Keynote de clôture J1 : Tech for Good',
+        description: 'Comment la technologie peut résoudre les grands défis sociétaux et environnementaux.',
+        type: 'KEYNOTE',
+        status: 'PUBLISHED',
+        startTime: new Date('2025-09-15T16:00:00'),
+        endTime: new Date('2025-09-15T17:00:00'),
+        duration: 60,
+        venue: 'Paris Convention Center',
+        room: 'Grand Auditorium',
+        capacity: 500,
+        requiresRegistration: false,
+        isPublic: true,
+        isHighlighted: true,
+        color: '#3B82F6',
+        icon: 'presentation'
+      }
+    })
+    sessionsTechSummit.push(summitSession9)
+
+    // Session 10 : Cocktail de clôture J1
+    const summitSession10 = await prisma.session.create({
+      data: {
+        eventId: eventTechSummit.id,
+        title: 'Cocktail de clôture Jour 1',
+        description: 'Cocktail dînatoire avec champagne et networking décontracté.',
+        type: 'MEAL',
+        status: 'PUBLISHED',
+        startTime: new Date('2025-09-15T17:30:00'),
+        endTime: new Date('2025-09-15T19:30:00'),
+        duration: 120,
+        venue: 'Paris Convention Center',
+        room: 'Terrasse Panoramique',
+        capacity: 200,
+        requiresRegistration: false,
+        isPublic: true,
+        isHighlighted: true,
+        color: '#8B5CF6',
+        icon: 'glass-champagne',
+        catering: 'Cocktail dînatoire, champagne, bar ouvert'
+      }
+    })
+    sessionsTechSummit.push(summitSession10)
+
+    // JOUR 2 - 16 septembre 2025
+    // Session 11 : Accueil J2
+    const summitSession11 = await prisma.session.create({
+      data: {
+        eventId: eventTechSummit.id,
+        title: 'Accueil Jour 2 & Petit-déjeuner',
+        description: 'Café et viennoiseries pour bien démarrer la seconde journée.',
+        type: 'MEAL',
+        status: 'PUBLISHED',
+        startTime: new Date('2025-09-16T08:30:00'),
+        endTime: new Date('2025-09-16T09:00:00'),
+        duration: 30,
+        venue: 'Paris Convention Center',
+        room: 'Hall Principal',
+        capacity: 200,
+        requiresRegistration: false,
+        isPublic: true,
+        isHighlighted: false,
+        color: '#10B981',
+        icon: 'coffee',
+        catering: 'Petit-déjeuner'
+      }
+    })
+    sessionsTechSummit.push(summitSession11)
+
+    // Session 12 : Keynote J2 - Startups & Innovation
+    const summitSession12 = await prisma.session.create({
+      data: {
+        eventId: eventTechSummit.id,
+        title: 'Keynote : Construire la prochaine licorne tech',
+        description: 'Retours d\'expérience de founders qui ont créé et scalé des startups tech à succès.',
+        type: 'KEYNOTE',
+        status: 'PUBLISHED',
+        startTime: new Date('2025-09-16T09:00:00'),
+        endTime: new Date('2025-09-16T10:00:00'),
+        duration: 60,
+        venue: 'Paris Convention Center',
+        room: 'Grand Auditorium',
+        capacity: 500,
+        requiresRegistration: false,
+        isPublic: true,
+        isHighlighted: true,
+        color: '#3B82F6',
+        icon: 'presentation'
+      }
+    })
+    sessionsTechSummit.push(summitSession12)
+
+    // Session 13 : Cérémonie de clôture
+    const summitSession13 = await prisma.session.create({
+      data: {
+        eventId: eventTechSummit.id,
+        title: 'Cérémonie de clôture & Prix Innovation',
+        description: 'Remise des prix, annonces et remerciements. Au revoir et à l\'année prochaine !',
+        type: 'CONFERENCE',
+        status: 'PUBLISHED',
+        startTime: new Date('2025-09-16T10:30:00'),
+        endTime: new Date('2025-09-16T11:30:00'),
+        duration: 60,
+        venue: 'Paris Convention Center',
+        room: 'Grand Auditorium',
+        capacity: 500,
+        requiresRegistration: false,
+        isPublic: true,
+        isHighlighted: true,
+        color: '#F59E0B',
+        icon: 'award'
+      }
+    })
+    sessionsTechSummit.push(summitSession13)
+
+    // Inscrire les participants aux sessions
+    for (const session of sessionsTechSummit) {
+      // Inscrire les invités confirmés
+      const confirmedGuestsSummit = guestsTechSummit.slice(0, 8)
+
+      for (const guest of confirmedGuestsSummit) {
+        await prisma.sessionParticipant.create({
+          data: {
+            sessionId: session.id,
+            guestId: guest.id,
+            status: 'confirmed',
+            registeredAt: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000)
+          }
+        })
+      }
+    }
+
+    // ====================================
+    // 9. TIMELINE COMPLÈTE - TECH SUMMIT 2025
+    // ====================================
+    // Timeline pour une conférence de 2 jours avec hébergement
+
+    // J-1 : 14 septembre - Arrivées anticipées
+    await prisma.timelineEvent.create({
+      data: {
+        eventId: eventTechSummit.id,
+        type: 'HOTEL_CHECKIN',
+        title: 'Arrivées J-1 & Check-in hôtels',
+        description: 'Arrivée anticipée des speakers internationaux et participants VIP. Check-in Hilton Opera et Marriott.',
+        startTime: new Date('2025-09-14T14:00:00'),
+        endTime: new Date('2025-09-14T22:00:00'),
+        allDay: false,
+        location: 'Hilton Opera & Marriott Rive Gauche',
+        icon: 'hotel',
+        color: '#06B6D4',
+        isPublic: false
+      }
+    })
+
+    // J : 15 septembre - Jour 1 de la conférence
+    await prisma.timelineEvent.create({
+      data: {
+        eventId: eventTechSummit.id,
+        type: 'TRANSPORT_ARRIVAL',
+        title: 'Arrivées Jour 1',
+        description: 'Navettes VIP depuis les hôtels vers le Convention Center. Départs à 7h30, 7h45, 8h.',
+        startTime: new Date('2025-09-15T07:00:00'),
+        endTime: new Date('2025-09-15T08:30:00'),
+        allDay: false,
+        location: 'Hôtels → Paris Convention Center',
+        icon: 'bus',
+        color: '#10B981',
+        isPublic: false
+      }
+    })
+
+    // Créer des événements timeline pour chaque session importante
+    for (const session of sessionsTechSummit.filter(s => s.isHighlighted || s.type === 'KEYNOTE')) {
+      await prisma.timelineEvent.create({
+        data: {
+          eventId: eventTechSummit.id,
+          type: 'SESSION',
+          title: session.title,
+          description: session.description || '',
+          startTime: session.startTime,
+          endTime: session.endTime,
+          allDay: false,
+          location: `${session.venue} - ${session.room}`,
+          icon: session.icon || 'calendar',
+          color: session.color || '#6366F1',
+          isPublic: true,
+          sessionId: session.id
+        }
+      })
+    }
+
+    // J+1 : 16 septembre soir - Fin de la conférence
+    await prisma.timelineEvent.create({
+      data: {
+        eventId: eventTechSummit.id,
+        type: 'TRANSPORT_DEPARTURE',
+        title: 'Navettes retour hôtels',
+        description: 'Navettes organisées depuis le Convention Center vers les hôtels après la clôture.',
+        startTime: new Date('2025-09-16T11:30:00'),
+        endTime: new Date('2025-09-16T13:00:00'),
+        allDay: false,
+        location: 'Convention Center → Hôtels',
+        icon: 'bus',
+        color: '#10B981',
+        isPublic: false
+      }
+    })
+
+    // J+2 : 17 septembre - Check-out et départs
+    await prisma.timelineEvent.create({
+      data: {
+        eventId: eventTechSummit.id,
+        type: 'HOTEL_CHECKOUT',
+        title: 'Check-out & Départs',
+        description: 'Check-out des hôtels. Navettes organisées vers aéroports (CDG, Orly) et gares.',
+        startTime: new Date('2025-09-17T08:00:00'),
+        endTime: new Date('2025-09-17T12:00:00'),
+        allDay: false,
+        location: 'Hôtels partenaires',
+        icon: 'luggage',
+        color: '#F59E0B',
+        isPublic: false
+      }
+    })
+
+    await prisma.timelineEvent.create({
+      data: {
+        eventId: eventTechSummit.id,
+        type: 'TRANSPORT_DEPARTURE',
+        title: 'Navettes aéroports & gares',
+        description: 'Navettes groupées vers CDG (9h, 11h), Orly (10h) et gares parisiennes.',
+        startTime: new Date('2025-09-17T09:00:00'),
+        endTime: new Date('2025-09-17T13:00:00'),
+        allDay: false,
+        location: 'Hôtels → CDG, Orly, Gares',
+        icon: 'plane-departure',
+        color: '#EF4444',
+        isPublic: false
+      }
+    })
+
+    // ====================================
+    // 10. MODULE HÉBERGEMENT - TECH SUMMIT
     // ====================================
     // Activer le module Hébergement
     await prisma.eventModule.create({
@@ -1603,6 +2371,9 @@ JOUR 2 - Mardi 16 septembre
     const totalAccommodations = await prisma.accommodation.count()
     const totalRooms = await prisma.room.count()
     const totalRoomAssignments = await prisma.roomAssignment.count()
+    const totalSessions = await prisma.session.count()
+    const totalSessionParticipants = await prisma.sessionParticipant.count()
+    const totalTimelineEvents = await prisma.timelineEvent.count()
 
     return NextResponse.json({
       success: true,
@@ -1617,6 +2388,11 @@ JOUR 2 - Mardi 16 septembre
           showcaseUrl: `/event/${event10AnsWeevup.slug}`,
           adminUrl: `/admin/events/${event10AnsWeevup.id}`,
           modules: {
+            agenda: {
+              sessions: sessionsWeevup.length,
+              participants: sessionsWeevup.length * 8,
+              timelineEvents: 9
+            },
             transport: {
               bookings: transportBookingsWeevup.length,
               manifests: 1,
@@ -1636,6 +2412,11 @@ JOUR 2 - Mardi 16 septembre
           showcaseUrl: `/event/${eventTechSummit.slug}`,
           adminUrl: `/admin/events/${eventTechSummit.id}`,
           modules: {
+            agenda: {
+              sessions: sessionsTechSummit.length,
+              participants: sessionsTechSummit.length * 8,
+              timelineEvents: 10
+            },
             transport: {
               bookings: transportBookingsSummit.length,
               manifests: 3,
@@ -1656,6 +2437,11 @@ JOUR 2 - Mardi 16 septembre
           weevup10Ans: guestsWeevup.length,
           techSummit: guestsTechSummit.length,
           total: guestsWeevup.length + guestsTechSummit.length
+        },
+        agenda: {
+          totalSessions: totalSessions,
+          totalSessionParticipants: totalSessionParticipants,
+          totalTimelineEvents: totalTimelineEvents
         },
         transport: {
           totalBookings: transportBookingsWeevup.length + transportBookingsSummit.length,
@@ -1680,9 +2466,10 @@ JOUR 2 - Mardi 16 septembre
         '✅ RSVP': 'Confirmations avec choix de repas, allergies, +1',
         '✅ Envoi & Suivi': `${totalEmailLogs} emails envoyés (Save the Date, Invitation, Rappel)`,
         '✅ Dashboard Planif.': 'Données complètes pour analytics',
-        '✅ Programme': 'Programme détaillé + timeline showcase',
-        '✅ Transport': `${transportBookingsWeevup.length + transportBookingsSummit.length} réservations (vol, train, navettes)`,
-        '✅ Hébergement': `${totalAccommodations} hôtels, ${totalRooms} chambres, ${totalRoomAssignments} assignations`
+        '✅ Agenda & Timeline': `${totalSessions} sessions (gala + conférence 2j) + ${totalTimelineEvents} événements timeline intégrés`,
+        '✅ Programme': 'Programme détaillé avec speakers, horaires, salles - affiché sur showcase',
+        '✅ Transport': `${transportBookingsWeevup.length + transportBookingsSummit.length} réservations (vol, train, navettes) synchronisées avec timeline`,
+        '✅ Hébergement': `${totalAccommodations} hôtels, ${totalRooms} chambres, ${totalRoomAssignments} assignations liées aux arrivées/départs`
       }
     })
 
