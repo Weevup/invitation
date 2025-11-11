@@ -54,25 +54,37 @@ export default function Page() {
 
 ---
 
-### 3. **Paramètres de route dynamique manquants**
+### 3. **Paramètres de route dynamique (Next.js 15)**
 
-❌ **MAUVAIS** :
+❌ **MAUVAIS** (Next.js 14 style) :
 ```typescript
 // app/api/admin/events/[id]/route.ts
-export async function GET(request: NextRequest) {
-  const eventId = params.id  // ❌ 'params' n'existe pas !
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { id: string } }  // ❌ Erreur dans Next.js 15 !
+) {
+  const eventId = params.id
 }
 ```
 
-✅ **CORRECT** :
+✅ **CORRECT** (Next.js 15 async params) :
 ```typescript
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }  // ← Typage obligatoire
+  { params }: { params: Promise<{ id: string }> }  // ← Promise obligatoire !
 ) {
-  const eventId = params.id  // ✅ OK
+  const { id: eventId } = await params  // ← await obligatoire !
+  // Utiliser eventId...
 }
 ```
+
+**Erreur typique** :
+```
+Type error: Route has an invalid "GET" export:
+  Type "{ params: { id: string; }; }" is not a valid type for the function's second argument.
+```
+
+**Règle Next.js 15** : Tous les `params` doivent être `Promise<{ ... }>` et awaités.
 
 ---
 
