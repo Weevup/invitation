@@ -188,8 +188,8 @@ export async function GET(request: NextRequest) {
             const result = await sendEmail(
               {
                 to: guest.email,
-                from: emailIntegration.fromEmail,
-                fromName: emailIntegration.fromName,
+                from: emailIntegration.fromEmail ?? undefined,
+                fromName: emailIntegration.fromName ?? undefined,
                 subject: `${scheduled.event.name} - ${scheduled.type === 'SAVE_THE_DATE' ? 'Save the Date' : scheduled.type === 'INVITE' ? 'Invitation' : 'Rappel'}`,
                 html,
               },
