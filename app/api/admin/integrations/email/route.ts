@@ -162,3 +162,51 @@ export async function DELETE(request: NextRequest) {
     return handleAuthError(error)
   }
 }
+
+/**
+ * PATCH /api/admin/integrations/email
+ * Met à jour rapidement isPrimary ou isActive d'une intégration
+ */
+export async function PATCH(request: NextRequest) {
+  try {
+    const session = await requireAdmin()
+    const body = await request.json()
+    const { id, isPrimary, isActive } = body
+
+    if (!id) {
+      return NextResponse.json(
+        { error: 'Integration ID required' },
+        { status: 400 }
+      )
+    }
+
+    // Si on active isPrimary, désactiver les autres
+    if (isPrimary === true) {
+      await prisma.emailIntegration.updateMany({
+        where: { isPrimary: true },
+        data: { isPrimary: false },
+      })
+    }
+
+    // Mettre à jour l'intégration
+    const integration = await prisma.emailIntegration.update({
+      where: { id },
+      data: {
+        ...(isPrimary !== undefined && { isPrimary }),
+        ...(isActive !== undefined && { isActive }),
+      },
+    })
+
+    return NextResponse.json({
+      success: true,
+      integration: {
+        ...integration,
+        apiKey: integration.apiKey ? '••••••••' : undefined,
+        apiSecret: integration.apiSecret ? '••••••••' : undefined,
+        smtpPass: integration.smtpPass ? '••••••••' : undefined,
+      },
+    })
+  } catch (error) {
+    return handleAuthError(error)
+  }
+}

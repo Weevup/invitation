@@ -144,6 +144,46 @@ export default function IntegrationsPage() {
     }
   }
 
+  const handleSetPrimary = async (integrationId: string) => {
+    try {
+      const response = await fetch('/api/admin/integrations/email', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: integrationId, isPrimary: true }),
+      })
+
+      if (response.ok) {
+        toast.success('L\'intégration a été définie comme primaire')
+        fetchIntegrations()
+      } else {
+        const error = await response.json()
+        toast.error(error.error || 'Impossible de définir comme primaire')
+      }
+    } catch (error) {
+      toast.error('Une erreur est survenue')
+    }
+  }
+
+  const handleToggleActive = async (integrationId: string, currentState: boolean) => {
+    try {
+      const response = await fetch('/api/admin/integrations/email', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: integrationId, isActive: !currentState }),
+      })
+
+      if (response.ok) {
+        toast.success(`L\'intégration a été ${!currentState ? 'activée' : 'désactivée'}`)
+        fetchIntegrations()
+      } else {
+        const error = await response.json()
+        toast.error(error.error || 'Impossible de modifier le statut')
+      }
+    } catch (error) {
+      toast.error('Une erreur est survenue')
+    }
+  }
+
   const getIntegration = (provider: string) => {
     return integrations.find(i => i.provider === provider)
   }
@@ -229,6 +269,8 @@ export default function IntegrationsPage() {
                 integration={getIntegration(provider.id)}
                 onSave={handleSave}
                 onTest={handleTest}
+                onSetPrimary={handleSetPrimary}
+                onToggleActive={handleToggleActive}
                 saving={saving}
                 testing={testing === getIntegration(provider.id)?.id}
               />
@@ -245,11 +287,13 @@ interface ProviderConfigProps {
   integration?: EmailIntegration
   onSave: (provider: string, config: Partial<EmailIntegration>) => Promise<void>
   onTest: (integrationId: string) => Promise<void>
+  onSetPrimary: (integrationId: string) => Promise<void>
+  onToggleActive: (integrationId: string, currentState: boolean) => Promise<void>
   saving: boolean
   testing: boolean
 }
 
-function ProviderConfig({ provider, integration, onSave, onTest, saving, testing }: ProviderConfigProps) {
+function ProviderConfig({ provider, integration, onSave, onTest, onSetPrimary, onToggleActive, saving, testing }: ProviderConfigProps) {
   const [config, setConfig] = useState<Partial<EmailIntegration>>(integration || {})
 
   useEffect(() => {
@@ -272,21 +316,68 @@ function ProviderConfig({ provider, integration, onSave, onTest, saving, testing
               <provider.icon className="h-6 w-6" style={{ color: provider.color }} />
             </div>
             <div>
-              <CardTitle className="text-[#004645]">{provider.name}</CardTitle>
+              <div className="flex items-center gap-2 mb-1">
+                <CardTitle className="text-[#004645]">{provider.name}</CardTitle>
+                {integration?.isPrimary && (
+                  <Badge className="bg-green-600">Principal</Badge>
+                )}
+                {integration?.isActive && !integration?.isPrimary && (
+                  <Badge className="bg-blue-600">Actif</Badge>
+                )}
+                {integration && !integration.isActive && (
+                  <Badge variant="secondary">Inactif</Badge>
+                )}
+              </div>
               <CardDescription>{provider.description}</CardDescription>
             </div>
           </div>
-          {provider.docsUrl && (
-            <a
-              href={provider.docsUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 text-sm text-[#009197] hover:text-[#004645]"
-            >
-              Documentation
-              <ExternalLink className="h-4 w-4" />
-            </a>
-          )}
+          <div className="flex items-center gap-2">
+            {integration && (
+              <>
+                {!integration.isPrimary && integration.isActive && (
+                  <Button
+                    type="button"
+                    size="sm"
+                    onClick={() => onSetPrimary(integration.id)}
+                    className="bg-green-600 hover:bg-green-700 text-white"
+                  >
+                    Définir comme principal
+                  </Button>
+                )}
+                {integration.isActive ? (
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={() => onToggleActive(integration.id, integration.isActive)}
+                    className="border-red-600 text-red-600 hover:bg-red-600 hover:text-white"
+                  >
+                    Désactiver
+                  </Button>
+                ) : (
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={() => onToggleActive(integration.id, integration.isActive)}
+                    className="border-green-600 text-green-600 hover:bg-green-600 hover:text-white"
+                  >
+                    Activer
+                  </Button>
+                )}
+              </>
+            )}
+            {provider.docsUrl && (
+              <a
+                href={provider.docsUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 text-sm text-[#009197] hover:text-[#004645]"
+              >
+                <ExternalLink className="h-4 w-4" />
+              </a>
+            )}
+          </div>
         </div>
       </CardHeader>
       <CardContent>
