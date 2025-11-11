@@ -19,6 +19,7 @@ import {
 } from 'lucide-react'
 import { TransportType, BookingStatus } from '@prisma/client'
 import { TransportBookingDialog } from '@/components/admin/transport-booking-dialog'
+import { TransportBookingDetailsDialog } from '@/components/admin/transport-booking-details-dialog'
 
 interface TransportBooking {
   id: string
@@ -96,6 +97,8 @@ export default function TransportPage() {
   const [bookings, setBookings] = useState<TransportBooking[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [selectedBookingId, setSelectedBookingId] = useState<string | null>(null)
+  const [detailsDialogOpen, setDetailsDialogOpen] = useState(false)
 
   const fetchBookings = useCallback(async () => {
     try {
@@ -295,7 +298,15 @@ export default function TransportPage() {
                           </p>
                         </div>
                       )}
-                      <Button variant="ghost" size="sm" className="text-[#009197]">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-[#009197]"
+                        onClick={() => {
+                          setSelectedBookingId(booking.id)
+                          setDetailsDialogOpen(true)
+                        }}
+                      >
                         Détails
                       </Button>
                     </div>
@@ -306,6 +317,17 @@ export default function TransportPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Dialog de détails/édition */}
+      {selectedBookingId && (
+        <TransportBookingDetailsDialog
+          eventId={eventId}
+          bookingId={selectedBookingId}
+          open={detailsDialogOpen}
+          onOpenChange={setDetailsDialogOpen}
+          onSuccess={fetchBookings}
+        />
+      )}
     </div>
   )
 }
