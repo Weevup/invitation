@@ -59,6 +59,9 @@ export async function POST(request: NextRequest) {
   try {
     const session = await requireAdmin()
     const body = await request.json()
+
+    console.log('[EMAIL-INTEGRATION] POST body:', { provider: body.provider, hasApiKey: !!body.apiKey })
+
     const validated = EmailIntegrationSchema.parse(body)
 
     // Encrypt sensitive fields
@@ -75,7 +78,16 @@ export async function POST(request: NextRequest) {
 
     // Encrypt API keys and secrets
     if (validated.apiKey) {
-      encryptedData.apiKey = encrypt(validated.apiKey)
+      console.log('[EMAIL-INTEGRATION] Encrypting API key...')
+      try {
+        encryptedData.apiKey = encrypt(validated.apiKey)
+      } catch (encryptError) {
+        console.error('[EMAIL-INTEGRATION] Encryption failed:', encryptError)
+        return NextResponse.json(
+          { error: 'Échec du chiffrement de la clé API', details: encryptError instanceof Error ? encryptError.message : 'Unknown error' },
+          { status: 500 }
+        )
+      }
     }
     if (validated.apiSecret) {
       encryptedData.apiSecret = encrypt(validated.apiSecret)
@@ -102,6 +114,8 @@ export async function POST(request: NextRequest) {
       where: { provider: validated.provider },
     })
 
+    console.log('[EMAIL-INTEGRATION] Existing integration:', existing ? existing.id : 'none')
+
     let integration
     if (existing) {
       // Update existing
@@ -109,11 +123,13 @@ export async function POST(request: NextRequest) {
         where: { id: existing.id },
         data: encryptedData,
       })
+      console.log('[EMAIL-INTEGRATION] Updated existing integration:', integration.id)
     } else {
       // Create new
       integration = await prisma.emailIntegration.create({
         data: encryptedData,
       })
+      console.log('[EMAIL-INTEGRATION] Created new integration:', integration.id)
     }
 
     return NextResponse.json({
@@ -126,13 +142,17 @@ export async function POST(request: NextRequest) {
       },
     })
   } catch (error) {
+    console.error('[EMAIL-INTEGRATION] POST error:', error)
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Invalid data', details: error.errors },
+        { error: 'Données invalides', details: error.errors },
         { status: 400 }
       )
     }
-    return handleAuthError(error)
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'Erreur lors de la sauvegarde' },
+      { status: 500 }
+    )
   }
 }
 

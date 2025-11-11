@@ -112,10 +112,14 @@ export default function IntegrationsPage() {
         fetchIntegrations()
       } else {
         const error = await response.json()
-        toast.error(error.message || 'Impossible de sauvegarder la configuration')
+        console.error('[INTEGRATION] Save error:', error)
+        const errorMessage = error.error || error.message || 'Impossible de sauvegarder la configuration'
+        const errorDetails = error.details ? `\n${JSON.stringify(error.details)}` : ''
+        toast.error(errorMessage + errorDetails, { duration: 5000 })
       }
     } catch (error) {
-      toast.error('Une erreur est survenue')
+      console.error('[INTEGRATION] Save exception:', error)
+      toast.error(`Une erreur est survenue: ${error instanceof Error ? error.message : 'Unknown'}`)
     } finally {
       setSaving(false)
     }
@@ -135,10 +139,14 @@ export default function IntegrationsPage() {
         fetchIntegrations()
       } else {
         const error = await response.json()
-        toast.error(error.message || 'Impossible d\'envoyer l\'email de test')
+        console.error('[INTEGRATION] Test error:', error)
+        const errorMessage = error.error || error.message || 'Impossible d\'envoyer l\'email de test'
+        const errorDetails = error.details ? `\n${error.details}` : ''
+        toast.error(errorMessage + errorDetails, { duration: 5000 })
       }
     } catch (error) {
-      toast.error('Une erreur est survenue lors du test')
+      console.error('[INTEGRATION] Test exception:', error)
+      toast.error(`Une erreur est survenue lors du test: ${error instanceof Error ? error.message : 'Unknown'}`)
     } finally {
       setTesting(null)
     }
