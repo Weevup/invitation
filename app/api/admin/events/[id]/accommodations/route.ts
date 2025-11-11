@@ -80,16 +80,16 @@ export async function GET(
     })
 
     // Calculate stats for each accommodation
-    const accommodationsWithStats = accommodations.map((acc) => {
+    const accommodationsWithStats = accommodations.map((acc: any) => {
       const totalAssignments = acc.rooms.reduce(
-        (sum, room) => sum + room.assignments.length,
+        (sum: number, room: any) => sum + room.assignments.length,
         0
       )
       const availableRooms = acc.rooms.filter(
-        (room) => room.status === 'AVAILABLE'
+        (room: any) => room.status === 'AVAILABLE'
       ).length
       const assignedRooms = acc.rooms.filter(
-        (room) => room.status === 'ASSIGNED'
+        (room: any) => room.status === 'ASSIGNED'
       ).length
 
       return {

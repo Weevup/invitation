@@ -36,6 +36,7 @@ export async function GET(
       sessions,
       transports,
       sessionParticipants,
+      accommodations,
     ] = await Promise.all([
       // Get all guests
       prisma.guest.findMany({
@@ -79,7 +80,31 @@ export async function GET(
           },
         },
       }),
+
+      // Get all accommodations with rooms and assignments
+      prisma.accommodation.findMany({
+        where: { eventId },
+        include: {
+          rooms: {
+            include: {
+              assignments: true,
+            },
+          },
+        },
+      }),
     ])
+
+    // Calculate accommodation stats
+    const totalRooms = accommodations.reduce((sum: number, acc: any) => sum + acc.rooms.length, 0)
+    const assignedRooms = accommodations.reduce(
+      (sum: number, acc: any) => sum + acc.rooms.filter((r: any) => r.status === 'ASSIGNED').length,
+      0
+    )
+    const totalGuestsInRooms = accommodations.reduce(
+      (sum: number, acc: any) =>
+        sum + acc.rooms.reduce((roomSum: number, room: any) => roomSum + room.assignments.length, 0),
+      0
+    )
 
     // Calculate global stats
     const stats = {
@@ -90,6 +115,10 @@ export async function GET(
       totalTransports: transports.length,
       confirmedTransports: transports.filter((t) => t.status === 'CONFIRMED' || t.status === 'BOOKED').length,
       totalSessionParticipations: sessionParticipants,
+      totalAccommodations: accommodations.length,
+      totalRooms,
+      assignedRooms,
+      totalGuestsInRooms,
     }
 
     // Detect alerts
@@ -252,6 +281,35 @@ export async function GET(
           url: `/admin/events/${eventId}/sessions`,
         },
       })
+    }
+
+    // Alert 8: Guests without accommodation (if accommodations module active)
+    if (accommodations.length > 0) {
+      // Get all guest IDs with room assignments
+      const guestsWithAccommodation = new Set(
+        accommodations.flatMap((acc: any) =>
+          acc.rooms.flatMap((room: any) => room.assignments.map((a: any) => a.guestId))
+        )
+      )
+
+      const guestsWithoutAccommodation = guests.filter(
+        (g: any) => g.rsvp?.attending === true && !guestsWithAccommodation.has(g.id)
+      )
+
+      if (guestsWithoutAccommodation.length > 0) {
+        alerts.push({
+          type: 'warning',
+          category: 'accommodation',
+          title: 'Invités sans hébergement',
+          message: `${guestsWithoutAccommodation.length} invité(s) confirmé(s) n'ont pas de chambre assignée`,
+          count: guestsWithoutAccommodation.length,
+          severity: 'medium',
+          action: {
+            label: 'Gérer les hébergements',
+            url: `/admin/events/${eventId}/accommodation`,
+          },
+        })
+      }
     }
 
     // Sort alerts by severity (high -> medium -> low)

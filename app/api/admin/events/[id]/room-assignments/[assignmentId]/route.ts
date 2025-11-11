@@ -47,7 +47,7 @@ export async function DELETE(
 
     // Update room occupancy
     const remainingAssignments = assignment.room.assignments.filter(
-      (a) => a.id !== assignmentId
+      (a: any) => a.id !== assignmentId
     ).length
 
     // If no more assignments, set room back to AVAILABLE

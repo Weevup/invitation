@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Hotel, Plus, MapPin, Star, Bed, Users, ExternalLink } from 'lucide-react'
+import { AccommodationDialog } from '@/components/admin/accommodation-dialog'
 
 interface Accommodation {
   id: string
@@ -34,6 +35,7 @@ export default function AccommodationPage() {
 
   const [accommodations, setAccommodations] = useState<Accommodation[]>([])
   const [loading, setLoading] = useState(true)
+  const [dialogOpen, setDialogOpen] = useState(false)
 
   useEffect(() => {
     fetchAccommodations()
@@ -75,7 +77,7 @@ export default function AccommodationPage() {
             Gérez les hôtels et l&apos;attribution des chambres
           </p>
         </div>
-        <Button className="gap-2">
+        <Button className="gap-2" onClick={() => setDialogOpen(true)}>
           <Plus className="h-4 w-4" />
           Nouvel hébergement
         </Button>
@@ -151,7 +153,7 @@ export default function AccommodationPage() {
             <p className="text-sm text-muted-foreground mb-4">
               Commencez par ajouter un hôtel ou hébergement
             </p>
-            <Button>
+            <Button onClick={() => setDialogOpen(true)}>
               <Plus className="h-4 w-4 mr-2" />
               Ajouter un hébergement
             </Button>
@@ -238,6 +240,14 @@ export default function AccommodationPage() {
           ))}
         </div>
       )}
+
+      {/* Accommodation Dialog */}
+      <AccommodationDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        eventId={eventId}
+        onSuccess={fetchAccommodations}
+      />
     </div>
   )
 }

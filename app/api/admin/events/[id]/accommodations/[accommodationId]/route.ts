@@ -225,7 +225,7 @@ export async function DELETE(
 
     // Check if there are any room assignments
     const hasAssignments = accommodation.rooms.some(
-      (room) => room._count.assignments > 0
+      (room: any) => room._count.assignments > 0
     )
 
     if (hasAssignments) {

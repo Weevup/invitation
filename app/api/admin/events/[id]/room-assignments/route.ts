@@ -74,7 +74,7 @@ export async function GET(
 
     // Filter by eventId (via accommodation)
     const filteredAssignments = assignments.filter(
-      (a) => a.room.accommodation.id !== undefined
+      (a: any) => a.room.accommodation.id !== undefined
     )
 
     return NextResponse.json({ assignments: filteredAssignments })
