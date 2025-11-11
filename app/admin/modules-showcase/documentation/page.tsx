@@ -698,7 +698,7 @@ export default function DocumentationPage() {
               },
               {
                 q: 'Les participants peuvent-ils voir leur planning ?',
-                a: 'Exportez leur fiche individuelle en PDF et envoyez-la.&apos;,
+                a: 'Exportez leur fiche individuelle en PDF et envoyez-la.',
               },
             ].map((faq, i) => (
               <div key={i} className="border-b last:border-0 pb-4 last:pb-0">
