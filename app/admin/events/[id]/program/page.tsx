@@ -3,26 +3,29 @@
 import { useParams } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Plus, Calendar, Clock, Users, TrendingUp, Loader2 } from 'lucide-react'
+import { Calendar, Clock, Users, TrendingUp, Loader2 } from 'lucide-react'
 import { ProgramBuilder } from '@/components/program/program-builder'
-import { SessionEditor } from '@/components/program/session-editor'
 import { ProgramTimeline } from '@/components/program/program-timeline'
 import { ProgramTemplates } from '@/components/program/program-templates'
 
 interface Session {
   id: string
   title: string
+  description: string | null
   type: string
+  status: string
   startTime: string
   endTime: string
   duration: number
   venue: string | null
   room: string | null
+  capacity: number | null
   speakers: any
   color: string | null
+  icon: string | null
   isPublic: boolean
+  order: number
 }
 
 interface ProgramStats {
@@ -38,8 +41,6 @@ export default function ProgramPage() {
 
   const [sessions, setSessions] = useState<Session[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [showEditor, setShowEditor] = useState(false)
-  const [editingSession, setEditingSession] = useState<Session | null>(null)
   const [activeTab, setActiveTab] = useState('builder')
 
   useEffect(() => {
@@ -78,22 +79,6 @@ export default function ProgramPage() {
     return stats
   }
 
-  const handleCreateSession = () => {
-    setEditingSession(null)
-    setShowEditor(true)
-  }
-
-  const handleEditSession = (session: Session) => {
-    setEditingSession(session)
-    setShowEditor(true)
-  }
-
-  const handleSaveSession = async () => {
-    setShowEditor(false)
-    setEditingSession(null)
-    await loadSessions()
-  }
-
   const handleApplyTemplate = async (template: any) => {
     // TODO: Implement template application
     console.log('Applying template:', template)
@@ -112,22 +97,13 @@ export default function ProgramPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-[#004645]">
-            Programme de l&apos;evenement
-          </h1>
-          <p className="text-[#004645]/70">
-            Creez et organisez toutes les sessions de votre evenement
-          </p>
-        </div>
-        <Button
-          onClick={handleCreateSession}
-          className="bg-[#FF4713] hover:bg-[#FF6B3D] text-white"
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          Creer une session
-        </Button>
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight text-[#004645]">
+          Programme de l&apos;evenement
+        </h1>
+        <p className="text-[#004645]/70">
+          Creez et organisez toutes les sessions de votre evenement
+        </p>
       </div>
 
       {/* Statistics Cards */}
@@ -211,7 +187,6 @@ export default function ProgramPage() {
           <ProgramBuilder
             eventId={eventId}
             sessions={sessions}
-            onEdit={handleEditSession}
             onUpdate={loadSessions}
           />
         </TabsContent>
@@ -231,19 +206,6 @@ export default function ProgramPage() {
           />
         </TabsContent>
       </Tabs>
-
-      {/* Session Editor Dialog */}
-      {showEditor && (
-        <SessionEditor
-          eventId={eventId}
-          session={editingSession}
-          onSave={handleSaveSession}
-          onCancel={() => {
-            setShowEditor(false)
-            setEditingSession(null)
-          }}
-        />
-      )}
     </div>
   )
 }
