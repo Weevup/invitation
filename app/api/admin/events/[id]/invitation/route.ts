@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { requireAdmin, handleAuthError } from '@/lib/auth-utils';
 import { requireEventOwnership } from '@/lib/permissions';
 
-// GET - Récupérer la configuration Invitation
+// GET - RÃ©cupÃ©rer la configuration Invitation
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -25,7 +25,7 @@ export async function GET(
 
     if (!event) {
       return NextResponse.json(
-        { error: 'Événement non trouvé' },
+        { error: 'Ã‰vÃ©nement non trouvÃ©' },
         { status: 404 }
       );
     }
