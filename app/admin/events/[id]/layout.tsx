@@ -54,21 +54,21 @@ export default function EventLayout({
 
   const moduleNavItems = []
 
-  // Add program module if active
-  if (hasModule('PROGRAM')) {
-    moduleNavItems.push({
-      label: 'Programme',
-      href: `/admin/events/${eventId}/program`,
-      icon: Calendar,
-    })
-  }
-
-  // Single unified operations page if any module is active
+  // Planning Opérationnel first (if Transport or Accommodation module is active)
   if (hasModule('TRANSPORT') || hasModule('ACCOMMODATION')) {
     moduleNavItems.push({
       label: 'Planning Opérationnel',
       href: `/admin/events/${eventId}/operations`,
       icon: BarChart3,
+    })
+  }
+
+  // Then Program module if active
+  if (hasModule('PROGRAM')) {
+    moduleNavItems.push({
+      label: 'Programme',
+      href: `/admin/events/${eventId}/program`,
+      icon: Calendar,
     })
   }
 
