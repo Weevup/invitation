@@ -103,7 +103,24 @@ export async function POST(
       )
     }
 
-    const { firstName, lastName, email, company, tags } = validation.data
+    const {
+      firstName,
+      lastName,
+      email,
+      company,
+      tags,
+      // Professional information
+      jobTitle,
+      department,
+      companySize,
+      industry,
+      linkedinUrl,
+      phoneNumber,
+      // Event-specific needs
+      dietaryReqs,
+      accessibility,
+      adminNotes,
+    } = validation.data
 
     // Check if event exists
     const event = await prisma.event.findUnique({
@@ -149,6 +166,18 @@ export async function POST(
         email,
         company: company || null,
         tags: tags || [],
+        // Professional information
+        jobTitle: jobTitle || null,
+        department: department || null,
+        companySize: companySize || null,
+        industry: industry || null,
+        linkedinUrl: linkedinUrl || null,
+        phoneNumber: phoneNumber || null,
+        // Event-specific needs
+        dietaryReqs: dietaryReqs || null,
+        accessibility: accessibility || null,
+        adminNotes: adminNotes || null,
+        // Auth
         token,
         tokenHash,
         tokenExpiry,
