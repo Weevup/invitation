@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { sendEmail, sendEmailWithTemplate, TemplateVariables } from '@/lib/email-service';
+import { sendEmail, sendEmailWithTemplate, TemplateVariables, renderTemplate } from '@/lib/email-service';
 import {
   generateSaveTheDateEmail,
   generateInvitationEmail,
@@ -162,10 +162,21 @@ export async function POST(
             headerImage: config.headerImage,
           });
 
+          // Template variables for subject line
+          const templateVars = {
+            'event.name': config.eventName || event.name,
+            'event.date': config.dateAnnouncement || new Date(event.startsAt).toLocaleDateString('fr-FR'),
+            'event.location': config.locationHint || event.city || '',
+          };
+
+          // Use custom subject or fallback to default
+          const defaultSubject = `Save the Date - {{event.name}}`;
+          const subject = renderTemplate(config.emailSubject || defaultSubject, templateVars);
+
           await sendEmail(
             {
               to: guest.email,
-              subject: `${config.eventName || event.name} - Save the Date`,
+              subject,
               html,
             },
             emailIntegration as any
@@ -198,15 +209,33 @@ export async function POST(
             headerImage: invitationConfig.headerImage,
           });
 
+          // Template variables for subject line
+          const templateVars = {
+            'event.name': event.name,
+            'event.date': new Date(event.startsAt).toLocaleDateString('fr-FR', {
+              weekday: 'long',
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric'
+            }),
+            'event.location': event.venueName || '',
+          };
+
+          // Use custom subject or fallback to default
+          const defaultSubject = `Vous êtes invité(e) - {{event.name}}`;
+          const subject = renderTemplate(invitationConfig.emailSubject || defaultSubject, templateVars);
+
           await sendEmail(
             {
               to: guest.email,
-              subject: `Vous êtes invité(e) - ${event.name}`,
+              subject,
               html,
             },
             emailIntegration as any
           );
         } else if (type === 'reminder') {
+          const invitationConfig = event.invitationConfig as any || {};
+
           const html = generateReminderEmail({
             eventName: event.name,
             date: new Date(event.startsAt).toLocaleDateString('fr-FR', {
@@ -226,10 +255,26 @@ export async function POST(
             primaryColor: '#004645',
           });
 
+          // Template variables for subject line
+          const templateVars = {
+            'event.name': event.name,
+            'event.date': new Date(event.startsAt).toLocaleDateString('fr-FR', {
+              weekday: 'long',
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric'
+            }),
+            'event.location': event.venueName || '',
+          };
+
+          // Use custom subject or fallback to default
+          const defaultSubject = `⏰ Rappel : {{event.name}} - Ne manquez pas !`;
+          const subject = renderTemplate(invitationConfig.reminderEmailSubject || defaultSubject, templateVars);
+
           await sendEmail(
             {
               to: guest.email,
-              subject: `Rappel - ${event.name}`,
+              subject,
               html,
             },
             emailIntegration as any

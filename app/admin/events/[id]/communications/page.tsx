@@ -70,6 +70,25 @@ export default function CommunicationsPage() {
       .catch(console.error);
   }, [eventId]);
 
+  // Charger les statistiques d'emails
+  const loadStats = async () => {
+    try {
+      const response = await fetch(`/api/admin/events/${eventId}/email-stats`);
+      if (response.ok) {
+        const data = await response.json();
+        setStats(data);
+      }
+    } catch (error) {
+      console.error('Error loading email stats:', error);
+    }
+  };
+
+  useEffect(() => {
+    if (eventId) {
+      loadStats();
+    }
+  }, [eventId]);
+
   const handleScheduleSend = async (type: "saveTheDate" | "invitation" | "reminder") => {
     const date = scheduleDates[type];
     if (!date) {
@@ -98,6 +117,8 @@ export default function CommunicationsPage() {
           title: "✅ Envoi programmé",
           description: data.message,
         });
+        // Refresh stats
+        await loadStats();
       } else {
         toast({
           title: "Erreur",
@@ -131,6 +152,8 @@ export default function CommunicationsPage() {
           title: "✅ Envoi réussi",
           description: `${data.sent} email(s) envoyé(s)`,
         });
+        // Refresh stats
+        await loadStats();
       } else {
         toast({
           title: "Erreur",
