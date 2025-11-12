@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { validateGuestToken } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { sendEmail } from '@/lib/email-service'
+import { sendEmailLegacy as sendEmail } from '@/lib/email-service'
 import { getConfirmationEmailTemplate } from '@/lib/email-templates'
 import { generateQRCode, getCheckinUrl } from '@/lib/qrcode'
 import { formatDateTime } from '@/lib/utils'

@@ -4,7 +4,7 @@ import { getInvitationEmailTemplate, getReminderEmailTemplate } from '@/lib/emai
 import { formatDateTime } from '@/lib/utils'
 import { requireAdmin, handleAuthError } from '@/lib/auth-utils'
 import { requireEventOwnership } from '@/lib/permissions'
-import { sendEmail, renderTemplate } from '@/lib/email-service'
+import { sendEmailLegacy as sendEmail, renderTemplate } from '@/lib/email-service'
 
 export async function POST(
   request: NextRequest,
