@@ -86,7 +86,7 @@ export default function ProgramPage() {
             Programme de l&apos;événement
           </h1>
           <p className="text-[#004645]/70 mt-1">
-            Créez et organisez le programme complet de votre événement
+            Gerez et organisez toutes les sessions de votre evenement
           </p>
         </div>
         <div className="flex gap-2">
