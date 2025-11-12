@@ -18,7 +18,8 @@ import {
   MapPin,
   BarChart3,
   TrendingUp,
-  MailOpen
+  MailOpen,
+  Wand2
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useEventModules } from '@/lib/modules'
@@ -110,6 +111,11 @@ export default function EventLayout({
     {
       title: "EMAIL & COMMUNICATIONS",
       items: [
+        {
+          label: 'Éditeur WYSIWYG',
+          href: `/admin/events/${eventId}/email-editor`,
+          icon: Wand2,
+        },
         {
           label: 'Save the Date',
           href: `/admin/events/${eventId}/save-the-date`,
