@@ -8,16 +8,18 @@ import { Button } from '@/components/ui/button'
 import { Plus, Trash2, FileText } from 'lucide-react'
 import { Switch } from '@/components/ui/switch'
 
+export interface ButtonConfig {
+  text: string
+  link: string
+  style: 'primary' | 'secondary' | 'outline'
+}
+
 export interface SectionContent {
   title?: string
   subtitle?: string
   description?: string
   image?: string
-  buttons?: Array<{
-    text: string
-    link: string
-    style: 'primary' | 'secondary' | 'outline'
-  }>
+  buttons?: ButtonConfig[]
   customHTML?: string
 }
 
@@ -43,7 +45,7 @@ export function SectionContentEditor({ sectionId, sectionType, content, onChange
     updateContent({ buttons })
   }
 
-  const updateButton = (index: number, updates: Partial<SectionContent['buttons'][0]>) => {
+  const updateButton = (index: number, updates: Partial<ButtonConfig>) => {
     const buttons = [...(content.buttons || [])]
     buttons[index] = { ...buttons[index], ...updates }
     updateContent({ buttons })
