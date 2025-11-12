@@ -4,10 +4,7 @@ import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ProgramBuilder } from '@/components/program/program-builder'
-import { ProgramTimeline } from '@/components/program/program-timeline'
-import { ProgramTemplates } from '@/components/program/program-templates'
 import { Calendar, Layout, Wand2, Download, Upload } from 'lucide-react'
 
 interface Session {
@@ -34,7 +31,6 @@ export default function ProgramPage() {
   const eventId = params.id as string
   const [sessions, setSessions] = useState<Session[]>([])
   const [loading, setLoading] = useState(true)
-  const [activeView, setActiveView] = useState<'builder' | 'timeline' | 'templates'>('builder')
 
   const fetchSessions = async () => {
     setLoading(true)
@@ -181,49 +177,12 @@ export default function ProgramPage() {
         </Card>
       </div>
 
-      {/* Main Content */}
-      <Tabs value={activeView} onValueChange={(v) => setActiveView(v as any)} className="w-full">
-        <TabsList className="grid w-full grid-cols-3 bg-[#9CD9F6]/20">
-          <TabsTrigger value="builder">
-            <Layout className="h-4 w-4 mr-2" />
-            Constructeur
-          </TabsTrigger>
-          <TabsTrigger value="timeline">
-            <Calendar className="h-4 w-4 mr-2" />
-            Timeline
-          </TabsTrigger>
-          <TabsTrigger value="templates">
-            <Wand2 className="h-4 w-4 mr-2" />
-            Templates
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="builder" className="mt-6">
-          <ProgramBuilder
-            eventId={eventId}
-            sessions={sessions}
-            onUpdate={fetchSessions}
-          />
-        </TabsContent>
-
-        <TabsContent value="timeline" className="mt-6">
-          <ProgramTimeline
-            eventId={eventId}
-            sessions={sessions}
-            onUpdate={fetchSessions}
-          />
-        </TabsContent>
-
-        <TabsContent value="templates" className="mt-6">
-          <ProgramTemplates
-            eventId={eventId}
-            onApply={(template) => {
-              // Appliquer le template
-              fetchSessions()
-            }}
-          />
-        </TabsContent>
-      </Tabs>
+      {/* Main Content - Programme Builder */}
+      <ProgramBuilder
+        eventId={eventId}
+        sessions={sessions}
+        onUpdate={fetchSessions}
+      />
     </div>
   )
 }
