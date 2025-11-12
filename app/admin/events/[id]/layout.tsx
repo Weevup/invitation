@@ -54,6 +54,15 @@ export default function EventLayout({
 
   const moduleNavItems = []
 
+  // Add program module if active
+  if (hasModule('PROGRAM')) {
+    moduleNavItems.push({
+      label: 'Programme',
+      href: `/admin/events/${eventId}/program`,
+      icon: Calendar,
+    })
+  }
+
   // Single unified operations page if any module is active
   if (hasAdvancedModules) {
     moduleNavItems.push({

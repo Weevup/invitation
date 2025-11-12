@@ -53,7 +53,7 @@ export default function ProgramPage() {
       const response = await fetch(`/api/admin/events/${eventId}/sessions`)
       if (response.ok) {
         const data = await response.json()
-        setSessions(data)
+        setSessions(data.sessions || [])
       }
     } catch (error) {
       console.error('Error loading sessions:', error)
