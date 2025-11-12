@@ -31,6 +31,7 @@ import { TimelineEditor } from '@/components/showcase/timeline-editor'
 import { TemplateSelector } from '@/components/showcase/template-selector'
 import { DraggableSectionList } from '@/components/showcase/draggable-section-list'
 import { SectionEditor } from '@/components/showcase/section-editor'
+import { SectionContentEditor, type SectionContent, type SectionContents } from '@/components/showcase/section-content-editor'
 import { SplitPreview } from '@/components/showcase/split-preview'
 import { themePresets } from '@/lib/showcase-presets'
 import { type SectionConfig, type ShowcaseTemplate } from '@/lib/showcase-templates'
@@ -76,6 +77,7 @@ interface ShowcaseBuilderProps {
     showcaseSpeakers?: Speaker[] | null
     showcaseSponsors?: Sponsor[] | null
     showcaseTimeline?: TimelineItem[] | null
+    showcaseSectionContents?: SectionContents | null
   }
 }
 
@@ -147,6 +149,9 @@ export function ShowcaseBuilder({ eventId, eventSlug, initialData }: ShowcaseBui
   const [sponsors, setSponsors] = useState<Sponsor[]>(initialData.showcaseSponsors || [])
   const [timeline, setTimeline] = useState<TimelineItem[]>(initialData.showcaseTimeline || [])
 
+  // Contenus personnalisés par section
+  const [sectionContents, setSectionContents] = useState<SectionContents>(initialData.showcaseSectionContents || {})
+
   // UI States
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
@@ -155,6 +160,7 @@ export function ShowcaseBuilder({ eventId, eventSlug, initialData }: ShowcaseBui
   const [editingSection, setEditingSection] = useState<SectionConfig | null>(null)
   const [showPreview, setShowPreview] = useState(false)
   const [showAddSection, setShowAddSection] = useState(false)
+  const [previewKey, setPreviewKey] = useState(0)
 
   // Handlers pour templates
   const handleTemplateSelect = (template: ShowcaseTemplate) => {
@@ -207,6 +213,13 @@ export function ShowcaseBuilder({ eventId, eventSlug, initialData }: ShowcaseBui
     setShowAddSection(false)
   }
 
+  const handleSectionContentUpdate = (sectionId: string, content: SectionContent) => {
+    setSectionContents(prev => ({
+      ...prev,
+      [sectionId]: content
+    }))
+  }
+
   const handleSave = async () => {
     setSaving(true)
     setError('')
@@ -235,6 +248,7 @@ export function ShowcaseBuilder({ eventId, eventSlug, initialData }: ShowcaseBui
           showcaseSpeakers: speakers.length > 0 ? speakers : null,
           showcaseSponsors: sponsors.length > 0 ? sponsors : null,
           showcaseTimeline: timeline.length > 0 ? timeline : null,
+          showcaseSectionContents: Object.keys(sectionContents).length > 0 ? sectionContents : null,
         }),
       })
 
@@ -243,6 +257,8 @@ export function ShowcaseBuilder({ eventId, eventSlug, initialData }: ShowcaseBui
       }
 
       setSaved(true)
+      // Refresh preview after save
+      setPreviewKey(prev => prev + 1)
       setTimeout(() => setSaved(false), 3000)
     } catch (err) {
       setError('Erreur lors de la sauvegarde')
@@ -331,9 +347,10 @@ export function ShowcaseBuilder({ eventId, eventSlug, initialData }: ShowcaseBui
       {enabled && (
         <>
         <Tabs defaultValue="content" className="w-full">
-          <TabsList className="grid w-full grid-cols-5 bg-[#9CD9F6]/20 mb-6">
+          <TabsList className="grid w-full grid-cols-6 bg-[#9CD9F6]/20 mb-6">
             <TabsTrigger value="content">📝 Contenu</TabsTrigger>
             <TabsTrigger value="sections">🎯 Sections</TabsTrigger>
+            <TabsTrigger value="sectionContent">✏️ Textes</TabsTrigger>
             <TabsTrigger value="theme">🎨 Thème</TabsTrigger>
             <TabsTrigger value="media">🎬 Média</TabsTrigger>
             <TabsTrigger value="advanced">⚙️ Avancé</TabsTrigger>
@@ -445,6 +462,49 @@ export function ShowcaseBuilder({ eventId, eventSlug, initialData }: ShowcaseBui
                 onEdit={handleSectionEdit}
                 onDelete={handleSectionDelete}
               />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Tab: Section Content - NOUVEAU */}
+        <TabsContent value="sectionContent" className="space-y-4">
+          <Card className="border-[#9CD9F6]/30 bg-white/80 backdrop-blur">
+            <CardHeader>
+              <CardTitle className="text-[#004645]">Contenu des sections</CardTitle>
+              <CardDescription>
+                Personnalisez le texte, images et boutons de chaque section active
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {sectionConfigs.filter(s => s.enabled).length === 0 ? (
+                <p className="text-center text-[#004645]/60 py-8">
+                  Aucune section active. Allez dans l&apos;onglet &quot;Sections&quot; pour activer des sections.
+                </p>
+              ) : (
+                <div className="space-y-6">
+                  {sectionConfigs
+                    .filter(s => s.enabled)
+                    .map((section) => {
+                      const sectionInfo = availableSections.find(a => a.id === section.type)
+                      return (
+                        <div key={section.id} className="space-y-3">
+                          <div className="flex items-center gap-2 pb-2 border-b border-[#9CD9F6]/30">
+                            <span className="text-lg">{sectionInfo?.label || section.type}</span>
+                            <span className="text-xs text-[#004645]/60">
+                              {sectionInfo?.description}
+                            </span>
+                          </div>
+                          <SectionContentEditor
+                            sectionId={section.id}
+                            sectionType={section.type}
+                            content={sectionContents[section.id] || {}}
+                            onChange={(content) => handleSectionContentUpdate(section.id, content)}
+                          />
+                        </div>
+                      )
+                    })}
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -675,6 +735,7 @@ export function ShowcaseBuilder({ eventId, eventSlug, initialData }: ShowcaseBui
 
       {/* Split Preview */}
       <SplitPreview
+        key={previewKey}
         eventSlug={eventSlug}
         isVisible={showPreview}
         onToggle={() => setShowPreview(!showPreview)}
