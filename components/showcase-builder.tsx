@@ -441,7 +441,7 @@ export function ShowcaseBuilder({ eventId, eventSlug, initialData }: ShowcaseBui
       </Card>
 
       {/* Builder avec Tabs */}
-      {enabled && (
+      {data.enabled && (
         <>
         <Tabs defaultValue="content" className="w-full">
           <TabsList className="grid w-full grid-cols-4 bg-[#9CD9F6]/20 mb-6">
