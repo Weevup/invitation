@@ -4,6 +4,7 @@ import { sendEmail, getInvitationEmailTemplate, getReminderEmailTemplate } from 
 import { formatDateTime } from '@/lib/utils'
 import { requireAdmin, handleAuthError } from '@/lib/auth-utils'
 import { requireEventOwnership } from '@/lib/permissions'
+import { renderTemplate } from '@/lib/email-service'
 
 export async function POST(
   request: NextRequest,
@@ -66,6 +67,17 @@ export async function POST(
       ? formatDateTime(event.rsvpDeadline)
       : undefined
 
+    // Get email subject from configurations
+    const invitationConfig = (event.invitationConfig as any) || {}
+    const saveTheDateConfig = (event.saveTheDateConfig as any) || {}
+
+    // Template variables for subject line
+    const templateVars = {
+      'event.name': event.name,
+      'event.date': eventDate,
+      'event.location': eventVenue,
+    }
+
     // Send emails
     for (const guest of targetGuests) {
       try {
@@ -83,7 +95,9 @@ export async function POST(
             invitationUrl,
             rsvpDeadline,
           })
-          subject = `⏰ Rappel : ${event.name}`
+          // Use custom subject or fallback to default
+          const reminderSubject = invitationConfig.reminderEmailSubject || `⏰ Rappel : ${event.name}`
+          subject = renderTemplate(reminderSubject, templateVars)
         } else {
           emailHtml = getInvitationEmailTemplate({
             guestName: guest.firstName,
@@ -92,7 +106,9 @@ export async function POST(
             eventVenue,
             invitationUrl,
           })
-          subject = `✉️ Invitation : ${event.name}`
+          // Use custom subject from invitation config or fallback to default
+          const inviteSubject = invitationConfig.emailSubject || `✉️ Invitation : ${event.name}`
+          subject = renderTemplate(inviteSubject, templateVars)
         }
 
         const result = await sendEmail({

@@ -26,6 +26,9 @@ export default function SaveTheDateBuilderPage() {
   const [loading, setLoading] = useState(false);
 
   const [design, setDesign] = useState({
+    // Email
+    emailSubject: "Save the Date - {{event.name}}",
+
     // Contenu
     eventName: "Votre événement",
     tagline: "Réservez la date !",
@@ -190,6 +193,19 @@ export default function SaveTheDateBuilderPage() {
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
+                      <div>
+                        <Label htmlFor="emailSubject">Objet de l&apos;email</Label>
+                        <Input
+                          id="emailSubject"
+                          value={design.emailSubject}
+                          onChange={(e) => setDesign({ ...design, emailSubject: e.target.value })}
+                          placeholder="Save the Date - {{event.name}}"
+                        />
+                        <p className="text-xs text-[#004645]/60 mt-1">
+                          Utilisez {"{{event.name}}"} pour le nom de l&apos;événement, {"{{event.date}}"} pour la date
+                        </p>
+                      </div>
+
                       <div>
                         <Label htmlFor="eventName">Nom de l&apos;événement</Label>
                         <Input

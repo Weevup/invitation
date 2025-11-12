@@ -22,6 +22,10 @@ export default function InvitationDesignPage() {
   const [previewMode, setPreviewMode] = useState(false)
   const [loading, setLoading] = useState(false)
   const [design, setDesign] = useState({
+    // Email
+    emailSubject: 'Vous êtes invité(e) - {{event.name}}',
+    reminderEmailSubject: '⏰ Rappel : {{event.name}} - Ne manquez pas !',
+
     // Contenu
     eventName: 'Votre événement',
     welcomeMessage: 'Vous êtes invité(e) à',
@@ -304,6 +308,32 @@ export default function InvitationDesignPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
+                <div>
+                  <Label>Objet de l&apos;email d&apos;invitation</Label>
+                  <Input
+                    value={design.emailSubject}
+                    onChange={(e) => updateDesign('emailSubject', e.target.value)}
+                    className="border-[#9CD9F6]/30"
+                    placeholder="Vous êtes invité(e) - {{event.name}}"
+                  />
+                  <p className="text-xs text-[#004645]/60 mt-1">
+                    Utilisez {"{{event.name}}"} pour le nom de l&apos;événement, {"{{event.date}}"} pour la date
+                  </p>
+                </div>
+
+                <div>
+                  <Label>Objet de l&apos;email de rappel</Label>
+                  <Input
+                    value={design.reminderEmailSubject}
+                    onChange={(e) => updateDesign('reminderEmailSubject', e.target.value)}
+                    className="border-[#9CD9F6]/30"
+                    placeholder="⏰ Rappel : {{event.name}} - Ne manquez pas !"
+                  />
+                  <p className="text-xs text-[#004645]/60 mt-1">
+                    Utilisé pour les rappels RSVP
+                  </p>
+                </div>
+
                 <div>
                   <Label>Message d&apos;accueil</Label>
                   <Input
