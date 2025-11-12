@@ -19,6 +19,8 @@ export interface EmailData {
   text?: string
   cc?: string | string[]
   bcc?: string | string[]
+  unsubscribeUrl?: string  // Optional unsubscribe URL for List-Unsubscribe header
+  listId?: string           // Optional List-ID for bulk emails
 }
 
 export interface EmailIntegration {
@@ -358,6 +360,16 @@ async function sendViaSMTP(
     subject: data.subject,
     html: data.html,
     ...(data.text && { text: data.text }),
+    headers: {
+      // Anti-spam headers
+      ...(data.listId && { 'List-ID': data.listId }),
+      ...(data.unsubscribeUrl && {
+        'List-Unsubscribe': `<${data.unsubscribeUrl}>`,
+        'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click'
+      }),
+      'X-Entity-Ref-ID': `event-invitation-${Date.now()}`,
+      'Precedence': 'bulk',
+    }
   }
 
   const info = await transporter.sendMail(mailOptions)
