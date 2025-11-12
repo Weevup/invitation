@@ -7,6 +7,56 @@ import { requireAdmin, handleAuthError } from '@/lib/auth-utils'
 import { requireEventOwnership } from '@/lib/permissions'
 
 /**
+ * Generate automatic tags based on professional information
+ */
+function generateAutoTags(data: {
+  companySize?: string
+  jobTitle?: string
+  industry?: string
+}): string[] {
+  const autoTags: string[] = []
+
+  // Company size tags
+  const companySizeTags: Record<string, string> = {
+    'TPE': 'TPE',
+    'PME': 'PME',
+    'ETI': 'ETI',
+    'GE': 'Grande Entreprise',
+  }
+  if (data.companySize && companySizeTags[data.companySize]) {
+    autoTags.push(companySizeTags[data.companySize])
+  }
+
+  // VIP detection based on job title
+  if (data.jobTitle) {
+    const titleLower = data.jobTitle.toLowerCase()
+    const vipKeywords = [
+      'ceo', 'cto', 'cfo', 'coo', 'cmo',
+      'président', 'directeur général', 'dg',
+      'fondateur', 'founder',
+      'associé', 'partner',
+      'vice-président', 'vp'
+    ]
+
+    if (vipKeywords.some(keyword => titleLower.includes(keyword))) {
+      autoTags.push('VIP')
+      autoTags.push('Décideur')
+    } else if (titleLower.includes('directeur') || titleLower.includes('director')) {
+      autoTags.push('Direction')
+    } else if (titleLower.includes('manager') || titleLower.includes('responsable')) {
+      autoTags.push('Manager')
+    }
+  }
+
+  // Industry tag (if provided)
+  if (data.industry) {
+    autoTags.push(data.industry)
+  }
+
+  return autoTags
+}
+
+/**
  * GET /api/admin/events/[id]/guests
  * Get all guests for an event
  */
@@ -103,7 +153,24 @@ export async function POST(
       )
     }
 
-    const { firstName, lastName, email, company, tags } = validation.data
+    const {
+      firstName,
+      lastName,
+      email,
+      company,
+      tags,
+      // Professional information
+      jobTitle,
+      department,
+      companySize,
+      industry,
+      linkedinUrl,
+      phoneNumber,
+      // Event-specific needs
+      dietaryReqs,
+      accessibility,
+      adminNotes,
+    } = validation.data
 
     // Check if event exists
     const event = await prisma.event.findUnique({
@@ -140,6 +207,17 @@ export async function POST(
     const tokenExpiry = new Date()
     tokenExpiry.setDate(tokenExpiry.getDate() + 90) // 90 days validity
 
+    // Generate automatic tags based on professional info
+    const autoTags = generateAutoTags({
+      companySize,
+      jobTitle,
+      industry,
+    })
+
+    // Combine manual tags with auto-generated tags (remove duplicates)
+    const manualTags = tags || []
+    const combinedTags = Array.from(new Set([...manualTags, ...autoTags]))
+
     // Create guest
     const guest = await prisma.guest.create({
       data: {
@@ -148,7 +226,19 @@ export async function POST(
         lastName,
         email,
         company: company || null,
-        tags: tags || [],
+        tags: combinedTags,
+        // Professional information
+        jobTitle: jobTitle || null,
+        department: department || null,
+        companySize: companySize || null,
+        industry: industry || null,
+        linkedinUrl: linkedinUrl || null,
+        phoneNumber: phoneNumber || null,
+        // Event-specific needs
+        dietaryReqs: dietaryReqs || null,
+        accessibility: accessibility || null,
+        adminNotes: adminNotes || null,
+        // Auth
         token,
         tokenHash,
         tokenExpiry,

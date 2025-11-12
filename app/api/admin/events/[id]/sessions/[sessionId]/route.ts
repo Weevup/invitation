@@ -139,6 +139,53 @@ export async function GET(
 }
 
 /**
+ * PATCH /api/admin/events/[id]/sessions/[sessionId]
+ * Partial update session (e.g., just order for drag and drop)
+ */
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string; sessionId: string }> }
+) {
+  try {
+    const { id: eventId, sessionId } = await params
+    const body = await request.json()
+
+    // Check if session exists
+    const existingSession = await prisma.session.findFirst({
+      where: {
+        id: sessionId,
+        eventId,
+      },
+    })
+
+    if (!existingSession) {
+      return NextResponse.json(
+        { error: 'Session non trouvée' },
+        { status: 404 }
+      )
+    }
+
+    // For PATCH, we allow partial updates without validation
+    // This is especially useful for drag-and-drop order updates
+    const session = await prisma.session.update({
+      where: { id: sessionId },
+      data: body,
+    })
+
+    return NextResponse.json({
+      session,
+      message: 'Session mise à jour avec succès',
+    })
+  } catch (error) {
+    console.error('Error patching session:', error)
+    return NextResponse.json(
+      { error: 'Erreur lors de la mise à jour de la session' },
+      { status: 500 }
+    )
+  }
+}
+
+/**
  * PUT /api/admin/events/[id]/sessions/[sessionId]
  * Update session
  */

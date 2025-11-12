@@ -49,10 +49,40 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [initLoading, setInitLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [autoRefreshEnabled, setAutoRefreshEnabled] = useState(true);
 
   useEffect(() => {
     fetchData();
   }, []);
+
+  // Auto-refresh every 30 seconds
+  useEffect(() => {
+    if (!autoRefreshEnabled) return;
+
+    const interval = setInterval(async () => {
+      // Silent refresh - don't show loading states or toasts
+      try {
+        const [eventsRes, statsRes] = await Promise.all([
+          fetch('/api/admin/events'),
+          fetch('/api/admin/dashboard/stats')
+        ]);
+
+        if (eventsRes.ok) {
+          const eventsData = await eventsRes.json();
+          setEvents(eventsData);
+        }
+
+        if (statsRes.ok) {
+          const statsData = await statsRes.json();
+          setStats(statsData);
+        }
+      } catch (error) {
+        console.error('Error in auto-refresh:', error);
+      }
+    }, 30000); // 30 seconds
+
+    return () => clearInterval(interval);
+  }, [autoRefreshEnabled]);
 
   const fetchData = async () => {
     try {
@@ -131,6 +161,14 @@ export default function AdminDashboard() {
           </p>
         </div>
         <div className="flex gap-2">
+          <Button
+            onClick={() => setAutoRefreshEnabled(!autoRefreshEnabled)}
+            variant="outline"
+            className={autoRefreshEnabled ? "border-green-500 text-green-700 bg-green-50" : "border-gray-300 text-gray-600"}
+          >
+            <Activity className={`h-4 w-4 mr-2 ${autoRefreshEnabled ? 'animate-pulse' : ''}`} />
+            Auto-refresh {autoRefreshEnabled ? 'ON' : 'OFF'}
+          </Button>
           <Button
             onClick={handleRefresh}
             disabled={refreshing}

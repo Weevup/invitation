@@ -25,7 +25,7 @@ export async function GET() {
         allTablesExist: false,
         allEnumsExist: false,
         tablesComplete: 0,
-        totalTables: 9,
+        totalTables: 21,
         enumsComplete: 0,
         totalEnums: 5,
       }
@@ -102,6 +102,54 @@ export async function GET() {
       {
         name: 'EmailTemplate',
         requiredColumns: ['id', 'name', 'slug', 'type', 'subject', 'htmlContent', 'primaryColor']
+      },
+      {
+        name: 'EventModule',
+        requiredColumns: ['id', 'eventId', 'moduleType', 'isActive']
+      },
+      {
+        name: 'TransportBooking',
+        requiredColumns: ['id', 'eventId', 'guestId', 'transportType', 'status']
+      },
+      {
+        name: 'TransportManifest',
+        requiredColumns: ['id', 'eventId', 'transportType', 'direction']
+      },
+      {
+        name: 'ManifestParticipant',
+        requiredColumns: ['id', 'manifestId', 'bookingId', 'guestId']
+      },
+      {
+        name: 'Session',
+        requiredColumns: ['id', 'eventId', 'title', 'type', 'startTime', 'endTime']
+      },
+      {
+        name: 'SessionParticipant',
+        requiredColumns: ['id', 'sessionId', 'guestId', 'status']
+      },
+      {
+        name: 'TimelineEvent',
+        requiredColumns: ['id', 'eventId', 'type', 'startTime']
+      },
+      {
+        name: 'Accommodation',
+        requiredColumns: ['id', 'eventId', 'name', 'type', 'totalRooms']
+      },
+      {
+        name: 'Room',
+        requiredColumns: ['id', 'accommodationId', 'roomNumber', 'type', 'capacity']
+      },
+      {
+        name: 'RoomAssignment',
+        requiredColumns: ['id', 'roomId', 'guestId', 'status']
+      },
+      {
+        name: 'ScheduledEmail',
+        requiredColumns: ['id', 'eventId', 'type', 'scheduledFor']
+      },
+      {
+        name: 'EventRemindersConfig',
+        requiredColumns: ['id', 'eventId', 'enabled']
       }
     ]
 

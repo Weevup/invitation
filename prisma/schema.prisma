@@ -259,6 +259,19 @@ model Guest {
   company   String?
   tags      String[]    @default([])
 
+  // Professional information
+  jobTitle      String?     // Fonction/Poste
+  department    String?     // Département
+  companySize   String?     // Taille entreprise (TPE, PME, ETI, GE)
+  industry      String?     // Secteur d'activité
+  linkedinUrl   String?     // Profil LinkedIn
+  phoneNumber   String?     // Numéro de téléphone
+
+  // Event-specific needs
+  dietaryReqs   String?     @db.Text  // Restrictions alimentaires
+  accessibility String?     @db.Text  // Besoins d'accessibilité
+  adminNotes    String?     @db.Text  // Notes privées admin
+
   // Authentication
   token         String      @unique // Will be hashed
   tokenHash     String      @unique // Hashed version for lookup

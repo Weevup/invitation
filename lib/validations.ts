@@ -9,6 +9,21 @@ export const createGuestSchema = z.object({
   email: z.string().email('Email invalide').max(255, 'Email trop long'),
   company: z.string().max(200, 'Nom de société trop long').optional(),
   tags: z.array(z.string()).optional(),
+
+  // Professional information
+  jobTitle: z.string().max(100, 'Fonction trop longue').optional(),
+  department: z.string().max(100, 'Département trop long').optional(),
+  companySize: z.enum(['TPE', 'PME', 'ETI', 'GE'], {
+    errorMap: () => ({ message: 'Taille d\'entreprise invalide' })
+  }).optional(),
+  industry: z.string().max(100, 'Secteur trop long').optional(),
+  linkedinUrl: z.string().url('URL LinkedIn invalide').max(500, 'URL trop longue').optional().or(z.literal('')),
+  phoneNumber: z.string().max(20, 'Numéro trop long').optional(),
+
+  // Event-specific needs
+  dietaryReqs: z.string().max(1000, 'Texte trop long').optional(),
+  accessibility: z.string().max(1000, 'Texte trop long').optional(),
+  adminNotes: z.string().max(2000, 'Notes trop longues').optional(),
 })
 
 /**
