@@ -83,27 +83,42 @@ export function ProgramBuilder({ eventId, sessions, onUpdate }: ProgramBuilderPr
 
   const handleDrop = async (e: React.DragEvent, targetSessionId: string) => {
     e.preventDefault()
-    if (!draggedSession || draggedSession === targetSessionId) return
+    e.stopPropagation()
+
+    if (!draggedSession || draggedSession === targetSessionId) {
+      setDraggedSession(null)
+      return
+    }
 
     const draggedIndex = sessions.findIndex(s => s.id === draggedSession)
     const targetIndex = sessions.findIndex(s => s.id === targetSessionId)
+
+    if (draggedIndex === -1 || targetIndex === -1) {
+      setDraggedSession(null)
+      return
+    }
 
     // Réorganiser
     const newSessions = [...sessions]
     const [removed] = newSessions.splice(draggedIndex, 1)
     newSessions.splice(targetIndex, 0, removed)
 
-    // Sauvegarder l'ordre
-    for (let i = 0; i < newSessions.length; i++) {
-      await fetch(`/api/admin/events/${eventId}/sessions/${newSessions[i].id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ timelineOrder: i })
-      })
-    }
+    // Sauvegarder l'ordre avec le bon champ "timelineOrder"
+    try {
+      for (let i = 0; i < newSessions.length; i++) {
+        await fetch(`/api/admin/events/${eventId}/sessions/${newSessions[i].id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ timelineOrder: i })
+        })
+      }
 
-    setDraggedSession(null)
-    onUpdate()
+      setDraggedSession(null)
+      onUpdate()
+    } catch (error) {
+      console.error('Error reordering sessions:', error)
+      setDraggedSession(null)
+    }
   }
 
   const handleDelete = async (sessionId: string) => {
