@@ -130,6 +130,14 @@ export default async function EventShowcasePage({ params }: PageProps) {
   const primaryColor = event.showcasePrimaryColor || '#004645'
   const secondaryColor = event.showcaseSecondaryColor || '#FF4713'
 
+  // Section contents
+  const sectionContents = (event.showcaseSectionContents as any) || {}
+
+  // Helper to get section content
+  const getContent = (sectionId: string, field: string, defaultValue: any = null) => {
+    return sectionContents[sectionId]?.[field] || defaultValue
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#9CD9F6] via-white to-[#9CD9F6]">
       {/* Custom CSS if provided */}
