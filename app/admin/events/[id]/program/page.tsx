@@ -80,8 +80,67 @@ export default function ProgramPage() {
   }
 
   const handleApplyTemplate = async (template: any) => {
-    // TODO: Implement template application
-    console.log('Applying template:', template)
+    if (!confirm(`Voulez-vous appliquer le template "${template.name}" ? Cela créera ${template.sessions.length} nouvelles sessions.`)) {
+      return
+    }
+
+    try {
+      // Get event details to determine start date
+      const eventResponse = await fetch(`/api/admin/events/${eventId}`)
+      if (!eventResponse.ok) {
+        alert('Erreur lors de la récupération de l\'événement')
+        return
+      }
+      const eventData = await eventResponse.json()
+
+      // Use event start date or current date
+      const baseDate = eventData.startDate ? new Date(eventData.startDate) : new Date()
+      // Start at 9:00 AM
+      baseDate.setHours(9, 0, 0, 0)
+
+      let currentTime = new Date(baseDate)
+
+      // Create sessions sequentially
+      for (let i = 0; i < template.sessions.length; i++) {
+        const sessionTemplate = template.sessions[i]
+        const startTime = new Date(currentTime)
+        const endTime = new Date(currentTime.getTime() + sessionTemplate.duration * 60000)
+
+        const sessionData = {
+          title: sessionTemplate.title,
+          type: sessionTemplate.type,
+          duration: sessionTemplate.duration,
+          startTime: startTime.toISOString(),
+          endTime: endTime.toISOString(),
+          status: 'DRAFT',
+          isPublic: true,
+          timelineOrder: i
+        }
+
+        const response = await fetch(`/api/admin/events/${eventId}/sessions`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(sessionData)
+        })
+
+        if (!response.ok) {
+          console.error('Failed to create session:', sessionTemplate.title)
+          alert(`Erreur lors de la création de la session "${sessionTemplate.title}"`)
+          break
+        }
+
+        // Move to next session start time
+        currentTime = new Date(endTime)
+      }
+
+      // Reload sessions and switch to builder tab
+      await loadSessions()
+      setActiveTab('builder')
+
+    } catch (error) {
+      console.error('Error applying template:', error)
+      alert('Erreur lors de l\'application du template')
+    }
   }
 
   const stats = calculateStats()
