@@ -20,6 +20,7 @@ export default function InvitationDesignPage() {
   const eventId = params.id as string
 
   const [previewMode, setPreviewMode] = useState(false)
+  const [loading, setLoading] = useState(false)
   const [design, setDesign] = useState({
     // Contenu
     eventName: 'Votre événement',
@@ -65,10 +66,46 @@ export default function InvitationDesignPage() {
     giftsInfo: ''
   })
 
+  // Load existing invitation configuration
+  useEffect(() => {
+    const loadConfig = async () => {
+      try {
+        const response = await fetch(`/api/admin/events/${eventId}/invitation`);
+        if (response.ok) {
+          const data = await response.json();
+          if (data && Object.keys(data).length > 0) {
+            setDesign(prev => ({ ...prev, ...data }));
+          }
+        }
+      } catch (error) {
+        console.error("Failed to load invitation configuration:", error);
+      }
+    };
+
+    if (eventId) {
+      loadConfig();
+    }
+  }, [eventId]);
+
   const handleSave = async () => {
-    // TODO: Implémenter la sauvegarde vers l'API
-    console.log('Saving invitation design:', design)
-    toast.success('Design de l\'invitation sauvegardé avec succès !')
+    setLoading(true);
+    try {
+      const response = await fetch(`/api/admin/events/${eventId}/invitation`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(design),
+      });
+
+      if (response.ok) {
+        toast.success('Design de l\'invitation sauvegardé avec succès !');
+      } else {
+        toast.error('Erreur lors de l\'enregistrement');
+      }
+    } catch (error) {
+      toast.error('Impossible d\'enregistrer le design de l\'invitation');
+    } finally {
+      setLoading(false);
+    }
   }
 
   const updateDesign = (key: string, value: any) => {

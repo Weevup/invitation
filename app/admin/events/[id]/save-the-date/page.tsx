@@ -55,6 +55,27 @@ export default function SaveTheDateBuilderPage() {
     footerMessage: "Invitation officielle à venir",
   });
 
+  // Load existing save the date configuration
+  useEffect(() => {
+    const loadConfig = async () => {
+      try {
+        const response = await fetch(`/api/admin/events/${eventId}/save-the-date`);
+        if (response.ok) {
+          const data = await response.json();
+          if (data && Object.keys(data).length > 0) {
+            setDesign(prev => ({ ...prev, ...data }));
+          }
+        }
+      } catch (error) {
+        console.error("Failed to load save the date configuration:", error);
+      }
+    };
+
+    if (eventId) {
+      loadConfig();
+    }
+  }, [eventId]);
+
   const handleSave = async () => {
     setLoading(true);
     try {

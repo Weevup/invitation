@@ -57,6 +57,7 @@ export default function RSVPConfigPage() {
   const params = useParams()
   const eventId = params.id as string
 
+  const [loading, setLoading] = useState(false)
   const [fields, setFields] = useState<FormField[]>(defaultFields)
   const [previewMode, setPreviewMode] = useState(false)
   const [config, setConfig] = useState({
@@ -70,6 +71,32 @@ export default function RSVPConfigPage() {
     confirmationMessage: 'Merci pour votre réponse ! Nous avons bien enregistré votre participation.',
     declineMessage: 'Nous sommes désolés que vous ne puissiez pas être des nôtres. Peut-être une prochaine fois !'
   })
+
+  // Load existing RSVP configuration
+  useEffect(() => {
+    const loadConfig = async () => {
+      try {
+        const response = await fetch(`/api/admin/events/${eventId}/rsvp-config`);
+        if (response.ok) {
+          const data = await response.json();
+          if (data && Object.keys(data).length > 0) {
+            if (data.fields) {
+              setFields(data.fields);
+            }
+            if (data.config) {
+              setConfig(prev => ({ ...prev, ...data.config }));
+            }
+          }
+        }
+      } catch (error) {
+        console.error("Failed to load RSVP configuration:", error);
+      }
+    };
+
+    if (eventId) {
+      loadConfig();
+    }
+  }, [eventId]);
 
   const addField = (type: FormField['type']) => {
     const newField: FormField = {
@@ -102,9 +129,24 @@ export default function RSVPConfigPage() {
   }
 
   const handleSave = async () => {
-    // TODO: Implémenter la sauvegarde vers l'API
-    console.log('Saving RSVP config:', { fields, config })
-    toast.success('Configuration RSVP sauvegardée avec succès !')
+    setLoading(true);
+    try {
+      const response = await fetch(`/api/admin/events/${eventId}/rsvp-config`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fields, config }),
+      });
+
+      if (response.ok) {
+        toast.success('Configuration RSVP sauvegardée avec succès !');
+      } else {
+        toast.error('Erreur lors de l\'enregistrement');
+      }
+    } catch (error) {
+      toast.error('Impossible d\'enregistrer la configuration RSVP');
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
