@@ -122,11 +122,24 @@ export default function GuestsPage() {
       Email: guest.email,
       Entreprise: guest.company || '',
       Tags: guest.tags.join(', '),
+      // Informations professionnelles
+      'Fonction/Poste': guest.jobTitle || '',
+      Département: guest.department || '',
+      'Taille Entreprise': guest.companySize || '',
+      Secteur: guest.industry || '',
+      Téléphone: guest.phoneNumber || '',
+      LinkedIn: guest.linkedinUrl || '',
+      // Besoins événementiels
+      'Restrictions Alimentaires': guest.dietaryReqs || '',
+      Accessibilité: guest.accessibility || '',
+      // RSVP
       Statut: guest.rsvp?.attending === true
         ? 'Participe'
         : guest.rsvp?.attending === false
         ? 'Décline'
         : 'En attente',
+      Accompagnants: guest.rsvp?.plusOnes || 0,
+      'Choix Menu': guest.rsvp?.mealChoice || '',
     }))
 
     const csv = Papa.unparse(csvData)
