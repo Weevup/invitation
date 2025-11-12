@@ -60,16 +60,14 @@ export const AVAILABLE_MODULES: ModuleInfo[] = [
     name: 'Hébergement',
     description: 'Gérer les hôtels et l\'attribution des chambres',
     icon: '🏨',
-    category: 'logistics',
-    comingSoon: true
+    category: 'logistics'
   },
   {
     type: 'PROGRAM',
     name: 'Programme & Sessions',
     description: 'Organiser workshops, sessions et activités',
     icon: '📅',
-    category: 'program',
-    comingSoon: true
+    category: 'program'
   },
   {
     type: 'BUDGET',
