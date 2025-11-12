@@ -1,188 +1,229 @@
-'use client'
+"use client"
 
+import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Calendar, Clock, Users, ArrowRight } from 'lucide-react'
-import Link from 'next/link'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { ProgramBuilder } from '@/components/program/program-builder'
+import { ProgramTimeline } from '@/components/program/program-timeline'
+import { ProgramTemplates } from '@/components/program/program-templates'
+import { Calendar, Layout, Wand2, Download, Upload } from 'lucide-react'
+
+interface Session {
+  id: string
+  title: string
+  description: string | null
+  type: string
+  status: string
+  startTime: string
+  endTime: string
+  duration: number
+  venue: string | null
+  room: string | null
+  capacity: number | null
+  speakers: any
+  color: string | null
+  icon: string | null
+  isPublic: boolean
+  order: number
+}
 
 export default function ProgramPage() {
   const params = useParams()
   const eventId = params.id as string
+  const [sessions, setSessions] = useState<Session[]>([])
+  const [loading, setLoading] = useState(true)
+  const [activeView, setActiveView] = useState<'builder' | 'timeline' | 'templates'>('builder')
+
+  const fetchSessions = async () => {
+    setLoading(true)
+    try {
+      const response = await fetch(`/api/admin/events/${eventId}/sessions`)
+      if (response.ok) {
+        const data = await response.json()
+        setSessions(data.sessions || [])
+      }
+    } catch (error) {
+      console.error('Error fetching sessions:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchSessions()
+  }, [eventId])
+
+  const handleExport = () => {
+    const dataStr = JSON.stringify(sessions, null, 2)
+    const dataBlob = new Blob([dataStr], { type: 'application/json' })
+    const url = URL.createObjectURL(dataBlob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `programme-${eventId}.json`
+    link.click()
+  }
+
+  const handleImport = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (file) {
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        try {
+          const imported = JSON.parse(e.target?.result as string)
+          setSessions(imported)
+        } catch (error) {
+          console.error('Error importing program:', error)
+        }
+      }
+      reader.readAsText(file)
+    }
+  }
 
   return (
-    <div className="space-y-6">
+    <div className="container mx-auto py-8 px-4 space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Programme & Agenda</h1>
-        <p className="text-muted-foreground">
-          Gérez le programme complet de votre événement : sessions, timeline et participants
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-[#004645]" style={{ fontFamily: "var(--font-abril)" }}>
+            Programme de l&apos;événement
+          </h1>
+          <p className="text-[#004645]/70 mt-1">
+            Créez et organisez le programme complet de votre événement
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            onClick={handleExport}
+            className="border-[#009197] text-[#009197] hover:bg-[#009197]/10"
+          >
+            <Download className="h-4 w-4 mr-2" />
+            Exporter
+          </Button>
+          <label htmlFor="import-program">
+            <Button
+              variant="outline"
+              className="border-[#009197] text-[#009197] hover:bg-[#009197]/10"
+              asChild
+            >
+              <span>
+                <Upload className="h-4 w-4 mr-2" />
+                Importer
+              </span>
+            </Button>
+            <input
+              id="import-program"
+              type="file"
+              accept=".json"
+              className="hidden"
+              onChange={handleImport}
+            />
+          </label>
+        </div>
       </div>
 
-      {/* Module Cards */}
-      <div className="grid md:grid-cols-2 gap-6">
-        {/* Sessions Module */}
-        <Link href={`/admin/events/${eventId}/sessions`}>
-          <Card className="hover:shadow-lg transition-all cursor-pointer group border-2 hover:border-primary">
-            <CardHeader>
-              <div className="flex items-center justify-between mb-2">
-                <div className="p-3 rounded-lg bg-blue-50">
-                  <Calendar className="h-8 w-8 text-blue-600" />
-                </div>
-                <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
+      {/* Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card className="border-[#9CD9F6]/30 bg-gradient-to-br from-[#009197]/5 to-white">
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-[#004645]/70">Sessions totales</p>
+                <p className="text-2xl font-bold text-[#004645]">{sessions.length}</p>
               </div>
-              <CardTitle className="text-2xl">Sessions & Activités</CardTitle>
-              <CardDescription>
-                Créez et gérez toutes les sessions de votre événement
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <div className="flex items-start gap-2 text-sm">
-                  <div className="mt-0.5">✅</div>
-                  <div>
-                    <strong>14 types de sessions</strong> : Keynote, Workshop, Repas, Pause, etc.
-                  </div>
-                </div>
-                <div className="flex items-start gap-2 text-sm">
-                  <div className="mt-0.5">✅</div>
-                  <div>
-                    <strong>Gestion des participants</strong> : Inscription, capacité, liste d&apos;attente
-                  </div>
-                </div>
-                <div className="flex items-start gap-2 text-sm">
-                  <div className="mt-0.5">✅</div>
-                  <div>
-                    <strong>Statuts avancés</strong> : Brouillon, Publié, En cours, Terminé
-                  </div>
-                </div>
-                <div className="flex items-start gap-2 text-sm">
-                  <div className="mt-0.5">✅</div>
-                  <div>
-                    <strong>Détails complets</strong> : Lieu, salle, horaires, tags
-                  </div>
-                </div>
-              </div>
-
-              <Button className="w-full" variant="default">
-                <Users className="h-4 w-4 mr-2" />
-                Gérer les sessions
-              </Button>
-            </CardContent>
-          </Card>
-        </Link>
-
-        {/* Timeline Module */}
-        <Link href={`/admin/events/${eventId}/timeline`}>
-          <Card className="hover:shadow-lg transition-all cursor-pointer group border-2 hover:border-primary">
-            <CardHeader>
-              <div className="flex items-center justify-between mb-2">
-                <div className="p-3 rounded-lg bg-purple-50">
-                  <Clock className="h-8 w-8 text-purple-600" />
-                </div>
-                <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
-              </div>
-              <CardTitle className="text-2xl">Timeline Globale</CardTitle>
-              <CardDescription>
-                Vue chronologique unifiée de tous les événements
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <div className="flex items-start gap-2 text-sm">
-                  <div className="mt-0.5">✅</div>
-                  <div>
-                    <strong>Vue unifiée</strong> : Sessions, transports et hébergements en un coup d&apos;œil
-                  </div>
-                </div>
-                <div className="flex items-start gap-2 text-sm">
-                  <div className="mt-0.5">✅</div>
-                  <div>
-                    <strong>Organisation par date</strong> : Timeline verticale groupée par jour
-                  </div>
-                </div>
-                <div className="flex items-start gap-2 text-sm">
-                  <div className="mt-0.5">✅</div>
-                  <div>
-                    <strong>Badges colorés</strong> : Identification rapide par type d&apos;événement
-                  </div>
-                </div>
-                <div className="flex items-start gap-2 text-sm">
-                  <div className="mt-0.5">✅</div>
-                  <div>
-                    <strong>Statistiques</strong> : Compteurs globaux et détails par participant
-                  </div>
-                </div>
-              </div>
-
-              <Button className="w-full" variant="default">
-                <Clock className="h-4 w-4 mr-2" />
-                Voir la timeline
-              </Button>
-            </CardContent>
-          </Card>
-        </Link>
-      </div>
-
-      {/* Info Banner */}
-      <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200">
-        <CardContent className="pt-6">
-          <div className="flex items-start gap-4">
-            <div className="p-2 rounded-lg bg-white">
-              <Calendar className="h-6 w-6 text-blue-600" />
+              <Calendar className="h-8 w-8 text-[#009197]" />
             </div>
-            <div className="flex-1">
-              <h3 className="font-semibold text-lg mb-1">Vision intégrée pour une organisation optimale</h3>
-              <p className="text-sm text-muted-foreground">
-                Le module Programme vous permet de créer toutes vos sessions (keynotes, workshops, repas, pauses)
-                et de les visualiser dans une timeline globale. Vous pouvez gérer les participants de chaque session
-                avec inscription, capacité et liste d&apos;attente automatique. La timeline unifiée vous donne une vue
-                d&apos;ensemble de l&apos;événement en intégrant les sessions, les transports et les hébergements.
-              </p>
+          </CardContent>
+        </Card>
+
+        <Card className="border-[#9CD9F6]/30 bg-gradient-to-br from-[#FF4713]/5 to-white">
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-[#004645]/70">Durée totale</p>
+                <p className="text-2xl font-bold text-[#004645]">
+                  {Math.floor(sessions.reduce((acc, s) => acc + s.duration, 0) / 60)}h
+                </p>
+              </div>
+              <Layout className="h-8 w-8 text-[#FF4713]" />
             </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Quick Stats */}
-      <div className="grid md:grid-cols-3 gap-4">
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Sessions disponibles</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">14 types</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Keynote, Workshop, Conférence, Team Building, Repas, etc.
-            </p>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Fonctionnalités</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">Complètes</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Gestion participants, capacité, waitlist, tags, visibilité
-            </p>
+        <Card className="border-[#9CD9F6]/30 bg-gradient-to-br from-purple-500/5 to-white">
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-[#004645]/70">Intervenants</p>
+                <p className="text-2xl font-bold text-[#004645]">
+                  {sessions.filter(s => s.speakers && Array.isArray(s.speakers) && s.speakers.length > 0).length}
+                </p>
+              </div>
+              <Wand2 className="h-8 w-8 text-purple-500" />
+            </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Timeline</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">Unifiée</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Vue globale intégrant sessions, transports et hébergements
-            </p>
+        <Card className="border-[#9CD9F6]/30 bg-gradient-to-br from-green-500/5 to-white">
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-[#004645]/70">Publiques</p>
+                <p className="text-2xl font-bold text-[#004645]">
+                  {sessions.filter(s => s.isPublic).length}
+                </p>
+              </div>
+              <Layout className="h-8 w-8 text-green-500" />
+            </div>
           </CardContent>
         </Card>
       </div>
+
+      {/* Main Content */}
+      <Tabs value={activeView} onValueChange={(v) => setActiveView(v as any)} className="w-full">
+        <TabsList className="grid w-full grid-cols-3 bg-[#9CD9F6]/20">
+          <TabsTrigger value="builder">
+            <Layout className="h-4 w-4 mr-2" />
+            Constructeur
+          </TabsTrigger>
+          <TabsTrigger value="timeline">
+            <Calendar className="h-4 w-4 mr-2" />
+            Timeline
+          </TabsTrigger>
+          <TabsTrigger value="templates">
+            <Wand2 className="h-4 w-4 mr-2" />
+            Templates
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="builder" className="mt-6">
+          <ProgramBuilder
+            eventId={eventId}
+            sessions={sessions}
+            onUpdate={fetchSessions}
+          />
+        </TabsContent>
+
+        <TabsContent value="timeline" className="mt-6">
+          <ProgramTimeline
+            eventId={eventId}
+            sessions={sessions}
+            onUpdate={fetchSessions}
+          />
+        </TabsContent>
+
+        <TabsContent value="templates" className="mt-6">
+          <ProgramTemplates
+            eventId={eventId}
+            onApply={(template) => {
+              // Appliquer le template
+              fetchSessions()
+            }}
+          />
+        </TabsContent>
+      </Tabs>
     </div>
   )
 }
