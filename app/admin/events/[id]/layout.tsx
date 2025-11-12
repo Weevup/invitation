@@ -50,18 +50,9 @@ export default function EventLayout({
 
   // Module-based navigation items (conditionally added)
   // Check if any advanced modules are active
-  const hasAdvancedModules = hasModule('PROGRAM') || hasModule('TRANSPORT') || hasModule('ACCOMMODATION')
+  const hasAdvancedModules = hasModule('TRANSPORT') || hasModule('ACCOMMODATION')
 
   const moduleNavItems = []
-
-  // Add program module if active
-  if (hasModule('PROGRAM')) {
-    moduleNavItems.push({
-      label: 'Programme',
-      href: `/admin/events/${eventId}/program`,
-      icon: Calendar,
-    })
-  }
 
   // Single unified operations page if any module is active
   if (hasAdvancedModules) {
@@ -87,6 +78,11 @@ export default function EventLayout({
           label: 'Showcase',
           href: `/admin/events/${eventId}/showcase`,
           icon: Sparkles,
+        },
+        {
+          label: 'Programme',
+          href: `/admin/events/${eventId}/program`,
+          icon: Calendar,
         },
         {
           label: 'Invités',
