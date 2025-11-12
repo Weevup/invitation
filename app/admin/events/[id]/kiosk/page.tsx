@@ -397,7 +397,7 @@ export default function KioskModePage() {
                 <div className="flex items-center justify-center h-full">
                   <div className="text-center text-white/70">
                     <Camera className="h-24 w-24 mx-auto mb-4 opacity-50" />
-                    <p className="text-lg">Cliquez sur "Démarrer" pour activer la caméra</p>
+                    <p className="text-lg">Cliquez sur &quot;Démarrer&quot; pour activer la caméra</p>
                   </div>
                 </div>
               )}
