@@ -39,7 +39,7 @@ export default function EventLayout({
   const [event, setEvent] = useState<EventData | null>(null)
 
   // Check which modules are active
-  const { hasModule } = useEventModules(eventId)
+  const { hasModule, isLoading } = useEventModules(eventId)
 
   useEffect(() => {
     fetch(`/api/admin/events/${eventId}`)
@@ -49,27 +49,27 @@ export default function EventLayout({
   }, [eventId])
 
   // Module-based navigation items (conditionally added)
-  // Check if any advanced modules are active
-  const hasAdvancedModules = hasModule('PROGRAM') || hasModule('TRANSPORT') || hasModule('ACCOMMODATION')
-
   const moduleNavItems = []
 
-  // Planning Opérationnel first (if Transport or Accommodation module is active)
-  if (hasModule('TRANSPORT') || hasModule('ACCOMMODATION')) {
-    moduleNavItems.push({
-      label: 'Planning Opérationnel',
-      href: `/admin/events/${eventId}/operations`,
-      icon: BarChart3,
-    })
-  }
+  // Only add modules if they're loaded (not during initial loading state)
+  if (!isLoading) {
+    // Planning Opérationnel first (if Transport or Accommodation module is active)
+    if (hasModule('TRANSPORT') || hasModule('ACCOMMODATION')) {
+      moduleNavItems.push({
+        label: 'Planning Opérationnel',
+        href: `/admin/events/${eventId}/operations`,
+        icon: BarChart3,
+      })
+    }
 
-  // Then Program module if active
-  if (hasModule('PROGRAM')) {
-    moduleNavItems.push({
-      label: 'Programme',
-      href: `/admin/events/${eventId}/program`,
-      icon: Calendar,
-    })
+    // Then Program module if active
+    if (hasModule('PROGRAM')) {
+      moduleNavItems.push({
+        label: 'Programme',
+        href: `/admin/events/${eventId}/program`,
+        icon: Calendar,
+      })
+    }
   }
 
   // Navigation organized by sections for better UX
