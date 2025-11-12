@@ -347,13 +347,11 @@ export function ShowcaseBuilder({ eventId, eventSlug, initialData }: ShowcaseBui
       {enabled && (
         <>
         <Tabs defaultValue="content" className="w-full">
-          <TabsList className="grid w-full grid-cols-6 bg-[#9CD9F6]/20 mb-6">
+          <TabsList className="grid w-full grid-cols-4 bg-[#9CD9F6]/20 mb-6">
             <TabsTrigger value="content">📝 Contenu</TabsTrigger>
             <TabsTrigger value="sections">🎯 Sections</TabsTrigger>
-            <TabsTrigger value="sectionContent">✏️ Textes</TabsTrigger>
-            <TabsTrigger value="theme">🎨 Thème</TabsTrigger>
-            <TabsTrigger value="media">🎬 Média</TabsTrigger>
-            <TabsTrigger value="advanced">⚙️ Avancé</TabsTrigger>
+            <TabsTrigger value="sectionContent">✏️ Éditer sections</TabsTrigger>
+            <TabsTrigger value="theme">🎨 Thème & Style</TabsTrigger>
           </TabsList>
 
           {/* Tab: Contenu */}
@@ -507,6 +505,47 @@ export function ShowcaseBuilder({ eventId, eventSlug, initialData }: ShowcaseBui
               )}
             </CardContent>
           </Card>
+
+          {/* Vidéo section intégrée */}
+          <Card className="border-[#9CD9F6]/30 bg-white/80 backdrop-blur">
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <Video className="h-5 w-5 text-[#009197]" />
+                <div>
+                  <CardTitle className="text-[#004645]">Vidéo</CardTitle>
+                  <CardDescription>Ajoutez une vidéo YouTube ou Vimeo à la section vidéo</CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <Label htmlFor="video-url" className="text-[#004645]">URL de la vidéo</Label>
+              <Input
+                id="video-url"
+                value={videoUrl}
+                onChange={(e) => setVideoUrl(e.target.value)}
+                placeholder="https://www.youtube.com/watch?v=..."
+                className="border-[#9CD9F6]/30"
+              />
+              <p className="text-xs text-[#004645]/70 mt-2">
+                Formats supportés: YouTube, Vimeo, Dailymotion
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* Galerie */}
+          <GalleryEditor images={gallery} onChange={setGallery} />
+
+          {/* Speakers */}
+          <SpeakersEditor speakers={speakers} onChange={setSpeakers} />
+
+          {/* Sponsors */}
+          <SponsorsEditor sponsors={sponsors} onChange={setSponsors} />
+
+          {/* Timeline */}
+          <TimelineEditor timeline={timeline} onChange={setTimeline} />
+
+          {/* FAQ */}
+          <FAQEditor faqs={faq} onChange={setFaq} />
         </TabsContent>
 
         {/* Tab: Theme */}
@@ -591,49 +630,12 @@ export function ShowcaseBuilder({ eventId, eventSlug, initialData }: ShowcaseBui
               </div>
             </CardContent>
           </Card>
-        </TabsContent>
 
-        {/* Tab: Media */}
-        <TabsContent value="media" className="space-y-4">
-          <Card className="border-[#9CD9F6]/30 bg-white/80 backdrop-blur">
-            <CardHeader>
-              <div className="flex items-center gap-3">
-                <Video className="h-5 w-5 text-[#009197]" />
-                <div>
-                  <CardTitle className="text-[#004645]">Vidéo</CardTitle>
-                  <CardDescription>Ajoutez une vidéo YouTube ou Vimeo</CardDescription>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <Label htmlFor="video-url" className="text-[#004645]">URL de la vidéo</Label>
-              <Input
-                id="video-url"
-                value={videoUrl}
-                onChange={(e) => setVideoUrl(e.target.value)}
-                placeholder="https://www.youtube.com/watch?v=..."
-                className="border-[#9CD9F6]/30"
-              />
-              <p className="text-xs text-[#004645]/70 mt-2">
-                Formats supportés: YouTube, Vimeo, Dailymotion
-              </p>
-            </CardContent>
-          </Card>
-
-          <GalleryEditor images={gallery} onChange={setGallery} />
-        </TabsContent>
-
-        {/* Tab: Advanced */}
-        <TabsContent value="advanced" className="space-y-4">
-          <SpeakersEditor speakers={speakers} onChange={setSpeakers} />
-          <SponsorsEditor sponsors={sponsors} onChange={setSponsors} />
-          <TimelineEditor timeline={timeline} onChange={setTimeline} />
-          <FAQEditor faqs={faq} onChange={setFaq} />
-
+          {/* CSS Personnalisé déplacé dans Theme */}
           <Card className="border-[#9CD9F6]/30 bg-white/80 backdrop-blur">
             <CardHeader>
               <CardTitle className="text-[#004645]">CSS Personnalisé</CardTitle>
-              <CardDescription>Pour les utilisateurs avancés</CardDescription>
+              <CardDescription>Pour les utilisateurs avancés - style global de la page</CardDescription>
             </CardHeader>
             <CardContent>
               <Textarea
