@@ -17,7 +17,8 @@ import {
   Calendar,
   MapPin,
   BarChart3,
-  TrendingUp
+  TrendingUp,
+  MailOpen
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useEventModules } from '@/lib/modules'
@@ -128,6 +129,11 @@ export default function EventLayout({
           label: 'Envoi & Suivi',
           href: `/admin/events/${eventId}/communications`,
           icon: Settings,
+        },
+        {
+          label: 'Analytics Emails',
+          href: `/admin/events/${eventId}/email-analytics`,
+          icon: MailOpen,
         },
       ],
     },
