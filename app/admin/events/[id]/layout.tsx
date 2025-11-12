@@ -16,7 +16,8 @@ import {
   ChevronLeft,
   Calendar,
   MapPin,
-  BarChart3
+  BarChart3,
+  TrendingUp
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useEventModules } from '@/lib/modules'
@@ -97,6 +98,11 @@ export default function EventLayout({
           label: 'Check-in',
           href: `/admin/events/${eventId}/checkin`,
           icon: QrCode,
+        },
+        {
+          label: 'Analytics Pro',
+          href: `/admin/events/${eventId}/analytics-pro`,
+          icon: TrendingUp,
         },
       ],
     },
