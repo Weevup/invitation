@@ -399,8 +399,8 @@ export default function EmailAnalyticsPage() {
                     </p>
                   )}
                   <div className="flex items-center gap-2 mt-1 justify-end">
-                    {email.openedAt && <CheckCircle className="h-4 w-4 text-green-600" title="Ouvert" />}
-                    {email.clickedAt && <MousePointerClick className="h-4 w-4 text-pink-600" title="Cliqué" />}
+                    {email.openedAt && <CheckCircle className="h-4 w-4 text-green-600" />}
+                    {email.clickedAt && <MousePointerClick className="h-4 w-4 text-pink-600" />}
                   </div>
                 </div>
               </div>
