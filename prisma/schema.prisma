@@ -216,6 +216,7 @@ model Event {
   showcaseVideo         String? // YouTube or Vimeo embed URL
   showcaseSocialShare   Boolean @default(true)
   showcaseCountdown     Boolean @default(true)
+  showcaseSectionContents Json?   // Custom content per section {sectionId: {title, subtitle, description, image, buttons, customHTML}}
 
   // Admin
   adminId String

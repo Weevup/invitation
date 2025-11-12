@@ -41,6 +41,7 @@ export async function GET(
         showcaseSpeakers: true,
         showcaseSponsors: true,
         showcaseTimeline: true,
+        showcaseSectionContents: true,
       },
     })
 

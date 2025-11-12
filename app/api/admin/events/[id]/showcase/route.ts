@@ -55,6 +55,15 @@ export async function PATCH(
       showcaseSecondaryColor,
       showcaseSections,
       showcaseCustomCSS,
+      showcaseGallery,
+      showcaseFAQ,
+      showcaseVideo,
+      showcaseCountdown,
+      showcaseSocialShare,
+      showcaseSpeakers,
+      showcaseSponsors,
+      showcaseTimeline,
+      showcaseSectionContents,
     } = body
 
     // Validate showcaseSections if provided
@@ -96,6 +105,15 @@ export async function PATCH(
         showcaseSecondaryColor: showcaseSecondaryColor || '#FF4713',
         showcaseSections: validatedSections,
         showcaseCustomCSS: showcaseCustomCSS || null,
+        showcaseGallery: showcaseGallery || null,
+        showcaseFAQ: showcaseFAQ || null,
+        showcaseVideo: showcaseVideo || null,
+        showcaseCountdown: showcaseCountdown ?? true,
+        showcaseSocialShare: showcaseSocialShare ?? true,
+        showcaseSpeakers: showcaseSpeakers || null,
+        showcaseSponsors: showcaseSponsors || null,
+        showcaseTimeline: showcaseTimeline || null,
+        showcaseSectionContents: showcaseSectionContents || null,
       },
     })
 
