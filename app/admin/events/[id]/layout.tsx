@@ -39,7 +39,7 @@ export default function EventLayout({
   const [event, setEvent] = useState<EventData | null>(null)
 
   // Check which modules are active
-  const { hasModule, isLoading } = useEventModules(eventId)
+  const { hasModule, loading } = useEventModules(eventId)
 
   useEffect(() => {
     fetch(`/api/admin/events/${eventId}`)
@@ -52,7 +52,7 @@ export default function EventLayout({
   const moduleNavItems = []
 
   // Only add modules if they're loaded (not during initial loading state)
-  if (!isLoading) {
+  if (!loading) {
     // Planning Opérationnel first (if Transport or Accommodation module is active)
     if (hasModule('TRANSPORT') || hasModule('ACCOMMODATION')) {
       moduleNavItems.push({
