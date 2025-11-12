@@ -198,10 +198,14 @@ export function ProgramBuilder({ eventId, sessions, onUpdate }: ProgramBuilderPr
               {daySessions.map((session) => (
                 <div
                   key={session.id}
-                  draggable
-                  onDragStart={() => handleDragStart(session.id)}
+                  draggable={true}
+                  onDragStart={(e) => {
+                    e.dataTransfer.effectAllowed = 'move'
+                    handleDragStart(session.id)
+                  }}
                   onDragOver={handleDragOver}
                   onDrop={(e) => handleDrop(e, session.id)}
+                  onDragEnd={() => setDraggedSession(null)}
                   className={`
                     group relative flex items-center gap-3 p-4 rounded-lg border-2 transition-all cursor-move
                     ${draggedSession === session.id
