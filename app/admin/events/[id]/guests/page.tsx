@@ -33,6 +33,17 @@ interface Guest {
   tags: string[]
   status: string
   token: string
+  // Professional information
+  jobTitle?: string
+  department?: string
+  companySize?: string
+  industry?: string
+  phoneNumber?: string
+  linkedinUrl?: string
+  // Event needs
+  dietaryReqs?: string
+  accessibility?: string
+  adminNotes?: string
   rsvp?: {
     attending?: boolean
     plusOnes: number
@@ -68,6 +79,10 @@ export default function GuestsPage() {
   const [selectedGuest, setSelectedGuest] = useState<Guest | null>(null)
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [tagFilter, setTagFilter] = useState<string>('all')
+  // Professional filters
+  const [companySizeFilter, setCompanySizeFilter] = useState<string>('all')
+  const [industryFilter, setIndustryFilter] = useState<string>('all')
+  const [jobTitleFilter, setJobTitleFilter] = useState<string>('all')
 
   const fetchEvent = useCallback(async () => {
     try {
@@ -178,6 +193,10 @@ export default function GuestsPage() {
   // Get all unique tags
   const allTags = Array.from(new Set(event.guests.flatMap((g) => g.tags)))
 
+  // Get all unique professional fields
+  const allIndustries = Array.from(new Set(event.guests.map((g) => g.industry).filter(Boolean))) as string[]
+  const allJobTitles = Array.from(new Set(event.guests.map((g) => g.jobTitle).filter(Boolean))) as string[]
+
   const filteredGuests = event.guests.filter((guest) => {
     const searchLower = search.toLowerCase()
     const matchesSearch =
@@ -185,6 +204,8 @@ export default function GuestsPage() {
       guest.lastName.toLowerCase().includes(searchLower) ||
       guest.email.toLowerCase().includes(searchLower) ||
       guest.company?.toLowerCase().includes(searchLower) ||
+      guest.jobTitle?.toLowerCase().includes(searchLower) ||
+      guest.industry?.toLowerCase().includes(searchLower) ||
       guest.tags.some((tag) => tag.toLowerCase().includes(searchLower))
 
     // Status filter
@@ -198,7 +219,17 @@ export default function GuestsPage() {
     const matchesTag =
       tagFilter === 'all' || guest.tags.includes(tagFilter)
 
-    return matchesSearch && matchesStatus && matchesTag
+    // Professional filters
+    const matchesCompanySize =
+      companySizeFilter === 'all' || guest.companySize === companySizeFilter
+
+    const matchesIndustry =
+      industryFilter === 'all' || guest.industry === industryFilter
+
+    const matchesJobTitle =
+      jobTitleFilter === 'all' || guest.jobTitle === jobTitleFilter
+
+    return matchesSearch && matchesStatus && matchesTag && matchesCompanySize && matchesIndustry && matchesJobTitle
   })
 
   const hasGuests = event.guests.length > 0
@@ -287,13 +318,57 @@ export default function GuestsPage() {
                 </SelectContent>
               </Select>
 
-              {(statusFilter !== 'all' || tagFilter !== 'all') && (
+              <Select value={companySizeFilter} onValueChange={setCompanySizeFilter}>
+                <SelectTrigger className="w-[200px] border-[#9CD9F6]/50">
+                  <SelectValue placeholder="Taille entreprise" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Toutes tailles</SelectItem>
+                  <SelectItem value="TPE">🏪 TPE (1-10)</SelectItem>
+                  <SelectItem value="PME">🏢 PME (11-250)</SelectItem>
+                  <SelectItem value="ETI">🏭 ETI (251-5000)</SelectItem>
+                  <SelectItem value="GE">🏛️ Grande Ent. (5000+)</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Select value={industryFilter} onValueChange={setIndustryFilter}>
+                <SelectTrigger className="w-[180px] border-[#9CD9F6]/50">
+                  <SelectValue placeholder="Secteur" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tous secteurs</SelectItem>
+                  {allIndustries.map((industry) => (
+                    <SelectItem key={industry} value={industry}>
+                      {industry}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Select value={jobTitleFilter} onValueChange={setJobTitleFilter}>
+                <SelectTrigger className="w-[180px] border-[#9CD9F6]/50">
+                  <SelectValue placeholder="Fonction" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Toutes fonctions</SelectItem>
+                  {allJobTitles.map((jobTitle) => (
+                    <SelectItem key={jobTitle} value={jobTitle}>
+                      {jobTitle}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              {(statusFilter !== 'all' || tagFilter !== 'all' || companySizeFilter !== 'all' || industryFilter !== 'all' || jobTitleFilter !== 'all') && (
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => {
                     setStatusFilter('all')
                     setTagFilter('all')
+                    setCompanySizeFilter('all')
+                    setIndustryFilter('all')
+                    setJobTitleFilter('all')
                   }}
                   className="text-[#FF4713]"
                 >
