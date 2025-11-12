@@ -1,188 +1,249 @@
-"use client"
+'use client'
 
-import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
-import { Card, CardContent } from '@/components/ui/card'
+import { useState, useEffect } from 'react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Plus, Calendar, Clock, Users, TrendingUp, Loader2 } from 'lucide-react'
 import { ProgramBuilder } from '@/components/program/program-builder'
-import { Calendar, Layout, Wand2, Download, Upload } from 'lucide-react'
+import { SessionEditor } from '@/components/program/session-editor'
+import { ProgramTimeline } from '@/components/program/program-timeline'
+import { ProgramTemplates } from '@/components/program/program-templates'
 
 interface Session {
   id: string
   title: string
-  description: string | null
   type: string
-  status: string
   startTime: string
   endTime: string
   duration: number
   venue: string | null
   room: string | null
-  capacity: number | null
   speakers: any
   color: string | null
-  icon: string | null
   isPublic: boolean
-  order: number
+}
+
+interface ProgramStats {
+  totalSessions: number
+  totalDuration: number
+  publicSessions: number
+  sessionsByType: { [key: string]: number }
 }
 
 export default function ProgramPage() {
   const params = useParams()
   const eventId = params.id as string
-  const [sessions, setSessions] = useState<Session[]>([])
-  const [loading, setLoading] = useState(true)
 
-  const fetchSessions = async () => {
-    setLoading(true)
+  const [sessions, setSessions] = useState<Session[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [showEditor, setShowEditor] = useState(false)
+  const [editingSession, setEditingSession] = useState<Session | null>(null)
+  const [activeTab, setActiveTab] = useState('builder')
+
+  useEffect(() => {
+    loadSessions()
+  }, [eventId])
+
+  const loadSessions = async () => {
     try {
+      setIsLoading(true)
       const response = await fetch(`/api/admin/events/${eventId}/sessions`)
       if (response.ok) {
         const data = await response.json()
-        setSessions(data.sessions || [])
+        setSessions(data)
       }
     } catch (error) {
-      console.error('Error fetching sessions:', error)
+      console.error('Error loading sessions:', error)
     } finally {
-      setLoading(false)
+      setIsLoading(false)
     }
   }
 
-  useEffect(() => {
-    fetchSessions()
-  }, [eventId])
+  const calculateStats = (): ProgramStats => {
+    const stats: ProgramStats = {
+      totalSessions: sessions.length,
+      totalDuration: 0,
+      publicSessions: 0,
+      sessionsByType: {}
+    }
 
-  const handleExport = () => {
-    const dataStr = JSON.stringify(sessions, null, 2)
-    const dataBlob = new Blob([dataStr], { type: 'application/json' })
-    const url = URL.createObjectURL(dataBlob)
-    const link = document.createElement('a')
-    link.href = url
-    link.download = `programme-${eventId}.json`
-    link.click()
+    sessions.forEach(session => {
+      stats.totalDuration += session.duration || 0
+      if (session.isPublic) stats.publicSessions++
+      stats.sessionsByType[session.type] = (stats.sessionsByType[session.type] || 0) + 1
+    })
+
+    return stats
   }
 
-  const handleImport = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    if (file) {
-      const reader = new FileReader()
-      reader.onload = (e) => {
-        try {
-          const imported = JSON.parse(e.target?.result as string)
-          setSessions(imported)
-        } catch (error) {
-          console.error('Error importing program:', error)
-        }
-      }
-      reader.readAsText(file)
-    }
+  const handleCreateSession = () => {
+    setEditingSession(null)
+    setShowEditor(true)
+  }
+
+  const handleEditSession = (session: Session) => {
+    setEditingSession(session)
+    setShowEditor(true)
+  }
+
+  const handleSaveSession = async () => {
+    setShowEditor(false)
+    setEditingSession(null)
+    await loadSessions()
+  }
+
+  const handleApplyTemplate = async (template: any) => {
+    // TODO: Implement template application
+    console.log('Applying template:', template)
+  }
+
+  const stats = calculateStats()
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin text-[#009197]" />
+      </div>
+    )
   }
 
   return (
-    <div className="container mx-auto py-8 px-4 space-y-6">
+    <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-[#004645]" style={{ fontFamily: "var(--font-abril)" }}>
-            Programme de l&apos;événement
+          <h1 className="text-3xl font-bold tracking-tight text-[#004645]">
+            Programme de l&apos;evenement
           </h1>
-          <p className="text-[#004645]/70 mt-1">
-            Gerez et organisez toutes les sessions de votre evenement
+          <p className="text-[#004645]/70">
+            Creez et organisez toutes les sessions de votre evenement
           </p>
         </div>
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            onClick={handleExport}
-            className="border-[#009197] text-[#009197] hover:bg-[#009197]/10"
-          >
-            <Download className="h-4 w-4 mr-2" />
-            Exporter
-          </Button>
-          <label htmlFor="import-program">
-            <Button
-              variant="outline"
-              className="border-[#009197] text-[#009197] hover:bg-[#009197]/10"
-              asChild
-            >
-              <span>
-                <Upload className="h-4 w-4 mr-2" />
-                Importer
-              </span>
-            </Button>
-            <input
-              id="import-program"
-              type="file"
-              accept=".json"
-              className="hidden"
-              onChange={handleImport}
-            />
-          </label>
-        </div>
+        <Button
+          onClick={handleCreateSession}
+          className="bg-[#FF4713] hover:bg-[#FF6B3D] text-white"
+        >
+          <Plus className="h-4 w-4 mr-2" />
+          Creer une session
+        </Button>
       </div>
 
-      {/* Stats */}
+      {/* Statistics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card className="border-[#9CD9F6]/30 bg-gradient-to-br from-[#009197]/5 to-white">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-[#004645]/70">Sessions totales</p>
-                <p className="text-2xl font-bold text-[#004645]">{sessions.length}</p>
-              </div>
-              <Calendar className="h-8 w-8 text-[#009197]" />
-            </div>
+        <Card className="border-[#9CD9F6]/30">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-[#004645]/70 flex items-center gap-2">
+              <Calendar className="h-4 w-4" />
+              Sessions totales
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold text-[#004645]">{stats.totalSessions}</div>
+            <p className="text-xs text-[#004645]/60 mt-1">
+              {stats.publicSessions} publiques
+            </p>
           </CardContent>
         </Card>
 
-        <Card className="border-[#9CD9F6]/30 bg-gradient-to-br from-[#FF4713]/5 to-white">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-[#004645]/70">Durée totale</p>
-                <p className="text-2xl font-bold text-[#004645]">
-                  {Math.floor(sessions.reduce((acc, s) => acc + s.duration, 0) / 60)}h
-                </p>
-              </div>
-              <Layout className="h-8 w-8 text-[#FF4713]" />
+        <Card className="border-[#9CD9F6]/30">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-[#004645]/70 flex items-center gap-2">
+              <Clock className="h-4 w-4" />
+              Duree totale
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold text-[#004645]">
+              {Math.floor(stats.totalDuration / 60)}h{stats.totalDuration % 60}m
             </div>
+            <p className="text-xs text-[#004645]/60 mt-1">
+              Programme complet
+            </p>
           </CardContent>
         </Card>
 
-        <Card className="border-[#9CD9F6]/30 bg-gradient-to-br from-purple-500/5 to-white">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-[#004645]/70">Intervenants</p>
-                <p className="text-2xl font-bold text-[#004645]">
-                  {sessions.filter(s => s.speakers && Array.isArray(s.speakers) && s.speakers.length > 0).length}
-                </p>
-              </div>
-              <Wand2 className="h-8 w-8 text-purple-500" />
+        <Card className="border-[#9CD9F6]/30">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-[#004645]/70 flex items-center gap-2">
+              <Users className="h-4 w-4" />
+              Types de sessions
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold text-[#004645]">
+              {Object.keys(stats.sessionsByType).length}
             </div>
+            <p className="text-xs text-[#004645]/60 mt-1">
+              Varietes d&apos;activites
+            </p>
           </CardContent>
         </Card>
 
-        <Card className="border-[#9CD9F6]/30 bg-gradient-to-br from-green-500/5 to-white">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-[#004645]/70">Publiques</p>
-                <p className="text-2xl font-bold text-[#004645]">
-                  {sessions.filter(s => s.isPublic).length}
-                </p>
-              </div>
-              <Layout className="h-8 w-8 text-green-500" />
+        <Card className="border-[#9CD9F6]/30">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-[#004645]/70 flex items-center gap-2">
+              <TrendingUp className="h-4 w-4" />
+              Completion
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold text-[#004645]">
+              {sessions.length > 0 ? '100' : '0'}%
             </div>
+            <p className="text-xs text-[#004645]/60 mt-1">
+              Programme configure
+            </p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Main Content - Programme Builder */}
-      <ProgramBuilder
-        eventId={eventId}
-        sessions={sessions}
-        onUpdate={fetchSessions}
-      />
+      {/* Main Content Tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="grid w-full grid-cols-3 lg:w-[400px]">
+          <TabsTrigger value="builder">Organisateur</TabsTrigger>
+          <TabsTrigger value="timeline">Timeline</TabsTrigger>
+          <TabsTrigger value="templates">Templates</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="builder" className="space-y-4">
+          <ProgramBuilder
+            eventId={eventId}
+            sessions={sessions}
+            onEdit={handleEditSession}
+            onUpdate={loadSessions}
+          />
+        </TabsContent>
+
+        <TabsContent value="timeline" className="space-y-4">
+          <ProgramTimeline
+            eventId={eventId}
+            sessions={sessions}
+            onUpdate={loadSessions}
+          />
+        </TabsContent>
+
+        <TabsContent value="templates" className="space-y-4">
+          <ProgramTemplates
+            eventId={eventId}
+            onApply={handleApplyTemplate}
+          />
+        </TabsContent>
+      </Tabs>
+
+      {/* Session Editor Dialog */}
+      {showEditor && (
+        <SessionEditor
+          eventId={eventId}
+          session={editingSession}
+          onSave={handleSaveSession}
+          onCancel={() => {
+            setShowEditor(false)
+            setEditingSession(null)
+          }}
+        />
+      )}
     </div>
   )
 }
