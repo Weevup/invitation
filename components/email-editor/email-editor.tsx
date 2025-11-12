@@ -88,7 +88,7 @@ export function EmailEditor({ initialTemplate, onChange }: EmailEditorProps) {
   const updateBlock = (blockId: string, updates: Partial<EmailBlock>) => {
     updateTemplate({
       blocks: template.blocks.map(block =>
-        block.id === blockId ? { ...block, ...updates } : block
+        block.id === blockId ? { ...block, ...updates } as EmailBlock : block
       ),
     })
   }
