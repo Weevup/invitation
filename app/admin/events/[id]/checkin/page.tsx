@@ -1,13 +1,13 @@
 "use client"
 
 import { useEffect, useState, useCallback, useRef } from 'react'
-import { useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import {
-  QrCode, CheckCircle2, Users, Clock, Search, X, Camera, CameraOff, UserCheck
+  QrCode, CheckCircle2, Users, Clock, Search, X, Camera, CameraOff, UserCheck, Maximize
 } from 'lucide-react'
 import { toast } from 'sonner'
 import jsQR from 'jsqr'
@@ -41,6 +41,7 @@ interface CheckinStats {
 
 export default function CheckinPage() {
   const params = useParams()
+  const router = useRouter()
   const eventId = params.id as string
 
   const [guests, setGuests] = useState<Guest[]>([])
@@ -239,13 +240,23 @@ export default function CheckinPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h2 className="text-3xl font-bold text-[#004645] mb-2" style={{ fontFamily: "var(--font-abril)" }}>
-          Check-in des invités
-        </h2>
-        <p className="text-[#004645]/70">
-          Scannez les QR codes ou enregistrez manuellement vos invités
-        </p>
+      <div className="flex items-start justify-between">
+        <div>
+          <h2 className="text-3xl font-bold text-[#004645] mb-2" style={{ fontFamily: "var(--font-abril)" }}>
+            Check-in des invités
+          </h2>
+          <p className="text-[#004645]/70">
+            Scannez les QR codes ou enregistrez manuellement vos invités
+          </p>
+        </div>
+        <Button
+          onClick={() => router.push(`/admin/events/${eventId}/kiosk`)}
+          className="bg-gradient-to-r from-[#FF4713] to-[#FF6B3D] hover:from-[#FF5520] hover:to-[#FF7D4A] text-white shadow-lg"
+          size="lg"
+        >
+          <Maximize className="h-5 w-5 mr-2" />
+          Mode Kiosque
+        </Button>
       </div>
 
       {/* Stats */}
