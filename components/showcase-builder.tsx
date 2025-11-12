@@ -32,6 +32,7 @@ import { TemplateSelector } from '@/components/showcase/template-selector'
 import { DraggableSectionList } from '@/components/showcase/draggable-section-list'
 import { SectionEditor } from '@/components/showcase/section-editor'
 import { SectionContentEditor, type SectionContent, type SectionContents } from '@/components/showcase/section-content-editor'
+import { SectionBySectionEditor } from '@/components/showcase/section-by-section-editor'
 import { SplitPreview } from '@/components/showcase/split-preview'
 import { themePresets } from '@/lib/showcase-presets'
 import { type SectionConfig, type ShowcaseTemplate } from '@/lib/showcase-templates'
@@ -218,6 +219,12 @@ export function ShowcaseBuilder({ eventId, eventSlug, initialData }: ShowcaseBui
       ...prev,
       [sectionId]: content
     }))
+  }
+
+  const handleSectionConfigUpdate = (sectionId: string, updates: Partial<SectionConfig>) => {
+    setSectionConfigs(prev => prev.map(section =>
+      section.id === sectionId ? { ...section, ...updates } : section
+    ))
   }
 
   const handleSave = async () => {
@@ -464,88 +471,26 @@ export function ShowcaseBuilder({ eventId, eventSlug, initialData }: ShowcaseBui
           </Card>
         </TabsContent>
 
-        {/* Tab: Section Content - NOUVEAU */}
+        {/* Tab: Section Content - Édition fluide section par section */}
         <TabsContent value="sectionContent" className="space-y-4">
-          <Card className="border-[#9CD9F6]/30 bg-white/80 backdrop-blur">
-            <CardHeader>
-              <CardTitle className="text-[#004645]">Contenu des sections</CardTitle>
-              <CardDescription>
-                Personnalisez le texte, images et boutons de chaque section active
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {sectionConfigs.filter(s => s.enabled).length === 0 ? (
-                <p className="text-center text-[#004645]/60 py-8">
-                  Aucune section active. Allez dans l&apos;onglet &quot;Sections&quot; pour activer des sections.
-                </p>
-              ) : (
-                <div className="space-y-6">
-                  {sectionConfigs
-                    .filter(s => s.enabled)
-                    .map((section) => {
-                      const sectionInfo = availableSections.find(a => a.id === section.type)
-                      return (
-                        <div key={section.id} className="space-y-3">
-                          <div className="flex items-center gap-2 pb-2 border-b border-[#9CD9F6]/30">
-                            <span className="text-lg">{sectionInfo?.label || section.type}</span>
-                            <span className="text-xs text-[#004645]/60">
-                              {sectionInfo?.description}
-                            </span>
-                          </div>
-                          <SectionContentEditor
-                            sectionId={section.id}
-                            sectionType={section.type}
-                            content={sectionContents[section.id] || {}}
-                            onChange={(content) => handleSectionContentUpdate(section.id, content)}
-                          />
-                        </div>
-                      )
-                    })}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Vidéo section intégrée */}
-          <Card className="border-[#9CD9F6]/30 bg-white/80 backdrop-blur">
-            <CardHeader>
-              <div className="flex items-center gap-3">
-                <Video className="h-5 w-5 text-[#009197]" />
-                <div>
-                  <CardTitle className="text-[#004645]">Vidéo</CardTitle>
-                  <CardDescription>Ajoutez une vidéo YouTube ou Vimeo à la section vidéo</CardDescription>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <Label htmlFor="video-url" className="text-[#004645]">URL de la vidéo</Label>
-              <Input
-                id="video-url"
-                value={videoUrl}
-                onChange={(e) => setVideoUrl(e.target.value)}
-                placeholder="https://www.youtube.com/watch?v=..."
-                className="border-[#9CD9F6]/30"
-              />
-              <p className="text-xs text-[#004645]/70 mt-2">
-                Formats supportés: YouTube, Vimeo, Dailymotion
-              </p>
-            </CardContent>
-          </Card>
-
-          {/* Galerie */}
-          <GalleryEditor images={gallery} onChange={setGallery} />
-
-          {/* Speakers */}
-          <SpeakersEditor speakers={speakers} onChange={setSpeakers} />
-
-          {/* Sponsors */}
-          <SponsorsEditor sponsors={sponsors} onChange={setSponsors} />
-
-          {/* Timeline */}
-          <TimelineEditor timeline={timeline} onChange={setTimeline} />
-
-          {/* FAQ */}
-          <FAQEditor faqs={faq} onChange={setFaq} />
+          <SectionBySectionEditor
+            sectionConfigs={sectionConfigs}
+            sectionContents={sectionContents}
+            videoUrl={videoUrl}
+            gallery={gallery}
+            speakers={speakers}
+            sponsors={sponsors}
+            timeline={timeline}
+            faq={faq}
+            onSectionConfigUpdate={handleSectionConfigUpdate}
+            onSectionContentUpdate={handleSectionContentUpdate}
+            onVideoUrlChange={setVideoUrl}
+            onGalleryChange={setGallery}
+            onSpeakersChange={setSpeakers}
+            onSponsorsChange={setSponsors}
+            onTimelineChange={setTimeline}
+            onFaqChange={setFaq}
+          />
         </TabsContent>
 
         {/* Tab: Theme */}

@@ -117,6 +117,7 @@ export function ProgramTemplates({ eventId, onApply }: ProgramTemplatesProps) {
                 </ul>
               </div>
               <Button
+                type="button"
                 onClick={() => onApply(template)}
                 className="w-full bg-[#FF4713] hover:bg-[#FF6B3D] text-white"
               >

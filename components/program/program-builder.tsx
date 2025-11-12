@@ -81,7 +81,8 @@ export function ProgramBuilder({ eventId, sessions, onUpdate }: ProgramBuilderPr
     e.preventDefault()
   }
 
-  const handleDrop = async (targetSessionId: string) => {
+  const handleDrop = async (e: React.DragEvent, targetSessionId: string) => {
+    e.preventDefault()
     if (!draggedSession || draggedSession === targetSessionId) return
 
     const draggedIndex = sessions.findIndex(s => s.id === draggedSession)
@@ -174,6 +175,7 @@ export function ProgramBuilder({ eventId, sessions, onUpdate }: ProgramBuilderPr
             <p className="text-sm text-[#004645]/70">Glissez-déposez pour réorganiser</p>
           </div>
           <Button
+            type="button"
             onClick={() => setCreatingSession(true)}
             className="bg-[#FF4713] hover:bg-[#FF6B3D] text-white"
           >
@@ -199,7 +201,7 @@ export function ProgramBuilder({ eventId, sessions, onUpdate }: ProgramBuilderPr
                   draggable
                   onDragStart={() => handleDragStart(session.id)}
                   onDragOver={handleDragOver}
-                  onDrop={() => handleDrop(session.id)}
+                  onDrop={(e) => handleDrop(e, session.id)}
                   className={`
                     group relative flex items-center gap-3 p-4 rounded-lg border-2 transition-all cursor-move
                     ${draggedSession === session.id
@@ -237,6 +239,7 @@ export function ProgramBuilder({ eventId, sessions, onUpdate }: ProgramBuilderPr
 
                   <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     <Button
+                      type="button"
                       size="sm"
                       variant="ghost"
                       onClick={() => handleToggleVisibility(session)}
@@ -249,6 +252,7 @@ export function ProgramBuilder({ eventId, sessions, onUpdate }: ProgramBuilderPr
                       )}
                     </Button>
                     <Button
+                      type="button"
                       size="sm"
                       variant="ghost"
                       onClick={() => setEditingSession(session)}
@@ -257,6 +261,7 @@ export function ProgramBuilder({ eventId, sessions, onUpdate }: ProgramBuilderPr
                       <Edit className="h-4 w-4" />
                     </Button>
                     <Button
+                      type="button"
                       size="sm"
                       variant="ghost"
                       onClick={() => handleDuplicate(session)}
@@ -265,6 +270,7 @@ export function ProgramBuilder({ eventId, sessions, onUpdate }: ProgramBuilderPr
                       <Copy className="h-4 w-4" />
                     </Button>
                     <Button
+                      type="button"
                       size="sm"
                       variant="ghost"
                       onClick={() => handleDelete(session.id)}
@@ -284,6 +290,7 @@ export function ProgramBuilder({ eventId, sessions, onUpdate }: ProgramBuilderPr
             <CardContent className="py-12 text-center">
               <p className="text-[#004645]/60 mb-4">Aucune session pour le moment</p>
               <Button
+                type="button"
                 onClick={() => setCreatingSession(true)}
                 className="bg-[#FF4713] hover:bg-[#FF6B3D] text-white"
               >
