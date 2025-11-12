@@ -376,3 +376,121 @@ async function sendViaSMTP(
 
   return { success: true, messageId: info.messageId }
 }
+
+/**
+ * Legacy-compatible sendEmail function
+ * Automatically fetches active email integration and creates email logs
+ *
+ * @deprecated For new code, use sendEmail() with explicit EmailIntegration
+ */
+export async function sendEmailLegacy(params: {
+  to: string
+  subject: string
+  html: string
+  eventId: string
+  guestId: string
+  type: 'INVITE' | 'REMINDER' | 'CONFIRMATION' | 'SAVE_THE_DATE' | 'FOLLOW_UP' | 'CUSTOM'
+}): Promise<{ success: boolean; messageId?: string; error?: any }> {
+  const { prisma } = await import('./prisma')
+  const { EmailType, EmailStatus } = await import('@prisma/client')
+
+  try {
+    // Create email log
+    const emailLog = await prisma.emailLog.create({
+      data: {
+        eventId: params.eventId,
+        guestId: params.guestId,
+        type: params.type as any,
+        subject: params.subject,
+        status: EmailStatus.PENDING,
+      },
+    })
+
+    // Try to fetch active email integration from database
+    let integration: EmailIntegration | null = null
+    try {
+      const dbIntegration = await prisma.emailIntegration.findFirst({
+        where: { isActive: true }
+      })
+      if (dbIntegration && dbIntegration.apiKey) {
+        integration = {
+          id: dbIntegration.id,
+          provider: dbIntegration.provider as any,
+          apiKey: dbIntegration.apiKey ? decrypt(dbIntegration.apiKey) : null,
+          apiSecret: dbIntegration.apiSecret ? decrypt(dbIntegration.apiSecret) : null,
+          smtpHost: dbIntegration.smtpHost,
+          smtpPort: dbIntegration.smtpPort,
+          smtpUser: dbIntegration.smtpUser,
+          smtpPass: dbIntegration.smtpPass ? decrypt(dbIntegration.smtpPass) : null,
+          fromEmail: dbIntegration.fromEmail,
+          fromName: dbIntegration.fromName,
+          replyTo: dbIntegration.replyTo,
+          trackOpens: dbIntegration.trackOpens,
+          trackClicks: dbIntegration.trackClicks,
+        }
+      }
+    } catch (err) {
+      console.warn('No active email integration found, using SMTP fallback')
+    }
+
+    // Fallback to SMTP from environment variables if no integration
+    if (!integration) {
+      integration = {
+        id: 'env-smtp',
+        provider: 'SMTP',
+        smtpHost: process.env.SMTP_HOST || 'smtp.ethereal.email',
+        smtpPort: parseInt(process.env.SMTP_PORT || '587'),
+        smtpUser: process.env.SMTP_USER || undefined,
+        smtpPass: process.env.SMTP_PASSWORD || undefined,
+        fromEmail: process.env.EMAIL_FROM || 'noreply@invitation-manager.com',
+        fromName: process.env.EMAIL_FROM_NAME || 'Invitation Manager',
+        replyTo: undefined,
+        trackOpens: false,
+        trackClicks: false,
+      }
+    }
+
+    // Send email using new system
+    const emailData: EmailData = {
+      to: params.to,
+      subject: params.subject,
+      html: params.html,
+    }
+
+    const result = await sendEmail(emailData, integration)
+
+    if (result.success) {
+      // Update log
+      await prisma.emailLog.update({
+        where: { id: emailLog.id },
+        data: {
+          status: EmailStatus.SENT,
+          providerId: result.messageId,
+          sentAt: new Date(),
+        },
+      })
+
+      // Update guest last email
+      await prisma.guest.update({
+        where: { id: params.guestId },
+        data: { lastEmailAt: new Date() },
+      })
+
+      return { success: true, messageId: result.messageId }
+    } else {
+      // Update log with error
+      await prisma.emailLog.update({
+        where: { id: emailLog.id },
+        data: {
+          status: EmailStatus.FAILED,
+          error: result.error || 'Unknown error',
+        },
+      })
+
+      return { success: false, error: result.error }
+    }
+  } catch (error) {
+    console.error('Error in sendEmailLegacy:', error)
+    return { success: false, error }
+  }
+}

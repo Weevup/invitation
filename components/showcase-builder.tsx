@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from 'react'
+import { useState, useReducer, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -123,35 +123,116 @@ function migrateToSectionConfigs(oldSections: string[] | SectionConfig[]): Secti
   }))
 }
 
+// Types for reducer
+type ShowcaseData = {
+  enabled: boolean
+  title: string
+  subtitle: string
+  bannerImage: string
+  primaryColor: string
+  secondaryColor: string
+  sectionConfigs: SectionConfig[]
+  customCSS: string
+  gallery: string[]
+  faq: Array<{question: string; answer: string}>
+  videoUrl: string
+  countdown: boolean
+  socialShare: boolean
+  speakers: Speaker[]
+  sponsors: Sponsor[]
+  timeline: TimelineItem[]
+  sectionContents: SectionContents
+}
+
+type ShowcaseAction =
+  | { type: 'SET_ENABLED'; payload: boolean }
+  | { type: 'SET_TITLE'; payload: string }
+  | { type: 'SET_SUBTITLE'; payload: string }
+  | { type: 'SET_BANNER_IMAGE'; payload: string }
+  | { type: 'SET_PRIMARY_COLOR'; payload: string }
+  | { type: 'SET_SECONDARY_COLOR'; payload: string }
+  | { type: 'SET_SECTION_CONFIGS'; payload: SectionConfig[] }
+  | { type: 'SET_CUSTOM_CSS'; payload: string }
+  | { type: 'SET_GALLERY'; payload: string[] }
+  | { type: 'SET_FAQ'; payload: Array<{question: string; answer: string}> }
+  | { type: 'SET_VIDEO_URL'; payload: string }
+  | { type: 'SET_COUNTDOWN'; payload: boolean }
+  | { type: 'SET_SOCIAL_SHARE'; payload: boolean }
+  | { type: 'SET_SPEAKERS'; payload: Speaker[] }
+  | { type: 'SET_SPONSORS'; payload: Sponsor[] }
+  | { type: 'SET_TIMELINE'; payload: TimelineItem[] }
+  | { type: 'SET_SECTION_CONTENTS'; payload: SectionContents }
+  | { type: 'APPLY_TEMPLATE'; payload: { sections: SectionConfig[]; primaryColor: string; secondaryColor: string } }
+
+function showcaseReducer(state: ShowcaseData, action: ShowcaseAction): ShowcaseData {
+  switch (action.type) {
+    case 'SET_ENABLED':
+      return { ...state, enabled: action.payload }
+    case 'SET_TITLE':
+      return { ...state, title: action.payload }
+    case 'SET_SUBTITLE':
+      return { ...state, subtitle: action.payload }
+    case 'SET_BANNER_IMAGE':
+      return { ...state, bannerImage: action.payload }
+    case 'SET_PRIMARY_COLOR':
+      return { ...state, primaryColor: action.payload }
+    case 'SET_SECONDARY_COLOR':
+      return { ...state, secondaryColor: action.payload }
+    case 'SET_SECTION_CONFIGS':
+      return { ...state, sectionConfigs: action.payload }
+    case 'SET_CUSTOM_CSS':
+      return { ...state, customCSS: action.payload }
+    case 'SET_GALLERY':
+      return { ...state, gallery: action.payload }
+    case 'SET_FAQ':
+      return { ...state, faq: action.payload }
+    case 'SET_VIDEO_URL':
+      return { ...state, videoUrl: action.payload }
+    case 'SET_COUNTDOWN':
+      return { ...state, countdown: action.payload }
+    case 'SET_SOCIAL_SHARE':
+      return { ...state, socialShare: action.payload }
+    case 'SET_SPEAKERS':
+      return { ...state, speakers: action.payload }
+    case 'SET_SPONSORS':
+      return { ...state, sponsors: action.payload }
+    case 'SET_TIMELINE':
+      return { ...state, timeline: action.payload }
+    case 'SET_SECTION_CONTENTS':
+      return { ...state, sectionContents: action.payload }
+    case 'APPLY_TEMPLATE':
+      return {
+        ...state,
+        sectionConfigs: action.payload.sections,
+        primaryColor: action.payload.primaryColor,
+        secondaryColor: action.payload.secondaryColor,
+      }
+    default:
+      return state
+  }
+}
+
 export function ShowcaseBuilder({ eventId, eventSlug, initialData }: ShowcaseBuilderProps) {
-  const [enabled, setEnabled] = useState(initialData.showcaseEnabled)
-  const [title, setTitle] = useState(initialData.showcaseTitle || '')
-  const [subtitle, setSubtitle] = useState(initialData.showcaseSubtitle || '')
-  const [bannerImage, setBannerImage] = useState(initialData.showcaseBannerImage || '')
-  const [primaryColor, setPrimaryColor] = useState(initialData.showcasePrimaryColor)
-  const [secondaryColor, setSecondaryColor] = useState(initialData.showcaseSecondaryColor)
-
-  // Nouveau système de sections avec SectionConfig
-  const [sectionConfigs, setSectionConfigs] = useState<SectionConfig[]>(
-    migrateToSectionConfigs(initialData.showcaseSections || [])
-  )
-
-  const [customCSS, setCustomCSS] = useState(initialData.showcaseCustomCSS || '')
-
-  // Contenu multimédia
-  const [gallery, setGallery] = useState<string[]>(initialData.showcaseGallery || [])
-  const [faq, setFaq] = useState<Array<{question: string; answer: string}>>(initialData.showcaseFAQ || [])
-  const [videoUrl, setVideoUrl] = useState(initialData.showcaseVideo || '')
-  const [countdown, setCountdown] = useState(initialData.showcaseCountdown ?? true)
-  const [socialShare, setSocialShare] = useState(initialData.showcaseSocialShare ?? true)
-
-  // Contenu avancé
-  const [speakers, setSpeakers] = useState<Speaker[]>(initialData.showcaseSpeakers || [])
-  const [sponsors, setSponsors] = useState<Sponsor[]>(initialData.showcaseSponsors || [])
-  const [timeline, setTimeline] = useState<TimelineItem[]>(initialData.showcaseTimeline || [])
-
-  // Contenus personnalisés par section
-  const [sectionContents, setSectionContents] = useState<SectionContents>(initialData.showcaseSectionContents || {})
+  // Consolidated state with useReducer
+  const [data, dispatch] = useReducer(showcaseReducer, {
+    enabled: initialData.showcaseEnabled,
+    title: initialData.showcaseTitle || '',
+    subtitle: initialData.showcaseSubtitle || '',
+    bannerImage: initialData.showcaseBannerImage || '',
+    primaryColor: initialData.showcasePrimaryColor,
+    secondaryColor: initialData.showcaseSecondaryColor,
+    sectionConfigs: migrateToSectionConfigs(initialData.showcaseSections || []),
+    customCSS: initialData.showcaseCustomCSS || '',
+    gallery: initialData.showcaseGallery || [],
+    faq: initialData.showcaseFAQ || [],
+    videoUrl: initialData.showcaseVideo || '',
+    countdown: initialData.showcaseCountdown ?? true,
+    socialShare: initialData.showcaseSocialShare ?? true,
+    speakers: initialData.showcaseSpeakers || [],
+    sponsors: initialData.showcaseSponsors || [],
+    timeline: initialData.showcaseTimeline || [],
+    sectionContents: initialData.showcaseSectionContents || {},
+  })
 
   // UI States
   const [saving, setSaving] = useState(false)
@@ -164,45 +245,48 @@ export function ShowcaseBuilder({ eventId, eventSlug, initialData }: ShowcaseBui
   const [previewKey, setPreviewKey] = useState(0)
 
   // Handlers pour templates
-  const handleTemplateSelect = (template: ShowcaseTemplate) => {
-    setSectionConfigs(template.sections)
-    setPrimaryColor(template.primaryColor)
-    setSecondaryColor(template.secondaryColor)
+  const handleTemplateSelect = useCallback((template: ShowcaseTemplate) => {
+    dispatch({ type: 'APPLY_TEMPLATE', payload: template })
     setShowTemplateSelector(false)
-  }
+  }, [])
 
   // Handlers pour sections
-  const handleSectionsReorder = (newSections: SectionConfig[]) => {
-    setSectionConfigs(newSections)
-  }
+  const handleSectionsReorder = useCallback((newSections: SectionConfig[]) => {
+    dispatch({ type: 'SET_SECTION_CONFIGS', payload: newSections })
+  }, [])
 
-  const handleSectionToggle = (sectionId: string) => {
-    setSectionConfigs(prev =>
-      prev.map(s => s.id === sectionId ? { ...s, enabled: !s.enabled } : s)
-    )
-  }
+  const handleSectionToggle = useCallback((sectionId: string) => {
+    dispatch({
+      type: 'SET_SECTION_CONFIGS',
+      payload: data.sectionConfigs.map(s => s.id === sectionId ? { ...s, enabled: !s.enabled } : s)
+    })
+  }, [data.sectionConfigs])
 
-  const handleSectionEdit = (section: SectionConfig) => {
+  const handleSectionEdit = useCallback((section: SectionConfig) => {
     setEditingSection(section)
-  }
+  }, [])
 
-  const handleSectionUpdate = (updatedSection: SectionConfig) => {
-    setSectionConfigs(prev =>
-      prev.map(s => s.id === updatedSection.id ? updatedSection : s)
-    )
+  const handleSectionUpdate = useCallback((updatedSection: SectionConfig) => {
+    dispatch({
+      type: 'SET_SECTION_CONFIGS',
+      payload: data.sectionConfigs.map(s => s.id === updatedSection.id ? updatedSection : s)
+    })
     setEditingSection(null)
-  }
+  }, [data.sectionConfigs])
 
-  const handleSectionDelete = (sectionId: string) => {
-    setSectionConfigs(prev => prev.filter(s => s.id !== sectionId))
-  }
+  const handleSectionDelete = useCallback((sectionId: string) => {
+    dispatch({
+      type: 'SET_SECTION_CONFIGS',
+      payload: data.sectionConfigs.filter(s => s.id !== sectionId)
+    })
+  }, [data.sectionConfigs])
 
-  const handleAddSection = (type: string) => {
+  const handleAddSection = useCallback((type: string) => {
     const newSection: SectionConfig = {
       id: `${type}-${Date.now()}`,
       type,
       enabled: true,
-      order: sectionConfigs.length,
+      order: data.sectionConfigs.length,
       layout: 'container',
       alignment: 'center',
       paddingTop: 'lg',
@@ -210,24 +294,30 @@ export function ShowcaseBuilder({ eventId, eventSlug, initialData }: ShowcaseBui
       animationType: 'fade',
       animationDuration: 'normal',
     }
-    setSectionConfigs(prev => [...prev, newSection])
+    dispatch({
+      type: 'SET_SECTION_CONFIGS',
+      payload: [...data.sectionConfigs, newSection]
+    })
     setShowAddSection(false)
-  }
+  }, [data.sectionConfigs])
 
-  const handleSectionContentUpdate = (sectionId: string, content: SectionContent) => {
-    setSectionContents(prev => ({
-      ...prev,
-      [sectionId]: content
-    }))
-  }
+  const handleSectionContentUpdate = useCallback((sectionId: string, content: SectionContent) => {
+    dispatch({
+      type: 'SET_SECTION_CONTENTS',
+      payload: { ...data.sectionContents, [sectionId]: content }
+    })
+  }, [data.sectionContents])
 
-  const handleSectionConfigUpdate = (sectionId: string, updates: Partial<SectionConfig>) => {
-    setSectionConfigs(prev => prev.map(section =>
-      section.id === sectionId ? { ...section, ...updates } : section
-    ))
-  }
+  const handleSectionConfigUpdate = useCallback((sectionId: string, updates: Partial<SectionConfig>) => {
+    dispatch({
+      type: 'SET_SECTION_CONFIGS',
+      payload: data.sectionConfigs.map(section =>
+        section.id === sectionId ? { ...section, ...updates } : section
+      )
+    })
+  }, [data.sectionConfigs])
 
-  const handleSave = async () => {
+  const handleSave = useCallback(async () => {
     setSaving(true)
     setError('')
     setSaved(false)
@@ -239,23 +329,23 @@ export function ShowcaseBuilder({ eventId, eventSlug, initialData }: ShowcaseBui
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          showcaseEnabled: enabled,
-          showcaseTitle: title || null,
-          showcaseSubtitle: subtitle || null,
-          showcaseBannerImage: bannerImage || null,
-          showcasePrimaryColor: primaryColor,
-          showcaseSecondaryColor: secondaryColor,
-          showcaseSections: sectionConfigs,
-          showcaseCustomCSS: customCSS || null,
-          showcaseGallery: gallery.length > 0 ? gallery : null,
-          showcaseFAQ: faq.length > 0 ? faq : null,
-          showcaseVideo: videoUrl || null,
-          showcaseCountdown: countdown,
-          showcaseSocialShare: socialShare,
-          showcaseSpeakers: speakers.length > 0 ? speakers : null,
-          showcaseSponsors: sponsors.length > 0 ? sponsors : null,
-          showcaseTimeline: timeline.length > 0 ? timeline : null,
-          showcaseSectionContents: Object.keys(sectionContents).length > 0 ? sectionContents : null,
+          showcaseEnabled: data.enabled,
+          showcaseTitle: data.title || null,
+          showcaseSubtitle: data.subtitle || null,
+          showcaseBannerImage: data.bannerImage || null,
+          showcasePrimaryColor: data.primaryColor,
+          showcaseSecondaryColor: data.secondaryColor,
+          showcaseSections: data.sectionConfigs,
+          showcaseCustomCSS: data.customCSS || null,
+          showcaseGallery: data.gallery.length > 0 ? data.gallery : null,
+          showcaseFAQ: data.faq.length > 0 ? data.faq : null,
+          showcaseVideo: data.videoUrl || null,
+          showcaseCountdown: data.countdown,
+          showcaseSocialShare: data.socialShare,
+          showcaseSpeakers: data.speakers.length > 0 ? data.speakers : null,
+          showcaseSponsors: data.sponsors.length > 0 ? data.sponsors : null,
+          showcaseTimeline: data.timeline.length > 0 ? data.timeline : null,
+          showcaseSectionContents: Object.keys(data.sectionContents).length > 0 ? data.sectionContents : null,
         }),
       })
 
@@ -264,7 +354,7 @@ export function ShowcaseBuilder({ eventId, eventSlug, initialData }: ShowcaseBui
       }
 
       setSaved(true)
-      // Refresh preview after save
+      // Optimized: increment preview key without full reset
       setPreviewKey(prev => prev + 1)
       setTimeout(() => setSaved(false), 3000)
     } catch (err) {
@@ -273,7 +363,7 @@ export function ShowcaseBuilder({ eventId, eventSlug, initialData }: ShowcaseBui
     } finally {
       setSaving(false)
     }
-  }
+  }, [eventId, data])
 
   const showcaseUrl = `${window.location.origin}/event/${eventSlug}`
 
@@ -295,7 +385,7 @@ export function ShowcaseBuilder({ eventId, eventSlug, initialData }: ShowcaseBui
               </div>
             </div>
             <div className="flex items-center gap-3">
-              {enabled && (
+              {data.enabled && (
                 <Button
                   variant="outline"
                   onClick={() => setShowPreview(!showPreview)}
@@ -305,7 +395,7 @@ export function ShowcaseBuilder({ eventId, eventSlug, initialData }: ShowcaseBui
                   {showPreview ? 'Masquer' : 'Aperçu'}
                 </Button>
               )}
-              {enabled && (
+              {data.enabled && (
                 <a
                   href={showcaseUrl}
                   target="_blank"
@@ -328,11 +418,11 @@ export function ShowcaseBuilder({ eventId, eventSlug, initialData }: ShowcaseBui
               </p>
             </div>
             <Switch
-              checked={enabled}
-              onCheckedChange={setEnabled}
+              checked={data.enabled}
+              onCheckedChange={(value) => dispatch({ type: 'SET_ENABLED', payload: value })}
             />
           </div>
-          {enabled && (
+          {data.enabled && (
             <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
               <p className="text-sm text-green-800">
                 <strong>URL publique:</strong>{' '}
@@ -351,7 +441,7 @@ export function ShowcaseBuilder({ eventId, eventSlug, initialData }: ShowcaseBui
       </Card>
 
       {/* Builder avec Tabs */}
-      {enabled && (
+      {data.enabled && (
         <>
         <Tabs defaultValue="content" className="w-full">
           <TabsList className="grid w-full grid-cols-4 bg-[#9CD9F6]/20 mb-6">
@@ -375,8 +465,8 @@ export function ShowcaseBuilder({ eventId, eventSlug, initialData }: ShowcaseBui
                 </Label>
                 <Input
                   id="showcase-title"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
+                  value={data.title}
+                  onChange={(e) => dispatch({ type: 'SET_TITLE', payload: e.target.value })}
                   placeholder="Laissez vide pour utiliser le nom de l'événement"
                   className="border-[#9CD9F6]/30"
                 />
@@ -388,8 +478,8 @@ export function ShowcaseBuilder({ eventId, eventSlug, initialData }: ShowcaseBui
                 </Label>
                 <Input
                   id="showcase-subtitle"
-                  value={subtitle}
-                  onChange={(e) => setSubtitle(e.target.value)}
+                  value={data.subtitle}
+                  onChange={(e) => dispatch({ type: 'SET_SUBTITLE', payload: e.target.value })}
                   placeholder="Un sous-titre accrocheur..."
                   className="border-[#9CD9F6]/30"
                 />
@@ -401,8 +491,8 @@ export function ShowcaseBuilder({ eventId, eventSlug, initialData }: ShowcaseBui
                 </Label>
                 <Input
                   id="banner-image"
-                  value={bannerImage}
-                  onChange={(e) => setBannerImage(e.target.value)}
+                  value={data.bannerImage}
+                  onChange={(e) => dispatch({ type: 'SET_BANNER_IMAGE', payload: e.target.value })}
                   placeholder="https://exemple.com/image.jpg"
                   className="border-[#9CD9F6]/30"
                 />
@@ -416,7 +506,7 @@ export function ShowcaseBuilder({ eventId, eventSlug, initialData }: ShowcaseBui
                     <p className="text-xs text-[#004645]/70">Afficher le compte à rebours avant l&apos;événement</p>
                   </div>
                 </div>
-                <Switch id="countdown-toggle" checked={countdown} onCheckedChange={setCountdown} />
+                <Switch id="countdown-toggle" checked={data.countdown} onCheckedChange={(value) => dispatch({ type: 'SET_COUNTDOWN', payload: value })} />
               </div>
 
               <div className="flex items-center justify-between p-4 bg-[#9CD9F6]/5 rounded-lg border border-[#9CD9F6]/30">
@@ -424,7 +514,7 @@ export function ShowcaseBuilder({ eventId, eventSlug, initialData }: ShowcaseBui
                   <Label htmlFor="social-toggle" className="text-[#004645] cursor-pointer">Partage social</Label>
                   <p className="text-xs text-[#004645]/70">Boutons de partage Facebook, Twitter, LinkedIn</p>
                 </div>
-                <Switch id="social-toggle" checked={socialShare} onCheckedChange={setSocialShare} />
+                <Switch id="social-toggle" checked={data.socialShare} onCheckedChange={(value) => dispatch({ type: 'SET_SOCIAL_SHARE', payload: value })} />
               </div>
             </CardContent>
           </Card>
@@ -461,7 +551,7 @@ export function ShowcaseBuilder({ eventId, eventSlug, initialData }: ShowcaseBui
             </CardHeader>
             <CardContent>
               <DraggableSectionList
-                sections={sectionConfigs}
+                sections={data.sectionConfigs}
                 onReorder={handleSectionsReorder}
                 onToggle={handleSectionToggle}
                 onEdit={handleSectionEdit}
@@ -474,22 +564,22 @@ export function ShowcaseBuilder({ eventId, eventSlug, initialData }: ShowcaseBui
         {/* Tab: Section Content - Édition fluide section par section */}
         <TabsContent value="sectionContent" className="space-y-4">
           <SectionBySectionEditor
-            sectionConfigs={sectionConfigs}
-            sectionContents={sectionContents}
-            videoUrl={videoUrl}
-            gallery={gallery}
-            speakers={speakers}
-            sponsors={sponsors}
-            timeline={timeline}
-            faq={faq}
+            sectionConfigs={data.sectionConfigs}
+            sectionContents={data.sectionContents}
+            videoUrl={data.videoUrl}
+            gallery={data.gallery}
+            speakers={data.speakers}
+            sponsors={data.sponsors}
+            timeline={data.timeline}
+            faq={data.faq}
             onSectionConfigUpdate={handleSectionConfigUpdate}
             onSectionContentUpdate={handleSectionContentUpdate}
-            onVideoUrlChange={setVideoUrl}
-            onGalleryChange={setGallery}
-            onSpeakersChange={setSpeakers}
-            onSponsorsChange={setSponsors}
-            onTimelineChange={setTimeline}
-            onFaqChange={setFaq}
+            onVideoUrlChange={(value) => dispatch({ type: 'SET_VIDEO_URL', payload: value })}
+            onGalleryChange={(value) => dispatch({ type: 'SET_GALLERY', payload: value })}
+            onSpeakersChange={(value) => dispatch({ type: 'SET_SPEAKERS', payload: value })}
+            onSponsorsChange={(value) => dispatch({ type: 'SET_SPONSORS', payload: value })}
+            onTimelineChange={(value) => dispatch({ type: 'SET_TIMELINE', payload: value })}
+            onFaqChange={(value) => dispatch({ type: 'SET_FAQ', payload: value })}
           />
         </TabsContent>
 
@@ -515,13 +605,13 @@ export function ShowcaseBuilder({ eventId, eventSlug, initialData }: ShowcaseBui
                     <Input
                       id="primary-color"
                       type="color"
-                      value={primaryColor}
-                      onChange={(e) => setPrimaryColor(e.target.value)}
+                      value={data.primaryColor}
+                      onChange={(e) => dispatch({ type: 'SET_PRIMARY_COLOR', payload: e.target.value })}
                       className="w-16 h-10 p-1 border-[#9CD9F6]/30"
                     />
                     <Input
-                      value={primaryColor}
-                      onChange={(e) => setPrimaryColor(e.target.value)}
+                      value={data.primaryColor}
+                      onChange={(e) => dispatch({ type: 'SET_PRIMARY_COLOR', payload: e.target.value })}
                       placeholder="#004645"
                       className="flex-1 border-[#9CD9F6]/30"
                     />
@@ -536,13 +626,13 @@ export function ShowcaseBuilder({ eventId, eventSlug, initialData }: ShowcaseBui
                     <Input
                       id="secondary-color"
                       type="color"
-                      value={secondaryColor}
-                      onChange={(e) => setSecondaryColor(e.target.value)}
+                      value={data.secondaryColor}
+                      onChange={(e) => dispatch({ type: 'SET_SECONDARY_COLOR', payload: e.target.value })}
                       className="w-16 h-10 p-1 border-[#9CD9F6]/30"
                     />
                     <Input
-                      value={secondaryColor}
-                      onChange={(e) => setSecondaryColor(e.target.value)}
+                      value={data.secondaryColor}
+                      onChange={(e) => dispatch({ type: 'SET_SECONDARY_COLOR', payload: e.target.value })}
                       placeholder="#FF4713"
                       className="flex-1 border-[#9CD9F6]/30"
                     />
@@ -558,8 +648,8 @@ export function ShowcaseBuilder({ eventId, eventSlug, initialData }: ShowcaseBui
                     <button
                       key={preset.id}
                       onClick={() => {
-                        setPrimaryColor(preset.primaryColor)
-                        setSecondaryColor(preset.secondaryColor)
+                        dispatch({ type: 'SET_PRIMARY_COLOR', payload: preset.primaryColor })
+                        dispatch({ type: 'SET_SECONDARY_COLOR', payload: preset.secondaryColor })
                       }}
                       className="group relative overflow-hidden rounded-lg border-2 border-[#9CD9F6]/30 hover:border-[#009197] transition-colors p-3 text-left"
                     >
@@ -584,8 +674,8 @@ export function ShowcaseBuilder({ eventId, eventSlug, initialData }: ShowcaseBui
             </CardHeader>
             <CardContent>
               <Textarea
-                value={customCSS}
-                onChange={(e) => setCustomCSS(e.target.value)}
+                value={data.customCSS}
+                onChange={(e) => dispatch({ type: 'SET_CUSTOM_CSS', payload: e.target.value })}
                 placeholder=".mon-element { color: red; }"
                 className="font-mono text-sm border-[#9CD9F6]/30 min-h-[200px]"
               />

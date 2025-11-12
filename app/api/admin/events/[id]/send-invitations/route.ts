@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { sendEmail, getInvitationEmailTemplate, getReminderEmailTemplate } from '@/lib/email'
+import { getInvitationEmailTemplate, getReminderEmailTemplate } from '@/lib/email-templates'
 import { formatDateTime } from '@/lib/utils'
 import { requireAdmin, handleAuthError } from '@/lib/auth-utils'
 import { requireEventOwnership } from '@/lib/permissions'
-import { renderTemplate } from '@/lib/email-service'
+import { sendEmailLegacy as sendEmail, renderTemplate } from '@/lib/email-service'
 
 export async function POST(
   request: NextRequest,

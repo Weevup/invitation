@@ -4,7 +4,9 @@ import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import { ShowcaseBuilder } from '@/components/showcase-builder'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Sparkles } from 'lucide-react'
+import { ShowcaseSkeleton } from '@/components/ui/showcase-skeleton'
+import { Button } from '@/components/ui/button'
+import { Sparkles, AlertCircle, RefreshCw } from 'lucide-react'
 
 interface EventData {
   id: string
@@ -25,28 +27,57 @@ export default function ShowcasePage() {
   const eventId = params.id as string
   const [event, setEvent] = useState<EventData | null>(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  const loadEvent = async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const res = await fetch(`/api/admin/events/${eventId}/showcase-data`)
+      if (!res.ok) {
+        throw new Error(`Erreur ${res.status}: ${res.statusText}`)
+      }
+      const data = await res.json()
+      setEvent(data)
+    } catch (err) {
+      console.error('Error fetching event:', err)
+      setError(err instanceof Error ? err.message : 'Une erreur est survenue lors du chargement')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   useEffect(() => {
-    fetch(`/api/admin/events/${eventId}/showcase-data`)
-      .then(res => res.json())
-      .then(data => {
-        setEvent(data)
-        setLoading(false)
-      })
-      .catch(error => {
-        console.error('Error fetching event:', error)
-        setLoading(false)
-      })
+    loadEvent()
   }, [eventId])
 
   if (loading) {
+    return <ShowcaseSkeleton />
+  }
+
+  if (error) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <Sparkles className="h-12 w-12 text-[#009197] mx-auto mb-4 animate-pulse" />
-          <p className="text-[#004645]/70">Chargement...</p>
-        </div>
-      </div>
+      <Card className="border-red-200 bg-red-50">
+        <CardHeader>
+          <div className="flex items-center gap-3">
+            <AlertCircle className="h-6 w-6 text-red-600" />
+            <div>
+              <CardTitle className="text-red-900">Erreur de chargement</CardTitle>
+              <CardDescription className="text-red-700">{error}</CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <Button
+            onClick={loadEvent}
+            variant="outline"
+            className="border-red-300 text-red-700 hover:bg-red-100"
+          >
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Réessayer
+          </Button>
+        </CardContent>
+      </Card>
     )
   }
 
