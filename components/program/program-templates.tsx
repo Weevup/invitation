@@ -278,7 +278,7 @@ export function ProgramTemplates({ eventId, onApply }: ProgramTemplatesProps) {
               <span className="text-2xl">💡</span>
             </div>
             <div className="flex-1">
-              <p className="font-semibold text-[#004645] mb-1">Besoin d'un template personnalisé ?</p>
+              <p className="font-semibold text-[#004645] mb-1">Besoin d&apos;un template personnalisé ?</p>
               <p className="text-sm text-[#004645]/70">
                 Créez votre programme manuellement ou demandez au support de vous créer un template sur mesure
               </p>
