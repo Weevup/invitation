@@ -39,7 +39,7 @@ export function ProgramTimeline({ sessions }: ProgramTimelineProps) {
     return (
       <Card className="border-[#9CD9F6]/30">
         <CardContent className="py-12 text-center">
-          <p className="text-[#004645]/60">Aucune session à afficher</p>
+          <p className="text-[#004645]/60">Aucune session a afficher</p>
         </CardContent>
       </Card>
     )
@@ -71,12 +71,12 @@ export function ProgramTimeline({ sessions }: ProgramTimelineProps) {
                   <div className="flex items-center gap-2 mb-2">
                     <h4 className="font-semibold text-[#004645]">{session.title}</h4>
                     {!session.isPublic && (
-                      <Badge variant="outline" className="text-xs">Privée</Badge>
+                      <Badge variant="outline" className="text-xs">Privee</Badge>
                     )}
                   </div>
                   <div className="flex gap-4 text-sm text-[#004645]/70">
-                    {session.venue && <span>=Í {session.venue}</span>}
-                    {session.room && <span>=ª {session.room}</span>}
+                    {session.venue && <span>{session.venue}</span>}
+                    {session.room && <span>{session.room}</span>}
                   </div>
                 </div>
               </div>

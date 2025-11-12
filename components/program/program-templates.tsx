@@ -12,62 +12,62 @@ interface ProgramTemplatesProps {
 const PROGRAM_TEMPLATES = [
   {
     id: 'gala',
-    name: 'Soirée de Gala',
-    description: 'Programme type pour une soirée de gala d\'entreprise',
-    icon: '<­',
+    name: 'Soiree de Gala',
+    description: 'Programme type pour une soiree de gala',
+    icon: 'Gala',
     sessions: [
-      { type: 'ARRIVAL', title: 'Accueil des invités', duration: 30 },
+      { type: 'ARRIVAL', title: 'Accueil des invites', duration: 30 },
       { type: 'NETWORKING', title: 'Cocktail de bienvenue', duration: 60 },
-      { type: 'MEAL', title: 'Dîner de gala', duration: 120 },
+      { type: 'MEAL', title: 'Diner de gala', duration: 120 },
       { type: 'KEYNOTE', title: 'Discours inaugural', duration: 30 },
       { type: 'OTHER', title: 'Remise des prix', duration: 45 },
-      { type: 'OTHER', title: 'Soirée dansante', duration: 120 }
+      { type: 'OTHER', title: 'Soiree dansante', duration: 120 }
     ]
   },
   {
     id: 'seminar',
-    name: 'Séminaire 2 jours',
-    description: 'Programme complet pour un séminaire d\'entreprise',
-    icon: '=Ú',
+    name: 'Seminaire 2 jours',
+    description: 'Programme complet pour un seminaire',
+    icon: 'Seminaire',
     sessions: [
-      { type: 'ARRIVAL', title: 'Arrivée et installation', duration: 60 },
-      { type: 'KEYNOTE', title: 'Session d\'ouverture', duration: 60 },
-      { type: 'BREAK', title: 'Pause café', duration: 15 },
+      { type: 'ARRIVAL', title: 'Arrivee et installation', duration: 60 },
+      { type: 'KEYNOTE', title: 'Session ouverture', duration: 60 },
+      { type: 'BREAK', title: 'Pause cafe', duration: 15 },
       { type: 'WORKSHOP', title: 'Atelier collaboratif', duration: 90 },
-      { type: 'MEAL', title: 'Déjeuner', duration: 90 },
-      { type: 'CONFERENCE', title: 'Présentation stratégie', duration: 60 },
-      { type: 'TEAMBUILDING', title: 'Activité team building', duration: 120 },
-      { type: 'MEAL', title: 'Dîner', duration: 120 }
+      { type: 'MEAL', title: 'Dejeuner', duration: 90 },
+      { type: 'CONFERENCE', title: 'Presentation strategie', duration: 60 },
+      { type: 'TEAMBUILDING', title: 'Activite team building', duration: 120 },
+      { type: 'MEAL', title: 'Diner', duration: 120 }
     ]
   },
   {
     id: 'convention',
     name: 'Convention',
-    description: 'Programme pour une convention ou congrès',
-    icon: '<¤',
+    description: 'Programme pour une convention ou congres',
+    icon: 'Convention',
     sessions: [
       { type: 'ARRIVAL', title: 'Enregistrement', duration: 30 },
-      { type: 'KEYNOTE', title: 'Discours d\'ouverture', duration: 45 },
+      { type: 'KEYNOTE', title: 'Discours ouverture', duration: 45 },
       { type: 'PANEL', title: 'Table ronde', duration: 60 },
       { type: 'BREAK', title: 'Pause networking', duration: 30 },
-      { type: 'WORKSHOP', title: 'Ateliers parallèles', duration: 90 },
-      { type: 'MEAL', title: 'Déjeuner buffet', duration: 75 },
-      { type: 'CONFERENCE', title: 'Conférences', duration: 120 }
+      { type: 'WORKSHOP', title: 'Ateliers paralleles', duration: 90 },
+      { type: 'MEAL', title: 'Dejeuner buffet', duration: 75 },
+      { type: 'CONFERENCE', title: 'Conferences', duration: 120 }
     ]
   },
   {
     id: 'teambuilding',
-    name: 'Journée Team Building',
-    description: 'Programme axé sur la cohésion d\'équipe',
-    icon: '>',
+    name: 'Journee Team Building',
+    description: 'Programme axe sur la cohesion equipe',
+    icon: 'Team',
     sessions: [
       { type: 'ARRIVAL', title: 'Accueil', duration: 15 },
-      { type: 'KEYNOTE', title: 'Briefing de la journée', duration: 15 },
-      { type: 'TEAMBUILDING', title: 'Activité ice-breaker', duration: 45 },
-      { type: 'TEAMBUILDING', title: 'Challenge équipe 1', duration: 90 },
-      { type: 'MEAL', title: 'Déjeuner', duration: 60 },
-      { type: 'TEAMBUILDING', title: 'Challenge équipe 2', duration: 90 },
-      { type: 'OTHER', title: 'Débriefing et célébration', duration: 30 }
+      { type: 'KEYNOTE', title: 'Briefing de la journee', duration: 15 },
+      { type: 'TEAMBUILDING', title: 'Activite ice-breaker', duration: 45 },
+      { type: 'TEAMBUILDING', title: 'Challenge equipe 1', duration: 90 },
+      { type: 'MEAL', title: 'Dejeuner', duration: 60 },
+      { type: 'TEAMBUILDING', title: 'Challenge equipe 2', duration: 90 },
+      { type: 'OTHER', title: 'Debriefing et celebration', duration: 30 }
     ]
   }
 ]
@@ -78,7 +78,7 @@ export function ProgramTemplates({ eventId, onApply }: ProgramTemplatesProps) {
       <div>
         <h3 className="text-lg font-semibold text-[#004645] mb-2">Templates de programme</h3>
         <p className="text-sm text-[#004645]/70">
-          Utilisez un template prédéfini pour démarrer rapidement
+          Utilisez un template predefini pour demarrer rapidement
         </p>
       </div>
 
@@ -92,7 +92,7 @@ export function ProgramTemplates({ eventId, onApply }: ProgramTemplatesProps) {
               <div className="flex items-start justify-between">
                 <div>
                   <CardTitle className="text-[#004645] flex items-center gap-2">
-                    <span className="text-3xl">{template.icon}</span>
+                    <span className="text-lg font-bold">{template.icon}</span>
                     {template.name}
                   </CardTitle>
                   <CardDescription>{template.description}</CardDescription>
@@ -107,7 +107,7 @@ export function ProgramTemplates({ eventId, onApply }: ProgramTemplatesProps) {
                 <ul className="text-sm text-[#004645]/70 space-y-1">
                   {template.sessions.slice(0, 4).map((session, idx) => (
                     <li key={idx} className="flex items-center gap-2">
-                      <span>"</span>
+                      <span>-</span>
                       {session.title}
                     </li>
                   ))}
@@ -130,9 +130,9 @@ export function ProgramTemplates({ eventId, onApply }: ProgramTemplatesProps) {
 
       <Card className="border-[#9CD9F6]/30 border-dashed">
         <CardContent className="py-8 text-center">
-          <p className="text-[#004645]/60 mb-2">Besoin d&apos;un template personnalisé ?</p>
+          <p className="text-[#004645]/60 mb-2">Besoin d&apos;un template personnalise ?</p>
           <p className="text-sm text-[#004645]/50">
-            Créez votre programme manuellement ou contactez le support
+            Creez votre programme manuellement ou contactez le support
           </p>
         </CardContent>
       </Card>
