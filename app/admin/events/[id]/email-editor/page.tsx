@@ -65,10 +65,10 @@ export default function EmailEditorPage() {
           subject: templateSubject,
           htmlContent: html,
           textContent: '', // Could be improved later
-          primaryColor: selectedTemplate.design?.primaryColor || '#004645',
-          secondaryColor: selectedTemplate.design?.secondaryColor || '#009197',
-          accentColor: selectedTemplate.design?.accentColor || '#FF4713',
-          fontFamily: selectedTemplate.design?.fontFamily || 'Arial, sans-serif',
+          primaryColor: selectedTemplate.globalStyles?.primaryColor || '#004645',
+          secondaryColor: selectedTemplate.globalStyles?.secondaryColor || '#009197',
+          accentColor: '#FF4713',
+          fontFamily: selectedTemplate.globalStyles?.fontFamily || 'Arial, sans-serif',
           isActive: true,
         })
       })
