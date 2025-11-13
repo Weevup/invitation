@@ -144,34 +144,24 @@ export default function EventLayout({
       title: "EMAIL & COMMUNICATIONS",
       items: [
         {
-          label: 'Éditeur WYSIWYG',
-          href: `/admin/events/${eventId}/email-editor`,
+          label: 'Templates',
+          href: `/admin/events/${eventId}/templates`,
           icon: Wand2,
         },
         {
-          label: 'Save the Date',
-          href: `/admin/events/${eventId}/save-the-date`,
-          icon: Bell,
-        },
-        {
-          label: 'Invitation',
-          href: `/admin/events/${eventId}/invitation`,
-          icon: Mail,
-        },
-        {
-          label: 'RSVP',
-          href: `/admin/events/${eventId}/rsvp-config`,
-          icon: UserCheck,
-        },
-        {
-          label: 'Envoi & Suivi',
+          label: 'Campagnes',
           href: `/admin/events/${eventId}/communications`,
           icon: Settings,
         },
         {
-          label: 'Analytics Emails',
+          label: 'Analytics',
           href: `/admin/events/${eventId}/email-analytics`,
           icon: MailOpen,
+        },
+        {
+          label: 'Configuration RSVP',
+          href: `/admin/events/${eventId}/rsvp-config`,
+          icon: UserCheck,
         },
       ],
     },
