@@ -404,14 +404,6 @@ export default function EventOverviewPage() {
         </div>
       </div>
 
-      {/* Modules avancés */}
-      <div>
-        <h2 className="text-2xl font-bold text-[#004645] mb-4" style={{ fontFamily: "var(--font-abril)" }}>
-          Fonctionnalités avancées
-        </h2>
-        <ModuleSelector eventId={eventId} />
-      </div>
-
       {/* Gestion des communications */}
       <Card className="border-[#009197]/30 bg-white/80 backdrop-blur">
         <CardHeader>
