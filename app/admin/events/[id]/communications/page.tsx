@@ -219,12 +219,84 @@ export default function CommunicationsPage() {
           </Link>
 
           <h1 className="text-3xl font-bold text-[#004645] mb-2" style={{ fontFamily: "var(--font-abril)" }}>
-            Gestion des communications
+            Campagnes d&apos;emails
           </h1>
-          <p className="text-[#004645]/70">
-            Planifiez et suivez vos envois : Save the Date, Invitations et Rappels
+          <p className="text-[#004645]/70 text-lg">
+            Planifiez et envoyez vos emails : Save the Date, Invitations et Rappels
           </p>
         </div>
+
+        {/* Guide du processus d'envoi */}
+        <Card className="mb-8 border-[#009197]/30 bg-gradient-to-br from-[#9CD9F6]/10 to-white/80">
+          <CardHeader>
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-[#009197]/10">
+                <Info className="h-6 w-6 text-[#009197]" />
+              </div>
+              <div>
+                <CardTitle className="text-[#004645]">Comment ça marche ?</CardTitle>
+                <CardDescription>Suivez ce processus en 3 étapes pour vos envois</CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="grid md:grid-cols-3 gap-6">
+              {/* Étape 1 */}
+              <div className="flex items-start gap-3">
+                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-[#FF4713] to-[#FF6B3D] text-white flex items-center justify-center font-bold">
+                  1
+                </div>
+                <div>
+                  <h3 className="font-bold text-[#004645] mb-2">Créez votre template</h3>
+                  <p className="text-sm text-[#004645]/70 mb-3">
+                    Allez dans <strong>Templates</strong> pour créer ou modifier vos emails (Save the Date, Invitation, ou email personnalisé avec l&apos;éditeur WYSIWYG)
+                  </p>
+                  <Link href={`/admin/events/${eventId}/templates`}>
+                    <Button size="sm" variant="outline" className="border-[#009197] text-[#009197]">
+                      <Sparkles className="h-3 w-3 mr-1" />
+                      Aller aux Templates
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+
+              {/* Étape 2 */}
+              <div className="flex items-start gap-3">
+                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-[#009197] to-[#004645] text-white flex items-center justify-center font-bold">
+                  2
+                </div>
+                <div>
+                  <h3 className="font-bold text-[#004645] mb-2">Choisissez le type d&apos;email</h3>
+                  <p className="text-sm text-[#004645]/70 mb-2">
+                    Sélectionnez parmi les 3 types ci-dessous selon votre calendrier :
+                  </p>
+                  <ul className="text-xs text-[#004645]/70 space-y-1">
+                    <li>• <strong>Save the Date</strong> : J-90 à J-60</li>
+                    <li>• <strong>Invitation</strong> : J-60 à J-30</li>
+                    <li>• <strong>Rappel</strong> : J-7 à J-2</li>
+                  </ul>
+                </div>
+              </div>
+
+              {/* Étape 3 */}
+              <div className="flex items-start gap-3">
+                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-[#004645] to-[#006C51] text-white flex items-center justify-center font-bold">
+                  3
+                </div>
+                <div>
+                  <h3 className="font-bold text-[#004645] mb-2">Programmez ou envoyez</h3>
+                  <p className="text-sm text-[#004645]/70 mb-2">
+                    Pour chaque type d&apos;email ci-dessous, vous pouvez :
+                  </p>
+                  <ul className="text-xs text-[#004645]/70 space-y-1">
+                    <li>• <strong>Programmer</strong> : envoi automatique à une date précise</li>
+                    <li>• <strong>Envoyer maintenant</strong> : envoi immédiat à tous les invités</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Timeline Overview */}
         <Card className="mb-8 border-[#FF4713]/30 bg-gradient-to-r from-[#FF4713]/5 via-[#009197]/5 to-[#004645]/5">
@@ -305,6 +377,18 @@ export default function CommunicationsPage() {
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
+                <div className="flex items-center gap-2 mb-4 p-3 bg-[#FF4713]/5 rounded-lg">
+                  <Info className="h-4 w-4 text-[#FF4713]" />
+                  <p className="text-sm text-[#004645]/70">
+                    Créez ou modifiez votre Save the Date avant d&apos;envoyer
+                  </p>
+                  <Link href={`/admin/events/${eventId}/save-the-date`} className="ml-auto">
+                    <Button size="sm" variant="outline" className="border-[#FF4713] text-[#FF4713]">
+                      <Sparkles className="h-3 w-3 mr-1" />
+                      Éditer le template
+                    </Button>
+                  </Link>
+                </div>
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="saveTheDate-date">Date d&apos;envoi programmée</Label>
@@ -353,6 +437,18 @@ export default function CommunicationsPage() {
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
+                <div className="flex items-center gap-2 mb-4 p-3 bg-[#009197]/5 rounded-lg">
+                  <Info className="h-4 w-4 text-[#009197]" />
+                  <p className="text-sm text-[#004645]/70">
+                    Créez ou modifiez votre Invitation avant d&apos;envoyer
+                  </p>
+                  <Link href={`/admin/events/${eventId}/invitation`} className="ml-auto">
+                    <Button size="sm" variant="outline" className="border-[#009197] text-[#009197]">
+                      <Sparkles className="h-3 w-3 mr-1" />
+                      Éditer le template
+                    </Button>
+                  </Link>
+                </div>
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="invitation-date">Date d&apos;envoi programmée</Label>
@@ -401,6 +497,18 @@ export default function CommunicationsPage() {
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
+                <div className="flex items-center gap-2 mb-4 p-3 bg-[#004645]/5 rounded-lg">
+                  <Info className="h-4 w-4 text-[#004645]" />
+                  <p className="text-sm text-[#004645]/70">
+                    Créez un email de rappel personnalisé avec l&apos;éditeur WYSIWYG
+                  </p>
+                  <Link href={`/admin/events/${eventId}/email-editor`} className="ml-auto">
+                    <Button size="sm" variant="outline" className="border-[#004645] text-[#004645]">
+                      <Sparkles className="h-3 w-3 mr-1" />
+                      Créer un rappel
+                    </Button>
+                  </Link>
+                </div>
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="reminder-date">Date d&apos;envoi programmée</Label>
