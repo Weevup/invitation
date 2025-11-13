@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   ArrowLeft, Bell, Sparkles, CheckCircle, Send, Calendar,
   Clock, Users, Mail, TrendingUp, BarChart3, Settings, Save, Info
@@ -36,6 +37,14 @@ interface CommunicationStats {
   };
 }
 
+interface EmailTemplate {
+  id: string;
+  name: string;
+  type: string;
+  subject: string;
+  isActive: boolean;
+}
+
 export default function CommunicationsPage() {
   const params = useParams();
   const router = useRouter();
@@ -54,6 +63,14 @@ export default function CommunicationsPage() {
     reminder: "",
   });
 
+  const [selectedTemplates, setSelectedTemplates] = useState({
+    saveTheDate: "",
+    invitation: "",
+    reminder: "",
+  });
+
+  const [templates, setTemplates] = useState<EmailTemplate[]>([]);
+
   const [autoReminders, setAutoReminders] = useState({
     enabled: false,
     followUpEnabled: false,
@@ -61,6 +78,14 @@ export default function CommunicationsPage() {
     preEventEnabled: false,
     preEventDays: 3,
   });
+
+  // Charger les templates disponibles
+  useEffect(() => {
+    fetch('/api/admin/templates')
+      .then(res => res.json())
+      .then(data => setTemplates(data.filter((t: EmailTemplate) => t.isActive)))
+      .catch(console.error);
+  }, []);
 
   // Charger la config des auto-reminders au montage
   useEffect(() => {
@@ -101,13 +126,20 @@ export default function CommunicationsPage() {
     }
 
     try {
+      const body: any = {
+        type: type === "saveTheDate" ? "save-the-date" : type,
+        scheduleFor: date,
+      };
+
+      // Ajouter le template ID si sélectionné
+      if (selectedTemplates[type]) {
+        body.templateId = selectedTemplates[type];
+      }
+
       const response = await fetch(`/api/admin/events/${eventId}/send-emails`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          type: type === "saveTheDate" ? "save-the-date" : type,
-          scheduleFor: date,
-        }),
+        body: JSON.stringify(body),
       });
 
       const data = await response.json();
@@ -137,12 +169,19 @@ export default function CommunicationsPage() {
 
   const handleSendNow = async (type: "saveTheDate" | "invitation" | "reminder") => {
     try {
+      const body: any = {
+        type: type === "saveTheDate" ? "save-the-date" : type,
+      };
+
+      // Ajouter le template ID si sélectionné
+      if (selectedTemplates[type]) {
+        body.templateId = selectedTemplates[type];
+      }
+
       const response = await fetch(`/api/admin/events/${eventId}/send-emails`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          type: type === "saveTheDate" ? "save-the-date" : type,
-        }),
+        body: JSON.stringify(body),
       });
 
       const data = await response.json();
@@ -389,32 +428,55 @@ export default function CommunicationsPage() {
                     </Button>
                   </Link>
                 </div>
-                <div className="grid md:grid-cols-2 gap-4">
+
+                <div className="space-y-4">
                   <div>
-                    <Label htmlFor="saveTheDate-date">Date d&apos;envoi programmée</Label>
-                    <Input
-                      id="saveTheDate-date"
-                      type="datetime-local"
-                      value={scheduleDates.saveTheDate}
-                      onChange={(e) => setScheduleDates({ ...scheduleDates, saveTheDate: e.target.value })}
-                    />
+                    <Label htmlFor="saveTheDate-template">Template personnalisé (optionnel)</Label>
+                    <Select
+                      value={selectedTemplates.saveTheDate}
+                      onValueChange={(value) => setSelectedTemplates({ ...selectedTemplates, saveTheDate: value })}
+                    >
+                      <SelectTrigger id="saveTheDate-template">
+                        <SelectValue placeholder="Utiliser le template par défaut" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">Template par défaut</SelectItem>
+                        {templates.filter(t => t.type === 'SAVE_THE_DATE' || t.type === 'INVITE').map(template => (
+                          <SelectItem key={template.id} value={template.id}>
+                            {template.name} - {template.subject}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
-                  <div className="flex items-end gap-2">
-                    <Button
-                      onClick={() => handleScheduleSend("saveTheDate")}
-                      className="bg-[#FF4713] hover:bg-[#FF6B3D]"
-                    >
-                      <Calendar className="h-4 w-4 mr-2" />
-                      Programmer
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={() => handleSendNow("saveTheDate")}
-                      className="border-[#FF4713] text-[#FF4713]"
-                    >
-                      <Send className="h-4 w-4 mr-2" />
-                      Envoyer maintenant
-                    </Button>
+
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="saveTheDate-date">Date d&apos;envoi programmée</Label>
+                      <Input
+                        id="saveTheDate-date"
+                        type="datetime-local"
+                        value={scheduleDates.saveTheDate}
+                        onChange={(e) => setScheduleDates({ ...scheduleDates, saveTheDate: e.target.value })}
+                      />
+                    </div>
+                    <div className="flex items-end gap-2">
+                      <Button
+                        onClick={() => handleScheduleSend("saveTheDate")}
+                        className="bg-[#FF4713] hover:bg-[#FF6B3D]"
+                      >
+                        <Calendar className="h-4 w-4 mr-2" />
+                        Programmer
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={() => handleSendNow("saveTheDate")}
+                        className="border-[#FF4713] text-[#FF4713]"
+                      >
+                        <Send className="h-4 w-4 mr-2" />
+                        Envoyer maintenant
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </CardContent>
@@ -449,32 +511,55 @@ export default function CommunicationsPage() {
                     </Button>
                   </Link>
                 </div>
-                <div className="grid md:grid-cols-2 gap-4">
+
+                <div className="space-y-4">
                   <div>
-                    <Label htmlFor="invitation-date">Date d&apos;envoi programmée</Label>
-                    <Input
-                      id="invitation-date"
-                      type="datetime-local"
-                      value={scheduleDates.invitation}
-                      onChange={(e) => setScheduleDates({ ...scheduleDates, invitation: e.target.value })}
-                    />
+                    <Label htmlFor="invitation-template">Template personnalisé (optionnel)</Label>
+                    <Select
+                      value={selectedTemplates.invitation}
+                      onValueChange={(value) => setSelectedTemplates({ ...selectedTemplates, invitation: value })}
+                    >
+                      <SelectTrigger id="invitation-template">
+                        <SelectValue placeholder="Utiliser le template par défaut" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">Template par défaut</SelectItem>
+                        {templates.filter(t => t.type === 'INVITE' || t.type === 'CONFIRMATION').map(template => (
+                          <SelectItem key={template.id} value={template.id}>
+                            {template.name} - {template.subject}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
-                  <div className="flex items-end gap-2">
-                    <Button
-                      onClick={() => handleScheduleSend("invitation")}
-                      className="bg-[#009197] hover:bg-[#006C51]"
-                    >
-                      <Calendar className="h-4 w-4 mr-2" />
-                      Programmer
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={() => handleSendNow("invitation")}
-                      className="border-[#009197] text-[#009197]"
-                    >
-                      <Send className="h-4 w-4 mr-2" />
-                      Envoyer maintenant
-                    </Button>
+
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="invitation-date">Date d&apos;envoi programmée</Label>
+                      <Input
+                        id="invitation-date"
+                        type="datetime-local"
+                        value={scheduleDates.invitation}
+                        onChange={(e) => setScheduleDates({ ...scheduleDates, invitation: e.target.value })}
+                      />
+                    </div>
+                    <div className="flex items-end gap-2">
+                      <Button
+                        onClick={() => handleScheduleSend("invitation")}
+                        className="bg-[#009197] hover:bg-[#006C51]"
+                      >
+                        <Calendar className="h-4 w-4 mr-2" />
+                        Programmer
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={() => handleSendNow("invitation")}
+                        className="border-[#009197] text-[#009197]"
+                      >
+                        <Send className="h-4 w-4 mr-2" />
+                        Envoyer maintenant
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </CardContent>
@@ -509,32 +594,55 @@ export default function CommunicationsPage() {
                     </Button>
                   </Link>
                 </div>
-                <div className="grid md:grid-cols-2 gap-4">
+
+                <div className="space-y-4">
                   <div>
-                    <Label htmlFor="reminder-date">Date d&apos;envoi programmée</Label>
-                    <Input
-                      id="reminder-date"
-                      type="datetime-local"
-                      value={scheduleDates.reminder}
-                      onChange={(e) => setScheduleDates({ ...scheduleDates, reminder: e.target.value })}
-                    />
+                    <Label htmlFor="reminder-template">Template personnalisé (optionnel)</Label>
+                    <Select
+                      value={selectedTemplates.reminder}
+                      onValueChange={(value) => setSelectedTemplates({ ...selectedTemplates, reminder: value })}
+                    >
+                      <SelectTrigger id="reminder-template">
+                        <SelectValue placeholder="Utiliser le template par défaut" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">Template par défaut</SelectItem>
+                        {templates.filter(t => t.type === 'REMINDER' || t.type === 'UPDATE').map(template => (
+                          <SelectItem key={template.id} value={template.id}>
+                            {template.name} - {template.subject}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
-                  <div className="flex items-end gap-2">
-                    <Button
-                      onClick={() => handleScheduleSend("reminder")}
-                      className="bg-[#004645] hover:bg-[#006C51]"
-                    >
-                      <Calendar className="h-4 w-4 mr-2" />
-                      Programmer
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={() => handleSendNow("reminder")}
-                      className="border-[#004645] text-[#004645]"
-                    >
-                      <Send className="h-4 w-4 mr-2" />
-                      Envoyer maintenant
-                    </Button>
+
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="reminder-date">Date d&apos;envoi programmée</Label>
+                      <Input
+                        id="reminder-date"
+                        type="datetime-local"
+                        value={scheduleDates.reminder}
+                        onChange={(e) => setScheduleDates({ ...scheduleDates, reminder: e.target.value })}
+                      />
+                    </div>
+                    <div className="flex items-end gap-2">
+                      <Button
+                        onClick={() => handleScheduleSend("reminder")}
+                        className="bg-[#004645] hover:bg-[#006C51]"
+                      >
+                        <Calendar className="h-4 w-4 mr-2" />
+                        Programmer
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={() => handleSendNow("reminder")}
+                        className="border-[#004645] text-[#004645]"
+                      >
+                        <Send className="h-4 w-4 mr-2" />
+                        Envoyer maintenant
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </CardContent>

@@ -6,6 +6,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
 import { Sparkles, Save, Download, Send } from 'lucide-react'
 import { EmailEditor, EmailTemplate, PREDEFINED_TEMPLATES, blocksToHTML } from '@/components/email-editor'
 import { toast } from 'sonner'
@@ -16,7 +19,14 @@ export default function EmailEditorPage() {
 
   const [selectedTemplate, setSelectedTemplate] = useState<EmailTemplate | null>(null)
   const [showTemplateSelector, setShowTemplateSelector] = useState(true)
+  const [showSaveDialog, setShowSaveDialog] = useState(false)
   const [saving, setSaving] = useState(false)
+
+  // Save form state
+  const [templateName, setTemplateName] = useState('')
+  const [templateDescription, setTemplateDescription] = useState('')
+  const [templateSubject, setTemplateSubject] = useState('')
+  const [templateType, setTemplateType] = useState('INVITE')
 
   const handleSelectTemplate = (templateId: string) => {
     const template = PREDEFINED_TEMPLATES[templateId]
@@ -26,20 +36,56 @@ export default function EmailEditorPage() {
     }
   }
 
-  const handleSaveTemplate = async () => {
+  const handleOpenSaveDialog = () => {
     if (!selectedTemplate) return
+    setShowSaveDialog(true)
+  }
+
+  const handleSaveTemplate = async () => {
+    if (!selectedTemplate || !templateName.trim() || !templateSubject.trim()) {
+      toast.error('Veuillez remplir le nom et le sujet du template')
+      return
+    }
 
     setSaving(true)
     try {
-      // TODO: Save to database
       const html = blocksToHTML(selectedTemplate)
-      console.log('Saving template:', selectedTemplate)
-      console.log('Generated HTML:', html)
 
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      // Generate unique slug from name
+      const slug = templateName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
 
-      toast.success('Template sauvegardé avec succès !')
+      const response = await fetch('/api/admin/templates', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: templateName,
+          slug,
+          description: templateDescription || undefined,
+          type: templateType,
+          subject: templateSubject,
+          htmlContent: html,
+          textContent: '', // Could be improved later
+          primaryColor: selectedTemplate.design?.primaryColor || '#004645',
+          secondaryColor: selectedTemplate.design?.secondaryColor || '#009197',
+          accentColor: selectedTemplate.design?.accentColor || '#FF4713',
+          fontFamily: selectedTemplate.design?.fontFamily || 'Arial, sans-serif',
+          isActive: true,
+        })
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to save template')
+      }
+
+      const savedTemplate = await response.json()
+      toast.success(`Template "${templateName}" sauvegardé avec succès !`)
+
+      // Reset form
+      setShowSaveDialog(false)
+      setTemplateName('')
+      setTemplateDescription('')
+      setTemplateSubject('')
+      setTemplateType('INVITE')
     } catch (error) {
       toast.error('Erreur lors de la sauvegarde')
       console.error('Save error:', error)
@@ -97,12 +143,11 @@ export default function EmailEditorPage() {
                 Télécharger HTML
               </Button>
               <Button
-                onClick={handleSaveTemplate}
-                disabled={saving}
+                onClick={handleOpenSaveDialog}
                 className="bg-gradient-to-r from-[#004645] to-[#009197] text-white"
               >
                 <Save className="h-4 w-4 mr-2" />
-                {saving ? 'Sauvegarde...' : 'Sauvegarder'}
+                Sauvegarder le template
               </Button>
             </>
           )}
@@ -154,6 +199,84 @@ export default function EmailEditorPage() {
               </button>
             ))}
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Save Template Dialog */}
+      <Dialog open={showSaveDialog} onOpenChange={setShowSaveDialog}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Sauvegarder le template</DialogTitle>
+            <DialogDescription>
+              Enregistrez ce template pour le réutiliser dans vos campagnes
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="template-name">Nom du template *</Label>
+              <Input
+                id="template-name"
+                placeholder="Ex: Invitation Élégante"
+                value={templateName}
+                onChange={(e) => setTemplateName(e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="template-subject">Sujet de l&apos;email *</Label>
+              <Input
+                id="template-subject"
+                placeholder="Ex: Vous êtes invité(e) à notre événement"
+                value={templateSubject}
+                onChange={(e) => setTemplateSubject(e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="template-type">Type d&apos;email</Label>
+              <Select value={templateType} onValueChange={setTemplateType}>
+                <SelectTrigger id="template-type">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="INVITE">Invitation</SelectItem>
+                  <SelectItem value="REMINDER">Rappel</SelectItem>
+                  <SelectItem value="CONFIRMATION">Confirmation</SelectItem>
+                  <SelectItem value="SAVE_THE_DATE">Save the Date</SelectItem>
+                  <SelectItem value="THANK_YOU">Remerciement</SelectItem>
+                  <SelectItem value="UPDATE">Mise à jour</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="template-description">Description (optionnel)</Label>
+              <Textarea
+                id="template-description"
+                placeholder="Décrivez l'usage de ce template..."
+                value={templateDescription}
+                onChange={(e) => setTemplateDescription(e.target.value)}
+                rows={3}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowSaveDialog(false)}
+              disabled={saving}
+            >
+              Annuler
+            </Button>
+            <Button
+              onClick={handleSaveTemplate}
+              disabled={saving || !templateName.trim() || !templateSubject.trim()}
+              className="bg-gradient-to-r from-[#004645] to-[#009197] text-white"
+            >
+              <Save className="h-4 w-4 mr-2" />
+              {saving ? 'Sauvegarde...' : 'Sauvegarder'}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 

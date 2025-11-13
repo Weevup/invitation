@@ -55,6 +55,9 @@ export default function CheckinPage() {
   const [search, setSearch] = useState('')
   const [scannerActive, setScannerActive] = useState(false)
   const [selectedDesk, setSelectedDesk] = useState('A')
+  const [availableDesks, setAvailableDesks] = useState<string[]>(['A', 'B', 'C'])
+  const [newDeskName, setNewDeskName] = useState('')
+  const [showAddDesk, setShowAddDesk] = useState(false)
 
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -214,6 +217,30 @@ export default function CheckinPage() {
     }
   }, [])
 
+  const handleAddDesk = () => {
+    const deskName = newDeskName.trim().toUpperCase()
+    if (deskName && !availableDesks.includes(deskName)) {
+      setAvailableDesks([...availableDesks, deskName])
+      setNewDeskName('')
+      setShowAddDesk(false)
+      toast.success(`Kiosque ${deskName} ajouté`)
+    } else if (availableDesks.includes(deskName)) {
+      toast.error('Ce kiosque existe déjà')
+    }
+  }
+
+  const handleRemoveDesk = (desk: string) => {
+    if (availableDesks.length <= 1) {
+      toast.error('Vous devez avoir au moins un kiosque')
+      return
+    }
+    setAvailableDesks(availableDesks.filter(d => d !== desk))
+    if (selectedDesk === desk) {
+      setSelectedDesk(availableDesks[0])
+    }
+    toast.success(`Kiosque ${desk} supprimé`)
+  }
+
   const filteredGuests = guests.filter((guest) => {
     const searchLower = search.toLowerCase()
     return (
@@ -241,13 +268,19 @@ export default function CheckinPage() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-start justify-between">
-        <div>
-          <h2 className="text-3xl font-bold text-[#004645] mb-2" style={{ fontFamily: "var(--font-abril)" }}>
-            Check-in des invités
-          </h2>
-          <p className="text-[#004645]/70">
-            Scannez les QR codes ou enregistrez manuellement vos invités
-          </p>
+        <div className="flex items-center gap-4">
+          <div>
+            <h2 className="text-3xl font-bold text-[#004645] mb-2" style={{ fontFamily: "var(--font-abril)" }}>
+              Check-in des invités
+            </h2>
+            <p className="text-[#004645]/70">
+              Scannez les QR codes ou enregistrez manuellement vos invités
+            </p>
+          </div>
+          <div className="flex flex-col items-center gap-1 px-6 py-3 bg-gradient-to-br from-[#004645] to-[#009197] rounded-lg shadow-lg">
+            <span className="text-xs text-white/70 uppercase tracking-wider">Kiosque</span>
+            <span className="text-4xl font-bold text-white">{selectedDesk}</span>
+          </div>
         </div>
         <Button
           onClick={() => router.push(`/admin/events/${eventId}/kiosk`)}
@@ -325,20 +358,73 @@ export default function CheckinPage() {
         <CardContent>
           <div className="space-y-4">
             {/* Desk selection */}
-            <div className="flex items-center gap-4">
-              <label className="text-sm font-medium text-[#004645]">Desk :</label>
-              <div className="flex gap-2">
-                {['A', 'B', 'C'].map((desk) => (
-                  <Button
-                    key={desk}
-                    variant={selectedDesk === desk ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => setSelectedDesk(desk)}
-                    className={selectedDesk === desk ? 'bg-[#004645]' : ''}
-                  >
-                    {desk}
-                  </Button>
-                ))}
+            <div className="space-y-3">
+              <div className="flex items-center gap-4">
+                <label className="text-sm font-medium text-[#004645]">Kiosques disponibles :</label>
+                <div className="flex flex-wrap gap-2">
+                  {availableDesks.map((desk) => (
+                    <div key={desk} className="relative group">
+                      <Button
+                        variant={selectedDesk === desk ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={() => setSelectedDesk(desk)}
+                        className={selectedDesk === desk ? 'bg-[#004645] pr-8' : 'pr-8'}
+                      >
+                        {desk}
+                      </Button>
+                      {availableDesks.length > 1 && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            handleRemoveDesk(desk)
+                          }}
+                          className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                  {!showAddDesk ? (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowAddDesk(true)}
+                      className="border-dashed border-[#009197] text-[#009197]"
+                    >
+                      + Ajouter
+                    </Button>
+                  ) : (
+                    <div className="flex gap-2">
+                      <Input
+                        type="text"
+                        placeholder="D, E, F..."
+                        value={newDeskName}
+                        onChange={(e) => setNewDeskName(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') handleAddDesk()
+                          if (e.key === 'Escape') setShowAddDesk(false)
+                        }}
+                        className="w-20 h-8 text-sm"
+                        autoFocus
+                      />
+                      <Button size="sm" onClick={handleAddDesk} className="h-8 bg-[#009197]">
+                        OK
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          setShowAddDesk(false)
+                          setNewDeskName('')
+                        }}
+                        className="h-8"
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 
