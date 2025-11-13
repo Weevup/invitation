@@ -56,6 +56,9 @@ export default function KioskModePage() {
   const [scannerActive, setScannerActive] = useState(false)
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [lastCheckin, setLastCheckin] = useState<Guest | null>(null)
+  const [selectedDesk, setSelectedDesk] = useState('A')
+  const [availableDesks, setAvailableDesks] = useState<string[]>(['A', 'B', 'C'])
+  const [showDeskSelector, setShowDeskSelector] = useState(false)
 
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -171,7 +174,7 @@ export default function KioskModePage() {
       const response = await fetch(`/api/admin/events/${eventId}/checkin`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ qrCodeId, desk: 'Kiosk' }),
+        body: JSON.stringify({ qrCodeId, desk: selectedDesk }),
       })
 
       if (response.ok) {
@@ -243,9 +246,18 @@ export default function KioskModePage() {
       {/* Header */}
       <div className="max-w-7xl mx-auto mb-6">
         <div className="flex items-center justify-between mb-4">
-          <div>
-            <h1 className="text-3xl md:text-4xl font-bold text-white mb-1">Mode Kiosque - Check-in</h1>
-            <p className="text-white/80 text-lg">{eventName}</p>
+          <div className="flex items-center gap-6">
+            <div>
+              <h1 className="text-3xl md:text-4xl font-bold text-white mb-1">Mode Kiosque - Check-in</h1>
+              <p className="text-white/80 text-lg">{eventName}</p>
+            </div>
+            <button
+              onClick={() => setShowDeskSelector(!showDeskSelector)}
+              className="flex flex-col items-center gap-1 px-8 py-4 bg-white/20 hover:bg-white/30 backdrop-blur-md rounded-xl shadow-2xl transition-all cursor-pointer border-2 border-white/30"
+            >
+              <span className="text-sm text-white/90 uppercase tracking-wider font-semibold">Kiosque</span>
+              <span className="text-5xl font-bold text-white">{selectedDesk}</span>
+            </button>
           </div>
           <div className="flex gap-2">
             <Button
@@ -327,6 +339,47 @@ export default function KioskModePage() {
           </Card>
         </div>
       </div>
+
+      {/* Desk Selector Popup */}
+      {showDeskSelector && (
+        <div className="max-w-7xl mx-auto mb-6 animate-in slide-in-from-top">
+          <Card className="bg-white border-0 shadow-2xl">
+            <CardContent className="py-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-2xl font-bold text-[#004645]">Sélectionner un kiosque</h3>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowDeskSelector(false)}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+              <div className="grid grid-cols-4 md:grid-cols-6 gap-3">
+                {availableDesks.map((desk) => (
+                  <Button
+                    key={desk}
+                    onClick={() => {
+                      setSelectedDesk(desk)
+                      setShowDeskSelector(false)
+                      toast.success(`Kiosque ${desk} sélectionné`)
+                    }}
+                    variant={selectedDesk === desk ? 'default' : 'outline'}
+                    size="lg"
+                    className={`h-20 text-2xl font-bold ${
+                      selectedDesk === desk
+                        ? 'bg-gradient-to-br from-[#004645] to-[#009197]'
+                        : 'hover:bg-[#9CD9F6]/20'
+                    }`}
+                  >
+                    {desk}
+                  </Button>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       {/* Last Checkin Notification */}
       {lastCheckin && (
