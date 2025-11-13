@@ -19,7 +19,11 @@ import {
   BarChart3,
   TrendingUp,
   MailOpen,
-  Wand2
+  Wand2,
+  Puzzle,
+  Clock3,
+  Plane,
+  Hotel
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useEventModules } from '@/lib/modules'
@@ -56,21 +60,44 @@ export default function EventLayout({
 
   // Only add modules if they're loaded (not during initial loading state)
   if (!loading) {
-    // Planning Opérationnel first (if Transport or Accommodation module is active)
-    if (hasModule('TRANSPORT') || hasModule('ACCOMMODATION')) {
-      moduleNavItems.push({
-        label: 'Planning Opérationnel',
-        href: `/admin/events/${eventId}/operations`,
-        icon: BarChart3,
-      })
-    }
-
-    // Then Program module if active
+    // Program module
     if (hasModule('PROGRAM')) {
       moduleNavItems.push({
         label: 'Programme',
         href: `/admin/events/${eventId}/program`,
         icon: Calendar,
+      })
+      moduleNavItems.push({
+        label: 'Timeline',
+        href: `/admin/events/${eventId}/timeline`,
+        icon: Clock3,
+      })
+    }
+
+    // Transport module
+    if (hasModule('TRANSPORT')) {
+      moduleNavItems.push({
+        label: 'Transport',
+        href: `/admin/events/${eventId}/transport`,
+        icon: Plane,
+      })
+    }
+
+    // Accommodation module
+    if (hasModule('ACCOMMODATION')) {
+      moduleNavItems.push({
+        label: 'Hébergement',
+        href: `/admin/events/${eventId}/accommodation`,
+        icon: Hotel,
+      })
+    }
+
+    // Planning Opérationnel (if Transport or Accommodation module is active)
+    if (hasModule('TRANSPORT') || hasModule('ACCOMMODATION')) {
+      moduleNavItems.push({
+        label: 'Planning Opérationnel',
+        href: `/admin/events/${eventId}/operations`,
+        icon: BarChart3,
       })
     }
   }
@@ -85,6 +112,11 @@ export default function EventLayout({
           href: `/admin/events/${eventId}`,
           icon: LayoutDashboard,
           exact: true,
+        },
+        {
+          label: 'Configuration',
+          href: `/admin/events/${eventId}/modules`,
+          icon: Puzzle,
         },
         {
           label: 'Showcase',
@@ -112,34 +144,24 @@ export default function EventLayout({
       title: "EMAIL & COMMUNICATIONS",
       items: [
         {
-          label: 'Éditeur WYSIWYG',
-          href: `/admin/events/${eventId}/email-editor`,
+          label: 'Templates',
+          href: `/admin/events/${eventId}/templates`,
           icon: Wand2,
         },
         {
-          label: 'Save the Date',
-          href: `/admin/events/${eventId}/save-the-date`,
-          icon: Bell,
-        },
-        {
-          label: 'Invitation',
-          href: `/admin/events/${eventId}/invitation`,
-          icon: Mail,
-        },
-        {
-          label: 'RSVP',
-          href: `/admin/events/${eventId}/rsvp-config`,
-          icon: UserCheck,
-        },
-        {
-          label: 'Envoi & Suivi',
+          label: 'Campagnes',
           href: `/admin/events/${eventId}/communications`,
           icon: Settings,
         },
         {
-          label: 'Analytics Emails',
+          label: 'Analytics',
           href: `/admin/events/${eventId}/email-analytics`,
           icon: MailOpen,
+        },
+        {
+          label: 'Configuration RSVP',
+          href: `/admin/events/${eventId}/rsvp-config`,
+          icon: UserCheck,
         },
       ],
     },
