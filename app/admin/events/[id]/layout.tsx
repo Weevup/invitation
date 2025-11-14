@@ -35,6 +35,20 @@ interface EventData {
   city?: string
 }
 
+interface NavigationItem {
+  label: string
+  href: string
+  icon: any
+  exact?: boolean
+}
+
+interface NavigationSection {
+  title: string
+  items: NavigationItem[]
+  isHeader?: boolean
+  isSubGroup?: boolean
+}
+
 export default function EventLayout({
   children,
 }: {
@@ -55,28 +69,30 @@ export default function EventLayout({
       .catch(console.error)
   }, [eventId])
 
-  // Module-based navigation items (conditionally added)
-  const moduleNavItems = []
+  // Module-based navigation items (grouped by category)
+  const programmationModules: NavigationItem[] = []
+  const logistiqueModules: NavigationItem[] = []
 
   // Only add modules if they're loaded (not during initial loading state)
   if (!loading) {
-    // Program module
+    // PROGRAMMATION GROUP - Timeline first (global dashboard), then Program (details)
     if (hasModule('PROGRAM')) {
-      moduleNavItems.push({
-        label: 'Programme',
-        href: `/admin/events/${eventId}/program`,
-        icon: Calendar,
-      })
-      moduleNavItems.push({
+      programmationModules.push({
         label: 'Timeline',
         href: `/admin/events/${eventId}/timeline`,
         icon: Clock3,
       })
+      programmationModules.push({
+        label: 'Programme',
+        href: `/admin/events/${eventId}/program`,
+        icon: Calendar,
+      })
     }
 
+    // LOGISTIQUE GROUP
     // Transport module
     if (hasModule('TRANSPORT')) {
-      moduleNavItems.push({
+      logistiqueModules.push({
         label: 'Transport',
         href: `/admin/events/${eventId}/transport`,
         icon: Plane,
@@ -85,7 +101,7 @@ export default function EventLayout({
 
     // Accommodation module
     if (hasModule('ACCOMMODATION')) {
-      moduleNavItems.push({
+      logistiqueModules.push({
         label: 'Hébergement',
         href: `/admin/events/${eventId}/accommodation`,
         icon: Hotel,
@@ -94,7 +110,7 @@ export default function EventLayout({
 
     // Planning Opérationnel (if Transport or Accommodation module is active)
     if (hasModule('TRANSPORT') || hasModule('ACCOMMODATION')) {
-      moduleNavItems.push({
+      logistiqueModules.push({
         label: 'Planning Opérationnel',
         href: `/admin/events/${eventId}/operations`,
         icon: BarChart3,
@@ -103,7 +119,7 @@ export default function EventLayout({
   }
 
   // Navigation organized by sections for better UX
-  const navigationSections = [
+  const navigationSections: NavigationSection[] = [
     {
       title: "GESTION ÉVÉNEMENT",
       items: [
@@ -167,12 +183,32 @@ export default function EventLayout({
     },
   ]
 
-  // Add modules section if any modules are active
-  if (moduleNavItems.length > 0) {
+  // Add advanced modules sections with sub-groups
+  if (programmationModules.length > 0 || logistiqueModules.length > 0) {
+    // Add main header
     navigationSections.push({
       title: "MODULES AVANCÉS",
-      items: moduleNavItems,
+      items: [],
+      isHeader: true,
     })
+
+    // Add Programmation sub-group if modules exist
+    if (programmationModules.length > 0) {
+      navigationSections.push({
+        title: "📅 Programmation",
+        items: programmationModules,
+        isSubGroup: true,
+      })
+    }
+
+    // Add Logistique sub-group if modules exist
+    if (logistiqueModules.length > 0) {
+      navigationSections.push({
+        title: "🚗 Logistique",
+        items: logistiqueModules,
+        isSubGroup: true,
+      })
+    }
   }
 
   const isActive = (item: { href: string; exact?: boolean }) => {
@@ -257,38 +293,51 @@ export default function EventLayout({
           <nav className="p-4 space-y-6">
             {navigationSections.map((section, sectionIndex) => (
               <div key={section.title}>
-                {/* Section Header */}
-                <h3 className="px-4 mb-2 text-xs font-semibold text-[#004645]/50 tracking-wider">
+                {/* Section Header or Sub-group title */}
+                <h3 className={cn(
+                  "px-4 mb-2 text-xs font-semibold tracking-wider",
+                  section.isSubGroup
+                    ? "text-[#009197] ml-2" // Sub-group: turquoise, indented
+                    : "text-[#004645]/50"   // Regular section: gray
+                )}>
                   {section.title}
                 </h3>
 
-                {/* Section Items */}
-                <div className="space-y-1">
-                  {section.items.map((item) => {
-                    const Icon = item.icon
-                    const active = isActive(item)
+                {/* Section Items (skip if it's just a header) */}
+                {!section.isHeader && (
+                  <div className={cn(
+                    "space-y-1",
+                    section.isSubGroup && "ml-2" // Indent sub-group items
+                  )}>
+                    {section.items.map((item) => {
+                      const Icon = item.icon
+                      const active = isActive(item)
 
-                    return (
-                      <Link
-                        key={item.href}
-                        href={item.href}
-                        className={cn(
-                          "flex items-center gap-3 px-4 py-3 rounded-lg transition-all",
-                          "text-sm font-medium",
-                          active
-                            ? "bg-gradient-to-r from-[#004645] to-[#009197] text-white shadow-lg"
-                            : "text-[#004645]/70 hover:bg-[#9CD9F6]/20 hover:text-[#004645]"
-                        )}
-                      >
-                        <Icon className={cn("h-5 w-5", active ? "text-white" : "text-[#009197]")} />
-                        {item.label}
-                      </Link>
-                    )
-                  })}
-                </div>
+                      return (
+                        <Link
+                          key={item.href}
+                          href={item.href}
+                          className={cn(
+                            "flex items-center gap-3 px-4 py-3 rounded-lg transition-all",
+                            "text-sm font-medium",
+                            active
+                              ? "bg-gradient-to-r from-[#004645] to-[#009197] text-white shadow-lg"
+                              : "text-[#004645]/70 hover:bg-[#9CD9F6]/20 hover:text-[#004645]"
+                          )}
+                        >
+                          <Icon className={cn(
+                            active ? "text-white" : "text-[#009197]",
+                            section.isSubGroup ? "h-4 w-4" : "h-5 w-5" // Smaller icons for sub-groups
+                          )} />
+                          {item.label}
+                        </Link>
+                      )
+                    })}
+                  </div>
+                )}
 
-                {/* Divider (except for last section) */}
-                {sectionIndex < navigationSections.length - 1 && (
+                {/* Divider (except for last section and sub-groups) */}
+                {!section.isSubGroup && sectionIndex < navigationSections.length - 1 && (
                   <div className="mt-4 border-t border-[#9CD9F6]/30" />
                 )}
               </div>
