@@ -16,7 +16,7 @@ import {
   X,
   UserCog
 } from 'lucide-react'
-import { useToast } from '@/hooks/use-toast'
+import { useToast } from '@/components/ui/use-toast'
 import { ParticipantGroupAssignment } from './participant-group-assignment'
 
 interface SessionGroup {
