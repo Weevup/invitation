@@ -11,7 +11,6 @@ import { ScrollReveal } from '@/components/scroll-reveal'
 import Link from 'next/link'
 import { migrateLegacySections, getActiveSections, getSectionWrapperProps } from '@/lib/showcase-utils'
 import { type SectionConfig } from '@/lib/showcase-templates'
-import DOMPurify from 'isomorphic-dompurify'
 
 /**
  * Sanitize CSS to prevent XSS attacks
@@ -39,13 +38,34 @@ function sanitizeCSS(css: string): string {
 
 /**
  * Sanitize HTML content allowing basic formatting tags
+ * Lightweight server-side sanitization (data comes from trusted admin source)
  */
 function sanitizeHTML(html: string): string {
-  return DOMPurify.sanitize(html, {
-    ALLOWED_TAGS: ['p', 'br', 'b', 'i', 'em', 'strong', 'u', 'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'a'],
-    ALLOWED_ATTR: ['href', 'target', 'rel'],
-    ALLOW_DATA_ATTR: false,
+  if (!html) return ''
+
+  // Remove script tags and event handlers
+  let sanitized = html
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+    .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '')
+    .replace(/on\w+\s*=\s*["'][^"']*["']/gi, '')
+    .replace(/on\w+\s*=\s*[^\s>]*/gi, '')
+
+  // Allow only safe tags
+  const allowedTags = ['p', 'br', 'b', 'i', 'em', 'strong', 'u', 'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'a', 'span', 'div']
+  const tagPattern = /<\/?(\w+)[^>]*>/g
+
+  sanitized = sanitized.replace(tagPattern, (match, tagName) => {
+    if (allowedTags.includes(tagName.toLowerCase())) {
+      // Remove dangerous attributes but keep href for links
+      if (tagName.toLowerCase() === 'a') {
+        return match.replace(/href\s*=\s*["']javascript:[^"']*["']/gi, '')
+      }
+      return match
+    }
+    return '' // Remove disallowed tags
   })
+
+  return sanitized
 }
 
 interface PageProps {
