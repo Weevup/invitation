@@ -1,6 +1,7 @@
 import type {
   Session,
   SessionParticipant,
+  SessionGroup,
   Guest,
   RSVP,
   TransportBooking,
@@ -15,7 +16,7 @@ import type {
 
 // Types étendu avec relations
 type SessionWithParticipants = Session & {
-  participants: (SessionParticipant & { guest: Guest })[]
+  participants: (SessionParticipant & { guest: Guest; group: SessionGroup | null })[]
 }
 
 type TransportManifestWithParticipants = TransportManifest & {
@@ -98,6 +99,9 @@ export interface KPIs {
   confirmedGuests: number
   pendingGuests: number
   totalSessions: number
+  totalWorkshops: number
+  totalTeamBuilding: number
+  totalFreeTime: number
   totalTransports: number
   totalManifests: number
   totalAccommodations: number
@@ -131,7 +135,13 @@ export function buildTimeSlots({
 
   // 1. Ajouter les sessions
   sessions.forEach(session => {
-    const sessionParticipants = session.participants.map(p => p.guest)
+    // Preserve participant data with group information
+    const sessionParticipants = session.participants.map(p => {
+      const guest = p.guest as any
+      guest.groupId = p.groupId
+      guest.group = p.group
+      return guest
+    })
     const sessionWarnings = calculateSessionWarnings(session, rsvps)
 
     slots.push({
@@ -674,11 +684,18 @@ export function calculateKPIs({
     return !r.allergies.toLowerCase().includes('allergi')
   })
 
+  const totalWorkshops = sessions.filter(s => s.type === 'WORKSHOP').length
+  const totalTeamBuilding = sessions.filter(s => s.type === 'TEAMBUILDING').length
+  const totalFreeTime = sessions.filter(s => s.type === 'FREE_TIME').length
+
   return {
     totalGuests: guests.length,
     confirmedGuests: confirmedRSVPs.length,
     pendingGuests: pendingRSVPs.length,
     totalSessions: sessions.length,
+    totalWorkshops,
+    totalTeamBuilding,
+    totalFreeTime,
     totalTransports: transportBookings.length,
     totalManifests: transportManifests.length,
     totalAccommodations: accommodations.length,

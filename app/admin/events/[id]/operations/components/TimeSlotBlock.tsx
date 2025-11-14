@@ -130,31 +130,62 @@ export function TimeSlotBlock({ slot, onClick }: TimeSlotBlockProps) {
           </div>
         )}
 
-        {/* Session-specific: Groups */}
+        {/* Session-specific: Groups with smart vocabulary */}
         {slot.type === 'session' && slot.requiresGroups && slot.groups && slot.groups.length > 0 && (
           <div className="space-y-2 pt-2 border-t">
-            <div className="text-sm font-medium text-muted-foreground">
-              Groupes ({slot.groups.length})
+            <div className="flex items-center justify-between">
+              <div className="text-sm font-medium text-muted-foreground">
+                {getGroupLabel(slot.subType)} ({slot.groups.length})
+              </div>
+              <Badge variant="secondary" className="text-xs">
+                {slot.groups.reduce((sum, g) => sum + (g._count?.participants || 0), 0)} participants
+              </Badge>
             </div>
             <div className="flex flex-wrap gap-2">
-              {slot.groups.map((group) => (
-                <Badge
-                  key={group.id}
-                  variant="outline"
-                  className="text-xs border-2"
-                  style={{
-                    borderColor: group.color || '#3B82F6',
-                    color: group.color || '#3B82F6'
-                  }}
-                >
+              {slot.groups.map((group) => {
+                const participantCount = group._count?.participants || 0
+                const isOverCapacity = group.capacity && participantCount > group.capacity
+                const fillRate = group.capacity ? (participantCount / group.capacity) * 100 : 0
+
+                return (
                   <div
-                    className="w-2 h-2 rounded-full mr-1.5"
-                    style={{ backgroundColor: group.color || '#3B82F6' }}
-                  />
-                  {group.name}: {group._count?.participants || 0}
-                  {group.capacity && `/${group.capacity}`}
-                </Badge>
-              ))}
+                    key={group.id}
+                    className="flex items-center gap-2 px-2 py-1 rounded-md border-2 text-xs"
+                    style={{
+                      borderColor: group.color || '#3B82F6',
+                      backgroundColor: `${group.color || '#3B82F6'}10`
+                    }}
+                  >
+                    <div
+                      className="w-2.5 h-2.5 rounded-full"
+                      style={{ backgroundColor: group.color || '#3B82F6' }}
+                    />
+                    <span className="font-medium" style={{ color: group.color || '#3B82F6' }}>
+                      {group.name}
+                    </span>
+                    <span className={cn(
+                      "font-semibold",
+                      isOverCapacity ? "text-red-600" : "text-muted-foreground"
+                    )}>
+                      {participantCount}{group.capacity && `/${group.capacity}`}
+                    </span>
+                    {group.capacity && (
+                      <div className="h-1 w-8 bg-gray-200 rounded-full overflow-hidden">
+                        <div
+                          className={cn(
+                            "h-full rounded-full",
+                            fillRate > 100 ? "bg-red-500" :
+                            fillRate > 90 ? "bg-orange-500" :
+                            fillRate > 70 ? "bg-yellow-500" :
+                            "bg-green-500"
+                          )}
+                          style={{ width: `${Math.min(fillRate, 100)}%` }}
+                        />
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
             </div>
           </div>
         )}
@@ -223,12 +254,26 @@ function getIconForSlot(slot: TimeSlot): string {
         return '🎤'
       case 'CONFERENCE':
         return '📊'
+      case 'PANEL':
+        return '💬'
       case 'WORKSHOP':
         return '🛠️'
       case 'TEAMBUILDING':
-        return '🎵'
+        return '🤝'
+      case 'FREE_TIME':
+        return '🌴'
+      case 'NETWORKING':
+        return '🤝'
+      case 'TRAINING':
+        return '📚'
       case 'BREAK':
         return '☕'
+      case 'TRANSFER':
+        return '🚌'
+      case 'ARRIVAL':
+        return '✈️'
+      case 'DEPARTURE':
+        return '🛫'
       default:
         return '📅'
     }
@@ -259,12 +304,26 @@ function getColorForSlot(slot: TimeSlot): string {
         return 'border-l-blue-500'
       case 'CONFERENCE':
         return 'border-l-purple-500'
+      case 'PANEL':
+        return 'border-l-purple-400'
       case 'WORKSHOP':
         return 'border-l-orange-500'
       case 'TEAMBUILDING':
         return 'border-l-pink-500'
+      case 'FREE_TIME':
+        return 'border-l-emerald-500'
+      case 'NETWORKING':
+        return 'border-l-cyan-500'
+      case 'TRAINING':
+        return 'border-l-amber-500'
       case 'BREAK':
         return 'border-l-gray-400'
+      case 'TRANSFER':
+        return 'border-l-cyan-600'
+      case 'ARRIVAL':
+        return 'border-l-blue-600'
+      case 'DEPARTURE':
+        return 'border-l-blue-400'
       default:
         return 'border-l-gray-500'
     }
@@ -302,10 +361,17 @@ function getSessionTypeLabel(type: string): string {
     MEAL: 'Repas',
     KEYNOTE: 'Keynote',
     CONFERENCE: 'Conférence',
+    PANEL: 'Table ronde',
     WORKSHOP: 'Atelier',
     TEAMBUILDING: 'Team Building',
+    FREE_TIME: 'Temps libre',
+    NETWORKING: 'Networking',
+    TRAINING: 'Formation',
     BREAK: 'Pause',
-    NETWORKING: 'Networking'
+    TRANSFER: 'Transfert',
+    ARRIVAL: 'Arrivée',
+    DEPARTURE: 'Départ',
+    OTHER: 'Autre'
   }
   return labels[type] || type
 }
@@ -332,4 +398,17 @@ function getDuration(start: Date, end: Date): string {
   }
 
   return `${hours}h${remainingMinutes.toString().padStart(2, '0')}`
+}
+
+function getGroupLabel(sessionType?: string): string {
+  switch (sessionType) {
+    case 'WORKSHOP':
+      return '🛠️ Ateliers'
+    case 'TEAMBUILDING':
+      return '🤝 Équipes'
+    case 'FREE_TIME':
+      return '🌴 Activités'
+    default:
+      return '👥 Groupes'
+  }
 }
