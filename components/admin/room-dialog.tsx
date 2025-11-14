@@ -89,11 +89,32 @@ export function RoomDialog({
     setLoading(true)
 
     try {
-      // Convert string numbers to actual numbers
+      // Convert string numbers to actual numbers and clean up empty strings
       const data: any = { ...formData }
-      if (data.floor) data.floor = parseInt(data.floor)
-      if (data.maxOccupancy) data.maxOccupancy = parseInt(data.maxOccupancy)
-      if (data.ratePerNight) data.ratePerNight = parseFloat(data.ratePerNight)
+
+      // Clean up all empty strings
+      Object.keys(data).forEach(key => {
+        if (data[key] === '' || data[key] === null) {
+          delete data[key]
+        }
+      })
+
+      // Convert numbers only if they have values
+      if (data.floor) {
+        const parsed = parseInt(data.floor)
+        data.floor = isNaN(parsed) ? undefined : parsed
+        if (data.floor === undefined) delete data.floor
+      }
+      if (data.maxOccupancy) {
+        const parsed = parseInt(data.maxOccupancy)
+        data.maxOccupancy = isNaN(parsed) ? undefined : parsed
+        if (data.maxOccupancy === undefined) delete data.maxOccupancy
+      }
+      if (data.ratePerNight) {
+        const parsed = parseFloat(data.ratePerNight)
+        data.ratePerNight = isNaN(parsed) ? undefined : parsed
+        if (data.ratePerNight === undefined) delete data.ratePerNight
+      }
 
       const response = await fetch(
         `/api/admin/events/${eventId}/accommodations/${accommodationId}/rooms`,

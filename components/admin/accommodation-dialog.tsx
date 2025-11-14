@@ -93,15 +93,34 @@ export function AccommodationDialog({
       // Convert string numbers to actual numbers and clean up empty strings
       const data: any = { ...formData }
 
-      // Convert numbers
-      if (data.starRating) data.starRating = parseInt(data.starRating)
-      if (data.totalRooms) data.totalRooms = parseInt(data.totalRooms)
-      if (data.allocatedRooms) data.allocatedRooms = parseInt(data.allocatedRooms)
-      if (data.contractRate) data.contractRate = parseFloat(data.contractRate)
+      // Clean up all empty strings and convert numbers
+      Object.keys(data).forEach(key => {
+        if (data[key] === '' || data[key] === null) {
+          delete data[key]
+        }
+      })
 
-      // Clean up empty strings for optional fields to avoid validation errors
-      if (data.email === '') delete data.email
-      if (data.website === '') delete data.website
+      // Convert numbers only if they have values
+      if (data.starRating) {
+        const parsed = parseInt(data.starRating)
+        data.starRating = isNaN(parsed) ? undefined : parsed
+        if (data.starRating === undefined) delete data.starRating
+      }
+      if (data.totalRooms) {
+        const parsed = parseInt(data.totalRooms)
+        data.totalRooms = isNaN(parsed) ? undefined : parsed
+        if (data.totalRooms === undefined) delete data.totalRooms
+      }
+      if (data.allocatedRooms) {
+        const parsed = parseInt(data.allocatedRooms)
+        data.allocatedRooms = isNaN(parsed) ? undefined : parsed
+        if (data.allocatedRooms === undefined) delete data.allocatedRooms
+      }
+      if (data.contractRate) {
+        const parsed = parseFloat(data.contractRate)
+        data.contractRate = isNaN(parsed) ? undefined : parsed
+        if (data.contractRate === undefined) delete data.contractRate
+      }
 
       const url = accommodation
         ? `/api/admin/events/${eventId}/accommodations/${accommodation.id}`
