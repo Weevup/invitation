@@ -68,10 +68,13 @@ export default function TeamBuildingPage() {
       if (!response.ok) throw new Error('Failed to fetch sessions')
 
       const data = await response.json()
-      // Filter only TEAMBUILDING sessions that require groups/teams
-      const teamBuildingSessions = data.sessions.filter(
-        (s: Session) => s.requiresGroups && s.type === 'TEAMBUILDING'
-      )
+      // Filter only TEAMBUILDING sessions that require groups/teams and ensure groups array exists
+      const teamBuildingSessions = data.sessions
+        .filter((s: Session) => s.requiresGroups && s.type === 'TEAMBUILDING')
+        .map((s: Session) => ({
+          ...s,
+          groups: s.groups || [], // Ensure groups is always an array
+        }))
       setSessions(teamBuildingSessions)
     } catch (error) {
       console.error('Error fetching sessions:', error)

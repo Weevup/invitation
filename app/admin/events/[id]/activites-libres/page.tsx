@@ -68,10 +68,13 @@ export default function ActivitesLibresPage() {
       if (!response.ok) throw new Error('Failed to fetch sessions')
 
       const data = await response.json()
-      // Filter only FREE_TIME sessions with groups/activities
-      const freeTimeSessions = data.sessions.filter(
-        (s: Session) => s.requiresGroups && s.type === 'FREE_TIME'
-      )
+      // Filter only FREE_TIME sessions with groups/activities and ensure groups array exists
+      const freeTimeSessions = data.sessions
+        .filter((s: Session) => s.requiresGroups && s.type === 'FREE_TIME')
+        .map((s: Session) => ({
+          ...s,
+          groups: s.groups || [], // Ensure groups is always an array
+        }))
       setSessions(freeTimeSessions)
     } catch (error) {
       console.error('Error fetching sessions:', error)
