@@ -25,7 +25,10 @@ import {
   Plane,
   Hotel,
   Users2,
-  Database
+  Database,
+  Presentation,
+  Trophy,
+  PartyPopper
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useEventModules } from '@/lib/modules/use-event-modules'
@@ -78,12 +81,33 @@ export default function EventLayout({
 
   // Only add modules if they're loaded (not during initial loading state)
   if (!isLoading) {
-    // PROGRAMMATION GROUP - Programme only
+    // PROGRAMMATION GROUP - Programme and related activities
     if (hasModule('PROGRAM')) {
       programmationModules.push({
         label: 'Programme',
         href: `/admin/events/${eventId}/program`,
         icon: Calendar,
+      })
+
+      // Workshops/Ateliers - Programme sub-module
+      programmationModules.push({
+        label: 'Ateliers',
+        href: `/admin/events/${eventId}/ateliers`,
+        icon: Presentation,
+      })
+
+      // Team Building - Programme sub-module
+      programmationModules.push({
+        label: 'Team Building',
+        href: `/admin/events/${eventId}/team-building`,
+        icon: Trophy,
+      })
+
+      // Activités libres - Programme sub-module
+      programmationModules.push({
+        label: 'Activités libres',
+        href: `/admin/events/${eventId}/activites-libres`,
+        icon: PartyPopper,
       })
     }
 
@@ -103,29 +127,6 @@ export default function EventLayout({
         label: 'Hébergement',
         href: `/admin/events/${eventId}/accommodation`,
         icon: Hotel,
-      })
-    }
-
-    // Workshops/Ateliers module (always show if PROGRAM module is active)
-    if (hasModule('PROGRAM')) {
-      logistiqueModules.push({
-        label: 'Ateliers',
-        href: `/admin/events/${eventId}/ateliers`,
-        icon: Users2,
-      })
-
-      // Team Building module
-      logistiqueModules.push({
-        label: 'Team Building',
-        href: `/admin/events/${eventId}/team-building`,
-        icon: Users2,
-      })
-
-      // Activités libres module
-      logistiqueModules.push({
-        label: 'Activités libres',
-        href: `/admin/events/${eventId}/activites-libres`,
-        icon: Users2,
       })
     }
   }
@@ -209,13 +210,13 @@ export default function EventLayout({
       isHeader: true,
     })
 
-    // Add Planning Opérationnel at the top if logistics modules are active
-    if (hasModule('TRANSPORT') || hasModule('ACCOMMODATION')) {
+    // Add Planning Opérationnel at the top if any advanced module is active
+    if (hasModule('TRANSPORT') || hasModule('ACCOMMODATION') || hasModule('PROGRAM')) {
       navigationSections.push({
         title: "📊 Vue Globale",
         items: [{
           label: 'Planning Opérationnel',
-          href: `/admin/events/${eventId}/timeline`,
+          href: `/admin/events/${eventId}/operations`,
           icon: BarChart3,
         }],
         isSubGroup: true,
