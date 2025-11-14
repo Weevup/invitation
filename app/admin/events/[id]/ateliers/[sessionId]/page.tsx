@@ -75,7 +75,7 @@ interface Participant {
   }
 }
 
-export default function SessionGroupsDetailPage() {
+export default function AteliersDetailPage() {
   const params = useParams()
   const router = useRouter()
   const { toast } = useToast()
