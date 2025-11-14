@@ -132,7 +132,7 @@ export default function CommunicationsPage() {
       };
 
       // Ajouter le template ID si sélectionné
-      if (selectedTemplates[type]) {
+      if (selectedTemplates[type] && selectedTemplates[type] !== 'default') {
         body.templateId = selectedTemplates[type];
       }
 
@@ -174,7 +174,7 @@ export default function CommunicationsPage() {
       };
 
       // Ajouter le template ID si sélectionné
-      if (selectedTemplates[type]) {
+      if (selectedTemplates[type] && selectedTemplates[type] !== 'default') {
         body.templateId = selectedTemplates[type];
       }
 
@@ -440,7 +440,7 @@ export default function CommunicationsPage() {
                         <SelectValue placeholder="Utiliser le template par défaut" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Template par défaut</SelectItem>
+                        <SelectItem value="default">Template par défaut</SelectItem>
                         {templates.filter(t => t.type === 'SAVE_THE_DATE' || t.type === 'INVITE').map(template => (
                           <SelectItem key={template.id} value={template.id}>
                             {template.name} - {template.subject}
@@ -523,7 +523,7 @@ export default function CommunicationsPage() {
                         <SelectValue placeholder="Utiliser le template par défaut" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Template par défaut</SelectItem>
+                        <SelectItem value="default">Template par défaut</SelectItem>
                         {templates.filter(t => t.type === 'INVITE' || t.type === 'CONFIRMATION').map(template => (
                           <SelectItem key={template.id} value={template.id}>
                             {template.name} - {template.subject}
@@ -606,7 +606,7 @@ export default function CommunicationsPage() {
                         <SelectValue placeholder="Utiliser le template par défaut" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Template par défaut</SelectItem>
+                        <SelectItem value="default">Template par défaut</SelectItem>
                         {templates.filter(t => t.type === 'REMINDER' || t.type === 'UPDATE').map(template => (
                           <SelectItem key={template.id} value={template.id}>
                             {template.name} - {template.subject}
