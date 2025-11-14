@@ -20,6 +20,13 @@ import {
   Coffee,
   Utensils,
   Presentation,
+  Mail,
+  MessageSquare,
+  UserCheck,
+  AlertTriangle,
+  AlertCircle,
+  Info,
+  X,
 } from 'lucide-react'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
@@ -50,6 +57,18 @@ interface TimelineItem {
   roomType?: string
   roomNumber?: string
   isParticipating?: boolean
+}
+
+interface Alert {
+  id: string
+  type: string
+  severity: 'error' | 'warning' | 'info'
+  title: string
+  message: string
+  count?: number
+  sessionId?: string
+  relatedTime?: string
+  guests?: Array<{ id: string; firstName: string; lastName: string }>
 }
 
 const getSessionIcon = (sessionType?: string) => {
@@ -100,8 +119,13 @@ export default function TimelinePage() {
     sessions: 0,
     transports: 0,
     accommodations: 0,
+    emailsSent: 0,
+    rsvpReceived: 0,
+    checkins: 0,
     totalParticipants: 0,
   })
+  const [alerts, setAlerts] = useState<Alert[]>([])
+  const [dismissedAlerts, setDismissedAlerts] = useState<Set<string>>(new Set())
   const [currentDateIndex, setCurrentDateIndex] = useState(0)
 
   useEffect(() => {
@@ -120,6 +144,7 @@ export default function TimelinePage() {
         setTimeline(data.timeline || [])
         setTimelineByDate(data.timelineByDate || {})
         setStats(data.stats || {})
+        setAlerts(data.alerts || [])
       }
     } catch (error) {
       console.error('Error fetching timeline:', error)
@@ -135,6 +160,39 @@ export default function TimelinePage() {
   const handleExportManifeste = () => {
     window.open(`/api/admin/events/${eventId}/export/manifeste`, '_blank')
   }
+
+  const dismissAlert = (alertId: string) => {
+    setDismissedAlerts((prev) => new Set(prev).add(alertId))
+  }
+
+  const getAlertIcon = (severity: string) => {
+    switch (severity) {
+      case 'error':
+        return AlertCircle
+      case 'warning':
+        return AlertTriangle
+      case 'info':
+        return Info
+      default:
+        return Info
+    }
+  }
+
+  const getAlertStyles = (severity: string) => {
+    switch (severity) {
+      case 'error':
+        return 'bg-red-50 border-red-200 text-red-800'
+      case 'warning':
+        return 'bg-orange-50 border-orange-200 text-orange-800'
+      case 'info':
+        return 'bg-blue-50 border-blue-200 text-blue-800'
+      default:
+        return 'bg-gray-50 border-gray-200 text-gray-800'
+    }
+  }
+
+  // Filter out dismissed alerts
+  const visibleAlerts = alerts.filter((alert) => !dismissedAlerts.has(alert.id))
 
   // Get sorted dates
   const sortedDates = Object.keys(timelineByDate).sort()
@@ -174,11 +232,14 @@ export default function TimelinePage() {
     return { checkIns, checkOuts, roomTypes }
   }
 
-  // Calculate transport summary for a specific hour
-  const getTransportSummary = (hour: string, items: TimelineItem[]) => {
+  // Calculate logistics summary for a specific hour
+  const getLogisticsSummary = (hour: string, items: TimelineItem[]) => {
     const arrivals = items.filter((item) => item.type === 'TRANSPORT_ARRIVAL')
     const departures = items.filter((item) => item.type === 'TRANSPORT_DEPARTURE')
-    return { arrivals, departures }
+    const emails = items.filter((item) => item.type === 'EMAIL_SENT')
+    const rsvps = items.filter((item) => item.type === 'RSVP_RECEIVED')
+    const checkins = items.filter((item) => item.type === 'CHECKIN')
+    return { arrivals, departures, emails, rsvps, checkins }
   }
 
   if (loading) {
@@ -215,46 +276,70 @@ export default function TimelinePage() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid md:grid-cols-5 gap-4">
+      <div className="grid md:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Sessions
+            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+              <Calendar className="h-4 w-4" />
+              Programme
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold">{stats.sessions}</div>
-            <p className="text-xs text-muted-foreground mt-1">Programmées</p>
+            <p className="text-xs text-muted-foreground mt-1">Sessions programmées</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Transports
+            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+              <Plane className="h-4 w-4" />
+              Logistique
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{stats.transports}</div>
-            <p className="text-xs text-muted-foreground mt-1">Réservations</p>
+            <div className="flex gap-4">
+              <div>
+                <div className="text-2xl font-bold">{stats.transports}</div>
+                <p className="text-xs text-muted-foreground">Transports</p>
+              </div>
+              <div>
+                <div className="text-2xl font-bold">{stats.accommodations}</div>
+                <p className="text-xs text-muted-foreground">Chambres</p>
+              </div>
+            </div>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Hébergement
+            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+              <Mail className="h-4 w-4" />
+              Communications
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{stats.accommodations}</div>
-            <p className="text-xs text-muted-foreground mt-1">Chambres</p>
+            <div className="flex gap-4">
+              <div>
+                <div className="text-2xl font-bold">{stats.emailsSent}</div>
+                <p className="text-xs text-muted-foreground">Emails</p>
+              </div>
+              <div>
+                <div className="text-2xl font-bold">{stats.rsvpReceived}</div>
+                <p className="text-xs text-muted-foreground">RSVP</p>
+              </div>
+              <div>
+                <div className="text-2xl font-bold">{stats.checkins}</div>
+                <p className="text-xs text-muted-foreground">Check-ins</p>
+              </div>
+            </div>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
+            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+              <Users className="h-4 w-4" />
               Participants
             </CardTitle>
           </CardHeader>
@@ -263,19 +348,56 @@ export default function TimelinePage() {
             <p className="text-xs text-muted-foreground mt-1">Total invités</p>
           </CardContent>
         </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Total
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">{stats.totalEvents}</div>
-            <p className="text-xs text-muted-foreground mt-1">Événements</p>
-          </CardContent>
-        </Card>
       </div>
+
+      {/* Alerts Section */}
+      {visibleAlerts.length > 0 && (
+        <div className="space-y-3">
+          {visibleAlerts.map((alert) => {
+            const Icon = getAlertIcon(alert.severity)
+            const styles = getAlertStyles(alert.severity)
+
+            return (
+              <Card key={alert.id} className={cn('border-l-4', styles)}>
+                <CardContent className="p-4">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex items-start gap-3">
+                      <Icon className="h-5 w-5 mt-0.5 flex-shrink-0" />
+                      <div className="space-y-1">
+                        <div className="font-semibold">{alert.title}</div>
+                        <div className="text-sm">{alert.message}</div>
+                        {alert.guests && alert.guests.length > 0 && (
+                          <div className="text-xs mt-2 space-y-1">
+                            {alert.guests.map((guest) => (
+                              <div key={guest.id} className="flex items-center gap-2">
+                                <Users className="h-3 w-3" />
+                                {guest.firstName} {guest.lastName}
+                              </div>
+                            ))}
+                            {alert.count && alert.count > alert.guests.length && (
+                              <div className="text-xs italic">
+                                ... et {alert.count - alert.guests.length} autre(s)
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 w-6 p-0"
+                      onClick={() => dismissAlert(alert.id)}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )
+          })}
+        </div>
+      )}
 
       {/* Date Navigator */}
       {sortedDates.length > 0 && (
@@ -392,8 +514,8 @@ export default function TimelinePage() {
                 Groupes & Participants
               </div>
               <div className="col-span-3 p-4">
-                <Plane className="h-4 w-4 inline mr-2" />
-                Logistique
+                <Mail className="h-4 w-4 inline mr-2" />
+                Logistique & Com
               </div>
             </div>
 
@@ -402,7 +524,10 @@ export default function TimelinePage() {
               {sortedHours.map((hour) => {
                 const items = itemsByHour[hour]
                 const sessions = items.filter((item) => item.type === 'SESSION')
-                const { arrivals, departures } = getTransportSummary(hour, items)
+                const { arrivals, departures, emails, rsvps, checkins } = getLogisticsSummary(
+                  hour,
+                  items
+                )
 
                 return (
                   <div key={hour} className="grid grid-cols-12 hover:bg-muted/20 transition-colors">
@@ -468,7 +593,7 @@ export default function TimelinePage() {
                       )}
                     </div>
 
-                    {/* Logistics Column */}
+                    {/* Logistics & Communications Column */}
                     <div className="col-span-3 p-4 space-y-2">
                       {arrivals.length > 0 && (
                         <div className="flex items-center gap-2 text-sm">
@@ -484,9 +609,34 @@ export default function TimelinePage() {
                           </Badge>
                         </div>
                       )}
-                      {arrivals.length === 0 && departures.length === 0 && (
-                        <div className="text-sm text-muted-foreground italic">-</div>
+                      {emails.length > 0 && (
+                        <div className="flex items-center gap-2 text-sm">
+                          <Badge variant="secondary" className="bg-blue-100 text-blue-700">
+                            📧 {emails.length} email{emails.length > 1 ? 's' : ''}
+                          </Badge>
+                        </div>
                       )}
+                      {rsvps.length > 0 && (
+                        <div className="flex items-center gap-2 text-sm">
+                          <Badge variant="secondary" className="bg-green-100 text-green-700">
+                            📩 {rsvps.length} RSVP
+                          </Badge>
+                        </div>
+                      )}
+                      {checkins.length > 0 && (
+                        <div className="flex items-center gap-2 text-sm">
+                          <Badge variant="secondary" className="bg-emerald-100 text-emerald-700">
+                            ✅ {checkins.length} check-in{checkins.length > 1 ? 's' : ''}
+                          </Badge>
+                        </div>
+                      )}
+                      {arrivals.length === 0 &&
+                        departures.length === 0 &&
+                        emails.length === 0 &&
+                        rsvps.length === 0 &&
+                        checkins.length === 0 && (
+                          <div className="text-sm text-muted-foreground italic">-</div>
+                        )}
                     </div>
                   </div>
                 )

@@ -202,6 +202,94 @@ export async function GET(
       },
     })
 
+    // Get email logs (communications sent)
+    const emailLogs = await prisma.emailLog.findMany({
+      where: {
+        eventId,
+        status: 'SENT', // Only successfully sent emails
+        ...(guestId ? { guestId } : {}),
+        ...(startDate && endDate
+          ? {
+              sentAt: {
+                gte: new Date(startDate),
+                lte: new Date(endDate),
+              },
+            }
+          : {}),
+      },
+      include: {
+        guest: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+          },
+        },
+      },
+      orderBy: {
+        sentAt: 'asc',
+      },
+    })
+
+    // Get RSVP responses
+    const rsvps = await prisma.rSVP.findMany({
+      where: {
+        eventId,
+        ...(guestId ? { guestId } : {}),
+        ...(startDate && endDate
+          ? {
+              createdAt: {
+                gte: new Date(startDate),
+                lte: new Date(endDate),
+              },
+            }
+          : {}),
+      },
+      include: {
+        guest: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'asc',
+      },
+    })
+
+    // Get check-ins (day of event)
+    const checkins = await prisma.checkin.findMany({
+      where: {
+        eventId,
+        ...(guestId ? { guestId } : {}),
+        ...(startDate && endDate
+          ? {
+              checkedInAt: {
+                gte: new Date(startDate),
+                lte: new Date(endDate),
+              },
+            }
+          : {}),
+      },
+      include: {
+        guest: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+          },
+        },
+      },
+      orderBy: {
+        checkedInAt: 'asc',
+      },
+    })
+
     // Build unified timeline
     const unifiedTimeline = []
 
@@ -335,6 +423,80 @@ export async function GET(
       }
     }
 
+    // Add email communications to timeline
+    for (const emailLog of emailLogs) {
+      if (emailLog.sentAt) {
+        const emailTypeLabels: Record<string, string> = {
+          SAVE_THE_DATE: 'Save the Date',
+          INVITE: 'Invitation',
+          INVITATION: 'Invitation',
+          REMINDER: 'Rappel',
+          CONFIRMATION: 'Confirmation',
+          INFO: 'Information',
+          CUSTOM: 'Email personnalisé',
+        }
+
+        unifiedTimeline.push({
+          id: `email-${emailLog.id}`,
+          type: 'EMAIL_SENT',
+          emailType: emailLog.type,
+          title: `📧 ${emailTypeLabels[emailLog.type] || emailLog.type} envoyé - ${emailLog.guest.firstName} ${emailLog.guest.lastName}`,
+          description: emailLog.subject,
+          startTime: emailLog.sentAt,
+          endTime: emailLog.sentAt,
+          guest: emailLog.guest,
+          openedAt: emailLog.openedAt,
+          clickedAt: emailLog.clickedAt,
+          color: '#3B82F6',
+          icon: 'mail',
+          entity: 'email',
+          entityId: emailLog.id,
+        })
+      }
+    }
+
+    // Add RSVP responses to timeline
+    for (const rsvp of rsvps) {
+      const status = rsvp.attending === true ? 'accepté' : rsvp.attending === false ? 'décliné' : 'en attente'
+      const icon = rsvp.attending === true ? '✅' : rsvp.attending === false ? '❌' : '❓'
+
+      unifiedTimeline.push({
+        id: `rsvp-${rsvp.id}`,
+        type: 'RSVP_RECEIVED',
+        title: `📩 RSVP ${status} - ${rsvp.guest.firstName} ${rsvp.guest.lastName}`,
+        description: rsvp.attending
+          ? `Présence confirmée${rsvp.plusOnes > 0 ? ` (+${rsvp.plusOnes})` : ''}`
+          : 'Absence confirmée',
+        startTime: rsvp.createdAt,
+        endTime: rsvp.createdAt,
+        guest: rsvp.guest,
+        attending: rsvp.attending,
+        plusOnes: rsvp.plusOnes,
+        color: rsvp.attending === true ? '#10B981' : rsvp.attending === false ? '#EF4444' : '#6B7280',
+        icon: 'message-square',
+        entity: 'rsvp',
+        entityId: rsvp.id,
+      })
+    }
+
+    // Add check-ins to timeline
+    for (const checkin of checkins) {
+      unifiedTimeline.push({
+        id: `checkin-${checkin.id}`,
+        type: 'CHECKIN',
+        title: `✅ Check-in - ${checkin.guest.firstName} ${checkin.guest.lastName}`,
+        description: checkin.desk ? `Kiosque ${checkin.desk}` : 'Check-in confirmé',
+        startTime: checkin.checkedInAt,
+        endTime: checkin.checkedInAt,
+        guest: checkin.guest,
+        desk: checkin.desk,
+        color: '#10B981',
+        icon: 'user-check',
+        entity: 'checkin',
+        entityId: checkin.id,
+      })
+    }
+
     // Add custom timeline events
     for (const event of timelineEvents) {
       // Skip if already added from session
@@ -380,8 +542,122 @@ export async function GET(
       sessions: sessions.length,
       transports: transports.length,
       accommodations: roomAssignments.length,
+      emailsSent: emailLogs.length,
+      rsvpReceived: rsvps.length,
+      checkins: checkins.length,
       totalParticipants: await prisma.guest.count({ where: { eventId } }),
     }
+
+    // Detect conflicts and generate alerts
+    const alerts = []
+
+    // 1. Sessions over capacity
+    for (const session of sessions) {
+      const participantCount = session._count.participants
+      if (session.capacity && participantCount > session.capacity) {
+        alerts.push({
+          id: `overcapacity-${session.id}`,
+          type: 'OVERCAPACITY',
+          severity: 'error',
+          title: 'Capacité dépassée',
+          message: `${session.title} : ${participantCount} inscrits pour ${session.capacity} places`,
+          sessionId: session.id,
+          relatedTime: session.startTime,
+        })
+      } else if (session.capacity && participantCount / session.capacity > 0.9) {
+        alerts.push({
+          id: `nearcapacity-${session.id}`,
+          type: 'NEAR_CAPACITY',
+          severity: 'warning',
+          title: 'Capacité bientôt atteinte',
+          message: `${session.title} : ${participantCount} inscrits sur ${session.capacity} places (${Math.round((participantCount / session.capacity) * 100)}%)`,
+          sessionId: session.id,
+          relatedTime: session.startTime,
+        })
+      }
+    }
+
+    // 2. Guests with RSVP but no accommodation
+    const guestsWithRSVP = await prisma.guest.findMany({
+      where: {
+        eventId,
+        rsvp: {
+          attending: true,
+        },
+      },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+      },
+    })
+
+    const guestsWithAccommodation = new Set(
+      roomAssignments.map((assignment) => assignment.guestId)
+    )
+
+    const guestsWithoutAccommodation = guestsWithRSVP.filter(
+      (guest) => !guestsWithAccommodation.has(guest.id)
+    )
+
+    if (guestsWithoutAccommodation.length > 0) {
+      alerts.push({
+        id: 'missing-accommodation',
+        type: 'MISSING_ACCOMMODATION',
+        severity: 'warning',
+        title: 'Invités sans hébergement',
+        message: `${guestsWithoutAccommodation.length} invité(s) confirmé(s) sans chambre assignée`,
+        count: guestsWithoutAccommodation.length,
+        guests: guestsWithoutAccommodation.slice(0, 5), // First 5 for preview
+      })
+    }
+
+    // 3. Guests with RSVP but no transport
+    const guestsWithTransport = new Set(transports.map((t) => t.guestId))
+
+    const guestsWithoutTransport = guestsWithRSVP.filter(
+      (guest) => !guestsWithTransport.has(guest.id)
+    )
+
+    if (guestsWithoutTransport.length > 0) {
+      alerts.push({
+        id: 'missing-transport',
+        type: 'MISSING_TRANSPORT',
+        severity: 'info',
+        title: 'Invités sans transport',
+        message: `${guestsWithoutTransport.length} invité(s) confirmé(s) sans réservation de transport`,
+        count: guestsWithoutTransport.length,
+        guests: guestsWithoutTransport.slice(0, 5),
+      })
+    }
+
+    // 4. Check dietary restrictions alerts
+    const guestsWithAllergies = await prisma.guest.count({
+      where: {
+        eventId,
+        rsvp: {
+          attending: true,
+          allergies: {
+            not: null,
+          },
+        },
+      },
+    })
+
+    if (guestsWithAllergies > 0) {
+      alerts.push({
+        id: 'dietary-restrictions',
+        type: 'DIETARY_RESTRICTIONS',
+        severity: 'info',
+        title: 'Restrictions alimentaires',
+        message: `${guestsWithAllergies} invité(s) avec des allergies ou restrictions`,
+        count: guestsWithAllergies,
+      })
+    }
+
+    // Sort alerts by severity (error > warning > info)
+    const severityOrder: Record<string, number> = { error: 0, warning: 1, info: 2 }
+    alerts.sort((a, b) => (severityOrder[a.severity] || 999) - (severityOrder[b.severity] || 999))
 
     return NextResponse.json({
       event: {
@@ -393,6 +669,7 @@ export async function GET(
       timeline: unifiedTimeline,
       timelineByDate: groupedByDate,
       stats,
+      alerts,
     })
   } catch (error) {
     console.error('Error fetching timeline:', error)
