@@ -49,6 +49,43 @@ async function main() {
 
   console.log(`✓ Événement créé: ${event.name}`)
 
+  // 2. Activer les modules pour l'événement
+  await prisma.eventModule.createMany({
+    data: [
+      {
+        eventId: event.id,
+        moduleType: 'PROGRAM',
+        isActive: true,
+        config: {
+          enableWorkshops: true,
+          enableTeamBuilding: true,
+          enableFreeTime: true,
+        }
+      },
+      {
+        eventId: event.id,
+        moduleType: 'TRANSPORT',
+        isActive: true,
+        config: {
+          enableFlights: true,
+          enableShuttles: true,
+          enableManifests: true,
+        }
+      },
+      {
+        eventId: event.id,
+        moduleType: 'ACCOMMODATION',
+        isActive: true,
+        config: {
+          enableRoomAssignment: true,
+          enableMultipleHotels: true,
+        }
+      },
+    ]
+  })
+
+  console.log(`✓ Modules activés: PROGRAM, TRANSPORT, ACCOMMODATION`)
+
   // 3. Créer les invités (80 participants)
   const guestNames = [
     'Sophie Martin', 'Thomas Dubois', 'Marie Leroy', 'Pierre Bernard',
@@ -94,6 +131,12 @@ async function main() {
           create: {
             eventId: event.id,
             attending: true,
+            plusOnes: i % 7 === 0 ? 1 : 0, // Quelques invités avec +1
+            mealChoice: i % 3 === 0 ? 'Végétarien' : i % 3 === 1 ? 'Sans gluten' : 'Standard',
+            allergies: i % 10 === 0 ? 'Fruits à coque' : i % 10 === 1 ? 'Lactose' : null,
+            dietaryRestrictions: i % 15 === 0 ? 'Vegan' : null,
+            accessibility: i % 8 === 0 ? 'Fauteuil roulant' : null,
+            comments: i % 20 === 0 ? 'Merci pour l\'organisation !' : null,
           },
         },
       },
@@ -740,20 +783,88 @@ async function main() {
 
   console.log(`✓ Hébergement créé (2 établissements, 40 chambres)`)
 
+  // 8. ASSIGNATION DES CHAMBRES
+
+  // Récupérer toutes les chambres créées
+  const allRooms = await prisma.room.findMany({
+    where: {
+      accommodation: {
+        eventId: event.id
+      }
+    },
+    orderBy: {
+      roomNumber: 'asc'
+    }
+  })
+
+  // Assigner les participants aux chambres
+  let roomIndex = 0
+  let guestInRoom = 0
+  let currentRoom = allRooms[roomIndex]
+
+  for (let i = 0; i < guests.length; i++) {
+    const guest = guests[i]
+
+    // Créer l'assignation
+    await prisma.roomAssignment.create({
+      data: {
+        eventId: event.id,
+        guestId: guest.id,
+        roomId: currentRoom.id,
+        checkIn: new Date('2025-06-15T15:00:00Z'),
+        checkOut: new Date('2025-06-17T11:00:00Z'),
+        status: 'CONFIRMED',
+        notes: i % 5 === 0 ? 'Chambre accessible demandée' : undefined,
+      }
+    })
+
+    guestInRoom++
+
+    // Passer à la chambre suivante si celle-ci est pleine
+    if (guestInRoom >= (currentRoom.maxOccupancy || 2)) {
+      roomIndex++
+      guestInRoom = 0
+      if (roomIndex < allRooms.length) {
+        currentRoom = allRooms[roomIndex]
+      }
+    }
+  }
+
+  console.log(`✓ ${guests.length} participants assignés aux chambres`)
+
   console.log('\n✅ Seed terminé avec succès!')
   console.log(`
 📊 Résumé:
-- 1 événement (Séminaire Innovation 2025)
-- 80 participants
-- 13 sessions sur 3 jours
-  * 1 Workshop avec 3 ateliers (60 participants)
-  * 1 Team Building avec 4 équipes (80 participants)
-  * 1 Activités libres avec 5 options (70 participants)
-  * Sessions simples (keynotes, conférences, repas, etc.)
-- 5 trajets de transport
-- 2 hébergements avec 40 chambres
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-🎯 Accédez au Planning Opérationnel pour voir toutes les données!
+🎯 ÉVÉNEMENT
+- Séminaire Innovation 2025 (3 jours)
+- 80 participants (tous confirmés)
+- Modules activés: PROGRAM, TRANSPORT, ACCOMMODATION
+
+📅 PROGRAMME (13 sessions)
+- 3 Ateliers (Workshop) avec 60 participants assignés
+- 4 Équipes (Team Building) avec 80 participants
+- 5 Options (Activités libres) avec 70 participants
+- Sessions plénières, repas et networking
+
+🚗 TRANSPORT (5 trajets confirmés)
+- 2 Vols arrivée (Paris + Lyon → Marseille)
+- 2 Navettes aéroport → domaine
+- 1 Vol retour (Marseille → Paris)
+- ${guests.slice(0, 40).length} participants sur vol Paris
+- ${guests.slice(40, 80).length} participants sur vol Lyon
+
+🏨 HÉBERGEMENT (100% assigné)
+- Domaine des Collines - Bâtiment Principal (30 chambres)
+- Domaine des Collines - Villas (10 villas)
+- 80 participants assignés aux chambres
+- Check-in: 15/06 à 15h | Check-out: 17/06 à 11h
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✨ Toutes les données sont prêtes pour tester les modules!
+🎯 Accédez au Planning Opérationnel pour voir l'organisation complète.
   `)
 }
 
