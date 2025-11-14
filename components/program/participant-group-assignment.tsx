@@ -232,7 +232,7 @@ export function ParticipantGroupAssignment({
                   <div>
                     <p className="font-medium text-orange-900">Aucun groupe défini</p>
                     <p className="text-sm text-orange-700">
-                      Créez d'abord des groupes avant d'assigner des participants
+                      Créez d&apos;abord des groupes avant d&apos;assigner des participants
                     </p>
                   </div>
                 </div>
