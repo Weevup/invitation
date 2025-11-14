@@ -240,22 +240,22 @@ export default function TimelinePage() {
       }
     }
 
-    // Filter by status (based on hasConflict flag or capacity)
+    // Filter by status (based on capacity)
     if (filters.status !== 'all') {
       switch (filters.status) {
         case 'alert':
           filtered = filtered.filter((item) =>
-            item.hasConflict || (item.capacity && item.participantCount && item.participantCount > item.capacity)
+            (item.capacity && item.participantCount && item.participantCount > item.capacity)
           )
           break
         case 'confirmed':
           filtered = filtered.filter((item) =>
-            !item.hasConflict && item.participantCount && item.participantCount > 0
+            item.participantCount && item.participantCount > 0
           )
           break
         case 'pending':
           filtered = filtered.filter((item) =>
-            !item.hasConflict && (!item.participantCount || item.participantCount === 0)
+            (!item.participantCount || item.participantCount === 0)
           )
           break
       }
