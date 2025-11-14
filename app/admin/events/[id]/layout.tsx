@@ -76,13 +76,8 @@ export default function EventLayout({
 
   // Only add modules if they're loaded (not during initial loading state)
   if (!isLoading) {
-    // PROGRAMMATION GROUP - Timeline first (global dashboard), then Program (details)
+    // PROGRAMMATION GROUP - Programme only
     if (hasModule('PROGRAM')) {
-      programmationModules.push({
-        label: 'Timeline',
-        href: `/admin/events/${eventId}/timeline`,
-        icon: Clock3,
-      })
       programmationModules.push({
         label: 'Programme',
         href: `/admin/events/${eventId}/program`,
@@ -106,15 +101,6 @@ export default function EventLayout({
         label: 'Hébergement',
         href: `/admin/events/${eventId}/accommodation`,
         icon: Hotel,
-      })
-    }
-
-    // Planning Opérationnel (if Transport or Accommodation module is active)
-    if (hasModule('TRANSPORT') || hasModule('ACCOMMODATION')) {
-      logistiqueModules.push({
-        label: 'Planning Opérationnel',
-        href: `/admin/events/${eventId}/operations`,
-        icon: BarChart3,
       })
     }
   }
@@ -193,6 +179,19 @@ export default function EventLayout({
       isHeader: true,
     })
 
+    // Add Planning Opérationnel at the top if logistics modules are active
+    if (hasModule('TRANSPORT') || hasModule('ACCOMMODATION')) {
+      navigationSections.push({
+        title: "📊 Vue Globale",
+        items: [{
+          label: 'Planning Opérationnel',
+          href: `/admin/events/${eventId}/timeline`,
+          icon: BarChart3,
+        }],
+        isSubGroup: true,
+      })
+    }
+
     // Add Programmation sub-group if modules exist
     if (programmationModules.length > 0) {
       navigationSections.push({
@@ -202,11 +201,12 @@ export default function EventLayout({
       })
     }
 
-    // Add Logistique sub-group if modules exist
-    if (logistiqueModules.length > 0) {
+    // Add Logistique sub-group if modules exist (without Planning Opérationnel)
+    const logistiqueWithoutPlanning = logistiqueModules.filter(item => item.label !== 'Planning Opérationnel')
+    if (logistiqueWithoutPlanning.length > 0) {
       navigationSections.push({
         title: "🚗 Logistique",
-        items: logistiqueModules,
+        items: logistiqueWithoutPlanning,
         isSubGroup: true,
       })
     }

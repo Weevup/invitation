@@ -287,6 +287,79 @@ export function BlockDetailsPanel({ slot, rawData, onClose }: BlockDetailsPanelP
             </>
           )}
 
+          {/* Session-specific: Groups */}
+          {slot.type === 'session' && slot.requiresGroups && slot.groups && slot.groups.length > 0 && (
+            <>
+              <Separator />
+              <section>
+                <div className="flex items-center gap-2 mb-3">
+                  <Users size={16} className="text-muted-foreground" />
+                  <h4 className="font-medium text-sm">Groupes ({slot.groups.length})</h4>
+                </div>
+                <div className="space-y-2">
+                  {slot.groups.map((group) => {
+                    const participantCount = group._count?.participants || 0
+                    const isOverCapacity = group.capacity && participantCount > group.capacity
+                    const fillRate = group.capacity ? (participantCount / group.capacity) * 100 : 0
+
+                    return (
+                      <div
+                        key={group.id}
+                        className="p-3 border rounded-lg"
+                        style={{ borderLeftWidth: '4px', borderLeftColor: group.color || '#3B82F6' }}
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            <div
+                              className="w-3 h-3 rounded-full"
+                              style={{ backgroundColor: group.color || '#3B82F6' }}
+                            />
+                            <span className="font-medium">{group.name}</span>
+                          </div>
+                          <span className={cn(
+                            "text-sm font-medium",
+                            isOverCapacity ? "text-red-600" : "text-muted-foreground"
+                          )}>
+                            {participantCount}
+                            {group.capacity && `/${group.capacity}`}
+                          </span>
+                        </div>
+
+                        {group.description && (
+                          <p className="text-xs text-muted-foreground mb-2">{group.description}</p>
+                        )}
+
+                        {group.capacity && (
+                          <div className="space-y-1">
+                            <div className="flex justify-between text-xs text-muted-foreground">
+                              <span>Taux de remplissage</span>
+                              <span>{Math.round(fillRate)}%</span>
+                            </div>
+                            <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                              <div
+                                className={cn(
+                                  "h-full rounded-full transition-all",
+                                  fillRate > 100 ? "bg-red-500" :
+                                  fillRate > 90 ? "bg-orange-500" :
+                                  fillRate > 70 ? "bg-yellow-500" :
+                                  "bg-green-500"
+                                )}
+                                style={{ width: `${Math.min(fillRate, 100)}%` }}
+                              />
+                            </div>
+                            {isOverCapacity && (
+                              <p className="text-xs text-red-600 mt-1">⚠️ Capacité dépassée</p>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              </section>
+            </>
+          )}
+
           {/* Transport-specific: Manifest */}
           {slot.type === 'transport' && slot.manifest && (
             <>

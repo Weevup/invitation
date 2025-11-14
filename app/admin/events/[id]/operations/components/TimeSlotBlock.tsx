@@ -130,6 +130,35 @@ export function TimeSlotBlock({ slot, onClick }: TimeSlotBlockProps) {
           </div>
         )}
 
+        {/* Session-specific: Groups */}
+        {slot.type === 'session' && slot.requiresGroups && slot.groups && slot.groups.length > 0 && (
+          <div className="space-y-2 pt-2 border-t">
+            <div className="text-sm font-medium text-muted-foreground">
+              Groupes ({slot.groups.length})
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {slot.groups.map((group) => (
+                <Badge
+                  key={group.id}
+                  variant="outline"
+                  className="text-xs border-2"
+                  style={{
+                    borderColor: group.color || '#3B82F6',
+                    color: group.color || '#3B82F6'
+                  }}
+                >
+                  <div
+                    className="w-2 h-2 rounded-full mr-1.5"
+                    style={{ backgroundColor: group.color || '#3B82F6' }}
+                  />
+                  {group.name}: {group._count?.participants || 0}
+                  {group.capacity && `/${group.capacity}`}
+                </Badge>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Transport-specific: Manifest info */}
         {slot.type === 'transport' && slot.manifest && (
           <div className="flex items-center gap-2 text-sm">

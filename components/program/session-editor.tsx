@@ -9,8 +9,9 @@ import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Save, Loader2, Plus, Trash2 } from 'lucide-react'
+import { Save, Loader2, Plus, Trash2, Users2 } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
+import { SessionGroups } from './session-groups'
 
 interface SessionEditorProps {
   eventId: string
@@ -51,6 +52,7 @@ export function SessionEditor({ eventId, session, onClose, onSave }: SessionEdit
     capacity: null as number | null,
     minParticipants: null as number | null,
     requiresRegistration: false,
+    requiresGroups: false,
     speakers: [] as any[],
     equipment: [] as string[],
     materials: '',
@@ -63,6 +65,7 @@ export function SessionEditor({ eventId, session, onClose, onSave }: SessionEdit
   })
 
   const [saving, setSaving] = useState(false)
+  const [showGroupsManager, setShowGroupsManager] = useState(false)
   const [newSpeaker, setNewSpeaker] = useState({ name: '', title: '', bio: '', email: '' })
   const [newEquipment, setNewEquipment] = useState('')
 
@@ -82,6 +85,7 @@ export function SessionEditor({ eventId, session, onClose, onSave }: SessionEdit
         capacity: session.capacity,
         minParticipants: session.minParticipants,
         requiresRegistration: session.requiresRegistration || false,
+        requiresGroups: session.requiresGroups || false,
         speakers: session.speakers || [],
         equipment: session.equipment || [],
         materials: session.materials || '',
@@ -153,6 +157,7 @@ export function SessionEditor({ eventId, session, onClose, onSave }: SessionEdit
   }
 
   return (
+    <>
     <Dialog open={true} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
@@ -477,6 +482,32 @@ export function SessionEditor({ eventId, session, onClose, onSave }: SessionEdit
               />
             </div>
 
+            <div className="flex items-center justify-between p-4 bg-[#FF4713]/5 rounded-lg border-2 border-[#FF4713]/20">
+              <div className="flex-1">
+                <Label htmlFor="requiresGroups" className="text-[#FF4713]">Nécessite des groupes</Label>
+                <p className="text-xs text-[#004645]/60">Pour workshops, team building ou activités parallèles</p>
+              </div>
+              <div className="flex items-center gap-2">
+                {session?.id && formData.requiresGroups && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowGroupsManager(true)}
+                    className="border-[#FF4713] text-[#FF4713] hover:bg-[#FF4713]/10"
+                  >
+                    <Users2 className="h-4 w-4 mr-2" />
+                    Gérer les groupes
+                  </Button>
+                )}
+                <Switch
+                  id="requiresGroups"
+                  checked={formData.requiresGroups}
+                  onCheckedChange={(checked) => setFormData(prev => ({ ...prev, requiresGroups: checked }))}
+                />
+              </div>
+            </div>
+
             <div>
               <Label htmlFor="status">Statut</Label>
               <Select value={formData.status} onValueChange={(v) => setFormData(prev => ({ ...prev, status: v }))}>
@@ -537,5 +568,16 @@ export function SessionEditor({ eventId, session, onClose, onSave }: SessionEdit
         </DialogFooter>
       </DialogContent>
     </Dialog>
+
+    {/* Session Groups Manager */}
+    {session?.id && (
+      <SessionGroups
+        sessionId={session.id}
+        eventId={eventId}
+        isOpen={showGroupsManager}
+        onClose={() => setShowGroupsManager(false)}
+      />
+    )}
+  </>
   )
 }

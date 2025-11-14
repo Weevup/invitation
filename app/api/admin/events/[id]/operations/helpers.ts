@@ -57,6 +57,17 @@ export interface TimeSlot {
   equipment?: string[]
   speakers?: any
   isHighlighted?: boolean
+  requiresGroups?: boolean
+  groups?: Array<{
+    id: string
+    name: string
+    description?: string | null
+    color?: string | null
+    capacity?: number | null
+    _count?: {
+      participants: number
+    }
+  }>
 
   // Transport spécifique
   transportType?: string
@@ -139,6 +150,8 @@ export function buildTimeSlots({
       equipment: session.equipment,
       speakers: session.speakers,
       isHighlighted: session.isHighlighted,
+      requiresGroups: (session as any).requiresGroups || false,
+      groups: (session as any).groups || [],
       warnings: sessionWarnings
     })
   })
