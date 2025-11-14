@@ -13,9 +13,11 @@ import {
   Users,
   AlertCircle,
   Shuffle,
-  X
+  X,
+  UserCog
 } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
+import { ParticipantGroupAssignment } from './participant-group-assignment'
 
 interface SessionGroup {
   id: string
@@ -41,6 +43,7 @@ export function SessionGroups({ sessionId, eventId, isOpen, onClose }: SessionGr
   const [loading, setLoading] = useState(false)
   const [editingGroup, setEditingGroup] = useState<SessionGroup | null>(null)
   const [creatingGroup, setCreatingGroup] = useState(false)
+  const [showParticipantAssignment, setShowParticipantAssignment] = useState(false)
   const { toast } = useToast()
 
   // Form state
@@ -225,7 +228,8 @@ export function SessionGroups({ sessionId, eventId, isOpen, onClose }: SessionGr
   const totalParticipants = groups.reduce((sum, g) => sum + (g._count?.participants || 0), 0)
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+    <>
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <Card className="w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
         <CardHeader className="border-b">
           <div className="flex items-center justify-between">
@@ -256,6 +260,15 @@ export function SessionGroups({ sessionId, eventId, isOpen, onClose }: SessionGr
               </div>
             </div>
             <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowParticipantAssignment(true)}
+                className="gap-2"
+              >
+                <UserCog className="h-4 w-4" />
+                Affecter participants
+              </Button>
               <Button
                 variant="outline"
                 size="sm"
@@ -445,6 +458,15 @@ export function SessionGroups({ sessionId, eventId, isOpen, onClose }: SessionGr
           </div>
         </CardContent>
       </Card>
-    </div>
+      </div>
+
+      {/* Participant Assignment Modal */}
+      <ParticipantGroupAssignment
+        sessionId={sessionId}
+        eventId={eventId}
+        isOpen={showParticipantAssignment}
+        onClose={() => setShowParticipantAssignment(false)}
+      />
+    </>
   )
 }
