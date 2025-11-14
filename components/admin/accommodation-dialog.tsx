@@ -90,36 +90,46 @@ export function AccommodationDialog({
     setLoading(true)
 
     try {
-      // Convert string numbers to actual numbers and clean up empty strings
-      const data: any = { ...formData }
+      // Prepare data for submission
+      const data: any = {
+        name: formData.name.trim(),
+        type: formData.type,
+        currency: formData.currency,
+        checkInTime: formData.checkInTime,
+        checkOutTime: formData.checkOutTime,
+        earlyCheckIn: formData.earlyCheckIn,
+        lateCheckOut: formData.lateCheckOut,
+        isPreferred: formData.isPreferred,
+      }
 
-      // Clean up all empty strings and convert numbers
-      Object.keys(data).forEach(key => {
-        if (data[key] === '' || data[key] === null) {
-          delete data[key]
-        }
-      })
+      // Add optional string fields only if not empty
+      if (formData.address && formData.address.trim()) data.address = formData.address.trim()
+      if (formData.city && formData.city.trim()) data.city = formData.city.trim()
+      if (formData.country && formData.country.trim()) data.country = formData.country.trim()
+      if (formData.postalCode && formData.postalCode.trim()) data.postalCode = formData.postalCode.trim()
+      if (formData.phone && formData.phone.trim()) data.phone = formData.phone.trim()
+      if (formData.email && formData.email.trim()) data.email = formData.email.trim()
+      if (formData.website && formData.website.trim()) data.website = formData.website.trim()
+      if (formData.contactPerson && formData.contactPerson.trim()) data.contactPerson = formData.contactPerson.trim()
+      if (formData.description && formData.description.trim()) data.description = formData.description.trim()
+      if (formData.notes && formData.notes.trim()) data.notes = formData.notes.trim()
 
-      // Convert numbers only if they have values
-      if (data.starRating) {
-        const parsed = parseInt(data.starRating)
-        data.starRating = isNaN(parsed) ? undefined : parsed
-        if (data.starRating === undefined) delete data.starRating
+      // Add optional number fields only if valid
+      if (formData.starRating && formData.starRating !== '') {
+        const parsed = parseInt(formData.starRating.toString())
+        if (!isNaN(parsed)) data.starRating = parsed
       }
-      if (data.totalRooms) {
-        const parsed = parseInt(data.totalRooms)
-        data.totalRooms = isNaN(parsed) ? undefined : parsed
-        if (data.totalRooms === undefined) delete data.totalRooms
+      if (formData.totalRooms && formData.totalRooms !== '') {
+        const parsed = parseInt(formData.totalRooms.toString())
+        if (!isNaN(parsed)) data.totalRooms = parsed
       }
-      if (data.allocatedRooms) {
-        const parsed = parseInt(data.allocatedRooms)
-        data.allocatedRooms = isNaN(parsed) ? undefined : parsed
-        if (data.allocatedRooms === undefined) delete data.allocatedRooms
+      if (formData.allocatedRooms && formData.allocatedRooms !== '') {
+        const parsed = parseInt(formData.allocatedRooms.toString())
+        if (!isNaN(parsed)) data.allocatedRooms = parsed
       }
-      if (data.contractRate) {
-        const parsed = parseFloat(data.contractRate)
-        data.contractRate = isNaN(parsed) ? undefined : parsed
-        if (data.contractRate === undefined) delete data.contractRate
+      if (formData.contractRate && formData.contractRate !== '') {
+        const parsed = parseFloat(formData.contractRate.toString())
+        if (!isNaN(parsed)) data.contractRate = parsed
       }
 
       const url = accommodation

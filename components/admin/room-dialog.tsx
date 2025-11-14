@@ -89,31 +89,35 @@ export function RoomDialog({
     setLoading(true)
 
     try {
-      // Convert string numbers to actual numbers and clean up empty strings
-      const data: any = { ...formData }
-
-      // Clean up all empty strings
-      Object.keys(data).forEach(key => {
-        if (data[key] === '' || data[key] === null) {
-          delete data[key]
-        }
-      })
-
-      // Convert numbers only if they have values
-      if (data.floor) {
-        const parsed = parseInt(data.floor)
-        data.floor = isNaN(parsed) ? undefined : parsed
-        if (data.floor === undefined) delete data.floor
+      // Prepare data for submission
+      const data: any = {
+        roomNumber: formData.roomNumber.trim(),
+        type: formData.type,
+        maxOccupancy: parseInt(formData.maxOccupancy),
+        currency: formData.currency,
+        isAccessible: formData.isAccessible,
+        isSmokingAllowed: formData.isSmokingAllowed,
       }
-      if (data.maxOccupancy) {
-        const parsed = parseInt(data.maxOccupancy)
-        data.maxOccupancy = isNaN(parsed) ? undefined : parsed
-        if (data.maxOccupancy === undefined) delete data.maxOccupancy
+
+      // Add optional string fields only if not empty
+      if (formData.bedConfiguration && formData.bedConfiguration.trim()) {
+        data.bedConfiguration = formData.bedConfiguration.trim()
       }
-      if (data.ratePerNight) {
-        const parsed = parseFloat(data.ratePerNight)
-        data.ratePerNight = isNaN(parsed) ? undefined : parsed
-        if (data.ratePerNight === undefined) delete data.ratePerNight
+      if (formData.view && formData.view.trim()) {
+        data.view = formData.view.trim()
+      }
+      if (formData.notes && formData.notes.trim()) {
+        data.notes = formData.notes.trim()
+      }
+
+      // Add optional number fields only if valid
+      if (formData.floor && formData.floor !== '') {
+        const parsed = parseInt(formData.floor.toString())
+        if (!isNaN(parsed)) data.floor = parsed
+      }
+      if (formData.ratePerNight && formData.ratePerNight !== '') {
+        const parsed = parseFloat(formData.ratePerNight.toString())
+        if (!isNaN(parsed)) data.ratePerNight = parsed
       }
 
       const response = await fetch(
