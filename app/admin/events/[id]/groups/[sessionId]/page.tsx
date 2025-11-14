@@ -712,9 +712,9 @@ export default function SessionGroupsDetailPage() {
                                   {participant.groupId ? 'Retirer du groupe' : 'Aucun groupe'}
                                 </SelectItem>
                                 {groups.map((group) => {
-                                  const isFull = group.capacity &&
+                                  const isFull = !!(group.capacity &&
                                     (group._count?.participants || 0) >= group.capacity &&
-                                    group.id !== participant.groupId
+                                    group.id !== participant.groupId)
 
                                   return (
                                     <SelectItem
