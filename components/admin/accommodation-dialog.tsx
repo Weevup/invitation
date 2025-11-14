@@ -140,7 +140,7 @@ export function AccommodationDialog({
     if (!formData.name || formData.name.trim() === '') {
       toast({
         title: 'Champ requis manquant',
-        description: 'Le nom de l\'hébergement est requis',
+        description: "Le nom de l'hébergement est requis",
         variant: 'destructive'
       })
       return
@@ -231,11 +231,11 @@ export function AccommodationDialog({
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
-            {accommodation ? 'Modifier l\'hébergement' : 'Nouvel hébergement'}
+            {accommodation ? 'Modifier l&apos;hébergement' : 'Nouvel hébergement'}
           </DialogTitle>
           <DialogDescription>
             {accommodation
-              ? 'Modifiez les informations de l\'hébergement'
+              ? 'Modifiez les informations de l&apos;hébergement'
               : 'Ajoutez un nouvel hébergement pour votre événement'}
           </DialogDescription>
         </DialogHeader>
