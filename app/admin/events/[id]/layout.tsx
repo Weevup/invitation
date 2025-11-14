@@ -26,7 +26,8 @@ import {
   Hotel
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { useEventModules } from '@/lib/modules'
+import { useEventModules } from '@/lib/modules/use-event-modules'
+import { Toaster } from '@/components/ui/toaster'
 
 interface EventData {
   name: string
@@ -60,7 +61,7 @@ export default function EventLayout({
   const [event, setEvent] = useState<EventData | null>(null)
 
   // Check which modules are active
-  const { hasModule, loading } = useEventModules(eventId)
+  const { hasModule, isLoading } = useEventModules(eventId)
 
   useEffect(() => {
     fetch(`/api/admin/events/${eventId}`)
@@ -74,7 +75,7 @@ export default function EventLayout({
   const logistiqueModules: NavigationItem[] = []
 
   // Only add modules if they're loaded (not during initial loading state)
-  if (!loading) {
+  if (!isLoading) {
     // PROGRAMMATION GROUP - Timeline first (global dashboard), then Program (details)
     if (hasModule('PROGRAM')) {
       programmationModules.push({
@@ -350,6 +351,9 @@ export default function EventLayout({
           {children}
         </main>
       </div>
+
+      {/* Toast notifications */}
+      <Toaster />
     </div>
   )
 }

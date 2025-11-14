@@ -94,7 +94,7 @@ async function getEvent(slug: string) {
       _count: {
         select: {
           guests: true,
-          rsvps: { where: { attending: true } },
+          rsvps: true,
         },
       },
     },
