@@ -112,6 +112,13 @@ export default function EventLayout({
         href: `/admin/events/${eventId}/ateliers`,
         icon: Users2,
       })
+
+      // Team Building module
+      logistiqueModules.push({
+        label: 'Team Building',
+        href: `/admin/events/${eventId}/team-building`,
+        icon: Users2,
+      })
     }
   }
 

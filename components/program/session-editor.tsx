@@ -270,41 +270,52 @@ export function SessionEditor({ eventId, session, onClose, onSave }: SessionEdit
               />
             </div>
 
-            {formData.requiresGroups && (
-              <div className="bg-white/50 p-3 rounded border border-[#FF4713]/20 space-y-2">
-                <p className="text-xs font-medium text-[#004645]">
-                  📋 Comment ça fonctionne ?
-                </p>
-                <ol className="text-xs text-[#004645]/80 space-y-1 ml-4 list-decimal">
-                  <li>Activez cette option et sauvegardez la session</li>
-                  <li>Allez dans <strong>Logistique → Ateliers</strong> pour créer et gérer les ateliers</li>
-                  <li>Assignez les participants aux différents ateliers</li>
-                  <li>Les ateliers apparaîtront dans le Planning Opérationnel</li>
-                </ol>
-              </div>
-            )}
+            {formData.requiresGroups && (() => {
+              // Determine which module to use based on session type
+              const isTeamBuilding = formData.type === 'TEAMBUILDING'
+              const isWorkshop = formData.type === 'WORKSHOP'
+              const moduleName = isTeamBuilding ? 'Team Building' : 'Ateliers'
+              const moduleUrl = isTeamBuilding ? 'team-building' : 'ateliers'
+              const itemName = isTeamBuilding ? 'équipes' : 'ateliers'
 
-            {formData.requiresGroups && session?.id && (
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => router.push(`/admin/events/${eventId}/ateliers/${session.id}`)}
-                className="w-full border-[#FF4713] text-[#FF4713] hover:bg-[#FF4713]/10 font-semibold"
-              >
-                <Users2 className="h-4 w-4 mr-2" />
-                Aller dans Logistique → Ateliers pour gérer
-              </Button>
-            )}
+              return (
+                <>
+                  <div className="bg-white/50 p-3 rounded border border-[#FF4713]/20 space-y-2">
+                    <p className="text-xs font-medium text-[#004645]">
+                      📋 Comment ça fonctionne ?
+                    </p>
+                    <ol className="text-xs text-[#004645]/80 space-y-1 ml-4 list-decimal">
+                      <li>Activez cette option et sauvegardez la session</li>
+                      <li>Allez dans <strong>Logistique → {moduleName}</strong> pour créer et gérer les {itemName}</li>
+                      <li>Assignez les participants aux différent{isTeamBuilding ? 'e' : ''}s {itemName}</li>
+                      <li>Les {itemName} apparaîtront dans le Planning Opérationnel</li>
+                    </ol>
+                  </div>
 
-            {formData.requiresGroups && !session?.id && (
-              <div className="flex items-start gap-2 p-2 bg-amber-50 border border-amber-200 rounded text-xs text-amber-800">
-                <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
-                <div>
-                  <p className="font-semibold">Action requise :</p>
-                  <p>Sauvegardez d&apos;abord cette session, puis allez dans <strong>Logistique → Ateliers</strong> pour créer vos ateliers.</p>
-                </div>
-              </div>
-            )}
+                  {session?.id && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => router.push(`/admin/events/${eventId}/${moduleUrl}/${session.id}`)}
+                      className="w-full border-[#FF4713] text-[#FF4713] hover:bg-[#FF4713]/10 font-semibold"
+                    >
+                      <Users2 className="h-4 w-4 mr-2" />
+                      Aller dans Logistique → {moduleName} pour gérer
+                    </Button>
+                  )}
+
+                  {!session?.id && (
+                    <div className="flex items-start gap-2 p-2 bg-amber-50 border border-amber-200 rounded text-xs text-amber-800">
+                      <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
+                      <div>
+                        <p className="font-semibold">Action requise :</p>
+                        <p>Sauvegardez d&apos;abord cette session, puis allez dans <strong>Logistique → {moduleName}</strong> pour créer vos {itemName}.</p>
+                      </div>
+                    </div>
+                  )}
+                </>
+              )
+            })()}
           </div>
         </div>
 
