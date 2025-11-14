@@ -16,7 +16,7 @@ async function main() {
   // await prisma.session.deleteMany()
   // await prisma.room.deleteMany()
   // await prisma.accommodation.deleteMany()
-  // await prisma.transport.deleteMany()
+  // await prisma.transportManifest.deleteMany()
   // await prisma.rSVP.deleteMany()
   // await prisma.guest.deleteMany()
   // await prisma.event.deleteMany()
@@ -545,34 +545,52 @@ async function main() {
   // 6. TRANSPORT
 
   // Vols arrivée
-  await prisma.transport.create({
+  await prisma.transportManifest.create({
     data: {
       eventId: event.id,
       type: 'FLIGHT',
-      departureLocation: 'Paris CDG',
-      arrivalLocation: 'Marseille Provence',
+      name: 'Vol AF7642 - Paris → Marseille',
+      description: 'Vol charter groupe TechCorp',
+      departure: {
+        location: 'Paris CDG',
+        date: '2025-06-15',
+        time: '07:00',
+      },
+      arrival: {
+        location: 'Marseille Provence',
+        date: '2025-06-15',
+        time: '08:20',
+      },
       departureTime: new Date('2025-06-15T07:00:00Z'),
       arrivalTime: new Date('2025-06-15T08:20:00Z'),
-      transportNumber: 'AF7642',
-      capacity: 45,
-      notes: 'Vol charter groupe TechCorp',
+      maxCapacity: 45,
+      status: 'CONFIRMED',
       participants: {
         create: guests.slice(0, 40).map(g => ({ guestId: g.id })),
       },
     },
   })
 
-  await prisma.transport.create({
+  await prisma.transportManifest.create({
     data: {
       eventId: event.id,
       type: 'FLIGHT',
-      departureLocation: 'Lyon Saint-Exupéry',
-      arrivalLocation: 'Marseille Provence',
+      name: 'Vol AF7715 - Lyon → Marseille',
+      description: 'Vol charter groupe InnoSolutions',
+      departure: {
+        location: 'Lyon Saint-Exupéry',
+        date: '2025-06-15',
+        time: '07:30',
+      },
+      arrival: {
+        location: 'Marseille Provence',
+        date: '2025-06-15',
+        time: '08:15',
+      },
       departureTime: new Date('2025-06-15T07:30:00Z'),
       arrivalTime: new Date('2025-06-15T08:15:00Z'),
-      transportNumber: 'AF7715',
-      capacity: 40,
-      notes: 'Vol charter groupe InnoSolutions',
+      maxCapacity: 40,
+      status: 'CONFIRMED',
       participants: {
         create: guests.slice(40, 80).map(g => ({ guestId: g.id })),
       },
@@ -580,46 +598,73 @@ async function main() {
   })
 
   // Navettes aéroport → domaine
-  await prisma.transport.create({
+  await prisma.transportManifest.create({
     data: {
       eventId: event.id,
-      type: 'BUS',
-      departureLocation: 'Aéroport Marseille Provence',
-      arrivalLocation: 'Domaine des Collines',
+      type: 'SHUTTLE',
+      name: 'Navette 1 - Aéroport → Domaine',
+      description: 'Bus confort climatisé',
+      departure: {
+        location: 'Aéroport Marseille Provence',
+        date: '2025-06-15',
+        time: '08:45',
+      },
+      arrival: {
+        location: 'Domaine des Collines',
+        date: '2025-06-15',
+        time: '09:30',
+      },
       departureTime: new Date('2025-06-15T08:45:00Z'),
       arrivalTime: new Date('2025-06-15T09:30:00Z'),
-      transportNumber: 'Navette 1',
-      capacity: 50,
-      notes: 'Bus confort climatisé',
+      maxCapacity: 50,
+      status: 'CONFIRMED',
     },
   })
 
-  await prisma.transport.create({
+  await prisma.transportManifest.create({
     data: {
       eventId: event.id,
-      type: 'BUS',
-      departureLocation: 'Aéroport Marseille Provence',
-      arrivalLocation: 'Domaine des Collines',
+      type: 'SHUTTLE',
+      name: 'Navette 2 - Aéroport → Domaine',
+      description: 'Bus confort climatisé',
+      departure: {
+        location: 'Aéroport Marseille Provence',
+        date: '2025-06-15',
+        time: '09:00',
+      },
+      arrival: {
+        location: 'Domaine des Collines',
+        date: '2025-06-15',
+        time: '09:45',
+      },
       departureTime: new Date('2025-06-15T09:00:00Z'),
       arrivalTime: new Date('2025-06-15T09:45:00Z'),
-      transportNumber: 'Navette 2',
-      capacity: 50,
-      notes: 'Bus confort climatisé',
+      maxCapacity: 50,
+      status: 'CONFIRMED',
     },
   })
 
   // Vols retour
-  await prisma.transport.create({
+  await prisma.transportManifest.create({
     data: {
       eventId: event.id,
       type: 'FLIGHT',
-      departureLocation: 'Marseille Provence',
-      arrivalLocation: 'Paris CDG',
+      name: 'Vol AF7643 - Marseille → Paris',
+      description: 'Vol retour groupe TechCorp',
+      departure: {
+        location: 'Marseille Provence',
+        date: '2025-06-17',
+        time: '17:00',
+      },
+      arrival: {
+        location: 'Paris CDG',
+        date: '2025-06-17',
+        time: '18:20',
+      },
       departureTime: new Date('2025-06-17T17:00:00Z'),
       arrivalTime: new Date('2025-06-17T18:20:00Z'),
-      transportNumber: 'AF7643',
-      capacity: 45,
-      notes: 'Vol retour groupe TechCorp',
+      maxCapacity: 45,
+      status: 'CONFIRMED',
     },
   })
 
