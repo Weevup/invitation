@@ -75,7 +75,7 @@ interface Participant {
   }
 }
 
-export default function SessionGroupsDetailPage() {
+export default function TeamBuildingDetailPage() {
   const params = useParams()
   const router = useRouter()
   const { toast } = useToast()
@@ -129,7 +129,7 @@ export default function SessionGroupsDetailPage() {
   }
 
   async function fetchGroups() {
-    const response = await fetch(`/api/admin/events/${eventId}/sessions/${sessionId}/groups`)
+    const response = await fetch(`/api/admin/events/${eventId}/sessions/${sessionId}/team-building`)
     if (!response.ok) throw new Error('Failed to fetch groups')
     const data = await response.json()
     setGroups(data.groups || [])
@@ -144,7 +144,7 @@ export default function SessionGroupsDetailPage() {
 
   async function handleCreateGroup() {
     try {
-      const response = await fetch(`/api/admin/events/${eventId}/sessions/${sessionId}/groups`, {
+      const response = await fetch(`/api/admin/events/${eventId}/sessions/${sessionId}/team-building`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -156,8 +156,8 @@ export default function SessionGroupsDetailPage() {
       if (!response.ok) throw new Error('Failed to create group')
 
       toast({
-        title: 'Groupe créé',
-        description: `Le groupe "${formData.name}" a été créé avec succès`
+        title: 'Équipe créé',
+        description: `Le équipe "${formData.name}" a été créé avec succès`
       })
 
       await fetchGroups()
@@ -166,7 +166,7 @@ export default function SessionGroupsDetailPage() {
     } catch (error) {
       toast({
         title: 'Erreur',
-        description: 'Impossible de créer le groupe',
+        description: 'Impossible de créer l&apos;équipe',
         variant: 'destructive'
       })
     }
@@ -177,7 +177,7 @@ export default function SessionGroupsDetailPage() {
 
     try {
       const response = await fetch(
-        `/api/admin/events/${eventId}/sessions/${sessionId}/groups/${editingGroup.id}`,
+        `/api/admin/events/${eventId}/sessions/${sessionId}/team-building/${editingGroup.id}`,
         {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
@@ -188,8 +188,8 @@ export default function SessionGroupsDetailPage() {
       if (!response.ok) throw new Error('Failed to update group')
 
       toast({
-        title: 'Groupe mis à jour',
-        description: `Le groupe "${formData.name}" a été mis à jour`
+        title: 'Équipe mis à jour',
+        description: `Le équipe "${formData.name}" a été mis à jour`
       })
 
       await fetchGroups()
@@ -198,33 +198,33 @@ export default function SessionGroupsDetailPage() {
     } catch (error) {
       toast({
         title: 'Erreur',
-        description: 'Impossible de mettre à jour le groupe',
+        description: 'Impossible de mettre à jour l&apos;équipe',
         variant: 'destructive'
       })
     }
   }
 
   async function handleDeleteGroup(groupId: string) {
-    if (!confirm('Voulez-vous vraiment supprimer ce groupe ?')) return
+    if (!confirm('Voulez-vous vraiment supprimer ce équipe ?')) return
 
     try {
       const response = await fetch(
-        `/api/admin/events/${eventId}/sessions/${sessionId}/groups/${groupId}`,
+        `/api/admin/events/${eventId}/sessions/${sessionId}/team-building/${groupId}`,
         { method: 'DELETE' }
       )
 
       if (!response.ok) throw new Error('Failed to delete group')
 
       toast({
-        title: 'Groupe supprimé',
-        description: 'Le groupe a été supprimé avec succès'
+        title: 'Équipe supprimé',
+        description: 'Le équipe a été supprimé avec succès'
       })
 
       await Promise.all([fetchGroups(), fetchParticipants()])
     } catch (error) {
       toast({
         title: 'Erreur',
-        description: 'Impossible de supprimer le groupe',
+        description: 'Impossible de supprimer l&apos;équipe',
         variant: 'destructive'
       })
     }
@@ -233,8 +233,8 @@ export default function SessionGroupsDetailPage() {
   async function handleAutoDistribute() {
     if (groups.length === 0) {
       toast({
-        title: 'Aucun groupe',
-        description: 'Créez d\'abord des groupes avant de répartir les participants',
+        title: 'Aucune équipe',
+        description: 'Créez d\'abord des équipes avant de répartir les participants',
         variant: 'destructive'
       })
       return
@@ -242,7 +242,7 @@ export default function SessionGroupsDetailPage() {
 
     try {
       const response = await fetch(
-        `/api/admin/events/${eventId}/sessions/${sessionId}/groups/auto-distribute`,
+        `/api/admin/events/${eventId}/sessions/${sessionId}/team-building/auto-distribute`,
         { method: 'POST' }
       )
 
@@ -281,7 +281,7 @@ export default function SessionGroupsDetailPage() {
 
       toast({
         title: 'Assignation mise à jour',
-        description: 'Le participant a été assigné au groupe'
+        description: 'Le participant a été assigné au équipe'
       })
 
       await Promise.all([fetchGroups(), fetchParticipants()])
@@ -327,7 +327,7 @@ export default function SessionGroupsDetailPage() {
           <CardContent className="p-12 text-center">
             <AlertCircle className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
             <h3 className="text-lg font-semibold mb-2">Session introuvable</h3>
-            <Button onClick={() => router.push(`/admin/events/${eventId}/groups`)}>
+            <Button onClick={() => router.push(`/admin/events/${eventId}/team-building`)}>
               Retour
             </Button>
           </CardContent>
@@ -344,7 +344,7 @@ export default function SessionGroupsDetailPage() {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => router.push(`/admin/events/${eventId}/groups`)}
+            onClick={() => router.push(`/admin/events/${eventId}/team-building`)}
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
@@ -374,7 +374,7 @@ export default function SessionGroupsDetailPage() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Groupes</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Équipes</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold">{groups.length}</div>
@@ -414,7 +414,7 @@ export default function SessionGroupsDetailPage() {
         <TabsList>
           <TabsTrigger value="groups">
             <Users className="h-4 w-4 mr-2" />
-            Groupes
+            Équipes
           </TabsTrigger>
           <TabsTrigger value="participants">
             <UserCog className="h-4 w-4 mr-2" />
@@ -434,7 +434,7 @@ export default function SessionGroupsDetailPage() {
             </div>
             <Button onClick={() => setCreatingGroup(true)}>
               <Plus className="h-4 w-4 mr-2" />
-              Nouveau groupe
+              Nouvell&apos;équipe
             </Button>
           </div>
 
@@ -442,17 +442,17 @@ export default function SessionGroupsDetailPage() {
           {(creatingGroup || editingGroup) && (
             <Card>
               <CardHeader>
-                <CardTitle>{editingGroup ? 'Modifier le groupe' : 'Nouveau groupe'}</CardTitle>
+                <CardTitle>{editingGroup ? 'Modifier l&apos;équipe' : 'Nouvell&apos;équipe'}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="name">Nom du groupe *</Label>
+                    <Label htmlFor="name">Nom de l&apos;équipe *</Label>
                     <Input
                       id="name"
                       value={formData.name}
                       onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                      placeholder="Groupe A"
+                      placeholder="Équipe A"
                     />
                   </div>
                   <div className="space-y-2">
@@ -472,7 +472,7 @@ export default function SessionGroupsDetailPage() {
                     id="description"
                     value={formData.description}
                     onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                    placeholder="Description du groupe"
+                    placeholder="Description de l&apos;équipe"
                   />
                 </div>
                 <div className="space-y-2">
@@ -515,13 +515,13 @@ export default function SessionGroupsDetailPage() {
             <Card>
               <CardContent className="p-12 text-center">
                 <Users className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                <h3 className="text-lg font-semibold mb-2">Aucun groupe créé</h3>
+                <h3 className="text-lg font-semibold mb-2">Aucune équipe créé</h3>
                 <p className="text-sm text-muted-foreground mb-4">
-                  Créez des groupes pour organiser vos participants
+                  Créez des équipes pour organiser vos participants
                 </p>
                 <Button onClick={() => setCreatingGroup(true)}>
                   <Plus className="h-4 w-4 mr-2" />
-                  Créer un groupe
+                  Créer une équipe
                 </Button>
               </CardContent>
             </Card>
@@ -623,12 +623,12 @@ export default function SessionGroupsDetailPage() {
             <Card>
               <CardContent className="p-12 text-center">
                 <AlertCircle className="h-12 w-12 mx-auto text-orange-600 mb-4" />
-                <h3 className="text-lg font-semibold mb-2">Aucun groupe défini</h3>
+                <h3 className="text-lg font-semibold mb-2">Aucune équipe défini</h3>
                 <p className="text-sm text-muted-foreground mb-4">
-                  Créez d&apos;abord des groupes dans l&apos;onglet &quot;Groupes&quot;
+                  Créez d&apos;abord des équipes dans l&apos;onglet &quot;Équipes&quot;
                 </p>
                 <Button onClick={() => setActiveTab('groups')}>
-                  Aller aux groupes
+                  Aller aux équipes
                 </Button>
               </CardContent>
             </Card>
@@ -705,11 +705,11 @@ export default function SessionGroupsDetailPage() {
                               }
                             >
                               <SelectTrigger className="w-[200px]">
-                                <SelectValue placeholder="Assigner au groupe" />
+                                <SelectValue placeholder="Assigner au équipe" />
                               </SelectTrigger>
                               <SelectContent>
                                 <SelectItem value="none">
-                                  {participant.groupId ? 'Retirer du groupe' : 'Aucun groupe'}
+                                  {participant.groupId ? 'Retirer de l&apos;équipe' : 'Aucune équipe'}
                                 </SelectItem>
                                 {groups.map((group) => {
                                   const isFull = !!(group.capacity &&

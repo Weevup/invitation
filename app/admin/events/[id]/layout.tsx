@@ -105,11 +105,25 @@ export default function EventLayout({
       })
     }
 
-    // Groups module (always show if PROGRAM module is active)
+    // Workshops/Ateliers module (always show if PROGRAM module is active)
     if (hasModule('PROGRAM')) {
       logistiqueModules.push({
-        label: 'Groupes',
-        href: `/admin/events/${eventId}/groups`,
+        label: 'Ateliers',
+        href: `/admin/events/${eventId}/ateliers`,
+        icon: Users2,
+      })
+
+      // Team Building module
+      logistiqueModules.push({
+        label: 'Team Building',
+        href: `/admin/events/${eventId}/team-building`,
+        icon: Users2,
+      })
+
+      // Activités libres module
+      logistiqueModules.push({
+        label: 'Activités libres',
+        href: `/admin/events/${eventId}/activites-libres`,
         icon: Users2,
       })
     }

@@ -23,10 +23,17 @@ const SESSION_TYPES = [
   { value: 'KEYNOTE', label: 'Keynote', icon: '🎤' },
   { value: 'WORKSHOP', label: 'Atelier', icon: '🛠️' },
   { value: 'CONFERENCE', label: 'Conférence', icon: '📊' },
+  { value: 'PANEL', label: 'Table ronde', icon: '💬' },
+  { value: 'TRAINING', label: 'Formation', icon: '📚' },
   { value: 'TEAMBUILDING', label: 'Team Building', icon: '🤝' },
+  { value: 'NETWORKING', label: 'Networking', icon: '🤝' },
   { value: 'MEAL', label: 'Repas', icon: '🍽️' },
   { value: 'BREAK', label: 'Pause', icon: '☕' },
-  { value: 'NETWORKING', label: 'Networking', icon: '🤝' },
+  { value: 'TRANSFER', label: 'Transfert', icon: '🚌' },
+  { value: 'ARRIVAL', label: 'Arrivée', icon: '✈️' },
+  { value: 'DEPARTURE', label: 'Départ', icon: '🛫' },
+  { value: 'FREE_TIME', label: 'Temps libre', icon: '🌴' },
+  { value: 'OTHER', label: 'Autre', icon: '📌' },
 ]
 
 export function SessionEditor({ eventId, session, onClose, onSave }: SessionEditorProps) {
@@ -252,7 +259,7 @@ export function SessionEditor({ eventId, session, onClose, onSave }: SessionEdit
                   </Label>
                 </div>
                 <p className="text-xs text-[#004645]/60 mt-1">
-                  Pour ateliers, team building ou activités en petits groupes
+                  Activez pour diviser les participants en groupes (team building, ateliers, etc.)
                 </p>
               </div>
               <Switch
@@ -263,25 +270,64 @@ export function SessionEditor({ eventId, session, onClose, onSave }: SessionEdit
               />
             </div>
 
-            {formData.requiresGroups && session?.id && (
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => router.push(`/admin/events/${eventId}/groups/${session.id}`)}
-                className="w-full border-[#FF4713] text-[#FF4713] hover:bg-[#FF4713]/10"
-              >
-                <Users2 className="h-4 w-4 mr-2" />
-                Gérer les groupes de cette session
-              </Button>
-            )}
+            {formData.requiresGroups && (() => {
+              // Determine which module to use based on session type
+              const isTeamBuilding = formData.type === 'TEAMBUILDING'
+              const isWorkshop = formData.type === 'WORKSHOP'
+              const isFreeTime = formData.type === 'FREE_TIME'
 
-            {formData.requiresGroups && !session?.id && (
-              <div className="flex items-start gap-2 text-xs text-[#FF4713]">
-                <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
-                <span>Sauvegardez d&apos;abord la session pour pouvoir créer des groupes</span>
-              </div>
-            )}
+              let moduleName = 'Ateliers'
+              let moduleUrl = 'ateliers'
+              let itemName = 'ateliers'
+
+              if (isTeamBuilding) {
+                moduleName = 'Team Building'
+                moduleUrl = 'team-building'
+                itemName = 'équipes'
+              } else if (isFreeTime) {
+                moduleName = 'Activités libres'
+                moduleUrl = 'activites-libres'
+                itemName = 'activités'
+              }
+
+              return (
+                <>
+                  <div className="bg-white/50 p-3 rounded border border-[#FF4713]/20 space-y-2">
+                    <p className="text-xs font-medium text-[#004645]">
+                      📋 Comment ça fonctionne ?
+                    </p>
+                    <ol className="text-xs text-[#004645]/80 space-y-1 ml-4 list-decimal">
+                      <li>Activez cette option et sauvegardez la session</li>
+                      <li>Allez dans <strong>Logistique → {moduleName}</strong> pour créer et gérer les {itemName}</li>
+                      <li>{isFreeTime ? 'Les participants pourront choisir leur' : 'Assignez les participants aux différent' + (isTeamBuilding ? 'e' : '') + 's'} {itemName}</li>
+                      <li>Les {itemName} apparaîtront dans le Planning Opérationnel</li>
+                    </ol>
+                  </div>
+
+                  {session?.id && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => router.push(`/admin/events/${eventId}/${moduleUrl}/${session.id}`)}
+                      className="w-full border-[#FF4713] text-[#FF4713] hover:bg-[#FF4713]/10 font-semibold"
+                    >
+                      <Users2 className="h-4 w-4 mr-2" />
+                      Aller dans Logistique → {moduleName} pour gérer
+                    </Button>
+                  )}
+
+                  {!session?.id && (
+                    <div className="flex items-start gap-2 p-2 bg-amber-50 border border-amber-200 rounded text-xs text-amber-800">
+                      <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
+                      <div>
+                        <p className="font-semibold">Action requise :</p>
+                        <p>Sauvegardez d&apos;abord cette session, puis allez dans <strong>Logistique → {moduleName}</strong> pour créer vos {itemName}.</p>
+                      </div>
+                    </div>
+                  )}
+                </>
+              )
+            })()}
           </div>
         </div>
 
