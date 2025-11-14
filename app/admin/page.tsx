@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import {
   Calendar, Users, TrendingUp, Plus, Mail, RefreshCw,
-  AlertCircle, Activity, Award
+  AlertCircle, Activity, Award, Trash2
 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
@@ -134,6 +134,29 @@ export default function AdminDashboard() {
       toast.error('Erreur de connexion');
     } finally {
       setInitLoading(false);
+    }
+  };
+
+  const handleDeleteEvent = async (eventId: string, eventName: string) => {
+    if (!confirm(`Êtes-vous sûr de vouloir supprimer l'événement "${eventName}" ?\n\nCette action supprimera également tous les invités, réponses, sessions, hébergements et transports associés. Cette action est irréversible.`)) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/admin/events/${eventId}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        toast.success('Événement supprimé avec succès');
+        fetchData();
+      } else {
+        const data = await response.json();
+        toast.error(data.error || 'Erreur lors de la suppression');
+      }
+    } catch (error) {
+      console.error('Error deleting event:', error);
+      toast.error('Erreur de connexion');
     }
   };
 
@@ -390,9 +413,21 @@ export default function AdminDashboard() {
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {events.map((event) => (
-              <Card key={event.id} className="border-[#9CD9F6]/30 bg-white/80 backdrop-blur hover:shadow-xl transition-all duration-300">
+              <Card key={event.id} className="border-[#9CD9F6]/30 bg-white/80 backdrop-blur hover:shadow-xl transition-all duration-300 relative">
+                <Button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleDeleteEvent(event.id, event.name);
+                  }}
+                  variant="ghost"
+                  size="icon"
+                  className="absolute top-2 right-2 h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50"
+                  title="Supprimer l'événement"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
                 <CardHeader>
-                  <CardTitle className="text-[#004645]" style={{ fontFamily: "var(--font-abril)" }}>
+                  <CardTitle className="text-[#004645] pr-8" style={{ fontFamily: "var(--font-abril)" }}>
                     {event.name}
                   </CardTitle>
                   <CardDescription>
