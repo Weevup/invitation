@@ -808,13 +808,14 @@ async function main() {
     // Créer l'assignation
     await prisma.roomAssignment.create({
       data: {
-        eventId: event.id,
         guestId: guest.id,
         roomId: currentRoom.id,
-        checkIn: new Date('2025-06-15T15:00:00Z'),
-        checkOut: new Date('2025-06-17T11:00:00Z'),
-        status: 'CONFIRMED',
-        notes: i % 5 === 0 ? 'Chambre accessible demandée' : undefined,
+        checkInDate: new Date('2025-06-15T15:00:00Z'),
+        checkOutDate: new Date('2025-06-17T11:00:00Z'),
+        numberOfNights: 2,
+        isConfirmed: true,
+        isPrimaryGuest: guestInRoom === 0, // Premier invité de la chambre
+        specialRequests: i % 5 === 0 ? 'Chambre accessible demandée' : undefined,
       }
     })
 
