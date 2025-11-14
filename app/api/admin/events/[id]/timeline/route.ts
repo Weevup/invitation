@@ -183,7 +183,10 @@ export async function GET(
           },
         },
         room: {
-          include: {
+          select: {
+            id: true,
+            number: true,
+            type: true,
             accommodation: {
               select: {
                 id: true,
