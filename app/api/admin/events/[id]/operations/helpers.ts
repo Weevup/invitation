@@ -1,6 +1,7 @@
 import type {
   Session,
   SessionParticipant,
+  SessionGroup,
   Guest,
   RSVP,
   TransportBooking,
@@ -15,7 +16,7 @@ import type {
 
 // Types étendu avec relations
 type SessionWithParticipants = Session & {
-  participants: (SessionParticipant & { guest: Guest })[]
+  participants: (SessionParticipant & { guest: Guest; group: SessionGroup | null })[]
 }
 
 type TransportManifestWithParticipants = TransportManifest & {
