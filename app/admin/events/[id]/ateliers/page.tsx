@@ -303,7 +303,7 @@ export default function AteliersPage() {
 
                     {/* Right: Action Button */}
                     <Button
-                      onClick={() => router.push(`/admin/events/${eventId}/groups/${session.id}`)}
+                      onClick={() => router.push(`/admin/events/${eventId}/ateliers/${session.id}`)}
                       className="ml-4"
                     >
                       Gérer

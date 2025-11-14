@@ -24,7 +24,8 @@ import {
   Clock3,
   Plane,
   Hotel,
-  Users2
+  Users2,
+  Database
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useEventModules } from '@/lib/modules/use-event-modules'
@@ -144,6 +145,11 @@ export default function EventLayout({
           label: 'Configuration',
           href: `/admin/events/${eventId}/modules`,
           icon: Puzzle,
+        },
+        {
+          label: 'Données',
+          href: `/admin/events/${eventId}/data-admin`,
+          icon: Database,
         },
         {
           label: 'Showcase',
