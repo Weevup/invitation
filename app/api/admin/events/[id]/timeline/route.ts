@@ -548,6 +548,117 @@ export async function GET(
       totalParticipants: await prisma.guest.count({ where: { eventId } }),
     }
 
+    // Detect conflicts and generate alerts
+    const alerts = []
+
+    // 1. Sessions over capacity
+    for (const session of sessions) {
+      const participantCount = session._count.participants
+      if (session.capacity && participantCount > session.capacity) {
+        alerts.push({
+          id: `overcapacity-${session.id}`,
+          type: 'OVERCAPACITY',
+          severity: 'error',
+          title: 'Capacité dépassée',
+          message: `${session.title} : ${participantCount} inscrits pour ${session.capacity} places`,
+          sessionId: session.id,
+          relatedTime: session.startTime,
+        })
+      } else if (session.capacity && participantCount / session.capacity > 0.9) {
+        alerts.push({
+          id: `nearcapacity-${session.id}`,
+          type: 'NEAR_CAPACITY',
+          severity: 'warning',
+          title: 'Capacité bientôt atteinte',
+          message: `${session.title} : ${participantCount} inscrits sur ${session.capacity} places (${Math.round((participantCount / session.capacity) * 100)}%)`,
+          sessionId: session.id,
+          relatedTime: session.startTime,
+        })
+      }
+    }
+
+    // 2. Guests with RSVP but no accommodation
+    const guestsWithRSVP = await prisma.guest.findMany({
+      where: {
+        eventId,
+        rsvp: {
+          attending: true,
+        },
+      },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+      },
+    })
+
+    const guestsWithAccommodation = new Set(
+      roomAssignments.map((assignment) => assignment.guestId)
+    )
+
+    const guestsWithoutAccommodation = guestsWithRSVP.filter(
+      (guest) => !guestsWithAccommodation.has(guest.id)
+    )
+
+    if (guestsWithoutAccommodation.length > 0) {
+      alerts.push({
+        id: 'missing-accommodation',
+        type: 'MISSING_ACCOMMODATION',
+        severity: 'warning',
+        title: 'Invités sans hébergement',
+        message: `${guestsWithoutAccommodation.length} invité(s) confirmé(s) sans chambre assignée`,
+        count: guestsWithoutAccommodation.length,
+        guests: guestsWithoutAccommodation.slice(0, 5), // First 5 for preview
+      })
+    }
+
+    // 3. Guests with RSVP but no transport
+    const guestsWithTransport = new Set(transports.map((t) => t.guestId))
+
+    const guestsWithoutTransport = guestsWithRSVP.filter(
+      (guest) => !guestsWithTransport.has(guest.id)
+    )
+
+    if (guestsWithoutTransport.length > 0) {
+      alerts.push({
+        id: 'missing-transport',
+        type: 'MISSING_TRANSPORT',
+        severity: 'info',
+        title: 'Invités sans transport',
+        message: `${guestsWithoutTransport.length} invité(s) confirmé(s) sans réservation de transport`,
+        count: guestsWithoutTransport.length,
+        guests: guestsWithoutTransport.slice(0, 5),
+      })
+    }
+
+    // 4. Check dietary restrictions alerts
+    const guestsWithAllergies = await prisma.guest.count({
+      where: {
+        eventId,
+        rsvp: {
+          attending: true,
+          allergies: {
+            not: null,
+          },
+        },
+      },
+    })
+
+    if (guestsWithAllergies > 0) {
+      alerts.push({
+        id: 'dietary-restrictions',
+        type: 'DIETARY_RESTRICTIONS',
+        severity: 'info',
+        title: 'Restrictions alimentaires',
+        message: `${guestsWithAllergies} invité(s) avec des allergies ou restrictions`,
+        count: guestsWithAllergies,
+      })
+    }
+
+    // Sort alerts by severity (error > warning > info)
+    const severityOrder = { error: 0, warning: 1, info: 2 }
+    alerts.sort((a, b) => severityOrder[a.severity] - severityOrder[b.severity])
+
     return NextResponse.json({
       event: {
         id: event.id,
@@ -558,6 +669,7 @@ export async function GET(
       timeline: unifiedTimeline,
       timelineByDate: groupedByDate,
       stats,
+      alerts,
     })
   } catch (error) {
     console.error('Error fetching timeline:', error)

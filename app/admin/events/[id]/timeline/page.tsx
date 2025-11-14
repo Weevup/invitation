@@ -23,6 +23,10 @@ import {
   Mail,
   MessageSquare,
   UserCheck,
+  AlertTriangle,
+  AlertCircle,
+  Info,
+  X,
 } from 'lucide-react'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
@@ -53,6 +57,18 @@ interface TimelineItem {
   roomType?: string
   roomNumber?: string
   isParticipating?: boolean
+}
+
+interface Alert {
+  id: string
+  type: string
+  severity: 'error' | 'warning' | 'info'
+  title: string
+  message: string
+  count?: number
+  sessionId?: string
+  relatedTime?: string
+  guests?: Array<{ id: string; firstName: string; lastName: string }>
 }
 
 const getSessionIcon = (sessionType?: string) => {
@@ -108,6 +124,8 @@ export default function TimelinePage() {
     checkins: 0,
     totalParticipants: 0,
   })
+  const [alerts, setAlerts] = useState<Alert[]>([])
+  const [dismissedAlerts, setDismissedAlerts] = useState<Set<string>>(new Set())
   const [currentDateIndex, setCurrentDateIndex] = useState(0)
 
   useEffect(() => {
@@ -126,6 +144,7 @@ export default function TimelinePage() {
         setTimeline(data.timeline || [])
         setTimelineByDate(data.timelineByDate || {})
         setStats(data.stats || {})
+        setAlerts(data.alerts || [])
       }
     } catch (error) {
       console.error('Error fetching timeline:', error)
@@ -141,6 +160,39 @@ export default function TimelinePage() {
   const handleExportManifeste = () => {
     window.open(`/api/admin/events/${eventId}/export/manifeste`, '_blank')
   }
+
+  const dismissAlert = (alertId: string) => {
+    setDismissedAlerts((prev) => new Set(prev).add(alertId))
+  }
+
+  const getAlertIcon = (severity: string) => {
+    switch (severity) {
+      case 'error':
+        return AlertCircle
+      case 'warning':
+        return AlertTriangle
+      case 'info':
+        return Info
+      default:
+        return Info
+    }
+  }
+
+  const getAlertStyles = (severity: string) => {
+    switch (severity) {
+      case 'error':
+        return 'bg-red-50 border-red-200 text-red-800'
+      case 'warning':
+        return 'bg-orange-50 border-orange-200 text-orange-800'
+      case 'info':
+        return 'bg-blue-50 border-blue-200 text-blue-800'
+      default:
+        return 'bg-gray-50 border-gray-200 text-gray-800'
+    }
+  }
+
+  // Filter out dismissed alerts
+  const visibleAlerts = alerts.filter((alert) => !dismissedAlerts.has(alert.id))
 
   // Get sorted dates
   const sortedDates = Object.keys(timelineByDate).sort()
@@ -297,6 +349,55 @@ export default function TimelinePage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Alerts Section */}
+      {visibleAlerts.length > 0 && (
+        <div className="space-y-3">
+          {visibleAlerts.map((alert) => {
+            const Icon = getAlertIcon(alert.severity)
+            const styles = getAlertStyles(alert.severity)
+
+            return (
+              <Card key={alert.id} className={cn('border-l-4', styles)}>
+                <CardContent className="p-4">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex items-start gap-3">
+                      <Icon className="h-5 w-5 mt-0.5 flex-shrink-0" />
+                      <div className="space-y-1">
+                        <div className="font-semibold">{alert.title}</div>
+                        <div className="text-sm">{alert.message}</div>
+                        {alert.guests && alert.guests.length > 0 && (
+                          <div className="text-xs mt-2 space-y-1">
+                            {alert.guests.map((guest) => (
+                              <div key={guest.id} className="flex items-center gap-2">
+                                <Users className="h-3 w-3" />
+                                {guest.firstName} {guest.lastName}
+                              </div>
+                            ))}
+                            {alert.count && alert.count > alert.guests.length && (
+                              <div className="text-xs italic">
+                                ... et {alert.count - alert.guests.length} autre(s)
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 w-6 p-0"
+                      onClick={() => dismissAlert(alert.id)}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )
+          })}
+        </div>
+      )}
 
       {/* Date Navigator */}
       {sortedDates.length > 0 && (
