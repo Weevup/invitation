@@ -105,11 +105,11 @@ export default function EventLayout({
       })
     }
 
-    // Groups module (always show if PROGRAM module is active)
+    // Workshops/Ateliers module (always show if PROGRAM module is active)
     if (hasModule('PROGRAM')) {
       logistiqueModules.push({
-        label: 'Groupes',
-        href: `/admin/events/${eventId}/groups`,
+        label: 'Ateliers',
+        href: `/admin/events/${eventId}/ateliers`,
         icon: Users2,
       })
     }

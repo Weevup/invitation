@@ -277,9 +277,9 @@ export function SessionEditor({ eventId, session, onClose, onSave }: SessionEdit
                 </p>
                 <ol className="text-xs text-[#004645]/80 space-y-1 ml-4 list-decimal">
                   <li>Activez cette option et sauvegardez la session</li>
-                  <li>Allez dans <strong>Logistique → Groupes</strong> pour créer et gérer les groupes</li>
-                  <li>Assignez les participants aux différents groupes</li>
-                  <li>Les groupes apparaîtront dans le Planning Opérationnel</li>
+                  <li>Allez dans <strong>Logistique → Ateliers</strong> pour créer et gérer les ateliers</li>
+                  <li>Assignez les participants aux différents ateliers</li>
+                  <li>Les ateliers apparaîtront dans le Planning Opérationnel</li>
                 </ol>
               </div>
             )}
@@ -288,11 +288,11 @@ export function SessionEditor({ eventId, session, onClose, onSave }: SessionEdit
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => router.push(`/admin/events/${eventId}/groups/${session.id}`)}
+                onClick={() => router.push(`/admin/events/${eventId}/ateliers/${session.id}`)}
                 className="w-full border-[#FF4713] text-[#FF4713] hover:bg-[#FF4713]/10 font-semibold"
               >
                 <Users2 className="h-4 w-4 mr-2" />
-                Aller dans Logistique → Groupes pour gérer
+                Aller dans Logistique → Ateliers pour gérer
               </Button>
             )}
 
@@ -301,7 +301,7 @@ export function SessionEditor({ eventId, session, onClose, onSave }: SessionEdit
                 <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
                 <div>
                   <p className="font-semibold">Action requise :</p>
-                  <p>Sauvegardez d&apos;abord cette session, puis allez dans <strong>Logistique → Groupes</strong> pour créer vos groupes.</p>
+                  <p>Sauvegardez d&apos;abord cette session, puis allez dans <strong>Logistique → Ateliers</strong> pour créer vos ateliers.</p>
                 </div>
               </div>
             )}

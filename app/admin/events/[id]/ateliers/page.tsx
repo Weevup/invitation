@@ -48,7 +48,7 @@ interface Session {
   groups: SessionGroup[]
 }
 
-export default function GroupsPage() {
+export default function AteliersPage() {
   const params = useParams()
   const router = useRouter()
   const eventId = params.id as string
@@ -68,7 +68,7 @@ export default function GroupsPage() {
       if (!response.ok) throw new Error('Failed to fetch sessions')
 
       const data = await response.json()
-      // Filter only sessions that require groups
+      // Filter only sessions that require groups/ateliers
       const sessionsWithGroups = data.sessions.filter((s: Session) => s.requiresGroups)
       setSessions(sessionsWithGroups)
     } catch (error) {
@@ -112,7 +112,7 @@ export default function GroupsPage() {
     const unassigned = session._count.participants - totalAssigned
 
     if (session.groups.length === 0) {
-      return { status: 'empty', label: 'Aucun groupe', color: 'text-gray-500', icon: AlertCircle }
+      return { status: 'empty', label: 'Aucun atelier', color: 'text-gray-500', icon: AlertCircle }
     }
     if (unassigned > 0) {
       return { status: 'incomplete', label: `${unassigned} non assignés`, color: 'text-orange-600', icon: AlertTriangle }
@@ -138,9 +138,9 @@ export default function GroupsPage() {
     <div className="p-6 space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold mb-2">Gestion des groupes</h1>
+        <h1 className="text-3xl font-bold mb-2">Gestion des ateliers</h1>
         <p className="text-muted-foreground">
-          Gérez les groupes pour les ateliers, team building et autres sessions collaboratives
+          Créez et gérez les ateliers pour vos sessions Workshop
         </p>
       </div>
 
@@ -149,7 +149,7 @@ export default function GroupsPage() {
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Sessions avec groupes
+              Sessions avec ateliers
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -160,7 +160,7 @@ export default function GroupsPage() {
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Total groupes
+              Total ateliers
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -215,9 +215,9 @@ export default function GroupsPage() {
         <Card>
           <CardContent className="p-12 text-center">
             <Users className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold mb-2">Aucune session avec groupes</h3>
+            <h3 className="text-lg font-semibold mb-2">Aucune session avec ateliers</h3>
             <p className="text-sm text-muted-foreground mb-4">
-              Activez l&apos;option &quot;Nécessite des groupes&quot; sur vos sessions depuis le module Programme
+              Activez l&apos;option &quot;Session avec groupes&quot; sur vos sessions de type Workshop depuis le module Programme
             </p>
             <Button onClick={() => router.push(`/admin/events/${eventId}/program`)}>
               Aller au Programme
@@ -268,7 +268,7 @@ export default function GroupsPage() {
                         </div>
                         <span className="text-muted-foreground">•</span>
                         <span className="text-sm text-muted-foreground">
-                          {session.groups.length} groupe{session.groups.length > 1 ? 's' : ''}
+                          {session.groups.length} atelier{session.groups.length > 1 ? 's' : ''}
                         </span>
                         <span className="text-muted-foreground">•</span>
                         <span className="text-sm text-muted-foreground">
