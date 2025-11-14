@@ -84,10 +84,10 @@ async function main() {
         lastName,
         company: i < 40 ? 'TechCorp' : 'InnoSolutions',
         jobTitle: i % 4 === 0 ? 'Manager' : i % 4 === 1 ? 'Développeur' : i % 4 === 2 ? 'Designer' : 'Consultant',
-        rsvps: {
+        rsvp: {
           create: {
             eventId: event.id,
-            status: 'CONFIRMED',
+            attending: true,
             responseDate: new Date(),
           },
         },
