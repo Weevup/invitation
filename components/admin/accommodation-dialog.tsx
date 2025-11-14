@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -50,29 +50,88 @@ export function AccommodationDialog({
   const { toast } = useToast()
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
-    name: accommodation?.name || '',
-    type: accommodation?.type || 'HOTEL',
-    address: accommodation?.address || '',
-    city: accommodation?.city || '',
-    country: accommodation?.country || '',
-    postalCode: accommodation?.postalCode || '',
-    phone: accommodation?.phone || '',
-    email: accommodation?.email || '',
-    website: accommodation?.website || '',
-    contactPerson: accommodation?.contactPerson || '',
-    starRating: accommodation?.starRating || '',
-    totalRooms: accommodation?.totalRooms || '',
-    allocatedRooms: accommodation?.allocatedRooms || '',
-    checkInTime: accommodation?.checkInTime || '14:00',
-    checkOutTime: accommodation?.checkOutTime || '11:00',
-    earlyCheckIn: accommodation?.earlyCheckIn || false,
-    lateCheckOut: accommodation?.lateCheckOut || false,
-    contractRate: accommodation?.contractRate || '',
-    currency: accommodation?.currency || 'EUR',
-    isPreferred: accommodation?.isPreferred || false,
-    description: accommodation?.description || '',
-    notes: accommodation?.notes || '',
+    name: '',
+    type: 'HOTEL',
+    address: '',
+    city: '',
+    country: '',
+    postalCode: '',
+    phone: '',
+    email: '',
+    website: '',
+    contactPerson: '',
+    starRating: '',
+    totalRooms: '',
+    allocatedRooms: '',
+    checkInTime: '14:00',
+    checkOutTime: '11:00',
+    earlyCheckIn: false,
+    lateCheckOut: false,
+    contractRate: '',
+    currency: 'EUR',
+    isPreferred: false,
+    description: '',
+    notes: '',
   })
+
+  // Reset form when dialog opens or accommodation changes
+  useEffect(() => {
+    if (open) {
+      if (accommodation) {
+        // Editing existing accommodation
+        setFormData({
+          name: accommodation.name || '',
+          type: accommodation.type || 'HOTEL',
+          address: accommodation.address || '',
+          city: accommodation.city || '',
+          country: accommodation.country || '',
+          postalCode: accommodation.postalCode || '',
+          phone: accommodation.phone || '',
+          email: accommodation.email || '',
+          website: accommodation.website || '',
+          contactPerson: accommodation.contactPerson || '',
+          starRating: accommodation.starRating ? String(accommodation.starRating) : '',
+          totalRooms: accommodation.totalRooms ? String(accommodation.totalRooms) : '',
+          allocatedRooms: accommodation.allocatedRooms ? String(accommodation.allocatedRooms) : '',
+          checkInTime: accommodation.checkInTime || '14:00',
+          checkOutTime: accommodation.checkOutTime || '11:00',
+          earlyCheckIn: accommodation.earlyCheckIn || false,
+          lateCheckOut: accommodation.lateCheckOut || false,
+          contractRate: accommodation.contractRate ? String(accommodation.contractRate) : '',
+          currency: accommodation.currency || 'EUR',
+          isPreferred: accommodation.isPreferred || false,
+          description: accommodation.description || '',
+          notes: accommodation.notes || '',
+        })
+      } else {
+        // Creating new accommodation - reset to defaults
+        setFormData({
+          name: '',
+          type: 'HOTEL',
+          address: '',
+          city: '',
+          country: '',
+          postalCode: '',
+          phone: '',
+          email: '',
+          website: '',
+          contactPerson: '',
+          starRating: '',
+          totalRooms: '',
+          allocatedRooms: '',
+          checkInTime: '14:00',
+          checkOutTime: '11:00',
+          earlyCheckIn: false,
+          lateCheckOut: false,
+          contractRate: '',
+          currency: 'EUR',
+          isPreferred: false,
+          description: '',
+          notes: '',
+        })
+      }
+    }
+  }, [open, accommodation])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -223,13 +282,13 @@ export function AccommodationDialog({
               <div>
                 <Label htmlFor="starRating">Étoiles</Label>
                 <Select
-                  value={formData.starRating.toString()}
+                  value={String(formData.starRating || '')}
                   onValueChange={(value) =>
                     setFormData({ ...formData, starRating: value })
                   }
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Rating" />
+                    <SelectValue placeholder="Non classé" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="">Non classé</SelectItem>
