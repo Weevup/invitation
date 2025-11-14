@@ -327,7 +327,7 @@ export default function AteliersDetailPage() {
           <CardContent className="p-12 text-center">
             <AlertCircle className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
             <h3 className="text-lg font-semibold mb-2">Session introuvable</h3>
-            <Button onClick={() => router.push(`/admin/events/${eventId}/groups`)}>
+            <Button onClick={() => router.push(`/admin/events/${eventId}/ateliers`)}>
               Retour
             </Button>
           </CardContent>
@@ -344,7 +344,7 @@ export default function AteliersDetailPage() {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => router.push(`/admin/events/${eventId}/groups`)}
+            onClick={() => router.push(`/admin/events/${eventId}/ateliers`)}
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
