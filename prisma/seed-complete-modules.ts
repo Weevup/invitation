@@ -88,7 +88,6 @@ async function main() {
           create: {
             eventId: event.id,
             attending: true,
-            responseDate: new Date(),
           },
         },
       },
