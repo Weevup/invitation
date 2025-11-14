@@ -88,19 +88,24 @@ function SectionWrapper({ section, children }: SectionWrapperProps) {
 }
 
 async function getEvent(slug: string) {
-  const event = await prisma.event.findUnique({
-    where: { slug },
-    include: {
-      _count: {
-        select: {
-          guests: true,
-          rsvps: true,
+  try {
+    const event = await prisma.event.findUnique({
+      where: { slug },
+      include: {
+        _count: {
+          select: {
+            guests: true,
+            rsvps: true,
+          },
         },
       },
-    },
-  })
+    })
 
-  return event
+    return event
+  } catch (error) {
+    console.error('Error fetching event:', error)
+    return null
+  }
 }
 
 export default async function EventShowcasePage({ params }: PageProps) {
