@@ -21,7 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { toast } from 'sonner'
+import { useToast } from '@/components/ui/use-toast'
 
 interface AccommodationDialogProps {
   open: boolean
@@ -47,6 +47,7 @@ export function AccommodationDialog({
   accommodation,
   onSuccess,
 }: AccommodationDialogProps) {
+  const { toast } = useToast()
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
     name: accommodation?.name || '',
@@ -75,15 +76,32 @@ export function AccommodationDialog({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    // Validation
+    if (!formData.name || formData.name.trim() === '') {
+      toast({
+        title: 'Champ requis manquant',
+        description: 'Le nom de l\'hébergement est requis',
+        variant: 'destructive'
+      })
+      return
+    }
+
     setLoading(true)
 
     try {
-      // Convert string numbers to actual numbers
+      // Convert string numbers to actual numbers and clean up empty strings
       const data: any = { ...formData }
+
+      // Convert numbers
       if (data.starRating) data.starRating = parseInt(data.starRating)
       if (data.totalRooms) data.totalRooms = parseInt(data.totalRooms)
       if (data.allocatedRooms) data.allocatedRooms = parseInt(data.allocatedRooms)
       if (data.contractRate) data.contractRate = parseFloat(data.contractRate)
+
+      // Clean up empty strings for optional fields to avoid validation errors
+      if (data.email === '') delete data.email
+      if (data.website === '') delete data.website
 
       const url = accommodation
         ? `/api/admin/events/${eventId}/accommodations/${accommodation.id}`
@@ -102,15 +120,19 @@ export function AccommodationDialog({
         throw new Error(error.error || 'Erreur lors de la sauvegarde')
       }
 
-      toast.success(
-        accommodation
-          ? 'Hébergement mis à jour avec succès'
-          : 'Hébergement créé avec succès'
-      )
+      toast({
+        title: accommodation ? 'Hébergement mis à jour' : 'Hébergement créé',
+        description: `L'hébergement "${formData.name}" a été ${accommodation ? 'mis à jour' : 'créé'} avec succès`
+      })
       onOpenChange(false)
       onSuccess?.()
     } catch (error: any) {
-      toast.error(error.message)
+      console.error('Error saving accommodation:', error)
+      toast({
+        title: 'Erreur',
+        description: error.message || 'Une erreur est survenue lors de la sauvegarde',
+        variant: 'destructive'
+      })
     } finally {
       setLoading(false)
     }

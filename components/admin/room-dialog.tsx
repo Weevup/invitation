@@ -21,7 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { toast } from 'sonner'
+import { useToast } from '@/components/ui/use-toast'
 
 interface RoomDialogProps {
   open: boolean
@@ -48,6 +48,7 @@ export function RoomDialog({
   accommodationId,
   onSuccess,
 }: RoomDialogProps) {
+  const { toast } = useToast()
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
     roomNumber: '',
@@ -65,6 +66,26 @@ export function RoomDialog({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    // Validation
+    if (!formData.roomNumber || formData.roomNumber.trim() === '') {
+      toast({
+        title: 'Champ requis manquant',
+        description: 'Le numéro de chambre est requis',
+        variant: 'destructive'
+      })
+      return
+    }
+
+    if (!formData.maxOccupancy || parseInt(formData.maxOccupancy) < 1) {
+      toast({
+        title: 'Capacité invalide',
+        description: 'La capacité maximale doit être au moins 1',
+        variant: 'destructive'
+      })
+      return
+    }
+
     setLoading(true)
 
     try {
@@ -88,7 +109,10 @@ export function RoomDialog({
         throw new Error(error.error || 'Erreur lors de la création')
       }
 
-      toast.success('Chambre créée avec succès')
+      toast({
+        title: 'Chambre créée',
+        description: `La chambre ${formData.roomNumber} a été créée avec succès`
+      })
 
       // Reset form
       setFormData({
@@ -107,7 +131,12 @@ export function RoomDialog({
 
       onSuccess?.()
     } catch (error: any) {
-      toast.error(error.message)
+      console.error('Error creating room:', error)
+      toast({
+        title: 'Erreur',
+        description: error.message || 'Une erreur est survenue lors de la création',
+        variant: 'destructive'
+      })
     } finally {
       setLoading(false)
     }
