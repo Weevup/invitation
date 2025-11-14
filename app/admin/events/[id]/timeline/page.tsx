@@ -27,6 +27,9 @@ import {
   AlertCircle,
   Info,
   X,
+  Edit2,
+  Eye,
+  UserPlus,
 } from 'lucide-react'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
@@ -128,6 +131,14 @@ export default function TimelinePage() {
   const [dismissedAlerts, setDismissedAlerts] = useState<Set<string>>(new Set())
   const [currentDateIndex, setCurrentDateIndex] = useState(0)
 
+  // Filters state
+  const [filters, setFilters] = useState({
+    type: 'all', // 'all', 'sessions', 'transport', 'accommodation', 'communications'
+    status: 'all', // 'all', 'confirmed', 'pending', 'alert'
+    showConflictsOnly: false,
+  })
+  const [showFilters, setShowFilters] = useState(false)
+
   useEffect(() => {
     fetchTimeline()
   }, [eventId])
@@ -201,6 +212,65 @@ export default function TimelinePage() {
   const currentDate = sortedDates[currentDateIndex]
   const currentDayItems = currentDate ? timelineByDate[currentDate] : []
 
+  // Filter items based on selected filters
+  const applyFilters = (items: TimelineItem[]) => {
+    let filtered = items
+
+    // Filter by type
+    if (filters.type !== 'all') {
+      switch (filters.type) {
+        case 'sessions':
+          filtered = filtered.filter((item) => item.type === 'SESSION')
+          break
+        case 'transport':
+          filtered = filtered.filter((item) =>
+            item.type === 'TRANSPORT_ARRIVAL' || item.type === 'TRANSPORT_DEPARTURE'
+          )
+          break
+        case 'accommodation':
+          filtered = filtered.filter((item) =>
+            item.type === 'HOTEL_CHECKIN' || item.type === 'HOTEL_CHECKOUT'
+          )
+          break
+        case 'communications':
+          filtered = filtered.filter((item) =>
+            item.type === 'EMAIL_SENT' || item.type === 'RSVP_RECEIVED' || item.type === 'CHECKIN'
+          )
+          break
+      }
+    }
+
+    // Filter by status (based on hasConflict flag or capacity)
+    if (filters.status !== 'all') {
+      switch (filters.status) {
+        case 'alert':
+          filtered = filtered.filter((item) =>
+            item.hasConflict || (item.capacity && item.participantCount && item.participantCount > item.capacity)
+          )
+          break
+        case 'confirmed':
+          filtered = filtered.filter((item) =>
+            !item.hasConflict && item.participantCount && item.participantCount > 0
+          )
+          break
+        case 'pending':
+          filtered = filtered.filter((item) =>
+            !item.hasConflict && (!item.participantCount || item.participantCount === 0)
+          )
+          break
+      }
+    }
+
+    // Filter conflicts only
+    if (filters.showConflictsOnly) {
+      filtered = filtered.filter((item) =>
+        item.hasConflict || (item.capacity && item.participantCount && item.participantCount > item.capacity)
+      )
+    }
+
+    return filtered
+  }
+
   // Group items by start hour
   const groupByHour = (items: TimelineItem[]) => {
     const grouped: Record<string, TimelineItem[]> = {}
@@ -214,7 +284,8 @@ export default function TimelinePage() {
     return grouped
   }
 
-  const itemsByHour = groupByHour(currentDayItems)
+  const filteredDayItems = applyFilters(currentDayItems)
+  const itemsByHour = groupByHour(filteredDayItems)
   const sortedHours = Object.keys(itemsByHour).sort()
 
   // Calculate accommodation summary for the current day
@@ -486,6 +557,150 @@ export default function TimelinePage() {
         })()
       )}
 
+      {/* Filter Panel */}
+      <Card>
+        <CardContent className="pt-6">
+          <div className="flex items-center justify-between">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowFilters(!showFilters)}
+              className="gap-2"
+            >
+              <Filter className="h-4 w-4" />
+              Filtres
+              {(filters.type !== 'all' || filters.status !== 'all' || filters.showConflictsOnly) && (
+                <Badge variant="secondary" className="ml-2">
+                  {[
+                    filters.type !== 'all' ? 1 : 0,
+                    filters.status !== 'all' ? 1 : 0,
+                    filters.showConflictsOnly ? 1 : 0,
+                  ].reduce((a, b) => a + b, 0)}
+                </Badge>
+              )}
+            </Button>
+
+            {(filters.type !== 'all' || filters.status !== 'all' || filters.showConflictsOnly) && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setFilters({ type: 'all', status: 'all', showConflictsOnly: false })}
+              >
+                Réinitialiser
+              </Button>
+            )}
+          </div>
+
+          {showFilters && (
+            <div className="mt-4 space-y-4 pt-4 border-t">
+              {/* Type Filters */}
+              <div>
+                <label className="text-sm font-medium mb-2 block">Type d&apos;élément</label>
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    variant={filters.type === 'all' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setFilters({ ...filters, type: 'all' })}
+                  >
+                    Tout
+                  </Button>
+                  <Button
+                    variant={filters.type === 'sessions' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setFilters({ ...filters, type: 'sessions' })}
+                    className="gap-2"
+                  >
+                    <Calendar className="h-4 w-4" />
+                    Sessions
+                  </Button>
+                  <Button
+                    variant={filters.type === 'transport' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setFilters({ ...filters, type: 'transport' })}
+                    className="gap-2"
+                  >
+                    <Plane className="h-4 w-4" />
+                    Transport
+                  </Button>
+                  <Button
+                    variant={filters.type === 'accommodation' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setFilters({ ...filters, type: 'accommodation' })}
+                    className="gap-2"
+                  >
+                    <Hotel className="h-4 w-4" />
+                    Hébergement
+                  </Button>
+                  <Button
+                    variant={filters.type === 'communications' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setFilters({ ...filters, type: 'communications' })}
+                    className="gap-2"
+                  >
+                    <Mail className="h-4 w-4" />
+                    Communications
+                  </Button>
+                </div>
+              </div>
+
+              {/* Status Filters */}
+              <div>
+                <label className="text-sm font-medium mb-2 block">Statut</label>
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    variant={filters.status === 'all' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setFilters({ ...filters, status: 'all' })}
+                  >
+                    Tout
+                  </Button>
+                  <Button
+                    variant={filters.status === 'confirmed' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setFilters({ ...filters, status: 'confirmed' })}
+                    className="gap-2"
+                  >
+                    <UserCheck className="h-4 w-4" />
+                    Confirmé
+                  </Button>
+                  <Button
+                    variant={filters.status === 'pending' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setFilters({ ...filters, status: 'pending' })}
+                    className="gap-2"
+                  >
+                    <Clock className="h-4 w-4" />
+                    En attente
+                  </Button>
+                  <Button
+                    variant={filters.status === 'alert' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setFilters({ ...filters, status: 'alert' })}
+                    className="gap-2"
+                  >
+                    <AlertCircle className="h-4 w-4" />
+                    Alerte
+                  </Button>
+                </div>
+              </div>
+
+              {/* Show Conflicts Only */}
+              <div className="flex items-center gap-2">
+                <Button
+                  variant={filters.showConflictsOnly ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setFilters({ ...filters, showConflictsOnly: !filters.showConflictsOnly })}
+                  className="gap-2"
+                >
+                  <AlertTriangle className="h-4 w-4" />
+                  Afficher uniquement les conflits
+                </Button>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       {/* Timeline Table View */}
       {sortedHours.length === 0 ? (
         <Card>
@@ -529,8 +744,32 @@ export default function TimelinePage() {
                   items
                 )
 
+                // Detect conflicts in this time slot
+                const hasConflict = items.some(
+                  (item) =>
+                    item.hasConflict ||
+                    (item.capacity && item.participantCount && item.participantCount > item.capacity)
+                )
+                const hasWarning = items.some(
+                  (item) =>
+                    !item.hasConflict &&
+                    item.capacity &&
+                    item.participantCount &&
+                    item.participantCount >= item.capacity * 0.9
+                )
+
                 return (
-                  <div key={hour} className="grid grid-cols-12 hover:bg-muted/20 transition-colors">
+                  <div
+                    key={hour}
+                    className={cn(
+                      'grid grid-cols-12 hover:bg-muted/20 transition-colors border-l-4',
+                      hasConflict
+                        ? 'border-l-red-500 bg-red-50/30'
+                        : hasWarning
+                          ? 'border-l-orange-400 bg-orange-50/20'
+                          : 'border-l-transparent'
+                    )}
+                  >
                     {/* Time Column */}
                     <div className="col-span-1 p-4 border-r font-semibold text-lg">
                       {hour}
@@ -569,25 +808,69 @@ export default function TimelinePage() {
 
                     {/* Groups Column */}
                     <div className="col-span-4 p-4 border-r space-y-2">
-                      {sessions.map((session) => (
-                        <div key={session.id} className="space-y-1">
-                          <div className="flex items-center gap-2">
-                            <Users className="h-4 w-4 text-indigo-600" />
-                            <span className="font-medium">
-                              {session.participantCount === session.capacity
-                                ? 'Tous'
-                                : `Groupe ${session.id.slice(-1)}`}{' '}
-                              ({session.participantCount || 0}
-                              {session.capacity && ` / ${session.capacity}`})
-                            </span>
-                          </div>
-                          {session.location && (
-                            <div className="text-sm text-muted-foreground ml-6">
-                              📍 {session.location}
+                      {sessions.map((session) => {
+                        const isOverCapacity =
+                          session.capacity &&
+                          session.participantCount &&
+                          session.participantCount > session.capacity
+
+                        return (
+                          <div key={session.id} className="space-y-1">
+                            <div className="flex items-center justify-between gap-2 group">
+                              <div className="flex items-center gap-2 flex-1">
+                                <Users className="h-4 w-4 text-indigo-600" />
+                                <span className={cn(
+                                  'font-medium',
+                                  isOverCapacity && 'text-red-600'
+                                )}>
+                                  {session.participantCount === session.capacity
+                                    ? 'Tous'
+                                    : `Groupe ${session.id.slice(-1)}`}{' '}
+                                  ({session.participantCount || 0}
+                                  {session.capacity && ` / ${session.capacity}`})
+                                </span>
+                                {isOverCapacity && (
+                                  <Badge variant="destructive" className="text-xs">
+                                    Surcharge
+                                  </Badge>
+                                )}
+                              </div>
+                              {/* Quick Actions */}
+                              <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-7 w-7 p-0"
+                                  title="Voir les participants"
+                                >
+                                  <Eye className="h-3.5 w-3.5" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-7 w-7 p-0"
+                                  title="Réassigner"
+                                >
+                                  <Edit2 className="h-3.5 w-3.5" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-7 w-7 p-0"
+                                  title="Ajouter participants"
+                                >
+                                  <UserPlus className="h-3.5 w-3.5" />
+                                </Button>
+                              </div>
                             </div>
-                          )}
-                        </div>
-                      ))}
+                            {session.location && (
+                              <div className="text-sm text-muted-foreground ml-6">
+                                📍 {session.location}
+                              </div>
+                            )}
+                          </div>
+                        )
+                      })}
                       {sessions.length === 0 && (
                         <div className="text-sm text-muted-foreground italic">-</div>
                       )}
@@ -596,17 +879,33 @@ export default function TimelinePage() {
                     {/* Logistics & Communications Column */}
                     <div className="col-span-3 p-4 space-y-2">
                       {arrivals.length > 0 && (
-                        <div className="flex items-center gap-2 text-sm">
+                        <div className="flex items-center justify-between gap-2 text-sm group">
                           <Badge variant="secondary" className="bg-teal-100 text-teal-700">
                             ✈️ {arrivals.length} arrivée{arrivals.length > 1 ? 's' : ''}
                           </Badge>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                            title="Voir détails"
+                          >
+                            <Eye className="h-3 w-3" />
+                          </Button>
                         </div>
                       )}
                       {departures.length > 0 && (
-                        <div className="flex items-center gap-2 text-sm">
+                        <div className="flex items-center justify-between gap-2 text-sm group">
                           <Badge variant="secondary" className="bg-red-100 text-red-700">
                             ✈️ {departures.length} départ{departures.length > 1 ? 's' : ''}
                           </Badge>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                            title="Voir détails"
+                          >
+                            <Eye className="h-3 w-3" />
+                          </Button>
                         </div>
                       )}
                       {emails.length > 0 && (
