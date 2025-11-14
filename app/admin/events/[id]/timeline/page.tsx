@@ -5,9 +5,6 @@ import { useParams } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Checkbox } from '@/components/ui/checkbox'
 import {
   Calendar,
   Clock,
@@ -17,13 +14,16 @@ import {
   Filter,
   Download,
   Hotel,
-  X,
-  Search,
-  ChevronDown,
   FileSpreadsheet,
+  ChevronLeft,
+  ChevronRight,
+  Coffee,
+  Utensils,
+  Presentation,
 } from 'lucide-react'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
+import { cn } from '@/lib/utils'
 
 interface TimelineItem {
   id: string
@@ -47,64 +47,45 @@ interface TimelineItem {
     lastName: string
     email: string
   }
+  roomType?: string
+  roomNumber?: string
   isParticipating?: boolean
 }
 
-interface Guest {
-  id: string
-  firstName: string
-  lastName: string
-  email: string
-}
-
-const getIconForType = (type: string) => {
-  switch (type) {
-    case 'SESSION':
+const getSessionIcon = (sessionType?: string) => {
+  switch (sessionType) {
+    case 'CONFERENCE':
+    case 'KEYNOTE':
+      return Presentation
     case 'MEAL':
+    case 'BREAKFAST':
+    case 'LUNCH':
+    case 'DINNER':
+      return Utensils
     case 'BREAK':
-      return Calendar
-    case 'TRANSPORT_ARRIVAL':
-    case 'TRANSPORT_DEPARTURE':
-      return Plane
-    case 'HOTEL_CHECKIN':
-    case 'HOTEL_CHECKOUT':
-      return Hotel
+    case 'COFFEE_BREAK':
+      return Coffee
     default:
-      return Clock
+      return Calendar
   }
 }
 
-const getColorForType = (type: string) => {
-  switch (type) {
-    case 'SESSION':
+const getSessionColor = (sessionType?: string) => {
+  switch (sessionType) {
+    case 'CONFERENCE':
+    case 'KEYNOTE':
       return 'bg-blue-500'
     case 'MEAL':
+    case 'BREAKFAST':
+    case 'LUNCH':
+    case 'DINNER':
       return 'bg-orange-500'
     case 'BREAK':
+    case 'COFFEE_BREAK':
       return 'bg-yellow-500'
-    case 'TRANSPORT_ARRIVAL':
-      return 'bg-teal-500'
-    case 'TRANSPORT_DEPARTURE':
-      return 'bg-red-500'
-    case 'HOTEL_CHECKIN':
-    case 'HOTEL_CHECKOUT':
-      return 'bg-purple-500'
     default:
-      return 'bg-gray-500'
+      return 'bg-indigo-500'
   }
-}
-
-const getTypeLabel = (type: string) => {
-  const labels: Record<string, string> = {
-    SESSION: 'Session',
-    MEAL: 'Repas',
-    BREAK: 'Pause',
-    TRANSPORT_ARRIVAL: 'Arrivée',
-    TRANSPORT_DEPARTURE: 'Départ',
-    HOTEL_CHECKIN: 'Check-in hôtel',
-    HOTEL_CHECKOUT: 'Check-out hôtel',
-  }
-  return labels[type] || type
 }
 
 export default function TimelinePage() {
@@ -118,74 +99,26 @@ export default function TimelinePage() {
     totalEvents: 0,
     sessions: 0,
     transports: 0,
+    accommodations: 0,
     totalParticipants: 0,
   })
-
-  // Filter states
-  const [showFilters, setShowFilters] = useState(false)
-  const [selectedGuest, setSelectedGuest] = useState<string | null>(null)
-  const [selectedTypes, setSelectedTypes] = useState<Set<string>>(new Set())
-  const [startDate, setStartDate] = useState('')
-  const [endDate, setEndDate] = useState('')
-  const [guests, setGuests] = useState<Guest[]>([])
-  const [guestSearch, setGuestSearch] = useState('')
-
-  useEffect(() => {
-    fetchGuests()
-  }, [eventId])
+  const [currentDateIndex, setCurrentDateIndex] = useState(0)
 
   useEffect(() => {
     fetchTimeline()
-  }, [eventId, selectedGuest, selectedTypes, startDate, endDate])
-
-  const fetchGuests = async () => {
-    try {
-      const response = await fetch(`/api/admin/events/${eventId}/guests`)
-      if (response.ok) {
-        const data = await response.json()
-        setGuests(data.guests || [])
-      }
-    } catch (error) {
-      console.error('Error fetching guests:', error)
-    }
-  }
+  }, [eventId])
 
   const fetchTimeline = async () => {
     try {
       setLoading(true)
 
-      // Build query params
-      const params = new URLSearchParams()
-      if (selectedGuest) params.append('guestId', selectedGuest)
-      if (startDate) params.append('startDate', startDate)
-      if (endDate) params.append('endDate', endDate)
-
-      const url = `/api/admin/events/${eventId}/timeline?${params.toString()}`
+      const url = `/api/admin/events/${eventId}/timeline`
       const response = await fetch(url)
 
       if (response.ok) {
         const data = await response.json()
-        let filteredTimeline = data.timeline || []
-
-        // Client-side type filtering
-        if (selectedTypes.size > 0) {
-          filteredTimeline = filteredTimeline.filter((item: TimelineItem) =>
-            selectedTypes.has(item.type)
-          )
-        }
-
-        // Re-group by date after filtering
-        const groupedByDate: Record<string, TimelineItem[]> = {}
-        for (const item of filteredTimeline) {
-          const date = new Date(item.startTime).toISOString().split('T')[0]
-          if (!groupedByDate[date]) {
-            groupedByDate[date] = []
-          }
-          groupedByDate[date].push(item)
-        }
-
-        setTimeline(filteredTimeline)
-        setTimelineByDate(groupedByDate)
+        setTimeline(data.timeline || [])
+        setTimelineByDate(data.timelineByDate || {})
         setStats(data.stats || {})
       }
     } catch (error) {
@@ -193,24 +126,6 @@ export default function TimelinePage() {
     } finally {
       setLoading(false)
     }
-  }
-
-  const toggleType = (type: string) => {
-    const newTypes = new Set(selectedTypes)
-    if (newTypes.has(type)) {
-      newTypes.delete(type)
-    } else {
-      newTypes.add(type)
-    }
-    setSelectedTypes(newTypes)
-  }
-
-  const clearFilters = () => {
-    setSelectedGuest(null)
-    setSelectedTypes(new Set())
-    setStartDate('')
-    setEndDate('')
-    setGuestSearch('')
   }
 
   const handleExportTimelinePDF = () => {
@@ -221,31 +136,50 @@ export default function TimelinePage() {
     window.open(`/api/admin/events/${eventId}/export/manifeste`, '_blank')
   }
 
-  const hasActiveFilters = selectedGuest || selectedTypes.size > 0 || startDate || endDate
+  // Get sorted dates
+  const sortedDates = Object.keys(timelineByDate).sort()
 
-  // Filter guests based on search
-  const filteredGuests = guests.filter((guest) => {
-    const searchLower = guestSearch.toLowerCase()
-    return (
-      guest.firstName.toLowerCase().includes(searchLower) ||
-      guest.lastName.toLowerCase().includes(searchLower) ||
-      guest.email.toLowerCase().includes(searchLower)
-    )
-  })
+  // Group items by hour for current selected date
+  const currentDate = sortedDates[currentDateIndex]
+  const currentDayItems = currentDate ? timelineByDate[currentDate] : []
 
-  const selectedGuestInfo = selectedGuest
-    ? guests.find((g) => g.id === selectedGuest)
-    : null
+  // Group items by start hour
+  const groupByHour = (items: TimelineItem[]) => {
+    const grouped: Record<string, TimelineItem[]> = {}
+    for (const item of items) {
+      const hour = format(new Date(item.startTime), 'HH:mm')
+      if (!grouped[hour]) {
+        grouped[hour] = []
+      }
+      grouped[hour].push(item)
+    }
+    return grouped
+  }
 
-  const typeOptions = [
-    { value: 'SESSION', label: 'Sessions', color: 'bg-blue-500' },
-    { value: 'TRANSPORT_ARRIVAL', label: 'Arrivées', color: 'bg-teal-500' },
-    { value: 'TRANSPORT_DEPARTURE', label: 'Départs', color: 'bg-red-500' },
-    { value: 'MEAL', label: 'Repas', color: 'bg-orange-500' },
-    { value: 'BREAK', label: 'Pauses', color: 'bg-yellow-500' },
-    { value: 'HOTEL_CHECKIN', label: 'Check-in', color: 'bg-purple-500' },
-    { value: 'HOTEL_CHECKOUT', label: 'Check-out', color: 'bg-purple-500' },
-  ]
+  const itemsByHour = groupByHour(currentDayItems)
+  const sortedHours = Object.keys(itemsByHour).sort()
+
+  // Calculate accommodation summary for the current day
+  const accommodationSummary = () => {
+    const checkIns = currentDayItems.filter((item) => item.type === 'HOTEL_CHECKIN')
+    const checkOuts = currentDayItems.filter((item) => item.type === 'HOTEL_CHECKOUT')
+    const roomTypes: Record<string, number> = {}
+
+    ;[...checkIns, ...checkOuts].forEach((item) => {
+      if (item.roomType) {
+        roomTypes[item.roomType] = (roomTypes[item.roomType] || 0) + 1
+      }
+    })
+
+    return { checkIns, checkOuts, roomTypes }
+  }
+
+  // Calculate transport summary for a specific hour
+  const getTransportSummary = (hour: string, items: TimelineItem[]) => {
+    const arrivals = items.filter((item) => item.type === 'TRANSPORT_ARRIVAL')
+    const departures = items.filter((item) => item.type === 'TRANSPORT_DEPARTURE')
+    return { arrivals, departures }
+  }
 
   if (loading) {
     return (
@@ -263,24 +197,12 @@ export default function TimelinePage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Timeline Globale</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Timeline - Hub Central</h1>
           <p className="text-muted-foreground">
-            Vue chronologique complète de l&apos;événement
+            Vue d&apos;ensemble complète de tous les modules
           </p>
         </div>
         <div className="flex gap-2">
-          <Button
-            variant={showFilters ? 'default' : 'outline'}
-            onClick={() => setShowFilters(!showFilters)}
-          >
-            <Filter className="h-4 w-4 mr-2" />
-            Filtres
-            {hasActiveFilters && (
-              <Badge variant="secondary" className="ml-2">
-                {(selectedGuest ? 1 : 0) + selectedTypes.size + (startDate ? 1 : 0)}
-              </Badge>
-            )}
-          </Button>
           <Button variant="outline" onClick={handleExportTimelinePDF}>
             <Download className="h-4 w-4 mr-2" />
             Timeline PDF
@@ -292,170 +214,41 @@ export default function TimelinePage() {
         </div>
       </div>
 
-      {/* Filters Panel */}
-      {showFilters && (
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-lg">Filtres de Timeline</CardTitle>
-              {hasActiveFilters && (
-                <Button variant="ghost" size="sm" onClick={clearFilters}>
-                  <X className="h-4 w-4 mr-1" />
-                  Effacer tout
-                </Button>
-              )}
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="grid md:grid-cols-3 gap-6">
-              {/* Participant Filter */}
-              <div className="space-y-2">
-                <Label>Participant</Label>
-                <div className="relative">
-                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Rechercher un participant..."
-                    value={guestSearch}
-                    onChange={(e) => setGuestSearch(e.target.value)}
-                    className="pl-8"
-                  />
-                </div>
-                {selectedGuestInfo && (
-                  <div className="flex items-center gap-2 p-2 bg-primary/10 rounded-md">
-                    <Users className="h-4 w-4" />
-                    <span className="text-sm font-medium">
-                      {selectedGuestInfo.firstName} {selectedGuestInfo.lastName}
-                    </span>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="ml-auto h-6 w-6 p-0"
-                      onClick={() => setSelectedGuest(null)}
-                    >
-                      <X className="h-3 w-3" />
-                    </Button>
-                  </div>
-                )}
-                {guestSearch && !selectedGuestInfo && (
-                  <div className="mt-2 max-h-48 overflow-y-auto border rounded-md">
-                    {filteredGuests.length === 0 ? (
-                      <div className="p-4 text-sm text-center text-muted-foreground">
-                        Aucun participant trouvé
-                      </div>
-                    ) : (
-                      <div className="divide-y">
-                        {filteredGuests.slice(0, 10).map((guest) => (
-                          <button
-                            key={guest.id}
-                            className="w-full p-3 text-left hover:bg-accent transition-colors"
-                            onClick={() => {
-                              setSelectedGuest(guest.id)
-                              setGuestSearch('')
-                            }}
-                          >
-                            <div className="font-medium text-sm">
-                              {guest.firstName} {guest.lastName}
-                            </div>
-                            <div className="text-xs text-muted-foreground">
-                              {guest.email}
-                            </div>
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              {/* Type Filter */}
-              <div className="space-y-2">
-                <Label>Types d&apos;événements</Label>
-                <div className="space-y-2">
-                  {typeOptions.map((option) => (
-                    <div key={option.value} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`type-${option.value}`}
-                        checked={selectedTypes.has(option.value)}
-                        onCheckedChange={() => toggleType(option.value)}
-                      />
-                      <label
-                        htmlFor={`type-${option.value}`}
-                        className="flex items-center gap-2 text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
-                      >
-                        <div className={`w-3 h-3 rounded-full ${option.color}`} />
-                        {option.label}
-                      </label>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Date Filter */}
-              <div className="space-y-2">
-                <Label>Période</Label>
-                <div className="space-y-2">
-                  <div>
-                    <Label htmlFor="start-date" className="text-xs text-muted-foreground">
-                      Date de début
-                    </Label>
-                    <Input
-                      id="start-date"
-                      type="date"
-                      value={startDate}
-                      onChange={(e) => setStartDate(e.target.value)}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="end-date" className="text-xs text-muted-foreground">
-                      Date de fin
-                    </Label>
-                    <Input
-                      id="end-date"
-                      type="date"
-                      value={endDate}
-                      onChange={(e) => setEndDate(e.target.value)}
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
       {/* Stats Cards */}
-      <div className="grid md:grid-cols-4 gap-4">
+      <div className="grid md:grid-cols-5 gap-4">
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Total événements
+              Sessions
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{timeline.length}</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              {stats.sessions} sessions, {stats.transports} transports
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Sessions</CardTitle>
-          </CardHeader>
-          <CardContent>
             <div className="text-3xl font-bold">{stats.sessions}</div>
-            <p className="text-xs text-muted-foreground mt-1">Activités programmées</p>
+            <p className="text-xs text-muted-foreground mt-1">Programmées</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Transports</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Transports
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold">{stats.transports}</div>
             <p className="text-xs text-muted-foreground mt-1">Réservations</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Hébergement
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold">{stats.accommodations}</div>
+            <p className="text-xs text-muted-foreground mt-1">Chambres</p>
           </CardContent>
         </Card>
 
@@ -470,149 +263,237 @@ export default function TimelinePage() {
             <p className="text-xs text-muted-foreground mt-1">Total invités</p>
           </CardContent>
         </Card>
+
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Total
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold">{stats.totalEvents}</div>
+            <p className="text-xs text-muted-foreground mt-1">Événements</p>
+          </CardContent>
+        </Card>
       </div>
 
-      {/* Active Filters Summary */}
-      {hasActiveFilters && (
-        <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-sm text-muted-foreground">Filtres actifs:</span>
-          {selectedGuestInfo && (
-            <Badge variant="secondary" className="gap-1">
-              <Users className="h-3 w-3" />
-              {selectedGuestInfo.firstName} {selectedGuestInfo.lastName}
-              <button onClick={() => setSelectedGuest(null)} className="ml-1">
-                <X className="h-3 w-3" />
-              </button>
-            </Badge>
-          )}
-          {Array.from(selectedTypes).map((type) => {
-            const option = typeOptions.find((o) => o.value === type)
-            return (
-              <Badge key={type} variant="secondary" className="gap-1">
-                <div className={`w-2 h-2 rounded-full ${option?.color}`} />
-                {option?.label}
-                <button onClick={() => toggleType(type)} className="ml-1">
-                  <X className="h-3 w-3" />
-                </button>
-              </Badge>
-            )
-          })}
-          {startDate && (
-            <Badge variant="secondary" className="gap-1">
-              Du {format(new Date(startDate), 'd MMM', { locale: fr })}
-            </Badge>
-          )}
-          {endDate && (
-            <Badge variant="secondary" className="gap-1">
-              Au {format(new Date(endDate), 'd MMM', { locale: fr })}
-            </Badge>
-          )}
-        </div>
+      {/* Date Navigator */}
+      {sortedDates.length > 0 && (
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentDateIndex(Math.max(0, currentDateIndex - 1))}
+                disabled={currentDateIndex === 0}
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+
+              <div className="text-center">
+                <h2 className="text-2xl font-bold">
+                  {format(new Date(currentDate), 'EEEE d MMMM yyyy', { locale: fr })}
+                </h2>
+                <p className="text-sm text-muted-foreground">
+                  Jour {currentDateIndex + 1} / {sortedDates.length}
+                </p>
+              </div>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() =>
+                  setCurrentDateIndex(Math.min(sortedDates.length - 1, currentDateIndex + 1))
+                }
+                disabled={currentDateIndex === sortedDates.length - 1}
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       )}
 
-      {/* Timeline */}
-      {Object.keys(timelineByDate).length === 0 ? (
+      {/* Accommodation Summary for the Day */}
+      {currentDayItems.length > 0 && (
+        (() => {
+          const { checkIns, checkOuts, roomTypes } = accommodationSummary()
+          if (checkIns.length === 0 && checkOuts.length === 0) return null
+
+          return (
+            <Card className="bg-purple-50 border-purple-200">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium flex items-center gap-2">
+                  <Hotel className="h-4 w-4 text-purple-600" />
+                  Résumé Hébergement du jour
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex gap-6 flex-wrap">
+                  {checkIns.length > 0 && (
+                    <div>
+                      <div className="text-2xl font-bold text-purple-600">
+                        {checkIns.length}
+                      </div>
+                      <p className="text-xs text-muted-foreground">Check-ins</p>
+                    </div>
+                  )}
+                  {checkOuts.length > 0 && (
+                    <div>
+                      <div className="text-2xl font-bold text-purple-600">
+                        {checkOuts.length}
+                      </div>
+                      <p className="text-xs text-muted-foreground">Check-outs</p>
+                    </div>
+                  )}
+                  {Object.keys(roomTypes).length > 0 && (
+                    <div className="flex gap-3 items-center">
+                      <span className="text-sm text-muted-foreground">Types:</span>
+                      {Object.entries(roomTypes).map(([type, count]) => (
+                        <Badge key={type} variant="secondary">
+                          {count} {type}
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          )
+        })()
+      )}
+
+      {/* Timeline Table View */}
+      {sortedHours.length === 0 ? (
         <Card>
           <CardContent className="pt-6">
             <div className="text-center py-12">
               <Calendar className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
-              <p className="text-muted-foreground">
-                {hasActiveFilters
-                  ? 'Aucun événement ne correspond aux filtres'
-                  : 'Aucun événement programmé'}
-              </p>
+              <p className="text-muted-foreground">Aucun événement ce jour</p>
             </div>
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-8">
-          {Object.entries(timelineByDate).map(([date, items]) => (
-            <div key={date}>
-              <h2 className="text-xl font-semibold mb-4 sticky top-0 bg-background z-10 py-2">
-                {format(new Date(date), 'EEEE d MMMM yyyy', { locale: fr })}
-              </h2>
-
-              <div className="relative pl-8">
-                {/* Vertical line */}
-                <div className="absolute left-6 top-0 bottom-0 w-0.5 bg-border" />
-
-                <div className="space-y-4">
-                  {items.map((item) => {
-                    const Icon = getIconForType(item.type)
-                    const colorClass = getColorForType(item.type)
-
-                    return (
-                      <div key={item.id} className="relative">
-                        {/* Timeline dot */}
-                        <div
-                          className={`absolute -left-[26px] w-5 h-5 rounded-full ${colorClass} border-4 border-background z-10`}
-                        />
-
-                        <Card className="hover:shadow-md transition-shadow">
-                          <CardContent className="p-4">
-                            <div className="flex items-start justify-between gap-4">
-                              <div className="flex-1">
-                                <div className="flex items-center gap-2 mb-2">
-                                  <Badge variant="outline" className={`${colorClass} text-white`}>
-                                    {getTypeLabel(item.type)}
-                                  </Badge>
-                                  <span className="text-sm font-medium text-muted-foreground">
-                                    {format(new Date(item.startTime), 'HH:mm', { locale: fr })}
-                                    {item.endTime &&
-                                      ` - ${format(new Date(item.endTime), 'HH:mm', { locale: fr })}`}
-                                  </span>
-                                  {item.isParticipating !== undefined && (
-                                    <Badge
-                                      variant={item.isParticipating ? 'default' : 'secondary'}
-                                      className="text-xs"
-                                    >
-                                      {item.isParticipating ? 'Inscrit' : 'Non inscrit'}
-                                    </Badge>
-                                  )}
-                                </div>
-
-                                <h3 className="font-semibold mb-1">{item.title}</h3>
-                                {item.description && (
-                                  <p className="text-sm text-muted-foreground mb-2">
-                                    {item.description}
-                                  </p>
-                                )}
-
-                                <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
-                                  {item.location && (
-                                    <div className="flex items-center gap-1">
-                                      <MapPin className="h-4 w-4" />
-                                      {item.location}
-                                    </div>
-                                  )}
-                                  {item.participantCount !== undefined && (
-                                    <div className="flex items-center gap-1">
-                                      <Users className="h-4 w-4" />
-                                      {item.participantCount}
-                                      {item.capacity && ` / ${item.capacity}`}
-                                    </div>
-                                  )}
-                                  {item.guest && (
-                                    <div className="flex items-center gap-1">
-                                      <Users className="h-4 w-4" />
-                                      {item.guest.firstName} {item.guest.lastName}
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-
-                              <Icon className={`h-8 w-8 text-white p-1.5 rounded-md ${colorClass}`} />
-                            </div>
-                          </CardContent>
-                        </Card>
-                      </div>
-                    )
-                  })}
-                </div>
+        <Card>
+          <CardContent className="p-0">
+            {/* Table Header */}
+            <div className="grid grid-cols-12 border-b bg-muted/50 font-semibold text-sm">
+              <div className="col-span-1 p-4 border-r">
+                <Clock className="h-4 w-4 inline mr-2" />
+                Horaire
+              </div>
+              <div className="col-span-4 p-4 border-r">
+                <Calendar className="h-4 w-4 inline mr-2" />
+                Programme
+              </div>
+              <div className="col-span-4 p-4 border-r">
+                <Users className="h-4 w-4 inline mr-2" />
+                Groupes & Participants
+              </div>
+              <div className="col-span-3 p-4">
+                <Plane className="h-4 w-4 inline mr-2" />
+                Logistique
               </div>
             </div>
-          ))}
-        </div>
+
+            {/* Table Rows */}
+            <div className="divide-y">
+              {sortedHours.map((hour) => {
+                const items = itemsByHour[hour]
+                const sessions = items.filter((item) => item.type === 'SESSION')
+                const { arrivals, departures } = getTransportSummary(hour, items)
+
+                return (
+                  <div key={hour} className="grid grid-cols-12 hover:bg-muted/20 transition-colors">
+                    {/* Time Column */}
+                    <div className="col-span-1 p-4 border-r font-semibold text-lg">
+                      {hour}
+                    </div>
+
+                    {/* Program Column */}
+                    <div className="col-span-4 p-4 border-r space-y-2">
+                      {sessions.map((session) => {
+                        const Icon = getSessionIcon(session.sessionType)
+                        const colorClass = getSessionColor(session.sessionType)
+
+                        return (
+                          <div key={session.id} className="space-y-1">
+                            <div className="flex items-center gap-2">
+                              <Icon className={cn('h-4 w-4 text-white p-0.5 rounded', colorClass)} />
+                              <span className="font-medium">{session.title}</span>
+                            </div>
+                            {session.location && (
+                              <div className="text-sm text-muted-foreground flex items-center gap-1 ml-6">
+                                <MapPin className="h-3 w-3" />
+                                {session.location}
+                              </div>
+                            )}
+                            {session.endTime && (
+                              <div className="text-xs text-muted-foreground ml-6">
+                                Jusqu&apos;à {format(new Date(session.endTime), 'HH:mm')}
+                              </div>
+                            )}
+                          </div>
+                        )
+                      })}
+                      {sessions.length === 0 && (
+                        <div className="text-sm text-muted-foreground italic">-</div>
+                      )}
+                    </div>
+
+                    {/* Groups Column */}
+                    <div className="col-span-4 p-4 border-r space-y-2">
+                      {sessions.map((session) => (
+                        <div key={session.id} className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <Users className="h-4 w-4 text-indigo-600" />
+                            <span className="font-medium">
+                              {session.participantCount === session.capacity
+                                ? 'Tous'
+                                : `Groupe ${session.id.slice(-1)}`}{' '}
+                              ({session.participantCount || 0}
+                              {session.capacity && ` / ${session.capacity}`})
+                            </span>
+                          </div>
+                          {session.location && (
+                            <div className="text-sm text-muted-foreground ml-6">
+                              📍 {session.location}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                      {sessions.length === 0 && (
+                        <div className="text-sm text-muted-foreground italic">-</div>
+                      )}
+                    </div>
+
+                    {/* Logistics Column */}
+                    <div className="col-span-3 p-4 space-y-2">
+                      {arrivals.length > 0 && (
+                        <div className="flex items-center gap-2 text-sm">
+                          <Badge variant="secondary" className="bg-teal-100 text-teal-700">
+                            ✈️ {arrivals.length} arrivée{arrivals.length > 1 ? 's' : ''}
+                          </Badge>
+                        </div>
+                      )}
+                      {departures.length > 0 && (
+                        <div className="flex items-center gap-2 text-sm">
+                          <Badge variant="secondary" className="bg-red-100 text-red-700">
+                            ✈️ {departures.length} départ{departures.length > 1 ? 's' : ''}
+                          </Badge>
+                        </div>
+                      )}
+                      {arrivals.length === 0 && departures.length === 0 && (
+                        <div className="text-sm text-muted-foreground italic">-</div>
+                      )}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </CardContent>
+        </Card>
       )}
     </div>
   )
