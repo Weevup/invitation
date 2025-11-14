@@ -119,6 +119,13 @@ export default function EventLayout({
         href: `/admin/events/${eventId}/team-building`,
         icon: Users2,
       })
+
+      // Activités libres module
+      logistiqueModules.push({
+        label: 'Activités libres',
+        href: `/admin/events/${eventId}/activites-libres`,
+        icon: Users2,
+      })
     }
   }
 

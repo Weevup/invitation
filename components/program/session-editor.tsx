@@ -274,9 +274,21 @@ export function SessionEditor({ eventId, session, onClose, onSave }: SessionEdit
               // Determine which module to use based on session type
               const isTeamBuilding = formData.type === 'TEAMBUILDING'
               const isWorkshop = formData.type === 'WORKSHOP'
-              const moduleName = isTeamBuilding ? 'Team Building' : 'Ateliers'
-              const moduleUrl = isTeamBuilding ? 'team-building' : 'ateliers'
-              const itemName = isTeamBuilding ? 'équipes' : 'ateliers'
+              const isFreeTime = formData.type === 'FREE_TIME'
+
+              let moduleName = 'Ateliers'
+              let moduleUrl = 'ateliers'
+              let itemName = 'ateliers'
+
+              if (isTeamBuilding) {
+                moduleName = 'Team Building'
+                moduleUrl = 'team-building'
+                itemName = 'équipes'
+              } else if (isFreeTime) {
+                moduleName = 'Activités libres'
+                moduleUrl = 'activites-libres'
+                itemName = 'activités'
+              }
 
               return (
                 <>
@@ -287,7 +299,7 @@ export function SessionEditor({ eventId, session, onClose, onSave }: SessionEdit
                     <ol className="text-xs text-[#004645]/80 space-y-1 ml-4 list-decimal">
                       <li>Activez cette option et sauvegardez la session</li>
                       <li>Allez dans <strong>Logistique → {moduleName}</strong> pour créer et gérer les {itemName}</li>
-                      <li>Assignez les participants aux différent{isTeamBuilding ? 'e' : ''}s {itemName}</li>
+                      <li>{isFreeTime ? 'Les participants pourront choisir leur' : 'Assignez les participants aux différent' + (isTeamBuilding ? 'e' : '') + 's'} {itemName}</li>
                       <li>Les {itemName} apparaîtront dans le Planning Opérationnel</li>
                     </ol>
                   </div>
