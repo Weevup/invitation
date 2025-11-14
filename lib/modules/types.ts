@@ -44,6 +44,16 @@ export interface ModuleInfo {
   icon: string
   category: 'logistics' | 'program' | 'financial' | 'communication'
   comingSoon?: boolean
+  subFeatures?: SubFeature[]
+}
+
+// Sub-features for modules (like workshops within PROGRAM)
+export interface SubFeature {
+  id: string
+  name: string
+  description: string
+  icon: string
+  configKey: string // Key in module config to check if enabled
 }
 
 // All available modules
@@ -67,7 +77,30 @@ export const AVAILABLE_MODULES: ModuleInfo[] = [
     name: 'Programme & Sessions',
     description: 'Organiser workshops, sessions et activités',
     icon: '📅',
-    category: 'program'
+    category: 'program',
+    subFeatures: [
+      {
+        id: 'workshops',
+        name: 'Ateliers / Workshops',
+        description: 'Organiser des ateliers thématiques en petits groupes',
+        icon: '🎓',
+        configKey: 'enableWorkshops'
+      },
+      {
+        id: 'teambuilding',
+        name: 'Team Building',
+        description: 'Activités de cohésion d\'équipe avec répartition en groupes',
+        icon: '🏆',
+        configKey: 'enableTeamBuilding'
+      },
+      {
+        id: 'freetime',
+        name: 'Activités libres',
+        description: 'Activités optionnelles avec choix des participants',
+        icon: '🎉',
+        configKey: 'enableFreeTime'
+      }
+    ]
   },
   {
     type: 'BUDGET',
