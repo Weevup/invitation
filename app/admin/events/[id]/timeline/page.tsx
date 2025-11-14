@@ -264,7 +264,7 @@ export default function TimelinePage() {
     // Filter conflicts only
     if (filters.showConflictsOnly) {
       filtered = filtered.filter((item) =>
-        item.hasConflict || (item.capacity && item.participantCount && item.participantCount > item.capacity)
+        (item.capacity && item.participantCount && item.participantCount > item.capacity)
       )
     }
 
@@ -747,15 +747,14 @@ export default function TimelinePage() {
                 // Detect conflicts in this time slot
                 const hasConflict = items.some(
                   (item) =>
-                    item.hasConflict ||
                     (item.capacity && item.participantCount && item.participantCount > item.capacity)
                 )
                 const hasWarning = items.some(
                   (item) =>
-                    !item.hasConflict &&
                     item.capacity &&
                     item.participantCount &&
-                    item.participantCount >= item.capacity * 0.9
+                    item.participantCount >= item.capacity * 0.9 &&
+                    item.participantCount <= item.capacity
                 )
 
                 return (
