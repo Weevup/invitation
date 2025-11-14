@@ -166,7 +166,7 @@ export default function SessionGroupsDetailPage() {
     } catch (error) {
       toast({
         title: 'Erreur',
-        description: 'Impossible de créer l'équipe',
+        description: 'Impossible de créer l&apos;équipe',
         variant: 'destructive'
       })
     }
@@ -198,7 +198,7 @@ export default function SessionGroupsDetailPage() {
     } catch (error) {
       toast({
         title: 'Erreur',
-        description: 'Impossible de mettre à jour l'équipe',
+        description: 'Impossible de mettre à jour l&apos;équipe',
         variant: 'destructive'
       })
     }
@@ -224,7 +224,7 @@ export default function SessionGroupsDetailPage() {
     } catch (error) {
       toast({
         title: 'Erreur',
-        description: 'Impossible de supprimer l'équipe',
+        description: 'Impossible de supprimer l&apos;équipe',
         variant: 'destructive'
       })
     }
@@ -434,7 +434,7 @@ export default function SessionGroupsDetailPage() {
             </div>
             <Button onClick={() => setCreatingGroup(true)}>
               <Plus className="h-4 w-4 mr-2" />
-              Nouvell'équipe
+              Nouvell&apos;équipe
             </Button>
           </div>
 
@@ -442,12 +442,12 @@ export default function SessionGroupsDetailPage() {
           {(creatingGroup || editingGroup) && (
             <Card>
               <CardHeader>
-                <CardTitle>{editingGroup ? 'Modifier l'équipe' : 'Nouvell'équipe'}</CardTitle>
+                <CardTitle>{editingGroup ? 'Modifier l&apos;équipe' : 'Nouvell&apos;équipe'}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="name">Nom de l'équipe *</Label>
+                    <Label htmlFor="name">Nom de l&apos;équipe *</Label>
                     <Input
                       id="name"
                       value={formData.name}
@@ -472,7 +472,7 @@ export default function SessionGroupsDetailPage() {
                     id="description"
                     value={formData.description}
                     onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                    placeholder="Description de l'équipe"
+                    placeholder="Description de l&apos;équipe"
                   />
                 </div>
                 <div className="space-y-2">
@@ -709,7 +709,7 @@ export default function SessionGroupsDetailPage() {
                               </SelectTrigger>
                               <SelectContent>
                                 <SelectItem value="none">
-                                  {participant.groupId ? 'Retirer de l'équipe' : 'Aucune équipe'}
+                                  {participant.groupId ? 'Retirer de l&apos;équipe' : 'Aucune équipe'}
                                 </SelectItem>
                                 {groups.map((group) => {
                                   const isFull = !!(group.capacity &&
