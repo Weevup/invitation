@@ -653,6 +653,9 @@ model Session {
   registrationDeadline DateTime?
   registrationsClosed  Boolean   @default(false)
 
+  // Group management for workshops/team building
+  requiresGroups  Boolean        @default(false) // Session needs group assignment
+
   // Speakers/Facilitators
   speakers        Json?          // Array of {name, title, bio, photo, email}
 
@@ -670,6 +673,7 @@ model Session {
   // Relations
   participants    SessionParticipant[]   @relation("SessionParticipants")
   transports      TransportBooking[]     @relation("SessionTransports")
+  groups          SessionGroup[]         @relation("SessionGroups")
 
   // Timeline position
   timelineOrder   Int?           // Order in timeline
@@ -693,6 +697,10 @@ model SessionParticipant {
   guestId         String
   guest           Guest    @relation("GuestSessions", fields: [guestId], references: [id], onDelete: Cascade)
 
+  // Group assignment (for sessions requiring groups)
+  groupId         String?
+  group           SessionGroup? @relation("GroupParticipants", fields: [groupId], references: [id], onDelete: SetNull)
+
   // Registration status
   status          String   @default("registered") // registered, confirmed, waitlist, cancelled, attended
   waitlistPosition Int?
@@ -712,7 +720,32 @@ model SessionParticipant {
   @@unique([sessionId, guestId])
   @@index([sessionId])
   @@index([guestId])
+  @@index([groupId])
   @@index([status])
+}
+
+// Session Group for workshops/team building
+model SessionGroup {
+  id              String   @id @default(cuid())
+  sessionId       String
+  session         Session  @relation("SessionGroups", fields: [sessionId], references: [id], onDelete: Cascade)
+
+  // Group information
+  name            String   // "Groupe A", "Atelier Innovation", "Équipe Rouge"
+  description     String?  @db.Text
+  color           String?  // Color for display (hex code)
+  capacity        Int?     // Max participants per group
+  order           Int      @default(0) // Display order
+
+  // Relations
+  participants    SessionParticipant[] @relation("GroupParticipants")
+
+  // Metadata
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([sessionId])
+  @@index([sessionId, order])
 }
 
 model TimelineEvent {

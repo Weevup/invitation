@@ -103,9 +103,10 @@ export async function GET(
           },
         },
       },
-      orderBy: {
-        startTime: 'asc',
-      },
+      orderBy: [
+        { startTime: 'asc' },
+        { timelineOrder: 'asc' },
+      ],
     })
 
     // Calculate duration for each session
@@ -168,6 +169,18 @@ export async function POST(
         (1000 * 60)
     )
 
+    // Get the highest timelineOrder for this event to assign the new session
+    const lastSession = await prisma.session.findFirst({
+      where: { eventId },
+      orderBy: { timelineOrder: 'desc' },
+      select: { timelineOrder: true },
+    })
+
+    // Assign timelineOrder from body if provided, otherwise increment from last
+    const timelineOrder = body.timelineOrder !== undefined
+      ? body.timelineOrder
+      : (lastSession?.timelineOrder ?? -1) + 1
+
     // Create session
     const session = await prisma.session.create({
       data: {
@@ -196,6 +209,7 @@ export async function POST(
         isHighlighted: validatedData.isHighlighted,
         tags: validatedData.tags,
         notes: validatedData.notes,
+        timelineOrder,
       },
       include: {
         _count: {
