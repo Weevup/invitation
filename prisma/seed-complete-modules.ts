@@ -76,12 +76,18 @@ async function main() {
   const guests = []
   for (let i = 0; i < 80; i++) {
     const [firstName, lastName] = guestNames[i].split(' ')
+    // Generate unique token for each guest
+    const token = `token-${event.id}-${i}-${Date.now()}`
+    const tokenHash = `hash-${event.id}-${i}-${Date.now()}`
+
     const guest = await prisma.guest.create({
       data: {
         eventId: event.id,
         email: `${firstName.toLowerCase()}.${lastName.toLowerCase()}@example.com`,
         firstName,
         lastName,
+        token,
+        tokenHash,
         company: i < 40 ? 'TechCorp' : 'InnoSolutions',
         jobTitle: i % 4 === 0 ? 'Manager' : i % 4 === 1 ? 'Développeur' : i % 4 === 2 ? 'Designer' : 'Consultant',
         rsvp: {
