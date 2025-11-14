@@ -287,16 +287,21 @@ export function BlockDetailsPanel({ slot, rawData, onClose }: BlockDetailsPanelP
             </>
           )}
 
-          {/* Session-specific: Groups */}
+          {/* Session-specific: Groups with participant lists */}
           {slot.type === 'session' && slot.requiresGroups && slot.groups && slot.groups.length > 0 && (
             <>
               <Separator />
               <section>
-                <div className="flex items-center gap-2 mb-3">
-                  <Users size={16} className="text-muted-foreground" />
-                  <h4 className="font-medium text-sm">Groupes ({slot.groups.length})</h4>
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <Users size={16} className="text-muted-foreground" />
+                    <h4 className="font-medium text-sm">{getGroupLabel(slot.sessionType)} ({slot.groups.length})</h4>
+                  </div>
+                  <Badge variant="secondary" className="text-xs">
+                    {slot.groups.reduce((sum, g) => sum + (g._count?.participants || 0), 0)} participants
+                  </Badge>
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-3">
                   {slot.groups.map((group) => {
                     const participantCount = group._count?.participants || 0
                     const isOverCapacity = group.capacity && participantCount > group.capacity
@@ -305,8 +310,12 @@ export function BlockDetailsPanel({ slot, rawData, onClose }: BlockDetailsPanelP
                     return (
                       <div
                         key={group.id}
-                        className="p-3 border rounded-lg"
-                        style={{ borderLeftWidth: '4px', borderLeftColor: group.color || '#3B82F6' }}
+                        className="p-3 border-2 rounded-lg"
+                        style={{
+                          borderLeftWidth: '4px',
+                          borderLeftColor: group.color || '#3B82F6',
+                          backgroundColor: `${group.color || '#3B82F6'}05`
+                        }}
                       >
                         <div className="flex items-center justify-between mb-2">
                           <div className="flex items-center gap-2">
@@ -314,10 +323,10 @@ export function BlockDetailsPanel({ slot, rawData, onClose }: BlockDetailsPanelP
                               className="w-3 h-3 rounded-full"
                               style={{ backgroundColor: group.color || '#3B82F6' }}
                             />
-                            <span className="font-medium">{group.name}</span>
+                            <span className="font-semibold">{group.name}</span>
                           </div>
                           <span className={cn(
-                            "text-sm font-medium",
+                            "text-sm font-bold",
                             isOverCapacity ? "text-red-600" : "text-muted-foreground"
                           )}>
                             {participantCount}
@@ -326,14 +335,14 @@ export function BlockDetailsPanel({ slot, rawData, onClose }: BlockDetailsPanelP
                         </div>
 
                         {group.description && (
-                          <p className="text-xs text-muted-foreground mb-2">{group.description}</p>
+                          <p className="text-xs text-muted-foreground mb-2 italic">{group.description}</p>
                         )}
 
                         {group.capacity && (
-                          <div className="space-y-1">
+                          <div className="space-y-1 mb-3">
                             <div className="flex justify-between text-xs text-muted-foreground">
-                              <span>Taux de remplissage</span>
-                              <span>{Math.round(fillRate)}%</span>
+                              <span>Remplissage</span>
+                              <span className="font-medium">{Math.round(fillRate)}%</span>
                             </div>
                             <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
                               <div
@@ -348,8 +357,47 @@ export function BlockDetailsPanel({ slot, rawData, onClose }: BlockDetailsPanelP
                               />
                             </div>
                             {isOverCapacity && (
-                              <p className="text-xs text-red-600 mt-1">⚠️ Capacité dépassée</p>
+                              <p className="text-xs text-red-600 mt-1 font-medium">⚠️ Capacité dépassée</p>
                             )}
+                          </div>
+                        )}
+
+                        {/* Show participants in this group */}
+                        {participantCount > 0 && (
+                          <div className="mt-3 pt-3 border-t border-dashed">
+                            <div className="text-xs font-medium text-muted-foreground mb-2">
+                              Participants ({participantCount})
+                            </div>
+                            <div className="space-y-1 max-h-32 overflow-y-auto">
+                              {slot.participants
+                                .filter((p: any) => p.groupId === group.id || (p as any).group?.id === group.id)
+                                .map((participant: Guest) => {
+                                  const rsvp = rawData.rsvps.find(r => r.guestId === participant.id)
+                                  const allergyText = rsvp?.allergies?.trim()
+                                  const hasWarning = allergyText && allergyText.length > 0
+
+                                  return (
+                                    <div
+                                      key={participant.id}
+                                      className="flex items-center justify-between text-xs py-1 px-2 rounded hover:bg-white/50"
+                                    >
+                                      <span>
+                                        {participant.firstName} {participant.lastName}
+                                      </span>
+                                      {hasWarning && (
+                                        <AlertTriangle size={10} className="text-orange-500" />
+                                      )}
+                                    </div>
+                                  )
+                                })}
+                              {slot.participants.filter((p: any) =>
+                                p.groupId === group.id || (p as any).group?.id === group.id
+                              ).length === 0 && (
+                                <div className="text-xs text-muted-foreground italic">
+                                  Aucun participant assigné
+                                </div>
+                              )}
+                            </div>
                           </div>
                         )}
                       </div>
@@ -481,4 +529,17 @@ function getDuration(start: Date, end: Date): string {
   }
 
   return `${hours}h${remainingMinutes.toString().padStart(2, '0')}`
+}
+
+function getGroupLabel(sessionType?: string): string {
+  switch (sessionType) {
+    case 'WORKSHOP':
+      return '🛠️ Ateliers'
+    case 'TEAMBUILDING':
+      return '🤝 Équipes'
+    case 'FREE_TIME':
+      return '🌴 Activités'
+    default:
+      return '👥 Groupes'
+  }
 }

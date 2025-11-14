@@ -84,7 +84,23 @@ export function OperationsHeader({ event, kpis }: OperationsHeaderProps) {
               </div>
               <Calendar className="text-muted-foreground" size={20} />
             </div>
-            <p className="text-xs text-muted-foreground mt-2">Programme complet</p>
+            <div className="mt-2 flex items-center gap-1 text-xs text-muted-foreground flex-wrap">
+              {(kpis as any).totalWorkshops > 0 && (
+                <Badge variant="outline" className="text-xs">
+                  🛠️ {(kpis as any).totalWorkshops}
+                </Badge>
+              )}
+              {(kpis as any).totalTeamBuilding > 0 && (
+                <Badge variant="outline" className="text-xs">
+                  🤝 {(kpis as any).totalTeamBuilding}
+                </Badge>
+              )}
+              {(kpis as any).totalFreeTime > 0 && (
+                <Badge variant="outline" className="text-xs">
+                  🌴 {(kpis as any).totalFreeTime}
+                </Badge>
+              )}
+            </div>
           </CardContent>
         </Card>
 

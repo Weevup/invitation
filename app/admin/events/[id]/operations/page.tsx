@@ -134,6 +134,70 @@ export default function OperationsPage() {
           {/* Header with KPIs */}
           <OperationsHeader event={data.event} kpis={data.kpis} />
 
+          {/* Quick Navigation */}
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+            <a
+              href={`/admin/events/${eventId}/program`}
+              className="flex items-center gap-2 p-3 border rounded-lg hover:bg-gray-50 transition-colors text-sm"
+            >
+              <span className="text-lg">📅</span>
+              <div>
+                <div className="font-medium">Programme</div>
+                <div className="text-xs text-muted-foreground">Sessions</div>
+              </div>
+            </a>
+            <a
+              href={`/admin/events/${eventId}/ateliers`}
+              className="flex items-center gap-2 p-3 border rounded-lg hover:bg-gray-50 transition-colors text-sm"
+            >
+              <span className="text-lg">🛠️</span>
+              <div>
+                <div className="font-medium">Ateliers</div>
+                <div className="text-xs text-muted-foreground">Workshops</div>
+              </div>
+            </a>
+            <a
+              href={`/admin/events/${eventId}/team-building`}
+              className="flex items-center gap-2 p-3 border rounded-lg hover:bg-gray-50 transition-colors text-sm"
+            >
+              <span className="text-lg">🤝</span>
+              <div>
+                <div className="font-medium">Team Building</div>
+                <div className="text-xs text-muted-foreground">Équipes</div>
+              </div>
+            </a>
+            <a
+              href={`/admin/events/${eventId}/activites-libres`}
+              className="flex items-center gap-2 p-3 border rounded-lg hover:bg-gray-50 transition-colors text-sm"
+            >
+              <span className="text-lg">🌴</span>
+              <div>
+                <div className="font-medium">Activités libres</div>
+                <div className="text-xs text-muted-foreground">Choix</div>
+              </div>
+            </a>
+            <a
+              href={`/admin/events/${eventId}/transport`}
+              className="flex items-center gap-2 p-3 border rounded-lg hover:bg-gray-50 transition-colors text-sm"
+            >
+              <span className="text-lg">🚌</span>
+              <div>
+                <div className="font-medium">Transport</div>
+                <div className="text-xs text-muted-foreground">Navettes</div>
+              </div>
+            </a>
+            <a
+              href={`/admin/events/${eventId}/accommodation`}
+              className="flex items-center gap-2 p-3 border rounded-lg hover:bg-gray-50 transition-colors text-sm"
+            >
+              <span className="text-lg">🏨</span>
+              <div>
+                <div className="font-medium">Hébergement</div>
+                <div className="text-xs text-muted-foreground">Chambres</div>
+              </div>
+            </a>
+          </div>
+
           {/* Alerts Banner */}
           <AlertsBanner alerts={data.alerts} />
 
