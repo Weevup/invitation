@@ -60,7 +60,7 @@ export default function EventLayout({
   const [event, setEvent] = useState<EventData | null>(null)
 
   // Check which modules are active
-  const { hasModule, loading } = useEventModules(eventId)
+  const { hasModule, isLoading } = useEventModules(eventId)
 
   useEffect(() => {
     fetch(`/api/admin/events/${eventId}`)
@@ -74,7 +74,7 @@ export default function EventLayout({
   const logistiqueModules: NavigationItem[] = []
 
   // Only add modules if they're loaded (not during initial loading state)
-  if (!loading) {
+  if (!isLoading) {
     // PROGRAMMATION GROUP - Timeline first (global dashboard), then Program (details)
     if (hasModule('PROGRAM')) {
       programmationModules.push({
