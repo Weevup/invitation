@@ -90,6 +90,15 @@ export async function GET(
             },
           },
         },
+        groups: {
+          include: {
+            _count: {
+              select: {
+                participants: true,
+              },
+            },
+          },
+        },
         transports: {
           select: {
             id: true,

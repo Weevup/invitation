@@ -68,8 +68,13 @@ export default function AteliersPage() {
       if (!response.ok) throw new Error('Failed to fetch sessions')
 
       const data = await response.json()
-      // Filter only sessions that require groups/ateliers
-      const sessionsWithGroups = data.sessions.filter((s: Session) => s.requiresGroups)
+      // Filter only sessions that require groups/ateliers and ensure groups array exists
+      const sessionsWithGroups = data.sessions
+        .filter((s: Session) => s.requiresGroups)
+        .map((s: Session) => ({
+          ...s,
+          groups: s.groups || [], // Ensure groups is always an array
+        }))
       setSessions(sessionsWithGroups)
     } catch (error) {
       console.error('Error fetching sessions:', error)
