@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -11,7 +12,6 @@ import { Switch } from '@/components/ui/switch'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Save, Loader2, Plus, Trash2, Users2 } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
-import { SessionGroups } from './session-groups'
 
 interface SessionEditorProps {
   eventId: string
@@ -64,8 +64,8 @@ export function SessionEditor({ eventId, session, onClose, onSave }: SessionEdit
     tags: [] as string[]
   })
 
+  const router = useRouter()
   const [saving, setSaving] = useState(false)
-  const [showGroupsManager, setShowGroupsManager] = useState(false)
   const [newSpeaker, setNewSpeaker] = useState({ name: '', title: '', bio: '', email: '' })
   const [newEquipment, setNewEquipment] = useState('')
 
@@ -157,7 +157,6 @@ export function SessionEditor({ eventId, session, onClose, onSave }: SessionEdit
   }
 
   return (
-    <>
     <Dialog open={true} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
@@ -493,7 +492,7 @@ export function SessionEditor({ eventId, session, onClose, onSave }: SessionEdit
                     type="button"
                     variant="outline"
                     size="sm"
-                    onClick={() => setShowGroupsManager(true)}
+                    onClick={() => router.push(`/admin/events/${eventId}/groups/${session.id}`)}
                     className="border-[#FF4713] text-[#FF4713] hover:bg-[#FF4713]/10"
                   >
                     <Users2 className="h-4 w-4 mr-2" />
@@ -568,16 +567,5 @@ export function SessionEditor({ eventId, session, onClose, onSave }: SessionEdit
         </DialogFooter>
       </DialogContent>
     </Dialog>
-
-    {/* Session Groups Manager */}
-    {session?.id && (
-      <SessionGroups
-        sessionId={session.id}
-        eventId={eventId}
-        isOpen={showGroupsManager}
-        onClose={() => setShowGroupsManager(false)}
-      />
-    )}
-  </>
   )
 }
