@@ -134,9 +134,9 @@ async function main() {
             plusOnes: i % 7 === 0 ? 1 : 0, // Quelques invités avec +1
             mealChoice: i % 3 === 0 ? 'Végétarien' : i % 3 === 1 ? 'Sans gluten' : 'Standard',
             allergies: i % 10 === 0 ? 'Fruits à coque' : i % 10 === 1 ? 'Lactose' : null,
-            dietaryRestrictions: i % 15 === 0 ? 'Vegan' : null,
-            accessibility: i % 8 === 0 ? 'Fauteuil roulant' : null,
-            comments: i % 20 === 0 ? 'Merci pour l\'organisation !' : null,
+            accessibilityNotes: i % 8 === 0 ? 'Fauteuil roulant' : null,
+            transportNeeds: i % 12 === 0 ? 'Besoin navette depuis aéroport' : null,
+            lodgingNeeds: i % 15 === 0 ? 'Chambre accessible PMR' : null,
           },
         },
       },
