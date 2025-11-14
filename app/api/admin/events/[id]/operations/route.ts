@@ -61,14 +61,25 @@ export async function GET(
       roomAssignments,
       timelineEvents
     ] = await Promise.all([
-      // Sessions avec participants
+      // Sessions avec participants et groupes
       prisma.session.findMany({
         where: { eventId },
         include: {
           participants: {
             include: {
-              guest: true
+              guest: true,
+              group: true
             }
+          },
+          groups: {
+            include: {
+              _count: {
+                select: {
+                  participants: true
+                }
+              }
+            },
+            orderBy: { order: 'asc' }
           }
         },
         orderBy: { startTime: 'asc' }
