@@ -21,29 +21,35 @@ async function main() {
   // await prisma.guest.deleteMany()
   // await prisma.event.deleteMany()
 
-  // 1. Créer l'événement
+  // 1. Récupérer un admin existant
+  const admin = await prisma.user.findFirst({
+    where: { role: 'ADMIN' }
+  })
+
+  if (!admin) {
+    console.log('⚠️  Aucun admin trouvé. Veuillez créer un admin d\'abord.')
+    return
+  }
+
+  // 2. Créer l'événement
   const event = await prisma.event.create({
     data: {
       name: 'Séminaire Innovation 2025',
-      slug: 'seminaire-innovation-2025',
+      slug: 'seminaire-innovation-2025-seed',
       description: 'Séminaire annuel de 3 jours avec workshops, team building et activités',
       startsAt: new Date('2025-06-15T09:00:00Z'),
       endsAt: new Date('2025-06-17T18:00:00Z'),
-      timezone: 'Europe/Paris',
       venueName: 'Domaine des Collines',
-      venueAddress: '15 Route du Château',
+      address: '15 Route du Château',
       city: 'Aix-en-Provence',
       country: 'France',
-      postalCode: '13100',
-      status: 'PUBLISHED',
-      maxGuests: 80,
-      isPublic: true,
+      adminId: admin.id,
     },
   })
 
   console.log(`✓ Événement créé: ${event.name}`)
 
-  // 2. Créer les invités (80 participants)
+  // 3. Créer les invités (80 participants)
   const guestNames = [
     'Sophie Martin', 'Thomas Dubois', 'Marie Leroy', 'Pierre Bernard',
     'Julie Simon', 'Antoine Michel', 'Claire Petit', 'Nicolas Durand',
