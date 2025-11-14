@@ -38,7 +38,6 @@ async function main() {
       status: 'PUBLISHED',
       maxGuests: 80,
       isPublic: true,
-      modules: ['PROGRAM', 'TRANSPORT', 'ACCOMMODATION'],
     },
   })
 
