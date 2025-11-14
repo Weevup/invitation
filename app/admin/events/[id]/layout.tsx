@@ -23,7 +23,8 @@ import {
   Puzzle,
   Clock3,
   Plane,
-  Hotel
+  Hotel,
+  Users2
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useEventModules } from '@/lib/modules/use-event-modules'
@@ -101,6 +102,15 @@ export default function EventLayout({
         label: 'Hébergement',
         href: `/admin/events/${eventId}/accommodation`,
         icon: Hotel,
+      })
+    }
+
+    // Groups module (always show if PROGRAM module is active)
+    if (hasModule('PROGRAM')) {
+      logistiqueModules.push({
+        label: 'Groupes',
+        href: `/admin/events/${eventId}/groups`,
+        icon: Users2,
       })
     }
   }
