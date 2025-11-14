@@ -145,6 +145,63 @@ export async function GET(
       },
     })
 
+    // Get all room assignments (for accommodation timeline)
+    const roomAssignments = await prisma.roomAssignment.findMany({
+      where: {
+        room: {
+          accommodation: {
+            eventId,
+          },
+        },
+        ...(guestId ? { guestId } : {}),
+        ...(startDate && endDate
+          ? {
+              OR: [
+                {
+                  checkInDate: {
+                    gte: new Date(startDate),
+                    lte: new Date(endDate),
+                  },
+                },
+                {
+                  checkOutDate: {
+                    gte: new Date(startDate),
+                    lte: new Date(endDate),
+                  },
+                },
+              ],
+            }
+          : {}),
+      },
+      include: {
+        guest: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+          },
+        },
+        room: {
+          select: {
+            id: true,
+            roomNumber: true,
+            type: true,
+            accommodation: {
+              select: {
+                id: true,
+                name: true,
+                address: true,
+              },
+            },
+          },
+        },
+      },
+      orderBy: {
+        checkInDate: 'asc',
+      },
+    })
+
     // Build unified timeline
     const unifiedTimeline = []
 
@@ -235,6 +292,49 @@ export async function GET(
       }
     }
 
+    // Add accommodation check-ins/check-outs to timeline
+    for (const assignment of roomAssignments) {
+      // Add check-in event
+      if (assignment.checkInDate) {
+        unifiedTimeline.push({
+          id: `accommodation-checkin-${assignment.id}`,
+          type: 'HOTEL_CHECKIN',
+          title: `Check-in ${assignment.room.accommodation.name} - ${assignment.guest.firstName} ${assignment.guest.lastName}`,
+          description: `Chambre ${assignment.room.roomNumber || assignment.room.type}`,
+          startTime: assignment.checkInDate,
+          endTime: assignment.checkInDate,
+          location: assignment.room.accommodation.name,
+          guest: assignment.guest,
+          roomType: assignment.room.type,
+          roomNumber: assignment.room.roomNumber,
+          color: '#9B59B6',
+          icon: 'hotel',
+          entity: 'accommodation',
+          entityId: assignment.id,
+        })
+      }
+
+      // Add check-out event
+      if (assignment.checkOutDate) {
+        unifiedTimeline.push({
+          id: `accommodation-checkout-${assignment.id}`,
+          type: 'HOTEL_CHECKOUT',
+          title: `Check-out ${assignment.room.accommodation.name} - ${assignment.guest.firstName} ${assignment.guest.lastName}`,
+          description: `Chambre ${assignment.room.roomNumber || assignment.room.type}`,
+          startTime: assignment.checkOutDate,
+          endTime: assignment.checkOutDate,
+          location: assignment.room.accommodation.name,
+          guest: assignment.guest,
+          roomType: assignment.room.type,
+          roomNumber: assignment.room.roomNumber,
+          color: '#9B59B6',
+          icon: 'hotel',
+          entity: 'accommodation',
+          entityId: assignment.id,
+        })
+      }
+    }
+
     // Add custom timeline events
     for (const event of timelineEvents) {
       // Skip if already added from session
@@ -279,6 +379,7 @@ export async function GET(
       totalEvents: unifiedTimeline.length,
       sessions: sessions.length,
       transports: transports.length,
+      accommodations: roomAssignments.length,
       totalParticipants: await prisma.guest.count({ where: { eventId } }),
     }
 
