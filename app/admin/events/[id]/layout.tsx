@@ -26,7 +26,7 @@ import {
   Hotel
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { useEventModules } from '@/lib/modules'
+import { useEventModules } from '@/lib/modules/use-event-modules'
 import { Toaster } from '@/components/ui/toaster'
 
 interface EventData {
