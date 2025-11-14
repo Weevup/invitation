@@ -656,8 +656,8 @@ export async function GET(
     }
 
     // Sort alerts by severity (error > warning > info)
-    const severityOrder = { error: 0, warning: 1, info: 2 }
-    alerts.sort((a, b) => severityOrder[a.severity] - severityOrder[b.severity])
+    const severityOrder: Record<string, number> = { error: 0, warning: 1, info: 2 }
+    alerts.sort((a, b) => (severityOrder[a.severity] || 999) - (severityOrder[b.severity] || 999))
 
     return NextResponse.json({
       event: {
