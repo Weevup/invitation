@@ -78,8 +78,8 @@ export function ModuleManager({ eventId }: ModuleManagerProps) {
   }
 
   const getSubFeatureStatus = (moduleType: ModuleType, configKey: string): boolean => {
-    const module = modules.find(m => m.type === moduleType)
-    return module?.config?.[configKey] ?? false
+    const eventModule = modules.find(m => m.type === moduleType)
+    return eventModule?.config?.[configKey] ?? false
   }
 
   if (isLoading) {
