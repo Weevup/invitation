@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -135,28 +135,28 @@ export default function SessionDetailPage({ sessionType, labels }: SessionDetail
     }
   }
 
-  async function fetchSession() {
+  const fetchSession = useCallback(async () => {
     const response = await fetch(`/api/admin/events/${eventId}/sessions/${sessionId}`)
     if (!response.ok) throw new Error('Failed to fetch session')
     const data = await response.json()
     setSession(data.session)
-  }
+  }, [eventId, sessionId])
 
-  async function fetchGroups() {
+  const fetchGroups = useCallback(async () => {
     const response = await fetch(groupsApi)
     if (!response.ok) throw new Error('Failed to fetch groups')
     const data = await response.json()
     setGroups(data.groups || [])
-  }
+  }, [groupsApi])
 
-  async function fetchParticipants() {
+  const fetchParticipants = useCallback(async () => {
     const response = await fetch(participantsApi)
     if (!response.ok) throw new Error('Failed to fetch participants')
     const data = await response.json()
     setParticipants(data.participants || [])
-  }
+  }, [participantsApi])
 
-  async function handleCreateGroup() {
+  const handleCreateGroup = useCallback(async () => {
     try {
       const response = await fetch(groupsApi, {
         method: 'POST',
@@ -184,9 +184,9 @@ export default function SessionDetailPage({ sessionType, labels }: SessionDetail
         variant: 'destructive'
       })
     }
-  }
+  }, [groupsApi, formData, groups.length, labels, toast, fetchGroups])
 
-  async function handleUpdateGroup() {
+  const handleUpdateGroup = useCallback(async () => {
     if (!editingGroup) return
 
     try {
@@ -216,9 +216,9 @@ export default function SessionDetailPage({ sessionType, labels }: SessionDetail
         variant: 'destructive'
       })
     }
-  }
+  }, [editingGroup, groupsApi, formData, labels, toast, fetchGroups])
 
-  async function handleDeleteGroup(groupId: string) {
+  const handleDeleteGroup = useCallback(async (groupId: string) => {
     if (!confirm(labels.deleteGroupConfirm)) return
 
     try {
@@ -242,9 +242,9 @@ export default function SessionDetailPage({ sessionType, labels }: SessionDetail
         variant: 'destructive'
       })
     }
-  }
+  }, [labels, groupsApi, toast, fetchGroups, fetchParticipants])
 
-  async function handleAutoDistribute() {
+  const handleAutoDistribute = useCallback(async () => {
     if (groups.length === 0) {
       toast({
         title: `Aucun ${labels.groupSingular.toLowerCase()}`,
@@ -275,9 +275,9 @@ export default function SessionDetailPage({ sessionType, labels }: SessionDetail
         variant: 'destructive'
       })
     }
-  }
+  }, [groups.length, labels, groupsApi, toast, fetchGroups, fetchParticipants])
 
-  async function handleAssignToGroup(participantId: string, groupId: string | null) {
+  const handleAssignToGroup = useCallback(async (participantId: string, groupId: string | null) => {
     try {
       const response = await fetch(
         `/api/admin/events/${eventId}/sessions/${sessionId}/participants/${participantId}`,
@@ -306,22 +306,26 @@ export default function SessionDetailPage({ sessionType, labels }: SessionDetail
         variant: 'destructive'
       })
     }
-  }
+  }, [eventId, sessionId, labels, toast, fetchGroups, fetchParticipants])
 
-  const filteredParticipants = participants.filter((p) => {
-    const matchesSearch =
-      p.guest.firstName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.guest.lastName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.guest.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (p.guest.company && p.guest.company.toLowerCase().includes(searchQuery.toLowerCase()))
+  // Memoize expensive filtering to avoid recalculation on every render
+  const filteredParticipants = useMemo(() => {
+    return participants.filter((p) => {
+      const matchesSearch =
+        p.guest.firstName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        p.guest.lastName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        p.guest.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (p.guest.company && p.guest.company.toLowerCase().includes(searchQuery.toLowerCase()))
 
-    if (selectedGroupFilter === 'all') return matchesSearch
-    if (selectedGroupFilter === 'unassigned') return matchesSearch && !p.groupId
-    return matchesSearch && p.groupId === selectedGroupFilter
-  })
+      if (selectedGroupFilter === 'all') return matchesSearch
+      if (selectedGroupFilter === 'unassigned') return matchesSearch && !p.groupId
+      return matchesSearch && p.groupId === selectedGroupFilter
+    })
+  }, [participants, searchQuery, selectedGroupFilter])
 
-  const totalAssigned = participants.filter(p => p.groupId).length
-  const totalUnassigned = participants.filter(p => !p.groupId).length
+  // Memoize participant counts to avoid recalculation
+  const totalAssigned = useMemo(() => participants.filter(p => p.groupId).length, [participants])
+  const totalUnassigned = useMemo(() => participants.filter(p => !p.groupId).length, [participants])
 
   if (loading) {
     return (
