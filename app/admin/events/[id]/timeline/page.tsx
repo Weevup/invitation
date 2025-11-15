@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useParams } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -34,6 +34,10 @@ import {
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import { cn } from '@/lib/utils'
+import { createClientLogger } from '@/lib/client-logger'
+
+const logger = createClientLogger({ component: 'TimelinePage' })
+
 
 interface TimelineItem {
   id: string
@@ -139,11 +143,7 @@ export default function TimelinePage() {
   })
   const [showFilters, setShowFilters] = useState(false)
 
-  useEffect(() => {
-    fetchTimeline()
-  }, [eventId])
-
-  const fetchTimeline = async () => {
+  const fetchTimeline = useCallback(async () => {
     try {
       setLoading(true)
 
@@ -158,11 +158,15 @@ export default function TimelinePage() {
         setAlerts(data.alerts || [])
       }
     } catch (error) {
-      console.error('Error fetching timeline:', error)
+      logger.error(error, { action: 'fetchingTimeline' })
     } finally {
       setLoading(false)
     }
-  }
+  }, [eventId])
+
+  useEffect(() => {
+    fetchTimeline()
+  }, [fetchTimeline])
 
   const handleExportTimelinePDF = () => {
     window.open(`/api/admin/events/${eventId}/export/timeline-pdf`, '_blank')

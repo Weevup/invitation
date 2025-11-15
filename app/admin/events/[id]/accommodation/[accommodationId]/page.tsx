@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -25,6 +25,10 @@ import { RoomDialog } from '@/components/admin/room-dialog'
 import { RoomAssignmentDialog } from '@/components/admin/room-assignment-dialog'
 import { AccommodationDialog } from '@/components/admin/accommodation-dialog'
 import { toast } from 'sonner'
+import { createClientLogger } from '@/lib/client-logger'
+
+const logger = createClientLogger({ component: 'AccommodationPage' })
+
 
 interface Room {
   id: string
@@ -104,11 +108,7 @@ export default function AccommodationDetailsPage() {
   const [editDialogOpen, setEditDialogOpen] = useState(false)
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null)
 
-  useEffect(() => {
-    fetchAccommodation()
-  }, [accommodationId])
-
-  const fetchAccommodation = async () => {
+  const fetchAccommodation = useCallback(async () => {
     try {
       setLoading(true)
       const response = await fetch(
@@ -119,11 +119,15 @@ export default function AccommodationDetailsPage() {
         setAccommodation(data.accommodation)
       }
     } catch (error) {
-      console.error('Error fetching accommodation:', error)
+      logger.error(error, { action: 'fetchingAccommodation' })
     } finally {
       setLoading(false)
     }
-  }
+  }, [eventId, accommodationId])
+
+  useEffect(() => {
+    fetchAccommodation()
+  }, [fetchAccommodation])
 
   const handleOpenAssignment = (room: Room) => {
     setSelectedRoom(room)

@@ -7,6 +7,8 @@ import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
 import { Plus, Trash2, FileText } from 'lucide-react'
 import { Switch } from '@/components/ui/switch'
+import Image from 'next/image'
+import { useState } from 'react'
 
 export interface ButtonConfig {
   text: string
@@ -35,8 +37,13 @@ interface SectionContentEditorProps {
 }
 
 export function SectionContentEditor({ sectionId, sectionType, content, onChange }: SectionContentEditorProps) {
+  const [imageError, setImageError] = useState(false)
+
   const updateContent = (updates: Partial<SectionContent>) => {
     onChange({ ...content, ...updates })
+    if (updates.image) {
+      setImageError(false)
+    }
   }
 
   const addButton = () => {
@@ -134,15 +141,14 @@ export function SectionContentEditor({ sectionId, sectionType, content, onChange
             placeholder="https://exemple.com/image.jpg"
             className="border-[#9CD9F6]/30"
           />
-          {content.image && (
-            <div className="mt-2">
-              <img
+          {content.image && !imageError && (
+            <div className="mt-2 relative" style={{ width: '300px', height: '200px' }}>
+              <Image
                 src={content.image}
                 alt="Preview"
-                className="max-w-xs rounded-lg border border-[#9CD9F6]/30"
-                onError={(e) => {
-                  e.currentTarget.style.display = 'none'
-                }}
+                fill
+                className="object-contain rounded-lg border border-[#9CD9F6]/30"
+                onError={() => setImageError(true)}
               />
             </div>
           )}

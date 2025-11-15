@@ -36,6 +36,10 @@ import { TransportBookingDetailsDialog } from '@/components/admin/transport-book
 import { TransportManifestDialog } from '@/components/admin/transport-manifest-dialog'
 import { TransportManifestDetailsDialog } from '@/components/admin/transport-manifest-details-dialog'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { createClientLogger } from '@/lib/client-logger'
+
+const logger = createClientLogger({ component: 'TransportPage' })
+
 
 interface TransportBooking {
   id: string
@@ -167,7 +171,7 @@ export default function TransportPage() {
       const data = await response.json()
       setManifests(data.manifests || [])
     } catch (err) {
-      console.error('Error fetching manifests:', err)
+      logger.error(err, { action: 'fetchManifests' })
     } finally {
       setManifestsLoading(false)
     }

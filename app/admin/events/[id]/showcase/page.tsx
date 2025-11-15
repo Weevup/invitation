@@ -1,12 +1,16 @@
 "use client"
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useParams } from 'next/navigation'
 import { ShowcaseBuilder } from '@/components/showcase-builder'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { ShowcaseSkeleton } from '@/components/ui/showcase-skeleton'
 import { Button } from '@/components/ui/button'
 import { Sparkles, AlertCircle, RefreshCw } from 'lucide-react'
+import { createClientLogger } from '@/lib/client-logger'
+
+const logger = createClientLogger({ component: 'ShowcasePage' })
+
 
 interface EventData {
   id: string
@@ -29,7 +33,7 @@ export default function ShowcasePage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const loadEvent = async () => {
+  const loadEvent = useCallback(async () => {
     setLoading(true)
     setError(null)
     try {
@@ -40,16 +44,16 @@ export default function ShowcasePage() {
       const data = await res.json()
       setEvent(data)
     } catch (err) {
-      console.error('Error fetching event:', err)
+      logger.error(err, { action: 'fetchEvent' })
       setError(err instanceof Error ? err.message : 'Une erreur est survenue lors du chargement')
     } finally {
       setLoading(false)
     }
-  }
+  }, [eventId])
 
   useEffect(() => {
     loadEvent()
-  }, [eventId])
+  }, [loadEvent])
 
   if (loading) {
     return <ShowcaseSkeleton />

@@ -12,6 +12,10 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 import jsQR from 'jsqr'
+import { createClientLogger } from '@/lib/client-logger'
+
+const logger = createClientLogger({ component: 'KioskPage' })
+
 
 interface Guest {
   id: string
@@ -75,7 +79,7 @@ export default function KioskModePage() {
         setStats(data.stats) // Stats pré-calculées par l'API
       }
     } catch (error) {
-      console.error('Error fetching guests:', error)
+      logger.error(error, { action: 'fetchingGuests' })
     }
   }, [eventId])
 
@@ -100,7 +104,7 @@ export default function KioskModePage() {
         scanQRCode()
       }
     } catch (error) {
-      console.error('Error accessing camera:', error)
+      logger.error(error, { action: 'accessingCamera' })
       toast.error("Impossible d'accéder à la caméra")
     }
   }
@@ -181,7 +185,7 @@ export default function KioskModePage() {
         toast.error(error.error || 'Erreur lors du check-in')
       }
     } catch (error) {
-      console.error('Checkin error:', error)
+      logger.error(error, { action: 'CheckinError' })
       toast.error('Erreur de connexion')
     }
   }

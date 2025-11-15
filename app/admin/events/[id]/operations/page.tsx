@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useParams } from 'next/navigation'
 import { Loader2 } from 'lucide-react'
 import { OperationsHeader } from './components/OperationsHeader'
@@ -9,6 +9,10 @@ import { TimeSlotBlock } from './components/TimeSlotBlock'
 import { BlockDetailsPanel } from './components/BlockDetailsPanel'
 import type { TimeSlot, Alert, KPIs } from '@/app/api/admin/events/[id]/operations/helpers'
 import type { Guest, RSVP } from '@prisma/client'
+import { createClientLogger } from '@/lib/client-logger'
+
+const logger = createClientLogger({ component: 'OperationsPage' })
+
 
 interface OperationsData {
   event: {
@@ -38,11 +42,7 @@ export default function OperationsPage() {
   const [error, setError] = useState<string | null>(null)
   const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null)
 
-  useEffect(() => {
-    fetchOperationsData()
-  }, [eventId])
-
-  async function fetchOperationsData() {
+  const fetchOperationsData = useCallback(async () => {
     try {
       setLoading(true)
       setError(null)
@@ -61,12 +61,16 @@ export default function OperationsPage() {
 
       setData(result)
     } catch (err) {
-      console.error('Error fetching operations data:', err)
+      logger.error(err, { action: 'fetchOperationsData' })
       setError(err instanceof Error ? err.message : 'Une erreur est survenue')
     } finally {
       setLoading(false)
     }
-  }
+  }, [eventId])
+
+  useEffect(() => {
+    fetchOperationsData()
+  }, [fetchOperationsData])
 
   if (loading) {
     return (

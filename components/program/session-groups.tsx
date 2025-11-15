@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -18,6 +18,9 @@ import {
 } from 'lucide-react'
 import { useToast } from '@/components/ui/use-toast'
 import { ParticipantGroupAssignment } from './participant-group-assignment'
+import { createClientLogger, getUserErrorMessage } from '@/lib/client-logger'
+
+const logger = createClientLogger({ component: 'SessionGroups' })
 
 interface SessionGroup {
   id: string
@@ -54,13 +57,7 @@ export function SessionGroups({ sessionId, eventId, isOpen, onClose }: SessionGr
     capacity: undefined as number | undefined,
   })
 
-  useEffect(() => {
-    if (isOpen) {
-      loadGroups()
-    }
-  }, [isOpen, sessionId])
-
-  const loadGroups = async () => {
+  const loadGroups = useCallback(async () => {
     try {
       setLoading(true)
       const response = await fetch(`/api/admin/events/${eventId}/sessions/${sessionId}/groups`)
@@ -69,16 +66,22 @@ export function SessionGroups({ sessionId, eventId, isOpen, onClose }: SessionGr
         setGroups(data.groups || [])
       }
     } catch (error) {
-      console.error('Error loading groups:', error)
+      logger.error(error, { action: 'loadGroups', metadata: { sessionId, eventId } })
       toast({
         title: 'Erreur',
-        description: 'Impossible de charger les groupes',
+        description: getUserErrorMessage(error),
         variant: 'destructive',
       })
     } finally {
       setLoading(false)
     }
-  }
+  }, [eventId, sessionId, toast])
+
+  useEffect(() => {
+    if (isOpen) {
+      loadGroups()
+    }
+  }, [isOpen, loadGroups])
 
   const handleCreateGroup = async () => {
     if (!formData.name.trim()) {
@@ -110,10 +113,10 @@ export function SessionGroups({ sessionId, eventId, isOpen, onClose }: SessionGr
         loadGroups()
       }
     } catch (error) {
-      console.error('Error creating group:', error)
+      logger.error(error, { action: 'createGroup', metadata: { sessionId, eventId } })
       toast({
         title: 'Erreur',
-        description: 'Impossible de créer le groupe',
+        description: getUserErrorMessage(error),
         variant: 'destructive',
       })
     }
@@ -142,10 +145,10 @@ export function SessionGroups({ sessionId, eventId, isOpen, onClose }: SessionGr
         loadGroups()
       }
     } catch (error) {
-      console.error('Error updating group:', error)
+      logger.error(error, { action: 'updateGroup', metadata: { sessionId, eventId, groupId: editingGroup.id } })
       toast({
         title: 'Erreur',
-        description: 'Impossible de mettre à jour le groupe',
+        description: getUserErrorMessage(error),
         variant: 'destructive',
       })
     }
@@ -170,10 +173,10 @@ export function SessionGroups({ sessionId, eventId, isOpen, onClose }: SessionGr
         loadGroups()
       }
     } catch (error) {
-      console.error('Error deleting group:', error)
+      logger.error(error, { action: 'deleteGroup', metadata: { sessionId, eventId, groupId } })
       toast({
         title: 'Erreur',
-        description: 'Impossible de supprimer le groupe',
+        description: getUserErrorMessage(error),
         variant: 'destructive',
       })
     }
@@ -198,10 +201,10 @@ export function SessionGroups({ sessionId, eventId, isOpen, onClose }: SessionGr
         loadGroups()
       }
     } catch (error) {
-      console.error('Error auto-distributing:', error)
+      logger.error(error, { action: 'autoDistribute', metadata: { sessionId, eventId } })
       toast({
         title: 'Erreur',
-        description: 'Impossible de répartir automatiquement',
+        description: getUserErrorMessage(error),
         variant: 'destructive',
       })
     }

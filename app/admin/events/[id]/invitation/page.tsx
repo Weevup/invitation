@@ -13,7 +13,12 @@ import {
 } from 'lucide-react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import { toast } from 'sonner'
+import { createClientLogger } from '@/lib/client-logger'
+
+const logger = createClientLogger({ component: 'InvitationPage' })
+
 
 export default function InvitationDesignPage() {
   const params = useParams()
@@ -82,7 +87,7 @@ export default function InvitationDesignPage() {
           }
         }
       } catch (error) {
-        console.error("Failed to load invitation configuration:", error);
+        logger.error(error, { action: 'FailedToLoadInvitationConfiguration' });
       }
     };
 
@@ -192,7 +197,16 @@ export default function InvitationDesignPage() {
               {/* Logo */}
               {design.logoUrl && (
                 <div className="flex justify-center">
-                  <img src={design.logoUrl} alt="Logo" className="h-16" />
+                  <div className="relative h-16 w-auto max-w-xs">
+                    <Image
+                      src={design.logoUrl}
+                      alt="Logo"
+                      width={256}
+                      height={64}
+                      className="h-16 w-auto object-contain"
+                      style={{ width: 'auto', height: '4rem' }}
+                    />
+                  </div>
                 </div>
               )}
 

@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import {
   Dialog,
   DialogContent,
@@ -11,6 +11,10 @@ import {
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
+import Image from 'next/image'
+import { createClientLogger } from '@/lib/client-logger'
+
+const logger = createClientLogger({ component: 'GuestDetailsModal' })
 import {
   User,
   Mail,
@@ -70,13 +74,7 @@ export function GuestDetailsModal({ guest, open, onOpenChange }: GuestDetailsMod
   const [qrCodeUrl, setQrCodeUrl] = useState<string>('')
   const [loading, setLoading] = useState(false)
 
-  useEffect(() => {
-    if (open && guest.rsvp?.qrCodeId) {
-      generateQRCodeImage()
-    }
-  }, [open, guest.rsvp?.qrCodeId])
-
-  const generateQRCodeImage = async () => {
+  const generateQRCodeImage = useCallback(async () => {
     if (!guest.rsvp?.qrCodeId) return
 
     setLoading(true)
@@ -86,11 +84,17 @@ export function GuestDetailsModal({ guest, open, onOpenChange }: GuestDetailsMod
       const qrUrl = await generateQRCode(checkinUrl)
       setQrCodeUrl(qrUrl)
     } catch (error) {
-      console.error('Error generating QR code:', error)
+      logger.error(error, { action: 'generateQRCode', metadata: { guestId: guest.id } })
     } finally {
       setLoading(false)
     }
-  }
+  }, [guest.rsvp?.qrCodeId, guest.id])
+
+  useEffect(() => {
+    if (open && guest.rsvp?.qrCodeId) {
+      generateQRCodeImage()
+    }
+  }, [open, guest.rsvp?.qrCodeId, generateQRCodeImage])
 
   const downloadQRCode = () => {
     if (!qrCodeUrl) return
@@ -317,7 +321,13 @@ export function GuestDetailsModal({ guest, open, onOpenChange }: GuestDetailsMod
                     </div>
                   ) : qrCodeUrl ? (
                     <>
-                      <img src={qrCodeUrl} alt="QR Code" className="w-64 h-64 border-4 border-white shadow-lg rounded-lg" />
+                      <Image
+                        src={qrCodeUrl}
+                        alt="QR Code"
+                        width={256}
+                        height={256}
+                        className="w-64 h-64 border-4 border-white shadow-lg rounded-lg"
+                      />
                       <p className="text-sm text-gray-600 text-center">
                         À présenter à l&apos;entrée de l&apos;événement
                       </p>

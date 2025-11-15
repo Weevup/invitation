@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useParams } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -9,6 +9,9 @@ import {
   Mail, MailOpen, MousePointerClick, AlertCircle, TrendingUp,
   Clock, XCircle, CheckCircle, Timer, BarChart3, RefreshCw
 } from 'lucide-react'
+import { createClientLogger } from '@/lib/client-logger'
+
+const logger = createClientLogger({ component: 'EmailAnalyticsPage' })
 
 interface EmailAnalytics {
   overview: {
@@ -111,7 +114,7 @@ export default function EmailAnalyticsPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     setLoading(true)
     setError(null)
     try {
@@ -122,16 +125,16 @@ export default function EmailAnalyticsPage() {
       const result = await response.json()
       setData(result)
     } catch (err) {
-      console.error('Error fetching email analytics:', err)
+      logger.error(err, { action: 'fetchEmailAnalytics' })
       setError(err instanceof Error ? err.message : 'Erreur de chargement')
     } finally {
       setLoading(false)
     }
-  }
+  }, [eventId])
 
   useEffect(() => {
     fetchData()
-  }, [eventId])
+  }, [fetchData])
 
   if (loading) {
     return (

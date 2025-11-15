@@ -11,6 +11,10 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 import jsQR from 'jsqr'
+import { createClientLogger } from '@/lib/client-logger'
+
+const logger = createClientLogger({ component: 'CheckinPage' })
+
 
 interface Guest {
   id: string
@@ -73,7 +77,7 @@ export default function CheckinPage() {
         setStats(data.stats) // Stats pré-calculées par l'API
       }
     } catch (error) {
-      console.error('Error fetching guests:', error)
+      logger.error(error, { action: 'fetchingGuests' })
     } finally {
       setLoading(false)
     }
@@ -97,7 +101,7 @@ export default function CheckinPage() {
         scanQRCode()
       }
     } catch (error) {
-      console.error('Error accessing camera:', error)
+      logger.error(error, { action: 'accessingCamera' })
       toast.error("Impossible d'accéder à la caméra")
     }
   }
@@ -184,7 +188,7 @@ export default function CheckinPage() {
         }
       }
     } catch (error) {
-      console.error('Error during checkin:', error)
+      logger.error(error, { action: 'duringCheckin' })
       toast.error('Erreur lors de l\'enregistrement')
     }
   }

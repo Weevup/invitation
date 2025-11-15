@@ -11,6 +11,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch'
 import { Save, Loader2, Users2, AlertCircle } from 'lucide-react'
 import { useToast } from '@/components/ui/use-toast'
+import { createClientLogger, getUserErrorMessage } from '@/lib/client-logger'
+
+const logger = createClientLogger({ component: 'SessionEditor' })
 
 interface SessionEditorProps {
   eventId: string
@@ -125,7 +128,7 @@ export function SessionEditor({ eventId, session, onClose, onSave }: SessionEdit
       onSave()
       onClose()
     } catch (error) {
-      console.error('Error saving session:', error)
+      logger.error(error, { action: 'saveSession', metadata: { eventId, sessionId: session?.id } })
       toast({
         title: 'Erreur',
         description: error instanceof Error ? error.message : 'Impossible de sauvegarder la session',

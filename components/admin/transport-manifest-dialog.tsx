@@ -24,6 +24,9 @@ import {
 import { toast } from 'sonner'
 import { Plus, Bus } from 'lucide-react'
 import { TransportType } from '@prisma/client'
+import { createClientLogger, getUserErrorMessage } from '@/lib/client-logger'
+
+const logger = createClientLogger({ component: 'TransportManifestDialog' })
 
 interface TransportManifestDialogProps {
   eventId: string
@@ -122,8 +125,8 @@ export function TransportManifestDialog({
         onSuccess()
       }
     } catch (error) {
-      console.error('Error creating manifest:', error)
-      toast.error(error instanceof Error ? error.message : 'Erreur lors de la création')
+      logger.error(error, { action: 'createManifest', metadata: { eventId } })
+      toast.error(getUserErrorMessage(error))
     } finally {
       setLoading(false)
     }

@@ -13,6 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import Image from 'next/image'
 
 interface Sponsor {
   name: string
@@ -140,11 +141,15 @@ export function SponsorsEditor({ sponsors, onChange }: SponsorsEditorProps) {
               >
                 <div className="flex gap-4 items-center">
                   {sponsor.logo ? (
-                    <img
-                      src={sponsor.logo}
-                      alt={sponsor.name}
-                      className="w-20 h-20 object-contain bg-white rounded p-2"
-                    />
+                    <div className="w-20 h-20 bg-white rounded p-2 relative flex-shrink-0">
+                      <Image
+                        src={sponsor.logo}
+                        alt={sponsor.name}
+                        fill
+                        className="object-contain p-1"
+                        sizes="80px"
+                      />
+                    </div>
                   ) : (
                     <div className="w-20 h-20 rounded bg-white flex items-center justify-center">
                       <Building2 className="h-10 w-10 text-[#009197]" />

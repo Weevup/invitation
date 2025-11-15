@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -18,6 +18,9 @@ import {
   XCircle
 } from 'lucide-react'
 import { toast } from 'sonner'
+import { createClientLogger, getUserErrorMessage } from '@/lib/client-logger'
+
+const logger = createClientLogger({ component: 'SessionParticipantsDialog' })
 
 interface Guest {
   id: string
@@ -88,14 +91,7 @@ export function SessionParticipantsDialog({
   const [participants, setParticipants] = useState<Participant[]>([])
   const [selectedGuests, setSelectedGuests] = useState<Set<string>>(new Set())
 
-  useEffect(() => {
-    if (open) {
-      fetchGuests()
-      fetchParticipants()
-    }
-  }, [open, eventId, session.id])
-
-  const fetchGuests = async () => {
+  const fetchGuests = useCallback(async () => {
     try {
       const response = await fetch(`/api/admin/events/${eventId}/guests`)
       if (response.ok) {
@@ -103,12 +99,12 @@ export function SessionParticipantsDialog({
         setAllGuests(data.guests || [])
       }
     } catch (error) {
-      console.error('Error fetching guests:', error)
-      toast.error('Erreur lors du chargement des invités')
+      logger.error(error, { action: 'fetchGuests', metadata: { eventId } })
+      toast.error(getUserErrorMessage(error))
     }
-  }
+  }, [eventId])
 
-  const fetchParticipants = async () => {
+  const fetchParticipants = useCallback(async () => {
     try {
       const response = await fetch(`/api/admin/events/${eventId}/sessions/${session.id}`)
       if (response.ok) {
@@ -116,9 +112,16 @@ export function SessionParticipantsDialog({
         setParticipants(data.session?.participants || [])
       }
     } catch (error) {
-      console.error('Error fetching participants:', error)
+      logger.error(error, { action: 'fetchParticipants', metadata: { eventId, sessionId: session.id } })
     }
-  }
+  }, [eventId, session.id])
+
+  useEffect(() => {
+    if (open) {
+      fetchGuests()
+      fetchParticipants()
+    }
+  }, [open, fetchGuests, fetchParticipants])
 
   const handleAddParticipants = async () => {
     if (selectedGuests.size === 0) {

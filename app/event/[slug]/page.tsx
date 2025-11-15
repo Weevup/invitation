@@ -9,8 +9,13 @@ import { WeevupLogo } from '@/components/weevup-logo'
 import { CountdownTimer } from '@/components/countdown-timer'
 import { ScrollReveal } from '@/components/scroll-reveal'
 import Link from 'next/link'
+import Image from 'next/image'
 import { migrateLegacySections, getActiveSections, getSectionWrapperProps } from '@/lib/showcase-utils'
 import { type SectionConfig } from '@/lib/showcase-templates'
+import { createClientLogger } from '@/lib/client-logger'
+
+const logger = createClientLogger({ component: 'EventPage' })
+
 
 /**
  * Sanitize CSS to prevent XSS attacks
@@ -123,7 +128,7 @@ async function getEvent(slug: string) {
 
     return event
   } catch (error) {
-    console.error('Error fetching event:', error)
+    logger.error(error, { action: 'fetchingEvent' })
     return null
   }
 }
@@ -425,11 +430,13 @@ export default async function EventShowcasePage({ params }: PageProps) {
                         </div>
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                           {(event.showcaseGallery as string[]).map((url, index) => (
-                            <div key={index} className="aspect-square rounded-lg overflow-hidden bg-gray-100">
-                              <img
+                            <div key={index} className="aspect-square rounded-lg overflow-hidden bg-gray-100 relative">
+                              <Image
                                 src={url}
                                 alt={`Gallery ${index + 1}`}
-                                className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                                fill
+                                className="object-cover hover:scale-105 transition-transform duration-300"
+                                sizes="(max-width: 768px) 50vw, 33vw"
                               />
                             </div>
                           ))}
@@ -594,12 +601,15 @@ export default async function EventShowcasePage({ params }: PageProps) {
                             <div key={index} className="text-center group">
                               <div className="relative mb-4 inline-block">
                                 {speaker.photo ? (
-                                  <img
-                                    src={speaker.photo}
-                                    alt={speaker.name}
-                                    className="w-36 h-36 rounded-full object-cover mx-auto border-4 shadow-lg group-hover:scale-110 transition-transform duration-300"
-                                    style={{ borderColor: `${secondaryColor}40` }}
-                                  />
+                                  <div className="w-36 h-36 rounded-full mx-auto border-4 shadow-lg overflow-hidden relative group-hover:scale-110 transition-transform duration-300" style={{ borderColor: `${secondaryColor}40` }}>
+                                    <Image
+                                      src={speaker.photo}
+                                      alt={speaker.name}
+                                      fill
+                                      className="object-cover"
+                                      sizes="144px"
+                                    />
+                                  </div>
                                 ) : (
                                   <div
                                     className="w-36 h-36 rounded-full mx-auto flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300"
@@ -735,7 +745,14 @@ export default async function EventShowcasePage({ params }: PageProps) {
                                       >
                                         <div className="aspect-video bg-white rounded-lg p-4 flex items-center justify-center border border-[#9CD9F6]/30">
                                           {sponsor.logo ? (
-                                            <img src={sponsor.logo} alt={sponsor.name} className="max-w-full max-h-full object-contain" />
+                                            <div className="relative w-full h-full">
+                                              <Image
+                                                src={sponsor.logo}
+                                                alt={sponsor.name}
+                                                fill
+                                                className="object-contain"
+                                              />
+                                            </div>
                                           ) : (
                                             <span className="text-center font-semibold" style={{ color: primaryColor }}>{sponsor.name}</span>
                                           )}
@@ -744,7 +761,14 @@ export default async function EventShowcasePage({ params }: PageProps) {
                                     ) : (
                                       <div className="aspect-video bg-white rounded-lg p-4 flex items-center justify-center border border-[#9CD9F6]/30">
                                         {sponsor.logo ? (
-                                          <img src={sponsor.logo} alt={sponsor.name} className="max-w-full max-h-full object-contain" />
+                                          <div className="relative w-full h-full">
+                                            <Image
+                                              src={sponsor.logo}
+                                              alt={sponsor.name}
+                                              fill
+                                              className="object-contain"
+                                            />
+                                          </div>
                                         ) : (
                                           <span className="text-center font-semibold" style={{ color: primaryColor }}>{sponsor.name}</span>
                                         )}

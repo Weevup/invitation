@@ -7,6 +7,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { WeevupLogo } from "@/components/weevup-logo";
+import { createClientLogger } from '@/lib/client-logger'
+
+const logger = createClientLogger({ component: 'NewPage' })
+
 
 export default function NewEventPage() {
   const router = useRouter();
@@ -43,11 +47,11 @@ export default function NewEventPage() {
       } else {
         setError(data.error || "Erreur lors de la création de l'événement");
         if (data.details) {
-          console.error('Error details:', data.details);
+          logger.error(data.details, { action: 'createEvent', metadata: { details: true } });
         }
       }
     } catch (error) {
-      console.error('Error creating event:', error);
+      logger.error(error, { action: 'creatingEvent' });
       setError("Erreur de connexion: " + (error instanceof Error ? error.message : 'Unknown error'));
     } finally {
       setLoading(false);

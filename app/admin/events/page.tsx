@@ -7,6 +7,10 @@ import { Calendar, Users, Mail, Eye, Settings, Plus, ExternalLink, Sparkles } fr
 import Link from 'next/link'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
+import { createClientLogger } from '@/lib/client-logger'
+
+const logger = createClientLogger({ component: 'Page' })
+
 
 interface Event {
   id: string
@@ -39,7 +43,7 @@ export default function EventsPage() {
         setEvents(data)
       }
     } catch (error) {
-      console.error('Error fetching events:', error)
+      logger.error(error, { action: 'fetchingEvents' })
     } finally {
       setLoading(false)
     }

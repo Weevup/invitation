@@ -141,7 +141,7 @@ export default function GuestPage() {
         setCurrentStepId('summary');
       }
     }
-  }, [data?.event, attending]);
+  }, [data?.event, attending, currentStepId]);
 
   const handleSubmit = async () => {
     if (attending === null) {

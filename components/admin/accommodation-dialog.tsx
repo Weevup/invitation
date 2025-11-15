@@ -22,6 +22,9 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { useToast } from '@/components/ui/use-toast'
+import { createClientLogger, getUserErrorMessage } from '@/lib/client-logger'
+
+const logger = createClientLogger({ component: 'AccommodationDialog' })
 
 interface AccommodationDialogProps {
   open: boolean
@@ -215,7 +218,7 @@ export function AccommodationDialog({
       onOpenChange(false)
       onSuccess?.()
     } catch (error: any) {
-      console.error('Error saving accommodation:', error)
+      logger.error(error, { action: 'saveAccommodation', metadata: { eventId, accommodationId: accommodation?.id } })
       toast({
         title: 'Erreur',
         description: error.message || 'Une erreur est survenue lors de la sauvegarde',

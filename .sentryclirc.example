@@ -1,0 +1,7 @@
+[defaults]
+url=https://sentry.io/
+org=your-organization-slug
+project=your-project-name
+
+[auth]
+token=your-auth-token-here

@@ -17,6 +17,9 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { UserPlus, Briefcase, Users } from "lucide-react";
+import { createClientLogger, getUserErrorMessage } from "@/lib/client-logger";
+
+const logger = createClientLogger({ component: 'AddGuestDialog' });
 
 interface AddGuestDialogProps {
   eventId: string;
@@ -88,8 +91,8 @@ export function AddGuestDialog({ eventId, onGuestAdded }: AddGuestDialogProps) {
         setError(data.error || "Erreur lors de l'ajout de l'invité");
       }
     } catch (error) {
-      setError("Erreur de connexion");
-      console.error("Error adding guest:", error);
+      logger.error(error, { action: 'addGuest', metadata: { eventId } });
+      setError(getUserErrorMessage(error));
     } finally {
       setLoading(false);
     }

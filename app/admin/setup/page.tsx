@@ -6,6 +6,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { CheckCircle, AlertCircle, Loader2, Database, Sparkles, Trash2, AlertTriangle, RefreshCw } from "lucide-react";
 import Link from "next/link";
 import { WeevupLogo } from "@/components/weevup-logo";
+import { createClientLogger } from "@/lib/client-logger";
+
+const logger = createClientLogger({ component: 'SetupPage' });
 
 export default function SetupPage() {
   const [setupLoading, setSetupLoading] = useState(false);
@@ -40,7 +43,7 @@ export default function SetupPage() {
         setDbStatus(data);
       }
     } catch (error) {
-      console.error('Error fetching database status:', error);
+      logger.error(error, { action: 'fetchDatabaseStatus' });
     } finally {
       setDbStatusLoading(false);
     }
@@ -65,7 +68,7 @@ export default function SetupPage() {
       }
     } catch (error) {
       setSetupError('Erreur de connexion');
-      console.error('Setup error:', error);
+      logger.error(error, { action: 'handleSetup' });
     } finally {
       setSetupLoading(false);
     }
@@ -90,7 +93,7 @@ export default function SetupPage() {
       }
     } catch (error) {
       setSeedError('Erreur de connexion');
-      console.error('Seed error:', error);
+      logger.error(error, { action: 'handleSeed' });
     } finally {
       setSeedLoading(false);
     }
@@ -119,7 +122,7 @@ export default function SetupPage() {
       }
     } catch (error) {
       setClearError('Erreur de connexion');
-      console.error('Clear database error:', error);
+      logger.error(error, { action: 'handleClearDatabase' });
     } finally {
       setClearLoading(false);
     }
@@ -146,7 +149,7 @@ export default function SetupPage() {
       }
     } catch (error) {
       setMigrateError('Erreur de connexion');
-      console.error('Migration error:', error);
+      logger.error(error, { action: 'handleMigrate' });
     } finally {
       setMigrateLoading(false);
     }

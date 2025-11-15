@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Card } from '@/components/ui/card'
 import { Plus, X, User } from 'lucide-react'
+import Image from 'next/image'
 
 interface Speaker {
   name: string
@@ -116,11 +117,15 @@ export function SpeakersEditor({ speakers, onChange }: SpeakersEditorProps) {
             >
               <div className="flex gap-4">
                 {speaker.photo ? (
-                  <img
-                    src={speaker.photo}
-                    alt={speaker.name}
-                    className="w-16 h-16 rounded-full object-cover"
-                  />
+                  <div className="w-16 h-16 rounded-full overflow-hidden relative flex-shrink-0">
+                    <Image
+                      src={speaker.photo}
+                      alt={speaker.name}
+                      fill
+                      className="object-cover"
+                      sizes="64px"
+                    />
+                  </div>
                 ) : (
                   <div className="w-16 h-16 rounded-full bg-[#9CD9F6]/20 flex items-center justify-center">
                     <User className="h-8 w-8 text-[#009197]" />

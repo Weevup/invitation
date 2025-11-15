@@ -33,6 +33,10 @@ import {
 import { cn } from '@/lib/utils'
 import { useEventModules } from '@/lib/modules/use-event-modules'
 import { Toaster } from '@/components/ui/toaster'
+import { createClientLogger } from '@/lib/client-logger'
+
+const logger = createClientLogger({ component: 'Page' })
+
 
 interface EventData {
   name: string
@@ -72,7 +76,7 @@ export default function EventLayout({
     fetch(`/api/admin/events/${eventId}`)
       .then(res => res.json())
       .then(data => setEvent(data))
-      .catch(console.error)
+      .catch(err => logger.error(err, { action: 'fetchEvent', metadata: { eventId } }))
   }, [eventId])
 
   // Module-based navigation items (grouped by category)

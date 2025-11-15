@@ -1,7 +1,7 @@
 'use client'
 
 import { useParams } from 'next/navigation'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Calendar, Clock, Users, TrendingUp, Loader2 } from 'lucide-react'
@@ -9,6 +9,10 @@ import { ProgramBuilder } from '@/components/program/program-builder'
 import { ProgramTimeline } from '@/components/program/program-timeline'
 import { ProgramTemplates } from '@/components/program/program-templates'
 import { useToast } from '@/components/ui/use-toast'
+import { createClientLogger } from '@/lib/client-logger'
+
+const logger = createClientLogger({ component: 'ProgramPage' })
+
 
 interface Session {
   id: string
@@ -45,11 +49,7 @@ export default function ProgramPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('builder')
 
-  useEffect(() => {
-    loadSessions()
-  }, [eventId])
-
-  const loadSessions = async () => {
+  const loadSessions = useCallback(async () => {
     try {
       setIsLoading(true)
       const response = await fetch(`/api/admin/events/${eventId}/sessions`)
@@ -58,11 +58,15 @@ export default function ProgramPage() {
         setSessions(data.sessions || [])
       }
     } catch (error) {
-      console.error('Error loading sessions:', error)
+      logger.error(error, { action: 'loadingSessions' })
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [eventId])
+
+  useEffect(() => {
+    loadSessions()
+  }, [loadSessions])
 
   const calculateStats = (): ProgramStats => {
     const stats: ProgramStats = {
@@ -130,7 +134,7 @@ export default function ProgramPage() {
         })
 
         if (!response.ok) {
-          console.error('Failed to create session:', sessionTemplate.title)
+          logger.error(new Error('Failed to create session'), { action: 'createSession', metadata: { sessionTitle: sessionTemplate.title } })
           toast({
             title: 'Erreur',
             description: `Erreur lors de la création de la session "${sessionTemplate.title}"`,
@@ -154,7 +158,7 @@ export default function ProgramPage() {
       setActiveTab('builder')
 
     } catch (error) {
-      console.error('Error applying template:', error)
+      logger.error(error, { action: 'applyingTemplate' })
       toast({
         title: 'Erreur',
         description: 'Erreur lors de l\'application du template',

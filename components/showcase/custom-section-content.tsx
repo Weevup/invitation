@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import DOMPurify from 'isomorphic-dompurify'
+import Image from 'next/image'
 
 interface SectionContent {
   title?: string
@@ -59,11 +60,13 @@ export function CustomSectionContent({
 
       {/* Image */}
       {content.image && (
-        <div className="rounded-lg overflow-hidden shadow-xl">
-          <img
+        <div className="rounded-lg overflow-hidden shadow-xl relative w-full" style={{ aspectRatio: '16/9' }}>
+          <Image
             src={content.image}
             alt={content.title || defaultTitle || ''}
-            className="w-full h-auto"
+            fill
+            className="object-cover"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 70vw"
           />
         </div>
       )}

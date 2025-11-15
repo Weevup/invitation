@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useParams } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -23,6 +23,10 @@ import {
 import Link from 'next/link'
 import { format, isToday, isTomorrow, parseISO, isPast, isFuture } from 'date-fns'
 import { fr } from 'date-fns/locale'
+import { createClientLogger } from '@/lib/client-logger'
+
+const logger = createClientLogger({ component: 'ArrivalsPage' })
+
 
 interface TransportArrival {
   id: string
@@ -102,13 +106,7 @@ export default function TransportArrivalsPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [filterPeriod, setFilterPeriod] = useState<'all' | 'today' | 'tomorrow' | 'upcoming'>('upcoming')
 
-  useEffect(() => {
-    if (eventId) {
-      fetchArrivals()
-    }
-  }, [eventId])
-
-  const fetchArrivals = async () => {
+  const fetchArrivals = useCallback(async () => {
     try {
       const response = await fetch(`/api/admin/events/${eventId}/transport/arrivals`)
       if (response.ok) {
@@ -116,11 +114,17 @@ export default function TransportArrivalsPage() {
         setArrivals(data)
       }
     } catch (error) {
-      console.error('Error fetching arrivals:', error)
+      logger.error(error, { action: 'fetchingArrivals' })
     } finally {
       setLoading(false)
     }
-  }
+  }, [eventId])
+
+  useEffect(() => {
+    if (eventId) {
+      fetchArrivals()
+    }
+  }, [eventId, fetchArrivals])
 
   const getArrivalDateTime = (arrival: TransportArrival) => {
     if (!arrival.arrival?.date) return null

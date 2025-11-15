@@ -9,6 +9,9 @@ import { SessionCard } from './program-builder/components/SessionCard'
 import { TimeGrid } from './program-builder/components/TimeGrid'
 import { Badge } from '@/components/ui/badge'
 import { formatTime, formatDate } from '@/lib/program/constants'
+import { createClientLogger } from '@/lib/client-logger'
+
+const logger = createClientLogger({ component: 'ProgramBuilder' })
 import {
   DEFAULT_TIMELINE_CONFIG,
   snapToInterval,
@@ -113,7 +116,7 @@ export function ProgramBuilder({ eventId, sessions, onUpdate, onSessionsChange }
         })
       })
     } catch (error) {
-      console.error('Error moving session:', error)
+      logger.error(error, { action: 'moveSession', metadata: { sessionId: draggedSession.id } })
       // Revert on error
       onUpdate()
     }
@@ -204,7 +207,7 @@ export function ProgramBuilder({ eventId, sessions, onUpdate, onSessionsChange }
         })
       })
     } catch (error) {
-      console.error('Error resizing session:', error)
+      logger.error(error, { action: 'resizeSession', metadata: { sessionId: session.id } })
       // Revert on error
       onUpdate()
     }
@@ -224,7 +227,7 @@ export function ProgramBuilder({ eventId, sessions, onUpdate, onSessionsChange }
         method: 'DELETE'
       })
     } catch (error) {
-      console.error('Error deleting session:', error)
+      logger.error(error, { action: 'deleteSession', metadata: { sessionId } })
       alert('Erreur lors de la suppression de la session')
       // Revert on error
       onUpdate()
@@ -258,14 +261,14 @@ export function ProgramBuilder({ eventId, sessions, onUpdate, onSessionsChange }
 
       if (!response.ok) {
         const error = await response.json()
-        console.error('Failed to duplicate session:', error)
+        logger.error(error, { action: 'duplicateSession', metadata: { sessionId: session.id } })
         alert('Erreur lors de la duplication de la session')
         return
       }
 
       onUpdate()
     } catch (error) {
-      console.error('Error duplicating session:', error)
+      logger.error(error, { action: 'duplicateSession', metadata: { sessionId: session.id } })
       alert('Erreur lors de la duplication de la session')
     }
   }
@@ -288,7 +291,7 @@ export function ProgramBuilder({ eventId, sessions, onUpdate, onSessionsChange }
         body: JSON.stringify({ isPublic: !session.isPublic })
       })
     } catch (error) {
-      console.error('Error toggling visibility:', error)
+      logger.error(error, { action: 'toggleVisibility', metadata: { sessionId: session.id } })
       // Revert on error
       onUpdate()
     }

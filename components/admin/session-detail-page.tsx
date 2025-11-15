@@ -118,23 +118,6 @@ export default function SessionDetailPage({ sessionType, labels }: SessionDetail
   const groupsApi = `/api/admin/events/${eventId}/sessions/${sessionId}/groups`
   const participantsApi = `/api/admin/events/${eventId}/sessions/${sessionId}/participants`
 
-  useEffect(() => {
-    loadData()
-  }, [eventId, sessionId])
-
-  async function loadData() {
-    try {
-      setLoading(true)
-      await Promise.all([
-        fetchSession(),
-        fetchGroups(),
-        fetchParticipants()
-      ])
-    } finally {
-      setLoading(false)
-    }
-  }
-
   const fetchSession = useCallback(async () => {
     const response = await fetch(`/api/admin/events/${eventId}/sessions/${sessionId}`)
     if (!response.ok) throw new Error('Failed to fetch session')
@@ -155,6 +138,23 @@ export default function SessionDetailPage({ sessionType, labels }: SessionDetail
     const data = await response.json()
     setParticipants(data.participants || [])
   }, [participantsApi])
+
+  const loadData = useCallback(async () => {
+    try {
+      setLoading(true)
+      await Promise.all([
+        fetchSession(),
+        fetchGroups(),
+        fetchParticipants()
+      ])
+    } finally {
+      setLoading(false)
+    }
+  }, [fetchSession, fetchGroups, fetchParticipants])
+
+  useEffect(() => {
+    loadData()
+  }, [loadData])
 
   const handleCreateGroup = useCallback(async () => {
     try {

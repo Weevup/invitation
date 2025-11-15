@@ -1,12 +1,16 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Hotel, Plus, MapPin, Star, Bed, Users, ExternalLink } from 'lucide-react'
 import { AccommodationDialog } from '@/components/admin/accommodation-dialog'
+import { createClientLogger } from '@/lib/client-logger'
+
+const logger = createClientLogger({ component: 'AccommodationPage' })
+
 
 interface Accommodation {
   id: string
@@ -37,11 +41,7 @@ export default function AccommodationPage() {
   const [loading, setLoading] = useState(true)
   const [dialogOpen, setDialogOpen] = useState(false)
 
-  useEffect(() => {
-    fetchAccommodations()
-  }, [eventId])
-
-  const fetchAccommodations = async () => {
+  const fetchAccommodations = useCallback(async () => {
     try {
       setLoading(true)
       const response = await fetch(`/api/admin/events/${eventId}/accommodations`)
@@ -50,11 +50,15 @@ export default function AccommodationPage() {
         setAccommodations(data.accommodations || [])
       }
     } catch (error) {
-      console.error('Error fetching accommodations:', error)
+      logger.error(error, { action: 'fetchingAccommodations' })
     } finally {
       setLoading(false)
     }
-  }
+  }, [eventId])
+
+  useEffect(() => {
+    fetchAccommodations()
+  }, [fetchAccommodations])
 
   if (loading) {
     return (

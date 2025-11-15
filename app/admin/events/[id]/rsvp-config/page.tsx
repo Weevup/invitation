@@ -22,6 +22,10 @@ import {
 import { useParams } from 'next/navigation'
 import { toast } from 'sonner'
 import { RSVPPreviewInteractive } from '@/components/admin/rsvp-preview-interactive'
+import { createClientLogger } from '@/lib/client-logger'
+
+const logger = createClientLogger({ component: 'RsvpConfigPage' })
+
 
 interface FormField {
   id: string
@@ -101,7 +105,7 @@ export default function RSVPConfigPage() {
           }
         }
       } catch (error) {
-        console.error("Failed to load RSVP configuration:", error);
+        logger.error(error, { action: 'FailedToLoadRsvpConfiguration' });
       }
     };
 

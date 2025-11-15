@@ -13,6 +13,10 @@ import { AddGuestDialog } from '@/components/add-guest-dialog'
 import { ImportCSVDialog } from '@/components/import-csv-dialog'
 import { SendInvitationsDialog } from '@/components/send-invitations-dialog'
 import { ModuleSelector } from '@/components/admin/module-selector'
+import { createClientLogger } from '@/lib/client-logger'
+
+const logger = createClientLogger({ component: 'Page' })
+
 
 interface EventStats {
   totalGuests: number
@@ -46,7 +50,7 @@ export default function EventOverviewPage() {
         setEvent(data)
       }
     } catch (error) {
-      console.error('Error fetching event:', error)
+      logger.error(error, { action: 'fetchingEvent' })
     } finally {
       setLoading(false)
     }

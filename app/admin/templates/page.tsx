@@ -39,6 +39,9 @@ import {
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { toast } from 'sonner'
 import { EmailPreviewModal } from '@/components/email-preview-modal'
+import { createClientLogger } from '@/lib/client-logger'
+
+const logger = createClientLogger({ component: 'TemplatesPage' })
 
 interface EmailTemplate {
   id: string
@@ -95,7 +98,7 @@ export default function TemplatesPage() {
       const data = await response.json()
       setTemplates(data)
     } catch (error) {
-      console.error('Error fetching templates:', error)
+      logger.error(error, { action: 'fetchTemplates' })
       toast.error('Erreur lors du chargement des templates')
     } finally {
       setLoading(false)
@@ -167,7 +170,7 @@ export default function TemplatesPage() {
         toast.error(data.error || 'Erreur lors de la sauvegarde')
       }
     } catch (error) {
-      console.error('Error saving template:', error)
+      logger.error(error, { action: 'saveTemplate' })
       toast.error('Erreur lors de la sauvegarde du template')
     } finally {
       setSaving(false)
@@ -187,7 +190,7 @@ export default function TemplatesPage() {
         toast.error(data.error || 'Erreur lors de la suppression')
       }
     } catch (error) {
-      console.error('Error deleting template:', error)
+      logger.error(error, { action: 'deleteTemplate' })
       toast.error('Erreur lors de la suppression du template')
     }
   }
