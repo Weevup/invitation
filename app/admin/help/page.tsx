@@ -10,7 +10,7 @@ import {
   Database, ExternalLink, Lightbulb, Plane, Hotel,
   AlertTriangle, TrendingUp, FileSpreadsheet, Download,
   Clock, MapPin, Bed, Activity, Zap, Shield, Code, Rocket,
-  Eye, TestTube
+  Eye, TestTube, CreditCard, QrCode
 } from 'lucide-react'
 import Link from 'next/link'
 import { useState } from 'react'
@@ -136,7 +136,7 @@ export default function HelpPage() {
               <CardHeader>
                 <CardTitle className="text-[#004645] flex items-center gap-2">
                   <BookOpen className="h-6 w-6 text-[#009197]" />
-                  Guide de démarrage en 6 étapes
+                  Guide de démarrage en 7 étapes
                 </CardTitle>
                 <CardDescription>
                   Suivez ces étapes pour créer et gérer votre premier événement
@@ -227,12 +227,28 @@ export default function HelpPage() {
                   },
                   {
                     id: 6,
+                    title: "Générer les badges",
+                    icon: CreditCard,
+                    color: "text-[#009197]",
+                    description: "Créez et imprimez les badges pour vos invités",
+                    details: [
+                      "Accédez à l'onglet Badges depuis la page événement",
+                      "Choisissez un template (Corporate, VIP, Lanyard) ou personnalisez",
+                      "Configurez le design : taille, orientation, champs à afficher",
+                      "Générez les badges pour les invités sélectionnés",
+                      "Exportez en PDF haute qualité (300 DPI) pour impression",
+                      "Les QR codes sont automatiquement intégrés pour le check-in"
+                    ],
+                    link: "/admin"
+                  },
+                  {
+                    id: 7,
                     title: "Jour de l'événement",
                     icon: CheckCircle,
                     color: "text-green-600",
                     description: "Gérez les arrivées et le check-in avec les QR codes",
                     details: [
-                      "Mode Check-in : Scannez les QR codes à l'entrée",
+                      "Mode Check-in : Scannez les QR codes à l'entrée (des emails ou badges)",
                       "Consultez la liste des présents en temps réel",
                       "Marquez manuellement les invités sans QR code",
                       "Gérez les invités de dernière minute",
@@ -382,6 +398,20 @@ export default function HelpPage() {
                     'Sections : Speakers, Timeline, Sponsors, FAQ, Galerie',
                     'Personnalisation des couleurs et typographies',
                     'Formulaire RSVP intégré avec QR code'
+                  ],
+                  status: 'live'
+                },
+                {
+                  id: 'badges',
+                  name: 'Système de Badges',
+                  icon: CreditCard,
+                  color: 'from-[#004645] to-[#009197]',
+                  description: 'Générez des badges professionnels pour vos événements',
+                  features: [
+                    '3 templates prédéfinis (Corporate, VIP, Lanyard)',
+                    'Personnalisation complète (taille, orientation, champs)',
+                    'QR codes intégrés pour le check-in',
+                    'Export PDF haute qualité (300 DPI) pour impression'
                   ],
                   status: 'live'
                 }
