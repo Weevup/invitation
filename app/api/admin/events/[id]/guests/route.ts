@@ -5,6 +5,9 @@ import { adminApiRateLimit, getRateLimitIdentifier, getRateLimitHeaders, normali
 import { createGuestSchema, validateSchema } from '@/lib/validations'
 import { requireAdmin, handleAuthError } from '@/lib/auth-utils'
 import { requireEventOwnership } from '@/lib/permissions'
+import { createLogger } from '@/lib/logger'
+
+const guestManagementLogger = createLogger({ module: 'guest', type: 'management' })
 
 /**
  * Generate automatic tags based on professional information
@@ -101,7 +104,7 @@ export async function GET(
       total: guests.length,
     })
   } catch (error) {
-    console.error('Error fetching guests:', error)
+    guestManagementLogger.error({ error, stack: error instanceof Error ? error.stack : undefined }, 'Error fetching guests')
     return NextResponse.json(
       { error: 'Erreur lors du chargement des invités' },
       { status: 500 }
@@ -250,7 +253,7 @@ export async function POST(
       invitationUrl: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/guest/${token}`,
     }, { status: 201 })
   } catch (error) {
-    console.error('Error creating guest:', error)
+    guestManagementLogger.error({ error, stack: error instanceof Error ? error.stack : undefined }, 'Error creating guest')
     return handleAuthError(error)
   }
 }
