@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Plus, GripVertical, Edit, Trash2, Copy, Eye, EyeOff } from 'lucide-react'
+import { Plus, Edit, Trash2, Copy, Eye, EyeOff, Clock, MapPin, Users } from 'lucide-react'
 import { SessionEditor } from './session-editor'
 import { Badge } from '@/components/ui/badge'
 
@@ -68,95 +68,34 @@ const SESSION_COLORS: Record<string, string> = {
   OTHER: '#6B7280'
 }
 
+const SESSION_TYPE_LABELS: Record<string, string> = {
+  KEYNOTE: 'Keynote',
+  WORKSHOP: 'Atelier',
+  CONFERENCE: 'Conférence',
+  TEAMBUILDING: 'Team Building',
+  MEAL: 'Repas',
+  BREAK: 'Pause',
+  TRANSFER: 'Transfert',
+  ARRIVAL: 'Arrivée',
+  DEPARTURE: 'Départ',
+  FREE_TIME: 'Temps libre',
+  NETWORKING: 'Networking',
+  TRAINING: 'Formation',
+  PANEL: 'Table ronde',
+  OTHER: 'Autre'
+}
+
 export function ProgramBuilder({ eventId, sessions, onUpdate }: ProgramBuilderProps) {
-  const [draggedSession, setDraggedSession] = useState<string | null>(null)
+  const [draggedSession, setDraggedSession] = useState<Session | null>(null)
   const [editingSession, setEditingSession] = useState<Session | null>(null)
   const [creatingSession, setCreatingSession] = useState(false)
+  const [dragOverTime, setDragOverTime] = useState<Date | null>(null)
 
-  const handleDragStart = (sessionId: string) => {
-    setDraggedSession(sessionId)
-  }
-
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault()
-  }
-
-  const handleDrop = async (e: React.DragEvent, targetSessionId: string) => {
-    e.preventDefault()
-    e.stopPropagation()
-
-    if (!draggedSession || draggedSession === targetSessionId) {
-      setDraggedSession(null)
-      return
-    }
-
-    const draggedIndex = sessions.findIndex(s => s.id === draggedSession)
-    const targetIndex = sessions.findIndex(s => s.id === targetSessionId)
-
-    if (draggedIndex === -1 || targetIndex === -1) {
-      setDraggedSession(null)
-      return
-    }
-
-    // Réorganiser
-    const newSessions = [...sessions]
-    const [removed] = newSessions.splice(draggedIndex, 1)
-    newSessions.splice(targetIndex, 0, removed)
-
-    // Sauvegarder l'ordre avec le bon champ "timelineOrder"
-    try {
-      for (let i = 0; i < newSessions.length; i++) {
-        await fetch(`/api/admin/events/${eventId}/sessions/${newSessions[i].id}`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ timelineOrder: i })
-        })
-      }
-
-      setDraggedSession(null)
-      onUpdate()
-    } catch (error) {
-      console.error('Error reordering sessions:', error)
-      setDraggedSession(null)
-    }
-  }
-
-  const handleDelete = async (sessionId: string) => {
-    if (!confirm('Supprimer cette session ?')) return
-
-    await fetch(`/api/admin/events/${eventId}/sessions/${sessionId}`, {
-      method: 'DELETE'
-    })
-
-    onUpdate()
-  }
-
-  const handleDuplicate = async (session: Session) => {
-    const newSession = {
-      ...session,
-      id: undefined,
-      title: `${session.title} (copie)`,
-      status: 'DRAFT'
-    }
-
-    await fetch(`/api/admin/events/${eventId}/sessions`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(newSession)
-    })
-
-    onUpdate()
-  }
-
-  const handleToggleVisibility = async (session: Session) => {
-    await fetch(`/api/admin/events/${eventId}/sessions/${session.id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ isPublic: !session.isPublic })
-    })
-
-    onUpdate()
-  }
+  // Constants for timeline visualization
+  const HOUR_HEIGHT = 80 // pixels per hour
+  const MIN_SESSION_HEIGHT = 40 // minimum height for readability
+  const TIME_START = 6 // 6:00 AM
+  const TIME_END = 23 // 11:00 PM
 
   const formatTime = (dateString: string) => {
     return new Date(dateString).toLocaleTimeString('fr-FR', {
@@ -173,6 +112,153 @@ export function ProgramBuilder({ eventId, sessions, onUpdate }: ProgramBuilderPr
     })
   }
 
+  // Calculate position and height based on time
+  const getSessionPosition = (session: Session) => {
+    const start = new Date(session.startTime)
+    const hours = start.getHours() + start.getMinutes() / 60
+    const offsetFromStart = hours - TIME_START
+    const top = Math.max(0, offsetFromStart * HOUR_HEIGHT)
+
+    // Height based on duration
+    const durationHours = session.duration / 60
+    const height = Math.max(MIN_SESSION_HEIGHT, durationHours * HOUR_HEIGHT)
+
+    return { top, height }
+  }
+
+  // Convert pixel position to time
+  const getTimeFromPosition = (top: number, day: Date) => {
+    const hours = TIME_START + (top / HOUR_HEIGHT)
+    const newTime = new Date(day)
+    newTime.setHours(Math.floor(hours))
+    newTime.setMinutes(Math.round((hours % 1) * 60))
+    newTime.setSeconds(0)
+    newTime.setMilliseconds(0)
+    return newTime
+  }
+
+  const handleDragStart = (session: Session) => {
+    setDraggedSession(session)
+  }
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>, day: string) => {
+    e.preventDefault()
+
+    // Calculate time from mouse position
+    const rect = e.currentTarget.getBoundingClientRect()
+    const y = e.clientY - rect.top
+    const dayDate = sessions.find(s => formatDate(s.startTime) === day)
+    if (dayDate) {
+      const baseDate = new Date(dayDate.startTime)
+      baseDate.setHours(0, 0, 0, 0)
+      const newTime = getTimeFromPosition(y, baseDate)
+      setDragOverTime(newTime)
+    }
+  }
+
+  const handleDrop = async (e: React.DragEvent<HTMLDivElement>, day: string) => {
+    e.preventDefault()
+
+    if (!draggedSession) return
+
+    // Calculate new time from drop position
+    const rect = e.currentTarget.getBoundingClientRect()
+    const y = e.clientY - rect.top
+
+    const dayDate = sessions.find(s => formatDate(s.startTime) === day)
+    if (!dayDate) return
+
+    const baseDate = new Date(dayDate.startTime)
+    baseDate.setHours(0, 0, 0, 0)
+    const newStartTime = getTimeFromPosition(y, baseDate)
+    const newEndTime = new Date(newStartTime.getTime() + draggedSession.duration * 60000)
+
+    try {
+      await fetch(`/api/admin/events/${eventId}/sessions/${draggedSession.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          startTime: newStartTime.toISOString(),
+          endTime: newEndTime.toISOString(),
+        })
+      })
+
+      setDraggedSession(null)
+      setDragOverTime(null)
+      onUpdate()
+    } catch (error) {
+      console.error('Error moving session:', error)
+      setDraggedSession(null)
+      setDragOverTime(null)
+    }
+  }
+
+  const handleDelete = async (sessionId: string) => {
+    if (!confirm('Supprimer cette session ?')) return
+
+    try {
+      await fetch(`/api/admin/events/${eventId}/sessions/${sessionId}`, {
+        method: 'DELETE'
+      })
+      onUpdate()
+    } catch (error) {
+      console.error('Error deleting session:', error)
+      alert('Erreur lors de la suppression de la session')
+    }
+  }
+
+  const handleDuplicate = async (session: Session) => {
+    // Only send fields that the API expects (from createSessionSchema)
+    const newSession = {
+      title: `${session.title} (copie)`,
+      description: session.description,
+      type: session.type,
+      status: 'DRAFT',
+      startTime: session.startTime,
+      endTime: session.endTime,
+      venue: session.venue,
+      room: session.room,
+      capacity: session.capacity,
+      speakers: session.speakers,
+      color: session.color,
+      icon: session.icon,
+      isPublic: session.isPublic,
+    }
+
+    try {
+      const response = await fetch(`/api/admin/events/${eventId}/sessions`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newSession)
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        console.error('Failed to duplicate session:', error)
+        alert('Erreur lors de la duplication de la session')
+        return
+      }
+
+      onUpdate()
+    } catch (error) {
+      console.error('Error duplicating session:', error)
+      alert('Erreur lors de la duplication de la session')
+    }
+  }
+
+  const handleToggleVisibility = async (session: Session) => {
+    try {
+      await fetch(`/api/admin/events/${eventId}/sessions/${session.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isPublic: !session.isPublic })
+      })
+      onUpdate()
+    } catch (error) {
+      console.error('Error toggling visibility:', error)
+    }
+  }
+
   // Grouper par jour
   const sessionsByDay = sessions.reduce((acc, session) => {
     const day = formatDate(session.startTime)
@@ -181,13 +267,25 @@ export function ProgramBuilder({ eventId, sessions, onUpdate }: ProgramBuilderPr
     return acc
   }, {} as Record<string, Session[]>)
 
+  // Generate hour markers
+  const generateHourMarkers = () => {
+    const markers = []
+    for (let hour = TIME_START; hour <= TIME_END; hour++) {
+      markers.push(hour)
+    }
+    return markers
+  }
+
+  const hourMarkers = generateHourMarkers()
+  const totalHeight = (TIME_END - TIME_START) * HOUR_HEIGHT
+
   return (
     <>
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <div>
-            <h3 className="text-lg font-semibold text-[#004645]">Sessions du programme</h3>
-            <p className="text-sm text-[#004645]/70">Glissez-déposez pour réorganiser</p>
+            <h3 className="text-lg font-semibold text-[#004645]">Planning visuel</h3>
+            <p className="text-sm text-[#004645]/70">Glissez-déposez les sessions pour changer leur horaire</p>
           </div>
           <Button
             type="button"
@@ -201,105 +299,219 @@ export function ProgramBuilder({ eventId, sessions, onUpdate }: ProgramBuilderPr
 
         {Object.entries(sessionsByDay).map(([day, daySessions]) => (
           <Card key={day} className="border-[#9CD9F6]/30 bg-white/80 backdrop-blur">
-            <CardHeader>
-              <CardTitle className="text-[#004645] flex items-center gap-2">
+            <CardHeader className="bg-gradient-to-r from-[#004645] to-[#009197] text-white">
+              <CardTitle className="text-white flex items-center gap-2">
                 📅 {day}
-                <Badge variant="outline" className="ml-2">
+                <Badge variant="secondary" className="ml-2 bg-white/20 text-white border-white/30">
                   {daySessions.length} session{daySessions.length > 1 ? 's' : ''}
                 </Badge>
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-2">
-              {daySessions.map((session) => (
-                <div
-                  key={session.id}
-                  draggable={true}
-                  onDragStart={(e) => {
-                    e.dataTransfer.effectAllowed = 'move'
-                    handleDragStart(session.id)
-                  }}
-                  onDragOver={handleDragOver}
-                  onDrop={(e) => handleDrop(e, session.id)}
-                  onDragEnd={() => setDraggedSession(null)}
-                  className={`
-                    group relative flex items-center gap-3 p-4 rounded-lg border-2 transition-all cursor-move
-                    ${draggedSession === session.id
-                      ? 'border-[#009197] bg-[#009197]/10 scale-105'
-                      : 'border-[#9CD9F6]/30 hover:border-[#009197]/50'
-                    }
-                    ${!session.isPublic ? 'opacity-60' : ''}
-                  `}
-                  style={{
-                    borderLeftWidth: '4px',
-                    borderLeftColor: SESSION_COLORS[session.type] || '#6B7280'
-                  }}
-                >
-                  <GripVertical className="h-5 w-5 text-[#004645]/30 group-hover:text-[#009197]" />
-                  
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-xl">{SESSION_ICONS[session.type] || '📌'}</span>
-                      <h4 className="font-semibold text-[#004645] truncate">{session.title}</h4>
-                      {!session.isPublic && (
-                        <Badge variant="outline" className="text-xs">Privée</Badge>
-                      )}
-                      {session.status === 'DRAFT' && (
-                        <Badge variant="outline" className="text-xs bg-gray-100">Brouillon</Badge>
-                      )}
+            <CardContent className="p-0">
+              <div className="flex">
+                {/* Time column */}
+                <div className="w-20 bg-gray-50 border-r border-gray-200 flex-shrink-0">
+                  {hourMarkers.map((hour) => (
+                    <div
+                      key={hour}
+                      className="relative border-b border-gray-200 text-xs text-gray-500 font-medium px-2 py-1"
+                      style={{ height: `${HOUR_HEIGHT}px` }}
+                    >
+                      {hour.toString().padStart(2, '0')}:00
                     </div>
-                    <div className="flex items-center gap-4 text-sm text-[#004645]/70">
-                      <span>⏰ {formatTime(session.startTime)} - {formatTime(session.endTime)}</span>
-                      <span>⌚ {session.duration} min</span>
-                      {session.venue && <span>📍 {session.venue}</span>}
-                      {session.room && <span>🚪 {session.room}</span>}
-                      {session.capacity && <span>👥 {session.capacity} pers.</span>}
-                    </div>
-                  </div>
-
-                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => handleToggleVisibility(session)}
-                      className="h-8 w-8 p-0"
-                    >
-                      {session.isPublic ? (
-                        <Eye className="h-4 w-4" />
-                      ) : (
-                        <EyeOff className="h-4 w-4" />
-                      )}
-                    </Button>
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => setEditingSession(session)}
-                      className="h-8 w-8 p-0"
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => handleDuplicate(session)}
-                      className="h-8 w-8 p-0"
-                    >
-                      <Copy className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => handleDelete(session.id)}
-                      className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
+                  ))}
                 </div>
-              ))}
+
+                {/* Timeline column */}
+                <div
+                  className="flex-1 relative bg-white"
+                  style={{ minHeight: `${totalHeight}px` }}
+                  onDragOver={(e) => handleDragOver(e, day)}
+                  onDrop={(e) => handleDrop(e, day)}
+                  onDragLeave={() => setDragOverTime(null)}
+                >
+                  {/* Hour grid lines */}
+                  {hourMarkers.map((hour) => (
+                    <div
+                      key={hour}
+                      className="absolute w-full border-b border-gray-100"
+                      style={{ top: `${(hour - TIME_START) * HOUR_HEIGHT}px` }}
+                    />
+                  ))}
+
+                  {/* Drag over indicator */}
+                  {draggedSession && dragOverTime && formatDate(draggedSession.startTime) === day && (
+                    <div
+                      className="absolute w-full border-2 border-dashed border-[#009197] bg-[#009197]/5 rounded-lg pointer-events-none z-10"
+                      style={{
+                        top: `${getSessionPosition({ ...draggedSession, startTime: dragOverTime.toISOString() }).top}px`,
+                        height: `${getSessionPosition(draggedSession).height}px`,
+                        left: '8px',
+                        right: '8px'
+                      }}
+                    >
+                      <div className="absolute top-2 left-2 text-xs font-semibold text-[#009197]">
+                        {formatTime(dragOverTime.toISOString())}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Sessions */}
+                  {daySessions.map((session) => {
+                    const { top, height } = getSessionPosition(session)
+                    const sessionColor = SESSION_COLORS[session.type] || session.color || '#009197'
+                    const sessionIcon = SESSION_ICONS[session.type] || session.icon || '📌'
+                    const isDragging = draggedSession?.id === session.id
+
+                    return (
+                      <div
+                        key={session.id}
+                        draggable={true}
+                        onDragStart={() => handleDragStart(session)}
+                        onDragEnd={() => {
+                          setDraggedSession(null)
+                          setDragOverTime(null)
+                        }}
+                        className={`
+                          absolute left-2 right-2 rounded-lg border-2 shadow-sm transition-all cursor-move group
+                          ${isDragging ? 'opacity-50 scale-95 shadow-lg' : 'hover:shadow-md hover:scale-[1.01]'}
+                          ${!session.isPublic ? 'opacity-75' : ''}
+                        `}
+                        style={{
+                          top: `${top}px`,
+                          height: `${height}px`,
+                          backgroundColor: 'white',
+                          borderLeftWidth: '6px',
+                          borderLeftColor: sessionColor,
+                          borderColor: `${sessionColor}40`,
+                          zIndex: isDragging ? 50 : 20
+                        }}
+                      >
+                        <div className="h-full flex flex-col p-3 overflow-hidden">
+                          {/* Header */}
+                          <div className="flex items-start justify-between gap-2 mb-1">
+                            <div className="flex items-center gap-2 flex-1 min-w-0">
+                              <span className="text-lg flex-shrink-0">{sessionIcon}</span>
+                              <div className="flex-1 min-w-0">
+                                <h4 className="font-semibold text-[#004645] text-sm leading-tight truncate">
+                                  {session.title}
+                                </h4>
+                                <div className="flex items-center gap-1.5 text-xs text-[#004645]/70 mt-0.5">
+                                  <Clock className="h-3 w-3" />
+                                  {formatTime(session.startTime)} - {formatTime(session.endTime)}
+                                  <span className="text-[#004645]/50">• {session.duration} min</span>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Actions */}
+                            <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant="ghost"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  handleToggleVisibility(session)
+                                }}
+                                className="h-6 w-6 p-0"
+                                title={session.isPublic ? 'Rendre privée' : 'Rendre publique'}
+                              >
+                                {session.isPublic ? (
+                                  <Eye className="h-3 w-3" />
+                                ) : (
+                                  <EyeOff className="h-3 w-3" />
+                                )}
+                              </Button>
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant="ghost"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  setEditingSession(session)
+                                }}
+                                className="h-6 w-6 p-0"
+                                title="Modifier"
+                              >
+                                <Edit className="h-3 w-3" />
+                              </Button>
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant="ghost"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  handleDuplicate(session)
+                                }}
+                                className="h-6 w-6 p-0"
+                                title="Dupliquer"
+                              >
+                                <Copy className="h-3 w-3" />
+                              </Button>
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant="ghost"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  handleDelete(session.id)
+                                }}
+                                className="h-6 w-6 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                                title="Supprimer"
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          </div>
+
+                          {/* Details (only show if enough height) */}
+                          {height > 80 && (
+                            <div className="flex flex-wrap gap-2 text-xs mt-1">
+                              <Badge
+                                variant="outline"
+                                className="text-xs"
+                                style={{
+                                  borderColor: sessionColor,
+                                  color: sessionColor,
+                                  backgroundColor: `${sessionColor}10`
+                                }}
+                              >
+                                {SESSION_TYPE_LABELS[session.type] || session.type}
+                              </Badge>
+                              {!session.isPublic && (
+                                <Badge variant="outline" className="text-xs">🔒 Privée</Badge>
+                              )}
+                              {session.status === 'DRAFT' && (
+                                <Badge variant="outline" className="text-xs bg-gray-100">Brouillon</Badge>
+                              )}
+                            </div>
+                          )}
+
+                          {/* Location and capacity (only show if enough height) */}
+                          {height > 120 && (
+                            <div className="flex flex-wrap gap-3 text-xs text-[#004645]/70 mt-2">
+                              {session.venue && (
+                                <div className="flex items-center gap-1">
+                                  <MapPin className="h-3 w-3 text-[#009197]" />
+                                  <span>{session.venue}</span>
+                                  {session.room && <span className="text-[#004645]/50">• {session.room}</span>}
+                                </div>
+                              )}
+                              {session.capacity && (
+                                <div className="flex items-center gap-1">
+                                  <Users className="h-3 w-3 text-[#009197]" />
+                                  <span>{session.capacity} pers.</span>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
             </CardContent>
           </Card>
         ))}
