@@ -6,6 +6,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import crypto from 'crypto'
+import { createLogger } from '@/lib/logger'
+
+const webhookLogger = createLogger({ module: 'webhook', provider: 'sendgrid' })
 
 // SendGrid event types
 type SendGridEvent = {
@@ -33,7 +36,7 @@ function verifySignature(
     verifier.update(data)
     return verifier.verify(publicKey, signature, 'base64')
   } catch (error) {
-    console.error('Signature verification error:', error)
+    webhookLogger.error({ error }, 'Signature verification error')
     return false
   }
 }
@@ -50,7 +53,7 @@ export async function POST(request: NextRequest) {
 
     // Webhook verification is mandatory in production
     if (process.env.NODE_ENV === 'production' && !webhookPublicKey) {
-      console.error('SENDGRID_WEBHOOK_PUBLIC_KEY must be configured in production')
+      webhookLogger.error({ env: process.env.NODE_ENV }, 'SENDGRID_WEBHOOK_PUBLIC_KEY must be configured in production')
       return NextResponse.json({ error: 'Webhook not configured' }, { status: 500 })
     }
 
@@ -64,7 +67,7 @@ export async function POST(request: NextRequest) {
       }
     } else if (process.env.NODE_ENV !== 'development') {
       // In non-dev environments without key, log warning but allow (for staging)
-      console.warn('⚠️  SendGrid webhook signature verification is disabled - configure SENDGRID_WEBHOOK_PUBLIC_KEY')
+      webhookLogger.warn({ env: process.env.NODE_ENV }, 'SendGrid webhook signature verification is disabled - configure SENDGRID_WEBHOOK_PUBLIC_KEY')
     }
 
     // Process each event
@@ -85,7 +88,7 @@ export async function POST(request: NextRequest) {
       })
 
       if (!emailLog) {
-        console.warn(`Email log not found for message ${sg_message_id}`)
+        webhookLogger.warn({ messageId: sg_message_id, guestEmail, eventType }, 'Email log not found for SendGrid message')
         continue
       }
 
@@ -174,7 +177,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ received: true, processed: events.length })
   } catch (error) {
-    console.error('SendGrid webhook error:', error)
+    webhookLogger.error({ error, stack: error instanceof Error ? error.stack : undefined }, 'SendGrid webhook processing failed')
     return NextResponse.json(
       { error: 'Webhook processing failed' },
       { status: 500 }
