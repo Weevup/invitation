@@ -68,9 +68,9 @@ export default function AteliersPage() {
       if (!response.ok) throw new Error('Failed to fetch sessions')
 
       const data = await response.json()
-      // Filter only sessions that require groups/ateliers and ensure groups array exists
+      // Filter only WORKSHOP sessions that require groups/ateliers and ensure groups array exists
       const sessionsWithGroups = data.sessions
-        .filter((s: Session) => s.requiresGroups)
+        .filter((s: Session) => s.requiresGroups && s.type === 'WORKSHOP')
         .map((s: Session) => ({
           ...s,
           groups: s.groups || [], // Ensure groups is always an array
