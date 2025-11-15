@@ -6,10 +6,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import {
   Calendar, Users, TrendingUp, Plus, Mail, RefreshCw,
-  AlertCircle, Activity, Award, Trash2
+  AlertCircle, Activity, Award, Trash2, Rocket, ArrowRight
 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
+import { ChangelogCard, changelogData } from '@/components/admin/changelog-card';
 
 interface Event {
   id: string;
@@ -243,6 +244,40 @@ export default function AdminDashboard() {
             </Card>
           )}
         </div>
+      )}
+
+      {/* What's New Section */}
+      {changelogData.length > 0 && (
+        <Card className="border-[#FF4713]/30 bg-gradient-to-br from-orange-50 via-white to-white">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-gradient-to-r from-[#FF4713] to-orange-500">
+                  <Rocket className="h-5 w-5 text-white" />
+                </div>
+                <div>
+                  <CardTitle className="text-[#004645]">🎉 Nouveautés & Améliorations</CardTitle>
+                  <CardDescription className="mt-1">
+                    Découvrez les dernières fonctionnalités et optimisations
+                  </CardDescription>
+                </div>
+              </div>
+              <Link href="/admin/help">
+                <Button variant="outline" className="border-[#FF4713] text-[#FF4713] hover:bg-[#FF4713] hover:text-white">
+                  Voir tout
+                  <ArrowRight className="h-4 w-4 ml-2" />
+                </Button>
+              </Link>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="grid md:grid-cols-2 gap-4">
+              {changelogData.slice(0, 2).map((item) => (
+                <ChangelogCard key={item.id} item={item} compact />
+              ))}
+            </div>
+          </CardContent>
+        </Card>
       )}
 
       {/* Stats Grid */}

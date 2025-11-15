@@ -9,10 +9,11 @@ import {
   CheckCircle, ArrowRight, Sparkles, Play, FileText,
   Database, ExternalLink, Lightbulb, Plane, Hotel,
   AlertTriangle, TrendingUp, FileSpreadsheet, Download,
-  Clock, MapPin, Bed, Activity, Zap, Shield, Code
+  Clock, MapPin, Bed, Activity, Zap, Shield, Code, Rocket
 } from 'lucide-react'
 import Link from 'next/link'
 import { useState } from 'react'
+import { ChangelogCard, changelogData } from '@/components/admin/changelog-card'
 
 export default function HelpPage() {
   const [activeStep, setActiveStep] = useState<number | null>(null)
@@ -30,8 +31,12 @@ export default function HelpPage() {
           </p>
         </div>
 
-        <Tabs defaultValue="quickstart" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 mb-8">
+        <Tabs defaultValue="changelog" className="w-full">
+          <TabsList className="grid w-full grid-cols-4 mb-8">
+            <TabsTrigger value="changelog" className="flex items-center gap-2">
+              <Rocket className="h-4 w-4" />
+              Nouveautés
+            </TabsTrigger>
             <TabsTrigger value="quickstart" className="flex items-center gap-2">
               <Play className="h-4 w-4" />
               Démarrage rapide
@@ -45,6 +50,76 @@ export default function HelpPage() {
               Documentation technique
             </TabsTrigger>
           </TabsList>
+
+          {/* ONGLET 0 : Nouveautés & Changelog */}
+          <TabsContent value="changelog">
+            <div className="space-y-6">
+              <Card className="border-[#9CD9F6]/30 bg-white/80 backdrop-blur">
+                <CardHeader>
+                  <CardTitle className="text-[#004645] flex items-center gap-2">
+                    <Rocket className="h-6 w-6 text-[#FF4713]" />
+                    Dernières Améliorations & Optimisations
+                  </CardTitle>
+                  <CardDescription>
+                    Découvrez les nouvelles fonctionnalités, optimisations et améliorations récentes
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {changelogData.map((item) => (
+                      <ChangelogCard key={item.id} item={item} compact />
+                    ))}
+                  </div>
+
+                  {changelogData.length === 0 && (
+                    <div className="text-center py-12 text-[#004645]/70">
+                      <Rocket className="h-12 w-12 mx-auto mb-4 text-[#009197]" />
+                      <p>Aucune nouveauté pour le moment</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Guide d'utilisation des nouvelles fonctionnalités */}
+              <Card className="border-[#FF4713]/30 bg-gradient-to-br from-orange-50 to-white">
+                <CardHeader>
+                  <CardTitle className="text-[#004645] flex items-center gap-2">
+                    <Lightbulb className="h-5 w-5 text-[#FF4713]" />
+                    Comment profiter des nouveautés ?
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="flex items-start gap-3">
+                    <Badge className="bg-[#009197] text-white">1</Badge>
+                    <div>
+                      <p className="font-medium text-[#004645]">Testez la prévisualisation RSVP interactive</p>
+                      <p className="text-sm text-[#004645]/70 mt-1">
+                        Allez dans Configuration RSVP → Cliquez sur "Test interactif" pour voir le parcours complet
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <Badge className="bg-[#009197] text-white">2</Badge>
+                    <div>
+                      <p className="font-medium text-[#004645]">Utilisez les templates RSVP</p>
+                      <p className="text-sm text-[#004645]/70 mt-1">
+                        Cliquez sur "Templates" ✨ et choisissez parmi 7 configurations prédéfinies (Mariage, Corporate, etc.)
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <Badge className="bg-[#009197] text-white">3</Badge>
+                    <div>
+                      <p className="font-medium text-[#004645]">Profitez des nouveaux champs enrichis</p>
+                      <p className="text-sm text-[#004645]/70 mt-1">
+                        Collectez contact d'urgence, taille vêtement, horaires précis d'arrivée/départ, budget événement
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
 
           {/* ONGLET 1 : Démarrage rapide (ancien tutoriel) */}
           <TabsContent value="quickstart">
