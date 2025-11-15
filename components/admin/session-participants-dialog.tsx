@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -91,14 +91,7 @@ export function SessionParticipantsDialog({
   const [participants, setParticipants] = useState<Participant[]>([])
   const [selectedGuests, setSelectedGuests] = useState<Set<string>>(new Set())
 
-  useEffect(() => {
-    if (open) {
-      fetchGuests()
-      fetchParticipants()
-    }
-  }, [open, eventId, session.id])
-
-  const fetchGuests = async () => {
+  const fetchGuests = useCallback(async () => {
     try {
       const response = await fetch(`/api/admin/events/${eventId}/guests`)
       if (response.ok) {
@@ -109,9 +102,9 @@ export function SessionParticipantsDialog({
       logger.error(error, { action: 'fetchGuests', metadata: { eventId } })
       toast.error(getUserErrorMessage(error))
     }
-  }
+  }, [eventId])
 
-  const fetchParticipants = async () => {
+  const fetchParticipants = useCallback(async () => {
     try {
       const response = await fetch(`/api/admin/events/${eventId}/sessions/${session.id}`)
       if (response.ok) {
@@ -121,7 +114,14 @@ export function SessionParticipantsDialog({
     } catch (error) {
       logger.error(error, { action: 'fetchParticipants', metadata: { eventId, sessionId: session.id } })
     }
-  }
+  }, [eventId, session.id])
+
+  useEffect(() => {
+    if (open) {
+      fetchGuests()
+      fetchParticipants()
+    }
+  }, [open, fetchGuests, fetchParticipants])
 
   const handleAddParticipants = async () => {
     if (selectedGuests.size === 0) {

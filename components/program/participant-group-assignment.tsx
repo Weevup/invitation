@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -61,13 +61,7 @@ export function ParticipantGroupAssignment({
   const [selectedGroup, setSelectedGroup] = useState<string>('all')
   const { toast } = useToast()
 
-  useEffect(() => {
-    if (isOpen) {
-      loadData()
-    }
-  }, [isOpen, sessionId])
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       setLoading(true)
 
@@ -98,7 +92,13 @@ export function ParticipantGroupAssignment({
     } finally {
       setLoading(false)
     }
-  }
+  }, [eventId, sessionId, toast])
+
+  useEffect(() => {
+    if (isOpen) {
+      loadData()
+    }
+  }, [isOpen, loadData])
 
   const handleAssignToGroup = async (participantId: string, groupId: string | null) => {
     try {

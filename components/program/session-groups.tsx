@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -57,13 +57,7 @@ export function SessionGroups({ sessionId, eventId, isOpen, onClose }: SessionGr
     capacity: undefined as number | undefined,
   })
 
-  useEffect(() => {
-    if (isOpen) {
-      loadGroups()
-    }
-  }, [isOpen, sessionId])
-
-  const loadGroups = async () => {
+  const loadGroups = useCallback(async () => {
     try {
       setLoading(true)
       const response = await fetch(`/api/admin/events/${eventId}/sessions/${sessionId}/groups`)
@@ -81,7 +75,13 @@ export function SessionGroups({ sessionId, eventId, isOpen, onClose }: SessionGr
     } finally {
       setLoading(false)
     }
-  }
+  }, [eventId, sessionId, toast])
+
+  useEffect(() => {
+    if (isOpen) {
+      loadGroups()
+    }
+  }, [isOpen, loadGroups])
 
   const handleCreateGroup = async () => {
     if (!formData.name.trim()) {

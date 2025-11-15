@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -73,7 +73,7 @@ export function RoomAssignmentDialog({
     if (open) {
       fetchGuests()
     }
-  }, [open, eventId])
+  }, [open, fetchGuests])
 
   useEffect(() => {
     if (guestSearch) {
@@ -92,7 +92,7 @@ export function RoomAssignmentDialog({
     }
   }, [guestSearch, guests])
 
-  const fetchGuests = async () => {
+  const fetchGuests = useCallback(async () => {
     try {
       const response = await fetch(`/api/admin/events/${eventId}/guests`)
       if (response.ok) {
@@ -104,7 +104,7 @@ export function RoomAssignmentDialog({
       logger.error(error, { action: 'fetchGuests', metadata: { eventId } })
       toast.error(getUserErrorMessage(error))
     }
-  }
+  }, [eventId])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
