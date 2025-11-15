@@ -116,7 +116,7 @@ export function ProgramBuilder({ eventId, sessions, onUpdate, onSessionsChange }
         })
       })
     } catch (error) {
-      logger.error(error, { action: 'moveSession', metadata: { sessionId: session.id } })
+      logger.error(error, { action: 'moveSession', metadata: { sessionId: draggedSession.id } })
       // Revert on error
       onUpdate()
     }
