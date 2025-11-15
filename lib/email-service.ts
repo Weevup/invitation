@@ -8,6 +8,7 @@
 
 import nodemailer from 'nodemailer'
 import { decrypt } from './encryption'
+import { emailLogger } from './logger'
 
 export interface EmailData {
   to: string | string[]
@@ -177,7 +178,7 @@ export async function sendEmailWithTemplate(
       integration
     )
   } catch (error) {
-    console.error('Error sending email with template:', error)
+    emailLogger.error({ error, templateId }, 'Error sending email with template')
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error'
@@ -210,7 +211,10 @@ export async function sendEmail(
         return { success: false, error: `Unsupported provider: ${integration.provider}` }
     }
   } catch (error) {
-    console.error('Email sending error:', error)
+    emailLogger.error(
+      { error, provider: integration.provider, to: data.to, subject: data.subject },
+      'Email sending error'
+    )
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',
@@ -430,7 +434,7 @@ export async function sendEmailLegacy(params: {
         }
       }
     } catch (err) {
-      console.warn('No active email integration found, using SMTP fallback')
+      emailLogger.warn('No active email integration found, using SMTP fallback')
     }
 
     // Fallback to SMTP from environment variables if no integration
@@ -490,7 +494,7 @@ export async function sendEmailLegacy(params: {
       return { success: false, error: result.error }
     }
   } catch (error) {
-    console.error('Error in sendEmailLegacy:', error)
+    emailLogger.error({ error }, 'Error in sendEmailLegacy')
     return { success: false, error }
   }
 }

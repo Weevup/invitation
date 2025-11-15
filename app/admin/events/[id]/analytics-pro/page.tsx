@@ -61,7 +61,8 @@ export default function AnalyticsProPage() {
 
   const fetchData = async () => {
     try {
-      const response = await fetch(`/api/admin/events/${eventId}`)
+      // Charger l'événement avec tous les invités (nécessaire pour les analytics)
+      const response = await fetch(`/api/admin/events/${eventId}?includeGuests=true`)
       if (response.ok) {
         const data = await response.json()
         setEvent(data)

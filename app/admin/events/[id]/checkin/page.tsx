@@ -65,25 +65,12 @@ export default function CheckinPage() {
 
   const fetchGuests = useCallback(async () => {
     try {
-      const response = await fetch(`/api/admin/events/${eventId}`)
+      // OPTIMISÉ: Utiliser l'endpoint dédié check-in qui retourne uniquement les invités confirmés
+      const response = await fetch(`/api/admin/events/${eventId}/checkin-guests`)
       if (response.ok) {
         const data = await response.json()
-        const confirmedGuests = data.guests.filter((g: Guest) => g.rsvp?.attending === true)
-        setGuests(confirmedGuests)
-
-        // Calculate stats
-        const checkedInCount = confirmedGuests.filter((g: Guest) =>
-          g.checkins && g.checkins.length > 0
-        ).length
-
-        setStats({
-          total: confirmedGuests.length,
-          checkedIn: checkedInCount,
-          pending: confirmedGuests.length - checkedInCount,
-          percentageCheckedIn: confirmedGuests.length > 0
-            ? Math.round((checkedInCount / confirmedGuests.length) * 100)
-            : 0
-        })
+        setGuests(data.guests)
+        setStats(data.stats) // Stats pré-calculées par l'API
       }
     } catch (error) {
       console.error('Error fetching guests:', error)

@@ -6,6 +6,9 @@ import {
   generateInvitationEmail,
   generateReminderEmail,
 } from '@/lib/email-templates'
+import { createLogger, startTimer } from '@/lib/logger'
+
+const cronLogger = createLogger({ module: 'cron', job: 'process-scheduled-emails' })
 
 /**
  * Vercel Cron Job - Process Scheduled Emails
@@ -21,7 +24,7 @@ export async function GET(request: NextRequest) {
     const cronSecret = process.env.CRON_SECRET
 
     if (!cronSecret) {
-      console.error('CRON_SECRET not configured')
+      cronLogger.error('CRON_SECRET not configured')
       return NextResponse.json(
         { error: 'Cron not configured' },
         { status: 500 }
@@ -29,7 +32,7 @@ export async function GET(request: NextRequest) {
     }
 
     if (authHeader !== `Bearer ${cronSecret}`) {
-      console.error('Unauthorized cron attempt')
+      cronLogger.warn({ authHeader }, 'Unauthorized cron attempt')
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -37,7 +40,8 @@ export async function GET(request: NextRequest) {
     }
 
     const now = new Date()
-    console.log(`[CRON] Processing scheduled emails at ${now.toISOString()}`)
+    const timer = startTimer()
+    cronLogger.info({ timestamp: now.toISOString() }, 'Processing scheduled emails')
 
     // Récupérer les emails à envoyer
     const emailsToSend = await prisma.scheduledEmail.findMany({
@@ -53,9 +57,10 @@ export async function GET(request: NextRequest) {
       take: 50, // Limiter à 50 emails par exécution
     })
 
-    console.log(`[CRON] Found ${emailsToSend.length} emails to send`)
+    cronLogger.info({ count: emailsToSend.length }, 'Found emails to send')
 
     if (emailsToSend.length === 0) {
+      timer.end({}, 'No emails to process')
       return NextResponse.json({
         success: true,
         processed: 0,
@@ -72,7 +77,7 @@ export async function GET(request: NextRequest) {
     })
 
     if (!emailIntegration) {
-      console.error('[CRON] No email integration configured')
+      cronLogger.error('No email integration configured')
       return NextResponse.json({
         success: false,
         error: 'No email integration configured',
@@ -84,8 +89,16 @@ export async function GET(request: NextRequest) {
 
     // Traiter chaque email programmé
     for (const scheduled of emailsToSend) {
+      const scheduleLogger = createLogger({
+        module: 'cron',
+        job: 'process-scheduled-emails',
+        scheduledEmailId: scheduled.id,
+        eventId: scheduled.event.id,
+        type: scheduled.type,
+      })
+
       try {
-        console.log(`[CRON] Processing scheduled email ${scheduled.id}`)
+        scheduleLogger.info('Processing scheduled email')
 
         // Marquer comme PROCESSING
         await prisma.scheduledEmail.update({
@@ -100,7 +113,7 @@ export async function GET(request: NextRequest) {
           },
         })
 
-        console.log(`[CRON] Sending to ${guests.length} guests`)
+        scheduleLogger.info({ guestCount: guests.length }, 'Sending to guests')
 
         let sentCount = 0
         let failedCount = 0
@@ -215,11 +228,17 @@ export async function GET(request: NextRequest) {
               })
             } else {
               failedCount++
-              console.error(`[CRON] Failed to send to ${guest.email}:`, result.error)
+              scheduleLogger.error(
+                { email: guest.email, error: result.error },
+                'Failed to send email to guest'
+              )
             }
           } catch (guestError) {
             failedCount++
-            console.error(`[CRON] Error sending to guest ${guest.id}:`, guestError)
+            scheduleLogger.error(
+              { guestId: guest.id, error: guestError },
+              'Error sending to guest'
+            )
           }
         }
 
@@ -240,9 +259,12 @@ export async function GET(request: NextRequest) {
           failedCount,
         })
 
-        console.log(`[CRON] Completed ${scheduled.id}: ${sentCount} sent, ${failedCount} failed`)
+        scheduleLogger.info(
+          { sentCount, failedCount, status: failedCount === 0 ? 'SUCCESS' : 'PARTIAL' },
+          'Completed scheduled email'
+        )
       } catch (error) {
-        console.error(`[CRON] Error processing scheduled email ${scheduled.id}:`, error)
+        scheduleLogger.error({ error }, 'Error processing scheduled email')
 
         // Marquer comme FAILED
         await prisma.scheduledEmail.update({
@@ -261,7 +283,10 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    console.log(`[CRON] Completed processing ${results.length} scheduled emails`)
+    timer.end(
+      { processed: results.length, successful: results.filter(r => r.success).length },
+      'Completed processing scheduled emails'
+    )
 
     return NextResponse.json({
       success: true,
@@ -269,7 +294,7 @@ export async function GET(request: NextRequest) {
       results,
     })
   } catch (error) {
-    console.error('[CRON] Fatal error:', error)
+    cronLogger.error({ error }, 'Fatal error in cron job')
     return NextResponse.json(
       {
         success: false,
