@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useParams } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -139,11 +139,7 @@ export default function TimelinePage() {
   })
   const [showFilters, setShowFilters] = useState(false)
 
-  useEffect(() => {
-    fetchTimeline()
-  }, [eventId])
-
-  const fetchTimeline = async () => {
+  const fetchTimeline = useCallback(async () => {
     try {
       setLoading(true)
 
@@ -162,7 +158,11 @@ export default function TimelinePage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [eventId])
+
+  useEffect(() => {
+    fetchTimeline()
+  }, [fetchTimeline])
 
   const handleExportTimelinePDF = () => {
     window.open(`/api/admin/events/${eventId}/export/timeline-pdf`, '_blank')

@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useParams } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -55,11 +55,7 @@ export default function AnalyticsProPage() {
   const [stats, setStats] = useState<Stats | null>(null)
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    fetchData()
-  }, [eventId])
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       // Charger l'événement avec tous les invités (nécessaire pour les analytics)
       const response = await fetch(`/api/admin/events/${eventId}?includeGuests=true`)
@@ -73,7 +69,11 @@ export default function AnalyticsProPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [eventId])
+
+  useEffect(() => {
+    fetchData()
+  }, [fetchData])
 
   const calculateStats = (guests: Guest[]) => {
     const confirmedGuests = guests.filter(g => g.rsvp?.attending === true)

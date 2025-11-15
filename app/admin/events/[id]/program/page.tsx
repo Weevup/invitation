@@ -1,7 +1,7 @@
 'use client'
 
 import { useParams } from 'next/navigation'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Calendar, Clock, Users, TrendingUp, Loader2 } from 'lucide-react'
@@ -45,11 +45,7 @@ export default function ProgramPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('builder')
 
-  useEffect(() => {
-    loadSessions()
-  }, [eventId])
-
-  const loadSessions = async () => {
+  const loadSessions = useCallback(async () => {
     try {
       setIsLoading(true)
       const response = await fetch(`/api/admin/events/${eventId}/sessions`)
@@ -62,7 +58,11 @@ export default function ProgramPage() {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [eventId])
+
+  useEffect(() => {
+    loadSessions()
+  }, [loadSessions])
 
   const calculateStats = (): ProgramStats => {
     const stats: ProgramStats = {
