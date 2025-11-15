@@ -8,6 +8,7 @@ import { Calendar, Clock, Users, TrendingUp, Loader2 } from 'lucide-react'
 import { ProgramBuilder } from '@/components/program/program-builder'
 import { ProgramTimeline } from '@/components/program/program-timeline'
 import { ProgramTemplates } from '@/components/program/program-templates'
+import { useToast } from '@/components/ui/use-toast'
 
 interface Session {
   id: string
@@ -38,6 +39,7 @@ interface ProgramStats {
 export default function ProgramPage() {
   const params = useParams()
   const eventId = params.id as string
+  const { toast } = useToast()
 
   const [sessions, setSessions] = useState<Session[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -88,7 +90,11 @@ export default function ProgramPage() {
       // Get event details to determine start date
       const eventResponse = await fetch(`/api/admin/events/${eventId}`)
       if (!eventResponse.ok) {
-        alert('Erreur lors de la récupération de l\'événement')
+        toast({
+          title: 'Erreur',
+          description: 'Impossible de récupérer les informations de l\'événement',
+          variant: 'destructive'
+        })
         return
       }
       const eventData = await eventResponse.json()
@@ -125,7 +131,11 @@ export default function ProgramPage() {
 
         if (!response.ok) {
           console.error('Failed to create session:', sessionTemplate.title)
-          alert(`Erreur lors de la création de la session "${sessionTemplate.title}"`)
+          toast({
+            title: 'Erreur',
+            description: `Erreur lors de la création de la session "${sessionTemplate.title}"`,
+            variant: 'destructive'
+          })
           break
         }
 
@@ -135,11 +145,21 @@ export default function ProgramPage() {
 
       // Reload sessions and switch to builder tab
       await loadSessions()
+
+      toast({
+        title: 'Template appliqué avec succès',
+        description: `${template.sessions.length} sessions ont été créées à partir du template "${template.name}"`,
+      })
+
       setActiveTab('builder')
 
     } catch (error) {
       console.error('Error applying template:', error)
-      alert('Erreur lors de l\'application du template')
+      toast({
+        title: 'Erreur',
+        description: 'Erreur lors de l\'application du template',
+        variant: 'destructive'
+      })
     }
   }
 
@@ -247,6 +267,7 @@ export default function ProgramPage() {
             eventId={eventId}
             sessions={sessions}
             onUpdate={loadSessions}
+            onSessionsChange={setSessions}
           />
         </TabsContent>
 

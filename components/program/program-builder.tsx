@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Plus, Edit, Trash2, Copy, Eye, EyeOff, Clock, MapPin, Users } from 'lucide-react'
 import { SessionEditor } from './session-editor'
 import { Badge } from '@/components/ui/badge'
+import { SESSION_ICONS, SESSION_COLORS, SESSION_TYPE_LABELS, formatTime, formatDate } from '@/lib/program/constants'
 
 interface Session {
   id: string
@@ -30,62 +31,10 @@ interface ProgramBuilderProps {
   eventId: string
   sessions: Session[]
   onUpdate: () => void
+  onSessionsChange?: (sessions: Session[]) => void
 }
 
-// Icônes par type de session
-const SESSION_ICONS: Record<string, string> = {
-  KEYNOTE: '🎤',
-  WORKSHOP: '🛠️',
-  CONFERENCE: '📊',
-  TEAMBUILDING: '🤝',
-  MEAL: '🍽️',
-  BREAK: '☕',
-  TRANSFER: '🚌',
-  ARRIVAL: '🛬',
-  DEPARTURE: '🛫',
-  FREE_TIME: '🏖️',
-  NETWORKING: '🤝',
-  TRAINING: '📚',
-  PANEL: '💬',
-  OTHER: '📌'
-}
-
-// Couleurs par type
-const SESSION_COLORS: Record<string, string> = {
-  KEYNOTE: '#9333EA',
-  WORKSHOP: '#059669',
-  CONFERENCE: '#0284C7',
-  TEAMBUILDING: '#DC2626',
-  MEAL: '#F59E0B',
-  BREAK: '#8B5CF6',
-  TRANSFER: '#6366F1',
-  ARRIVAL: '#10B981',
-  DEPARTURE: '#EF4444',
-  FREE_TIME: '#14B8A6',
-  NETWORKING: '#F97316',
-  TRAINING: '#3B82F6',
-  PANEL: '#EC4899',
-  OTHER: '#6B7280'
-}
-
-const SESSION_TYPE_LABELS: Record<string, string> = {
-  KEYNOTE: 'Keynote',
-  WORKSHOP: 'Atelier',
-  CONFERENCE: 'Conférence',
-  TEAMBUILDING: 'Team Building',
-  MEAL: 'Repas',
-  BREAK: 'Pause',
-  TRANSFER: 'Transfert',
-  ARRIVAL: 'Arrivée',
-  DEPARTURE: 'Départ',
-  FREE_TIME: 'Temps libre',
-  NETWORKING: 'Networking',
-  TRAINING: 'Formation',
-  PANEL: 'Table ronde',
-  OTHER: 'Autre'
-}
-
-export function ProgramBuilder({ eventId, sessions, onUpdate }: ProgramBuilderProps) {
+export function ProgramBuilder({ eventId, sessions, onUpdate, onSessionsChange }: ProgramBuilderProps) {
   const [draggedSession, setDraggedSession] = useState<Session | null>(null)
   const [editingSession, setEditingSession] = useState<Session | null>(null)
   const [creatingSession, setCreatingSession] = useState(false)
@@ -108,25 +57,6 @@ export function ProgramBuilder({ eventId, sessions, onUpdate }: ProgramBuilderPr
     newDate.setSeconds(0)
     newDate.setMilliseconds(0)
     return newDate
-  }
-
-  const formatTime = (dateString: string) => {
-    const date = new Date(dateString)
-    return date.toLocaleTimeString('fr-FR', {
-      hour: '2-digit',
-      minute: '2-digit',
-      timeZone: 'Europe/Paris'
-    })
-  }
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    return date.toLocaleDateString('fr-FR', {
-      weekday: 'short',
-      day: 'numeric',
-      month: 'short',
-      timeZone: 'Europe/Paris'
-    })
   }
 
   // Calculate position and height based on time
@@ -190,6 +120,19 @@ export function ProgramBuilder({ eventId, sessions, onUpdate }: ProgramBuilderPr
     const newStartTime = getTimeFromPosition(y, baseDate)
     const newEndTime = new Date(newStartTime.getTime() + draggedSession.duration * 60000)
 
+    // Optimistic update
+    if (onSessionsChange) {
+      const updatedSessions = sessions.map(s =>
+        s.id === draggedSession.id
+          ? { ...s, startTime: newStartTime.toISOString(), endTime: newEndTime.toISOString() }
+          : s
+      )
+      onSessionsChange(updatedSessions)
+    }
+
+    setDraggedSession(null)
+    setDragOverTime(null)
+
     try {
       await fetch(`/api/admin/events/${eventId}/sessions/${draggedSession.id}`, {
         method: 'PATCH',
@@ -199,14 +142,10 @@ export function ProgramBuilder({ eventId, sessions, onUpdate }: ProgramBuilderPr
           endTime: newEndTime.toISOString(),
         })
       })
-
-      setDraggedSession(null)
-      setDragOverTime(null)
-      onUpdate()
     } catch (error) {
       console.error('Error moving session:', error)
-      setDraggedSession(null)
-      setDragOverTime(null)
+      // Revert on error
+      onUpdate()
     }
   }
 
@@ -271,6 +210,19 @@ export function ProgramBuilder({ eventId, sessions, onUpdate }: ProgramBuilderPr
       return
     }
 
+    // Optimistic update
+    if (onSessionsChange) {
+      const updatedSessions = sessions.map(s =>
+        s.id === session.id
+          ? { ...s, startTime: newStartTime.toISOString(), endTime: newEndTime.toISOString(), duration: newDuration }
+          : s
+      )
+      onSessionsChange(updatedSessions)
+    }
+
+    setResizingSession(null)
+    setDragOverTime(null)
+
     try {
       await fetch(`/api/admin/events/${eventId}/sessions/${session.id}`, {
         method: 'PATCH',
@@ -281,28 +233,31 @@ export function ProgramBuilder({ eventId, sessions, onUpdate }: ProgramBuilderPr
           duration: newDuration
         })
       })
-
-      setResizingSession(null)
-      setDragOverTime(null)
-      onUpdate()
     } catch (error) {
       console.error('Error resizing session:', error)
-      setResizingSession(null)
-      setDragOverTime(null)
+      // Revert on error
+      onUpdate()
     }
   }
 
   const handleDelete = async (sessionId: string) => {
     if (!confirm('Supprimer cette session ?')) return
 
+    // Optimistic update
+    if (onSessionsChange) {
+      const updatedSessions = sessions.filter(s => s.id !== sessionId)
+      onSessionsChange(updatedSessions)
+    }
+
     try {
       await fetch(`/api/admin/events/${eventId}/sessions/${sessionId}`, {
         method: 'DELETE'
       })
-      onUpdate()
     } catch (error) {
       console.error('Error deleting session:', error)
       alert('Erreur lors de la suppression de la session')
+      // Revert on error
+      onUpdate()
     }
   }
 
@@ -346,15 +301,26 @@ export function ProgramBuilder({ eventId, sessions, onUpdate }: ProgramBuilderPr
   }
 
   const handleToggleVisibility = async (session: Session) => {
+    // Optimistic update
+    if (onSessionsChange) {
+      const updatedSessions = sessions.map(s =>
+        s.id === session.id
+          ? { ...s, isPublic: !s.isPublic }
+          : s
+      )
+      onSessionsChange(updatedSessions)
+    }
+
     try {
       await fetch(`/api/admin/events/${eventId}/sessions/${session.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ isPublic: !session.isPublic })
       })
-      onUpdate()
     } catch (error) {
       console.error('Error toggling visibility:', error)
+      // Revert on error
+      onUpdate()
     }
   }
 

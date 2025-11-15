@@ -1,8 +1,12 @@
 "use client"
 
+import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Clock, MapPin, Users, User, Calendar } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Clock, MapPin, Users, User, Calendar, Edit } from 'lucide-react'
+import { SESSION_ICONS, SESSION_COLORS, SESSION_TYPE_LABELS, formatTime, formatLongDate, formatDate } from '@/lib/program/constants'
+import { SessionEditor } from './session-editor'
 
 interface Session {
   id: string
@@ -27,92 +31,16 @@ interface ProgramTimelineProps {
   onUpdate: () => void
 }
 
-// Icônes par type de session
-const SESSION_ICONS: Record<string, string> = {
-  KEYNOTE: '🎤',
-  WORKSHOP: '🛠️',
-  CONFERENCE: '📊',
-  TEAMBUILDING: '🤝',
-  MEAL: '🍽️',
-  BREAK: '☕',
-  TRANSFER: '🚌',
-  ARRIVAL: '🛬',
-  DEPARTURE: '🛫',
-  FREE_TIME: '🏖️',
-  NETWORKING: '🤝',
-  TRAINING: '📚',
-  PANEL: '💬',
-  OTHER: '📌'
-}
+export function ProgramTimeline({ eventId, sessions, onUpdate }: ProgramTimelineProps) {
+  const [editingSession, setEditingSession] = useState<Session | null>(null)
 
-// Couleurs par type
-const SESSION_COLORS: Record<string, string> = {
-  KEYNOTE: '#9333EA',
-  WORKSHOP: '#059669',
-  CONFERENCE: '#0284C7',
-  TEAMBUILDING: '#DC2626',
-  MEAL: '#F59E0B',
-  BREAK: '#8B5CF6',
-  TRANSFER: '#6366F1',
-  ARRIVAL: '#10B981',
-  DEPARTURE: '#EF4444',
-  FREE_TIME: '#14B8A6',
-  NETWORKING: '#F97316',
-  TRAINING: '#3B82F6',
-  PANEL: '#EC4899',
-  OTHER: '#6B7280'
-}
-
-// Labels pour les types
-const SESSION_TYPE_LABELS: Record<string, string> = {
-  KEYNOTE: 'Keynote',
-  WORKSHOP: 'Atelier',
-  CONFERENCE: 'Conférence',
-  TEAMBUILDING: 'Team Building',
-  MEAL: 'Repas',
-  BREAK: 'Pause',
-  TRANSFER: 'Transfert',
-  ARRIVAL: 'Arrivée',
-  DEPARTURE: 'Départ',
-  FREE_TIME: 'Temps libre',
-  NETWORKING: 'Networking',
-  TRAINING: 'Formation',
-  PANEL: 'Table ronde',
-  OTHER: 'Autre'
-}
-
-export function ProgramTimeline({ sessions }: ProgramTimelineProps) {
   const sortedSessions = [...sessions].sort((a, b) =>
     new Date(a.startTime).getTime() - new Date(b.startTime).getTime()
   )
 
-  const formatTime = (dateString: string) => {
-    return new Date(dateString).toLocaleTimeString('fr-FR', {
-      hour: '2-digit',
-      minute: '2-digit'
-    })
-  }
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('fr-FR', {
-      weekday: 'long',
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric'
-    })
-  }
-
-  const formatShortDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('fr-FR', {
-      weekday: 'short',
-      day: 'numeric',
-      month: 'short'
-    })
-  }
-
   // Grouper par jour
   const sessionsByDay = sortedSessions.reduce((acc, session) => {
-    const day = formatShortDate(session.startTime)
+    const day = formatDate(session.startTime)
     if (!acc[day]) acc[day] = []
     acc[day].push(session)
     return acc
@@ -138,7 +66,7 @@ export function ProgramTimeline({ sessions }: ProgramTimelineProps) {
             <div className="flex items-center justify-between">
               <CardTitle className="text-white flex items-center gap-3">
                 <Calendar className="h-5 w-5" />
-                {formatDate(daySessions[0].startTime)}
+                {formatLongDate(daySessions[0].startTime)}
               </CardTitle>
               <Badge variant="secondary" className="bg-white/20 text-white border-white/30">
                 {daySessions.length} session{daySessions.length > 1 ? 's' : ''}
@@ -213,9 +141,21 @@ export function ProgramTimeline({ sessions }: ProgramTimelineProps) {
                                   </div>
                                 </div>
                               </div>
-                              <div className="flex items-center gap-2 text-sm font-semibold px-3 py-1.5 rounded-full bg-[#9CD9F6]/20 text-[#004645]">
-                                <Clock className="h-3.5 w-3.5" />
-                                {session.duration} min
+                              <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-2 text-sm font-semibold px-3 py-1.5 rounded-full bg-[#9CD9F6]/20 text-[#004645]">
+                                  <Clock className="h-3.5 w-3.5" />
+                                  {session.duration} min
+                                </div>
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => setEditingSession(session)}
+                                  className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                                  title="Éditer"
+                                >
+                                  <Edit className="h-4 w-4" />
+                                </Button>
                               </div>
                             </div>
 
@@ -263,6 +203,19 @@ export function ProgramTimeline({ sessions }: ProgramTimelineProps) {
           </CardContent>
         </Card>
       ))}
+
+      {/* Session Editor Dialog */}
+      {editingSession && (
+        <SessionEditor
+          eventId={eventId}
+          session={editingSession}
+          onClose={() => setEditingSession(null)}
+          onSave={() => {
+            setEditingSession(null)
+            onUpdate()
+          }}
+        />
+      )}
     </div>
   )
 }

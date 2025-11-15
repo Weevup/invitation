@@ -53,14 +53,27 @@ export function SessionEditor({ eventId, session, onClose, onSave }: SessionEdit
 
   const [saving, setSaving] = useState(false)
 
+  // Convert UTC date to local datetime-local format for the form
+  const toLocalDateTimeString = (dateString: string): string => {
+    if (!dateString) return ''
+    const date = new Date(dateString)
+    // Format as YYYY-MM-DDTHH:mm for datetime-local input (using local timezone)
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+    const hours = String(date.getHours()).padStart(2, '0')
+    const minutes = String(date.getMinutes()).padStart(2, '0')
+    return `${year}-${month}-${day}T${hours}:${minutes}`
+  }
+
   useEffect(() => {
     if (session) {
       setFormData({
         title: session.title || '',
         description: session.description || '',
         type: session.type || 'CONFERENCE',
-        startTime: session.startTime ? new Date(session.startTime).toISOString().slice(0, 16) : '',
-        endTime: session.endTime ? new Date(session.endTime).toISOString().slice(0, 16) : '',
+        startTime: session.startTime ? toLocalDateTimeString(session.startTime) : '',
+        endTime: session.endTime ? toLocalDateTimeString(session.endTime) : '',
         venue: session.venue || '',
         room: session.room || '',
         capacity: session.capacity || undefined,
