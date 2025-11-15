@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
     const session = await requireAdmin()
     const body = await request.json()
 
-    console.log('[EMAIL-INTEGRATION] POST body:', { provider: body.provider, hasApiKey: !!body.apiKey })
+    integrationLogger.info({ provider: body.provider, hasApiKey: !!body.apiKey }, 'Processing email integration POST')
 
     const validated = EmailIntegrationSchema.parse(body)
 
@@ -81,11 +81,11 @@ export async function POST(request: NextRequest) {
 
     // Encrypt API keys and secrets
     if (validated.apiKey) {
-      console.log('[EMAIL-INTEGRATION] Encrypting API key...')
+      integrationLogger.debug('Encrypting API key')
       try {
         encryptedData.apiKey = encrypt(validated.apiKey)
       } catch (encryptError) {
-        console.error('[EMAIL-INTEGRATION] Encryption failed:', encryptError)
+        integrationLogger.error({ error: encryptError }, 'API key encryption failed')
         return NextResponse.json(
           { error: 'Échec du chiffrement de la clé API', details: encryptError instanceof Error ? encryptError.message : 'Unknown error' },
           { status: 500 }
@@ -117,7 +117,7 @@ export async function POST(request: NextRequest) {
       where: { provider: validated.provider },
     })
 
-    console.log('[EMAIL-INTEGRATION] Existing integration:', existing ? existing.id : 'none')
+    integrationLogger.debug({ existingId: existing?.id }, 'Checked for existing integration')
 
     let integration
     if (existing) {
@@ -126,13 +126,13 @@ export async function POST(request: NextRequest) {
         where: { id: existing.id },
         data: encryptedData,
       })
-      console.log('[EMAIL-INTEGRATION] Updated existing integration:', integration.id)
+      integrationLogger.info({ integrationId: integration.id, provider: validated.provider }, 'Updated existing integration')
     } else {
       // Create new
       integration = await prisma.emailIntegration.create({
         data: encryptedData,
       })
-      console.log('[EMAIL-INTEGRATION] Created new integration:', integration.id)
+      integrationLogger.info({ integrationId: integration.id, provider: validated.provider }, 'Created new integration')
     }
 
     return NextResponse.json({
@@ -145,7 +145,7 @@ export async function POST(request: NextRequest) {
       },
     })
   } catch (error) {
-    console.error('[EMAIL-INTEGRATION] POST error:', error)
+    integrationLogger.error({ error, stack: error instanceof Error ? error.stack : undefined }, 'Email integration POST error')
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: 'Données invalides', details: error.errors },

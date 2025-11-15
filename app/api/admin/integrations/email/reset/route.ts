@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { requireAdmin, handleAuthError } from '@/lib/auth-utils'
+import { createLogger } from '@/lib/logger'
+
+const resetLogger = createLogger({ module: 'integration', type: 'email-reset' })
 
 /**
  * DELETE /api/admin/integrations/email/reset
@@ -19,7 +22,7 @@ export async function DELETE(request: NextRequest) {
       count: result.count,
     })
   } catch (error) {
-    console.error('Error resetting integrations:', error)
+    resetLogger.error({ error, stack: error instanceof Error ? error.stack : undefined }, 'Error resetting integrations')
     return handleAuthError(error)
   }
 }

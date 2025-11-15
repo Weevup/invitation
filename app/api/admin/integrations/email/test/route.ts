@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { sendEmail } from '@/lib/email-service'
 import { requireAdmin, handleAuthError } from '@/lib/auth-utils'
+import { createLogger } from '@/lib/logger'
+
+const testLogger = createLogger({ module: 'integration', type: 'email-test' })
 
 export async function POST(request: NextRequest) {
   try {
@@ -72,7 +75,7 @@ export async function POST(request: NextRequest) {
       )
     }
   } catch (error) {
-    console.error('Error testing integration:', error)
+    testLogger.error({ error, stack: error instanceof Error ? error.stack : undefined }, 'Error testing integration')
     return handleAuthError(error)
   }
 }
