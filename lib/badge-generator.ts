@@ -290,8 +290,8 @@ export async function generateBatchBadgeData(
     const designConfig: BadgeDesignConfig = {
       size: badgeDesign.size as keyof typeof BADGE_SIZES,
       orientation: badgeDesign.orientation as 'PORTRAIT' | 'LANDSCAPE',
-      layout: badgeDesign.layout as BadgeLayout,
-      fields: badgeDesign.fields as BadgeField[],
+      layout: badgeDesign.layout as unknown as BadgeLayout,
+      fields: badgeDesign.fields as unknown as BadgeField[],
       fontFamily: badgeDesign.fontFamily,
       eventLogoUrl: badgeDesign.eventLogoUrl || undefined,
       includeQRCode: badgeDesign.includeQRCode,
