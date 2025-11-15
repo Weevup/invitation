@@ -147,7 +147,7 @@ export async function GET(
     // Return PDF as download
     const fileName = `badges-${event.name.replace(/[^a-z0-9]/gi, '-')}-${new Date().toISOString().split('T')[0]}.pdf`
 
-    return new NextResponse(pdfBuffer, {
+    return new Response(pdfBuffer, {
       headers: {
         'Content-Type': 'application/pdf',
         'Content-Disposition': `attachment; filename="${fileName}"`,
