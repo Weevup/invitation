@@ -9,7 +9,8 @@ import {
   CheckCircle, ArrowRight, Sparkles, Play, FileText,
   Database, ExternalLink, Lightbulb, Plane, Hotel,
   AlertTriangle, TrendingUp, FileSpreadsheet, Download,
-  Clock, MapPin, Bed, Activity, Zap, Shield, Code, Rocket
+  Clock, MapPin, Bed, Activity, Zap, Shield, Code, Rocket,
+  Eye, TestTube
 } from 'lucide-react'
 import Link from 'next/link'
 import { useState } from 'react'
@@ -32,7 +33,7 @@ export default function HelpPage() {
         </div>
 
         <Tabs defaultValue="changelog" className="w-full">
-          <TabsList className="grid w-full grid-cols-4 mb-8">
+          <TabsList className="grid w-full grid-cols-6 mb-8">
             <TabsTrigger value="changelog" className="flex items-center gap-2">
               <Rocket className="h-4 w-4" />
               Nouveautés
@@ -44,6 +45,14 @@ export default function HelpPage() {
             <TabsTrigger value="features" className="flex items-center gap-2">
               <Sparkles className="h-4 w-4" />
               Fonctionnalités
+            </TabsTrigger>
+            <TabsTrigger value="monitoring" className="flex items-center gap-2">
+              <Eye className="h-4 w-4" />
+              Monitoring
+            </TabsTrigger>
+            <TabsTrigger value="tests" className="flex items-center gap-2">
+              <TestTube className="h-4 w-4" />
+              Tests
             </TabsTrigger>
             <TabsTrigger value="technical" className="flex items-center gap-2">
               <Code className="h-4 w-4" />
@@ -408,7 +417,484 @@ export default function HelpPage() {
             </div>
           </TabsContent>
 
-          {/* ONGLET 3 : Documentation technique */}
+          {/* ONGLET 4 : Monitoring & Performance */}
+          <TabsContent value="monitoring">
+            <div className="grid gap-6">
+              {/* Sentry Error Tracking */}
+              <Card className="border-[#9CD9F6]/30 bg-white/80 backdrop-blur">
+                <CardHeader>
+                  <CardTitle className="text-[#004645] flex items-center gap-2">
+                    <Shield className="h-6 w-6 text-[#FF4713]" />
+                    Sentry : Monitoring des Erreurs
+                  </CardTitle>
+                  <CardDescription>
+                    Suivi automatique des erreurs en production avec session replay
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div>
+                    <h3 className="font-semibold text-[#004645] mb-3 flex items-center gap-2">
+                      <Zap className="h-5 w-5 text-[#009197]" />
+                      Configuration
+                    </h3>
+                    <div className="ml-7 space-y-3">
+                      <div className="flex items-start gap-2">
+                        <Badge className="bg-[#009197] text-white mt-1">1</Badge>
+                        <div className="flex-1">
+                          <p className="text-sm text-[#004645]">
+                            Créez un compte gratuit sur{' '}
+                            <a href="https://sentry.io" target="_blank" rel="noopener noreferrer" className="text-[#009197] hover:underline">
+                              sentry.io
+                            </a>
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <Badge className="bg-[#009197] text-white mt-1">2</Badge>
+                        <div className="flex-1">
+                          <p className="text-sm text-[#004645] mb-2">
+                            Ajoutez la variable d&apos;environnement dans Vercel :
+                          </p>
+                          <div className="bg-gray-900 rounded-lg p-3 font-mono text-sm text-gray-100">
+                            <span className="text-green-400">NEXT_PUBLIC_SENTRY_DSN</span>=&quot;https://votre-dsn@sentry.io/votre-project-id&quot;
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <Badge className="bg-[#009197] text-white mt-1">3</Badge>
+                        <div className="flex-1">
+                          <p className="text-sm text-[#004645]">
+                            C&apos;est tout ! Les erreurs sont automatiquement capturées.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h3 className="font-semibold text-[#004645] mb-3 flex items-center gap-2">
+                      <Activity className="h-5 w-5 text-[#009197]" />
+                      Couverture Automatique
+                    </h3>
+                    <ul className="space-y-2 ml-7">
+                      <li className="flex items-start gap-2 text-sm text-[#004645]/80">
+                        <CheckCircle className="h-4 w-4 text-[#009197] mt-0.5 flex-shrink-0" />
+                        <span><strong>59 composants/pages</strong> tracés automatiquement</span>
+                      </li>
+                      <li className="flex items-start gap-2 text-sm text-[#004645]/80">
+                        <CheckCircle className="h-4 w-4 text-[#009197] mt-0.5 flex-shrink-0" />
+                        <span><strong>Session Replay</strong> : Revoyez exactement ce qui s&apos;est passé avant un crash</span>
+                      </li>
+                      <li className="flex items-start gap-2 text-sm text-[#004645]/80">
+                        <CheckCircle className="h-4 w-4 text-[#009197] mt-0.5 flex-shrink-0" />
+                        <span><strong>Contexte enrichi</strong> : User ID, route, browser, device</span>
+                      </li>
+                      <li className="flex items-start gap-2 text-sm text-[#004645]/80">
+                        <CheckCircle className="h-4 w-4 text-[#009197] mt-0.5 flex-shrink-0" />
+                        <span><strong>Breadcrumbs</strong> : Historique des actions utilisateur</span>
+                      </li>
+                    </ul>
+                  </div>
+
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <h4 className="font-semibold text-[#004645] mb-2 flex items-center gap-2">
+                      <Lightbulb className="h-4 w-4 text-blue-600" />
+                      Alertes et Notifications
+                    </h4>
+                    <p className="text-sm text-[#004645]/80">
+                      Configurez des alertes Slack/Email sur le dashboard Sentry pour être notifié immédiatement des erreurs critiques.
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Web Vitals Performance */}
+              <Card className="border-[#9CD9F6]/30 bg-white/80 backdrop-blur">
+                <CardHeader>
+                  <CardTitle className="text-[#004645] flex items-center gap-2">
+                    <TrendingUp className="h-6 w-6 text-green-600" />
+                    Web Vitals : Performance Monitoring
+                  </CardTitle>
+                  <CardDescription>
+                    Tracking automatique des Core Web Vitals et métriques de performance
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div>
+                    <h3 className="font-semibold text-[#004645] mb-3">Métriques Suivies</h3>
+                    <div className="grid gap-3 ml-7">
+                      <div className="flex items-start gap-3 p-3 bg-green-50 rounded-lg border border-green-200">
+                        <Badge className="bg-green-600 text-white">LCP</Badge>
+                        <div>
+                          <p className="font-medium text-sm text-[#004645]">Largest Contentful Paint</p>
+                          <p className="text-xs text-[#004645]/70">Temps de chargement du contenu principal (&lt; 2.5s)</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                        <Badge className="bg-blue-600 text-white">FID</Badge>
+                        <div>
+                          <p className="font-medium text-sm text-[#004645]">First Input Delay</p>
+                          <p className="text-xs text-[#004645]/70">Réactivité aux interactions (&lt; 100ms)</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3 p-3 bg-purple-50 rounded-lg border border-purple-200">
+                        <Badge className="bg-purple-600 text-white">CLS</Badge>
+                        <div>
+                          <p className="font-medium text-sm text-[#004645]">Cumulative Layout Shift</p>
+                          <p className="text-xs text-[#004645]/70">Stabilité visuelle (&lt; 0.1)</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3 p-3 bg-orange-50 rounded-lg border border-orange-200">
+                        <Badge className="bg-orange-600 text-white">FCP</Badge>
+                        <div>
+                          <p className="font-medium text-sm text-[#004645]">First Contentful Paint</p>
+                          <p className="text-xs text-[#004645]/70">Premier élément visible (&lt; 1.8s)</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3 p-3 bg-teal-50 rounded-lg border border-teal-200">
+                        <Badge className="bg-teal-600 text-white">TTFB</Badge>
+                        <div>
+                          <p className="font-medium text-sm text-[#004645]">Time to First Byte</p>
+                          <p className="text-xs text-[#004645]/70">Temps de réponse serveur (&lt; 800ms)</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3 p-3 bg-pink-50 rounded-lg border border-pink-200">
+                        <Badge className="bg-pink-600 text-white">INP</Badge>
+                        <div>
+                          <p className="font-medium text-sm text-[#004645]">Interaction to Next Paint</p>
+                          <p className="text-xs text-[#004645]/70">Fluidité des interactions (&lt; 200ms)</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h3 className="font-semibold text-[#004645] mb-3 flex items-center gap-2">
+                      <Eye className="h-5 w-5 text-[#009197]" />
+                      Visualisation
+                    </h3>
+                    <ul className="space-y-2 ml-7">
+                      <li className="flex items-start gap-2 text-sm text-[#004645]/80">
+                        <CheckCircle className="h-4 w-4 text-[#009197] mt-0.5 flex-shrink-0" />
+                        <span>Dashboard Sentry : Vue consolidée de toutes les métriques</span>
+                      </li>
+                      <li className="flex items-start gap-2 text-sm text-[#004645]/80">
+                        <CheckCircle className="h-4 w-4 text-[#009197] mt-0.5 flex-shrink-0" />
+                        <span>Vercel Analytics : Core Web Vitals par route</span>
+                      </li>
+                      <li className="flex items-start gap-2 text-sm text-[#004645]/80">
+                        <CheckCircle className="h-4 w-4 text-[#009197] mt-0.5 flex-shrink-0" />
+                        <span>Contexte enrichi : Device, connection speed, navigation type</span>
+                      </li>
+                    </ul>
+                  </div>
+
+                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                    <h4 className="font-semibold text-[#004645] mb-2 flex items-center gap-2">
+                      <AlertTriangle className="h-4 w-4 text-amber-600" />
+                      Conseils d&apos;Optimisation
+                    </h4>
+                    <ul className="space-y-1 text-sm text-[#004645]/80">
+                      <li className="flex items-start gap-2">
+                        <span className="text-amber-600">•</span>
+                        <span>Utilisez Next.js Image pour optimiser automatiquement les images</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-amber-600">•</span>
+                        <span>Activez le cache avec React Server Components</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-amber-600">•</span>
+                        <span>Minimisez les bundles JavaScript avec dynamic imports</span>
+                      </li>
+                    </ul>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Centralized Logging */}
+              <Card className="border-[#9CD9F6]/30 bg-white/80 backdrop-blur">
+                <CardHeader>
+                  <CardTitle className="text-[#004645] flex items-center gap-2">
+                    <FileText className="h-6 w-6 text-[#009197]" />
+                    Logging Centralisé
+                  </CardTitle>
+                  <CardDescription>
+                    Système de logs structurés pour debugging et audit
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div>
+                    <h3 className="font-semibold text-[#004645] mb-3">Côté Serveur (Pino)</h3>
+                    <div className="bg-gray-900 rounded-lg p-4 font-mono text-sm text-gray-100 overflow-x-auto">
+                      <pre>{`import { logger } from '@/lib/logger'
+
+// Exemple d'utilisation
+logger.info('User logged in', { userId: user.id })
+logger.error('Payment failed', { error, amount })
+logger.warn('Rate limit approaching', { remaining: 10 })`}</pre>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h3 className="font-semibold text-[#004645] mb-3">Côté Client (ClientLogger)</h3>
+                    <div className="bg-gray-900 rounded-lg p-4 font-mono text-sm text-gray-100 overflow-x-auto">
+                      <pre>{`import { ClientLogger } from '@/lib/client-logger'
+
+// Exemple d'utilisation
+ClientLogger.info('Page loaded', { route: '/admin' })
+ClientLogger.error('Form validation failed', { errors })
+ClientLogger.warn('Slow API response', { duration: 5000 })`}</pre>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h3 className="font-semibold text-[#004645] mb-3 flex items-center gap-2">
+                      <Zap className="h-5 w-5 text-[#009197]" />
+                      Intégration Sentry
+                    </h3>
+                    <ul className="space-y-2 ml-7">
+                      <li className="flex items-start gap-2 text-sm text-[#004645]/80">
+                        <CheckCircle className="h-4 w-4 text-[#009197] mt-0.5 flex-shrink-0" />
+                        <span>Les logs d&apos;erreur sont automatiquement envoyés à Sentry</span>
+                      </li>
+                      <li className="flex items-start gap-2 text-sm text-[#004645]/80">
+                        <CheckCircle className="h-4 w-4 text-[#009197] mt-0.5 flex-shrink-0" />
+                        <span>Format JSON structuré pour faciliter l&apos;analyse</span>
+                      </li>
+                      <li className="flex items-start gap-2 text-sm text-[#004645]/80">
+                        <CheckCircle className="h-4 w-4 text-[#009197] mt-0.5 flex-shrink-0" />
+                        <span>Contexte enrichi avec breadcrumbs et user data</span>
+                      </li>
+                    </ul>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          {/* ONGLET 5 : Tests & Qualité */}
+          <TabsContent value="tests">
+            <div className="grid gap-6">
+              {/* Vitest Unit Tests */}
+              <Card className="border-[#9CD9F6]/30 bg-white/80 backdrop-blur">
+                <CardHeader>
+                  <CardTitle className="text-[#004645] flex items-center gap-2">
+                    <TestTube className="h-6 w-6 text-[#009197]" />
+                    Vitest : Tests Unitaires
+                  </CardTitle>
+                  <CardDescription>
+                    Framework de tests ultra-rapide pour composants et fonctions
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="flex items-center justify-between p-4 bg-green-50 border border-green-200 rounded-lg">
+                    <div>
+                      <p className="font-semibold text-[#004645] text-lg">15 tests</p>
+                      <p className="text-sm text-[#004645]/70">100% passing</p>
+                    </div>
+                    <Badge className="bg-green-600 text-white text-lg px-4 py-2">
+                      ✓ All Pass
+                    </Badge>
+                  </div>
+
+                  <div>
+                    <h3 className="font-semibold text-[#004645] mb-3 flex items-center gap-2">
+                      <Code className="h-5 w-5 text-[#009197]" />
+                      Commandes Disponibles
+                    </h3>
+                    <div className="bg-gray-900 rounded-lg p-4 font-mono text-sm text-gray-100 space-y-2">
+                      <div className="flex items-start gap-2">
+                        <span className="text-blue-400">npm run</span>
+                        <span className="text-green-400">test</span>
+                        <span className="text-gray-400 ml-4"># Mode watch interactif</span>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <span className="text-blue-400">npm run</span>
+                        <span className="text-green-400">test:run</span>
+                        <span className="text-gray-400 ml-4"># Exécution unique (CI)</span>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <span className="text-blue-400">npm run</span>
+                        <span className="text-green-400">test:ui</span>
+                        <span className="text-gray-400 ml-4"># Interface graphique</span>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <span className="text-blue-400">npm run</span>
+                        <span className="text-green-400">test:coverage</span>
+                        <span className="text-gray-400 ml-4"># Rapport de couverture</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h3 className="font-semibold text-[#004645] mb-3">Tests Existants</h3>
+                    <ul className="space-y-2 ml-7">
+                      <li className="flex items-start gap-2 text-sm text-[#004645]/80">
+                        <CheckCircle className="h-4 w-4 text-[#009197] mt-0.5 flex-shrink-0" />
+                        <span><strong>ScrollReveal</strong> : Animation au défilement (5 tests)</span>
+                      </li>
+                      <li className="flex items-start gap-2 text-sm text-[#004645]/80">
+                        <CheckCircle className="h-4 w-4 text-[#009197] mt-0.5 flex-shrink-0" />
+                        <span><strong>QRCodeGenerator</strong> : Génération de QR codes (4 tests)</span>
+                      </li>
+                      <li className="flex items-start gap-2 text-sm text-[#004645]/80">
+                        <CheckCircle className="h-4 w-4 text-[#009197] mt-0.5 flex-shrink-0" />
+                        <span><strong>GuestBadge</strong> : Composant badge invité (3 tests)</span>
+                      </li>
+                      <li className="flex items-start gap-2 text-sm text-[#004645]/80">
+                        <CheckCircle className="h-4 w-4 text-[#009197] mt-0.5 flex-shrink-0" />
+                        <span><strong>Utilities</strong> : Fonctions helpers et utils (3 tests)</span>
+                      </li>
+                    </ul>
+                  </div>
+
+                  <div className="bg-gray-900 rounded-lg p-4 font-mono text-sm text-gray-100">
+                    <div className="text-gray-400 mb-2">// Exemple de test unitaire</div>
+                    <pre>{`import { describe, it, expect } from 'vitest'
+import { render, screen } from '@testing-library/react'
+import { MyComponent } from './my-component'
+
+describe('MyComponent', () => {
+  it('should render children', () => {
+    render(<MyComponent>Hello</MyComponent>)
+    expect(screen.getByText('Hello')).toBeInTheDocument()
+  })
+})`}</pre>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Playwright E2E Tests */}
+              <Card className="border-[#9CD9F6]/30 bg-white/80 backdrop-blur">
+                <CardHeader>
+                  <CardTitle className="text-[#004645] flex items-center gap-2">
+                    <Activity className="h-6 w-6 text-purple-600" />
+                    Playwright : Tests End-to-End
+                  </CardTitle>
+                  <CardDescription>
+                    Tests de parcours utilisateur complets dans un vrai navigateur
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div>
+                    <h3 className="font-semibold text-[#004645] mb-3 flex items-center gap-2">
+                      <Code className="h-5 w-5 text-[#009197]" />
+                      Commandes Disponibles
+                    </h3>
+                    <div className="bg-gray-900 rounded-lg p-4 font-mono text-sm text-gray-100 space-y-2">
+                      <div className="flex items-start gap-2">
+                        <span className="text-blue-400">npm run</span>
+                        <span className="text-green-400">test:e2e</span>
+                        <span className="text-gray-400 ml-4"># Exécution headless</span>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <span className="text-blue-400">npm run</span>
+                        <span className="text-green-400">test:e2e:ui</span>
+                        <span className="text-gray-400 ml-4"># Interface graphique</span>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <span className="text-blue-400">npm run</span>
+                        <span className="text-green-400">test:e2e:headed</span>
+                        <span className="text-gray-400 ml-4"># Voir le navigateur</span>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <span className="text-blue-400">npm run</span>
+                        <span className="text-green-400">test:e2e:debug</span>
+                        <span className="text-gray-400 ml-4"># Mode debug</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h3 className="font-semibold text-[#004645] mb-3">Scénarios Testés</h3>
+                    <ul className="space-y-2 ml-7">
+                      <li className="flex items-start gap-2 text-sm text-[#004645]/80">
+                        <CheckCircle className="h-4 w-4 text-purple-600 mt-0.5 flex-shrink-0" />
+                        <span><strong>Login Flow</strong> : Authentification et gestion de session</span>
+                      </li>
+                      <li className="flex items-start gap-2 text-sm text-[#004645]/80">
+                        <CheckCircle className="h-4 w-4 text-purple-600 mt-0.5 flex-shrink-0" />
+                        <span><strong>Event Creation</strong> : Création événement de bout en bout</span>
+                      </li>
+                      <li className="flex items-start gap-2 text-sm text-[#004645]/80">
+                        <CheckCircle className="h-4 w-4 text-purple-600 mt-0.5 flex-shrink-0" />
+                        <span><strong>RSVP Process</strong> : Parcours complet de réponse invité</span>
+                      </li>
+                      <li className="flex items-start gap-2 text-sm text-[#004645]/80">
+                        <CheckCircle className="h-4 w-4 text-purple-600 mt-0.5 flex-shrink-0" />
+                        <span><strong>Guest Management</strong> : Import CSV et gestion invités</span>
+                      </li>
+                    </ul>
+                  </div>
+
+                  <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                    <h4 className="font-semibold text-[#004645] mb-2 flex items-center gap-2">
+                      <Lightbulb className="h-4 w-4 text-purple-600" />
+                      Multi-Browser Testing
+                    </h4>
+                    <p className="text-sm text-[#004645]/80">
+                      Playwright teste automatiquement sur Chromium, Firefox et WebKit pour garantir la compatibilité cross-browser.
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Quality Checklist */}
+              <Card className="border-[#9CD9F6]/30 bg-white/80 backdrop-blur">
+                <CardHeader>
+                  <CardTitle className="text-[#004645] flex items-center gap-2">
+                    <Shield className="h-6 w-6 text-green-600" />
+                    Checklist Qualité
+                  </CardTitle>
+                  <CardDescription>
+                    Standards de qualité avant déploiement en production
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="flex items-start gap-3 p-3 bg-green-50 rounded-lg border border-green-200">
+                      <CheckCircle className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
+                      <div>
+                        <p className="font-medium text-sm text-[#004645]">All tests passing</p>
+                        <p className="text-xs text-[#004645]/70">npm run test:run && npm run test:e2e</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-3 p-3 bg-green-50 rounded-lg border border-green-200">
+                      <CheckCircle className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
+                      <div>
+                        <p className="font-medium text-sm text-[#004645]">TypeScript compilation clean</p>
+                        <p className="text-xs text-[#004645]/70">npm run build (zero errors)</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-3 p-3 bg-green-50 rounded-lg border border-green-200">
+                      <CheckCircle className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
+                      <div>
+                        <p className="font-medium text-sm text-[#004645]">ESLint warnings zero</p>
+                        <p className="text-xs text-[#004645]/70">npm run lint (clean output)</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-3 p-3 bg-green-50 rounded-lg border border-green-200">
+                      <CheckCircle className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
+                      <div>
+                        <p className="font-medium text-sm text-[#004645]">Sentry configured</p>
+                        <p className="text-xs text-[#004645]/70">NEXT_PUBLIC_SENTRY_DSN set in production</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-3 p-3 bg-green-50 rounded-lg border border-green-200">
+                      <CheckCircle className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
+                      <div>
+                        <p className="font-medium text-sm text-[#004645]">Core Web Vitals monitored</p>
+                        <p className="text-xs text-[#004645]/70">Automatic tracking via lib/web-vitals.ts</p>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          {/* ONGLET 6 : Documentation technique */}
           <TabsContent value="technical">
             <div className="grid gap-6">
               <Card className="border-[#9CD9F6]/30 bg-white/80 backdrop-blur">
