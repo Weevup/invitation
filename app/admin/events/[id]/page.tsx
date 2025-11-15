@@ -14,26 +14,21 @@ import { ImportCSVDialog } from '@/components/import-csv-dialog'
 import { SendInvitationsDialog } from '@/components/send-invitations-dialog'
 import { ModuleSelector } from '@/components/admin/module-selector'
 
-interface Guest {
-  id: string
-  firstName: string
-  lastName: string
-  email: string
-  rsvp?: {
-    attending?: boolean
-    plusOnes: number
-    mealChoice?: string
-  }
-  checkins?: Array<{
-    id: string
-    checkedInAt: string
-  }>
+interface EventStats {
+  totalGuests: number
+  totalRsvps: number
+  respondedGuests: number
+  attendingGuests: number
+  decliningGuests: number
+  checkedInGuests: number
+  totalPlusOnes: number
+  totalExpected: number
 }
 
 interface EventDetails {
   id: string
   name: string
-  guests: Guest[]
+  stats: EventStats
 }
 
 export default function EventOverviewPage() {
@@ -82,14 +77,16 @@ export default function EventOverviewPage() {
     )
   }
 
-  const respondedGuests = event.guests.filter((g) => g.rsvp && g.rsvp.attending !== null).length
-  const attendingGuests = event.guests.filter((g) => g.rsvp?.attending === true).length
-  const decliningGuests = event.guests.filter((g) => g.rsvp?.attending === false).length
-  const checkedInGuests = event.guests.filter((g) => g.checkins && g.checkins.length > 0).length
-  const totalPlusOnes = event.guests
-    .filter((g) => g.rsvp?.attending === true)
-    .reduce((sum, g) => sum + (g.rsvp?.plusOnes || 0), 0)
-  const totalExpected = attendingGuests + totalPlusOnes
+  // OPTIMISÉ: Utiliser les stats pré-calculées de l'API au lieu de filtrer manuellement
+  const {
+    totalGuests,
+    respondedGuests,
+    attendingGuests,
+    decliningGuests,
+    checkedInGuests,
+    totalPlusOnes,
+    totalExpected,
+  } = event.stats
 
   return (
     <div className="space-y-8">
@@ -176,7 +173,7 @@ export default function EventOverviewPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-[#004645]" style={{ fontFamily: "var(--font-abril)" }}>
-                {event.guests.length}
+                {totalGuests}
               </div>
               <Link href={`/admin/events/${eventId}/guests`}>
                 <Button variant="link" size="sm" className="text-xs text-[#009197] p-0 h-auto mt-1">
@@ -192,12 +189,12 @@ export default function EventOverviewPage() {
               <Mail className="h-4 w-4 text-[#009197]" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-[#004645]" style={{ fontFamily: "var(--font-abril)" }}>
+              <div className="text-2xl font-bold text-[#004645]" style={{ fontFamily: "var(--font-avril)" }}>
                 {respondedGuests}
               </div>
               <p className="text-xs text-[#004645]/70">
-                {event.guests.length > 0
-                  ? Math.round((respondedGuests / event.guests.length) * 100)
+                {totalGuests > 0
+                  ? Math.round((respondedGuests / totalGuests) * 100)
                   : 0}
                 % du total
               </p>
@@ -308,11 +305,11 @@ export default function EventOverviewPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-[#FF4713]" style={{ fontFamily: "var(--font-abril)" }}>
-                {event.guests.length - respondedGuests}
+                {totalGuests - respondedGuests}
               </div>
               <p className="text-xs text-[#004645]/70">
-                {event.guests.length > 0
-                  ? Math.round(((event.guests.length - respondedGuests) / event.guests.length) * 100)
+                {totalGuests > 0
+                  ? Math.round(((totalGuests - respondedGuests) / totalGuests) * 100)
                   : 0}
                 % du total
               </p>
@@ -500,8 +497,8 @@ export default function EventOverviewPage() {
                   </p>
                   <SendInvitationsDialog
                     eventId={eventId}
-                    totalGuests={event.guests.length}
-                    pendingGuests={event.guests.filter((g) => !g.rsvp || g.rsvp.attending === null).length}
+                    totalGuests={totalGuests}
+                    pendingGuests={totalGuests - respondedGuests}
                   />
                 </div>
               </div>

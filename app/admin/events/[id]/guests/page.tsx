@@ -86,7 +86,8 @@ export default function GuestsPage() {
 
   const fetchEvent = useCallback(async () => {
     try {
-      const response = await fetch(`/api/admin/events/${eventId}`)
+      // Charger l'événement avec tous les invités (mode legacy nécessaire pour cette page)
+      const response = await fetch(`/api/admin/events/${eventId}?includeGuests=true`)
       if (response.ok) {
         const data = await response.json()
         setEvent(data)

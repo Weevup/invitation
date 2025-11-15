@@ -5,7 +5,10 @@ import { requireEventOwnership } from '@/lib/permissions'
 
 /**
  * GET /api/admin/events/[id]
- * Récupère les détails d'un événement (avec vérification d'ownership)
+ * Récupère les détails d'un événement avec stats agrégées (OPTIMISÉ)
+ *
+ * Query params:
+ *   - includeGuests=true : Charge tous les invités (déconseillé pour les gros événements)
  */
 export async function GET(
   request: NextRequest,
@@ -18,6 +21,109 @@ export async function GET(
     // Vérifier que l'admin est propriétaire de l'événement
     await requireEventOwnership(id, session.user.id)
 
+    const { searchParams } = new URL(request.url)
+    const includeGuests = searchParams.get('includeGuests') === 'true'
+
+    // OPTIMISATION: Charger uniquement les stats par défaut
+    if (!includeGuests) {
+      const [event, stats] = await Promise.all([
+        // 1. Données de base de l'événement
+        prisma.event.findUnique({
+          where: { id },
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            description: true,
+            startsAt: true,
+            endsAt: true,
+            venueName: true,
+            address: true,
+            city: true,
+            country: true,
+            createdAt: true,
+            updatedAt: true,
+            adminId: true,
+            // Counts optimisés
+            _count: {
+              select: {
+                guests: true,
+                rsvps: true,
+              },
+            },
+          },
+        }),
+        // 2. Statistiques agrégées (parallèle)
+        Promise.all([
+          // Invités ayant répondu
+          prisma.rSVP.count({
+            where: {
+              eventId: id,
+              attending: { not: null },
+            },
+          }),
+          // Invités confirmés
+          prisma.rSVP.count({
+            where: {
+              eventId: id,
+              attending: true,
+            },
+          }),
+          // Invités déclinés
+          prisma.rSVP.count({
+            where: {
+              eventId: id,
+              attending: false,
+            },
+          }),
+          // Invités check-in
+          prisma.guest.count({
+            where: {
+              eventId: id,
+              checkins: {
+                some: {},
+              },
+            },
+          }),
+          // Total +1s
+          prisma.rSVP.aggregate({
+            where: {
+              eventId: id,
+              attending: true,
+            },
+            _sum: {
+              plusOnes: true,
+            },
+          }),
+        ]),
+      ])
+
+      if (!event) {
+        return NextResponse.json(
+          { error: 'Événement introuvable' },
+          { status: 404 }
+        )
+      }
+
+      const [respondedCount, attendingCount, decliningCount, checkedInCount, plusOnesSum] = stats
+
+      // Retourner les données optimisées
+      return NextResponse.json({
+        ...event,
+        stats: {
+          totalGuests: event._count.guests,
+          totalRsvps: event._count.rsvps,
+          respondedGuests: respondedCount,
+          attendingGuests: attendingCount,
+          decliningGuests: decliningCount,
+          checkedInGuests: checkedInCount,
+          totalPlusOnes: plusOnesSum._sum.plusOnes || 0,
+          totalExpected: attendingCount + (plusOnesSum._sum.plusOnes || 0),
+        },
+      })
+    }
+
+    // Mode legacy: charger tous les invités (déconseillé)
     const event = await prisma.event.findUnique({
       where: { id },
       include: {
