@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Plus, Edit, Trash2, Copy, Eye, EyeOff, Clock, MapPin, Users } from 'lucide-react'
 import { SessionEditor } from './session-editor'
 import { Badge } from '@/components/ui/badge'
+import { SESSION_ICONS, SESSION_COLORS, SESSION_TYPE_LABELS, formatTime, formatDate } from '@/lib/program/constants'
 
 interface Session {
   id: string
@@ -33,59 +34,6 @@ interface ProgramBuilderProps {
   onSessionsChange?: (sessions: Session[]) => void
 }
 
-// Icônes par type de session
-const SESSION_ICONS: Record<string, string> = {
-  KEYNOTE: '🎤',
-  WORKSHOP: '🛠️',
-  CONFERENCE: '📊',
-  TEAMBUILDING: '🤝',
-  MEAL: '🍽️',
-  BREAK: '☕',
-  TRANSFER: '🚌',
-  ARRIVAL: '🛬',
-  DEPARTURE: '🛫',
-  FREE_TIME: '🏖️',
-  NETWORKING: '🤝',
-  TRAINING: '📚',
-  PANEL: '💬',
-  OTHER: '📌'
-}
-
-// Couleurs par type
-const SESSION_COLORS: Record<string, string> = {
-  KEYNOTE: '#9333EA',
-  WORKSHOP: '#059669',
-  CONFERENCE: '#0284C7',
-  TEAMBUILDING: '#DC2626',
-  MEAL: '#F59E0B',
-  BREAK: '#8B5CF6',
-  TRANSFER: '#6366F1',
-  ARRIVAL: '#10B981',
-  DEPARTURE: '#EF4444',
-  FREE_TIME: '#14B8A6',
-  NETWORKING: '#F97316',
-  TRAINING: '#3B82F6',
-  PANEL: '#EC4899',
-  OTHER: '#6B7280'
-}
-
-const SESSION_TYPE_LABELS: Record<string, string> = {
-  KEYNOTE: 'Keynote',
-  WORKSHOP: 'Atelier',
-  CONFERENCE: 'Conférence',
-  TEAMBUILDING: 'Team Building',
-  MEAL: 'Repas',
-  BREAK: 'Pause',
-  TRANSFER: 'Transfert',
-  ARRIVAL: 'Arrivée',
-  DEPARTURE: 'Départ',
-  FREE_TIME: 'Temps libre',
-  NETWORKING: 'Networking',
-  TRAINING: 'Formation',
-  PANEL: 'Table ronde',
-  OTHER: 'Autre'
-}
-
 export function ProgramBuilder({ eventId, sessions, onUpdate, onSessionsChange }: ProgramBuilderProps) {
   const [draggedSession, setDraggedSession] = useState<Session | null>(null)
   const [editingSession, setEditingSession] = useState<Session | null>(null)
@@ -109,23 +57,6 @@ export function ProgramBuilder({ eventId, sessions, onUpdate, onSessionsChange }
     newDate.setSeconds(0)
     newDate.setMilliseconds(0)
     return newDate
-  }
-
-  const formatTime = (dateString: string) => {
-    const date = new Date(dateString)
-    return date.toLocaleTimeString('fr-FR', {
-      hour: '2-digit',
-      minute: '2-digit'
-    })
-  }
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    return date.toLocaleDateString('fr-FR', {
-      weekday: 'short',
-      day: 'numeric',
-      month: 'short'
-    })
   }
 
   // Calculate position and height based on time
