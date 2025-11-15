@@ -90,25 +90,42 @@ export function ProgramBuilder({ eventId, sessions, onUpdate }: ProgramBuilderPr
   const [editingSession, setEditingSession] = useState<Session | null>(null)
   const [creatingSession, setCreatingSession] = useState(false)
   const [dragOverTime, setDragOverTime] = useState<Date | null>(null)
+  const [resizingSession, setResizingSession] = useState<{ id: string, edge: 'top' | 'bottom' } | null>(null)
 
   // Constants for timeline visualization
   const HOUR_HEIGHT = 80 // pixels per hour
   const MIN_SESSION_HEIGHT = 40 // minimum height for readability
   const TIME_START = 6 // 6:00 AM
   const TIME_END = 23 // 11:00 PM
+  const SNAP_INTERVAL = 15 // Snap to 15 minute intervals
+
+  // Snap time to nearest 15 minute interval
+  const snapToInterval = (date: Date): Date => {
+    const minutes = date.getMinutes()
+    const snappedMinutes = Math.round(minutes / SNAP_INTERVAL) * SNAP_INTERVAL
+    const newDate = new Date(date)
+    newDate.setMinutes(snappedMinutes)
+    newDate.setSeconds(0)
+    newDate.setMilliseconds(0)
+    return newDate
+  }
 
   const formatTime = (dateString: string) => {
-    return new Date(dateString).toLocaleTimeString('fr-FR', {
+    const date = new Date(dateString)
+    return date.toLocaleTimeString('fr-FR', {
       hour: '2-digit',
-      minute: '2-digit'
+      minute: '2-digit',
+      timeZone: 'Europe/Paris'
     })
   }
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('fr-FR', {
+    const date = new Date(dateString)
+    return date.toLocaleDateString('fr-FR', {
       weekday: 'short',
       day: 'numeric',
-      month: 'short'
+      month: 'short',
+      timeZone: 'Europe/Paris'
     })
   }
 
@@ -134,7 +151,7 @@ export function ProgramBuilder({ eventId, sessions, onUpdate }: ProgramBuilderPr
     newTime.setMinutes(Math.round((hours % 1) * 60))
     newTime.setSeconds(0)
     newTime.setMilliseconds(0)
-    return newTime
+    return snapToInterval(newTime)
   }
 
   const handleDragStart = (session: Session) => {
@@ -189,6 +206,88 @@ export function ProgramBuilder({ eventId, sessions, onUpdate }: ProgramBuilderPr
     } catch (error) {
       console.error('Error moving session:', error)
       setDraggedSession(null)
+      setDragOverTime(null)
+    }
+  }
+
+  // Handle resize
+  const handleResizeStart = (e: React.MouseEvent, session: Session, edge: 'top' | 'bottom') => {
+    e.stopPropagation()
+    e.preventDefault()
+    setResizingSession({ id: session.id, edge })
+  }
+
+  const handleResizeMove = (e: React.MouseEvent<HTMLDivElement>, day: string) => {
+    if (!resizingSession) return
+
+    const session = sessions.find(s => s.id === resizingSession.id)
+    if (!session) return
+
+    const rect = e.currentTarget.getBoundingClientRect()
+    const y = e.clientY - rect.top
+
+    const dayDate = sessions.find(s => formatDate(s.startTime) === day)
+    if (!dayDate) return
+
+    const baseDate = new Date(dayDate.startTime)
+    baseDate.setHours(0, 0, 0, 0)
+    const newTime = getTimeFromPosition(y, baseDate)
+
+    if (resizingSession.edge === 'top') {
+      const endTime = new Date(session.endTime)
+      if (newTime < endTime) {
+        setDragOverTime(newTime)
+      }
+    } else {
+      const startTime = new Date(session.startTime)
+      if (newTime > startTime) {
+        setDragOverTime(newTime)
+      }
+    }
+  }
+
+  const handleResizeEnd = async (day: string) => {
+    if (!resizingSession || !dragOverTime) {
+      setResizingSession(null)
+      setDragOverTime(null)
+      return
+    }
+
+    const session = sessions.find(s => s.id === resizingSession.id)
+    if (!session) {
+      setResizingSession(null)
+      setDragOverTime(null)
+      return
+    }
+
+    const newStartTime = resizingSession.edge === 'top' ? dragOverTime : new Date(session.startTime)
+    const newEndTime = resizingSession.edge === 'bottom' ? dragOverTime : new Date(session.endTime)
+    const newDuration = Math.round((newEndTime.getTime() - newStartTime.getTime()) / 60000)
+
+    // Minimum duration of 15 minutes
+    if (newDuration < 15) {
+      setResizingSession(null)
+      setDragOverTime(null)
+      return
+    }
+
+    try {
+      await fetch(`/api/admin/events/${eventId}/sessions/${session.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          startTime: newStartTime.toISOString(),
+          endTime: newEndTime.toISOString(),
+          duration: newDuration
+        })
+      })
+
+      setResizingSession(null)
+      setDragOverTime(null)
+      onUpdate()
+    } catch (error) {
+      console.error('Error resizing session:', error)
+      setResizingSession(null)
       setDragOverTime(null)
     }
   }
@@ -285,7 +384,7 @@ export function ProgramBuilder({ eventId, sessions, onUpdate }: ProgramBuilderPr
         <div className="flex justify-between items-center">
           <div>
             <h3 className="text-lg font-semibold text-[#004645]">Planning visuel</h3>
-            <p className="text-sm text-[#004645]/70">Glissez-déposez les sessions pour changer leur horaire</p>
+            <p className="text-sm text-[#004645]/70">Glissez-déposez les sessions • Redimensionnez par les bords • Snap automatique tous les 15 min</p>
           </div>
           <Button
             type="button"
@@ -318,6 +417,16 @@ export function ProgramBuilder({ eventId, sessions, onUpdate }: ProgramBuilderPr
                       style={{ height: `${HOUR_HEIGHT}px` }}
                     >
                       {hour.toString().padStart(2, '0')}:00
+                      {/* 15-minute markers */}
+                      <div className="absolute left-0 right-0" style={{ top: `${HOUR_HEIGHT * 0.25}px` }}>
+                        <div className="h-px bg-gray-100 ml-2" />
+                      </div>
+                      <div className="absolute left-0 right-0" style={{ top: `${HOUR_HEIGHT * 0.5}px` }}>
+                        <div className="h-px bg-gray-200 ml-2" />
+                      </div>
+                      <div className="absolute left-0 right-0" style={{ top: `${HOUR_HEIGHT * 0.75}px` }}>
+                        <div className="h-px bg-gray-100 ml-2" />
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -329,14 +438,36 @@ export function ProgramBuilder({ eventId, sessions, onUpdate }: ProgramBuilderPr
                   onDragOver={(e) => handleDragOver(e, day)}
                   onDrop={(e) => handleDrop(e, day)}
                   onDragLeave={() => setDragOverTime(null)}
+                  onMouseMove={(e) => resizingSession && handleResizeMove(e, day)}
+                  onMouseUp={() => resizingSession && handleResizeEnd(day)}
+                  onMouseLeave={() => {
+                    if (resizingSession) {
+                      setResizingSession(null)
+                      setDragOverTime(null)
+                    }
+                  }}
                 >
                   {/* Hour grid lines */}
                   {hourMarkers.map((hour) => (
-                    <div
-                      key={hour}
-                      className="absolute w-full border-b border-gray-100"
-                      style={{ top: `${(hour - TIME_START) * HOUR_HEIGHT}px` }}
-                    />
+                    <div key={`grid-${hour}`}>
+                      <div
+                        className="absolute w-full border-b border-gray-100"
+                        style={{ top: `${(hour - TIME_START) * HOUR_HEIGHT}px` }}
+                      />
+                      {/* 15-minute grid lines */}
+                      <div
+                        className="absolute w-full border-b border-dashed border-gray-50"
+                        style={{ top: `${(hour - TIME_START) * HOUR_HEIGHT + HOUR_HEIGHT * 0.25}px` }}
+                      />
+                      <div
+                        className="absolute w-full border-b border-gray-100"
+                        style={{ top: `${(hour - TIME_START) * HOUR_HEIGHT + HOUR_HEIGHT * 0.5}px` }}
+                      />
+                      <div
+                        className="absolute w-full border-b border-dashed border-gray-50"
+                        style={{ top: `${(hour - TIME_START) * HOUR_HEIGHT + HOUR_HEIGHT * 0.75}px` }}
+                      />
+                    </div>
                   ))}
 
                   {/* Drag over indicator */}
@@ -356,25 +487,61 @@ export function ProgramBuilder({ eventId, sessions, onUpdate }: ProgramBuilderPr
                     </div>
                   )}
 
+                  {/* Resize indicator */}
+                  {resizingSession && dragOverTime && (() => {
+                    const session = sessions.find(s => s.id === resizingSession.id)
+                    if (!session || formatDate(session.startTime) !== day) return null
+
+                    const startTime = resizingSession.edge === 'top' ? dragOverTime : new Date(session.startTime)
+                    const endTime = resizingSession.edge === 'bottom' ? dragOverTime : new Date(session.endTime)
+                    const tempSession = {
+                      ...session,
+                      startTime: startTime.toISOString(),
+                      endTime: endTime.toISOString(),
+                      duration: Math.round((endTime.getTime() - startTime.getTime()) / 60000)
+                    }
+
+                    const { top, height } = getSessionPosition(tempSession)
+
+                    return (
+                      <div
+                        className="absolute w-full border-2 border-dashed border-[#FF4713] bg-[#FF4713]/5 rounded-lg pointer-events-none z-10"
+                        style={{
+                          top: `${top}px`,
+                          height: `${height}px`,
+                          left: '8px',
+                          right: '8px'
+                        }}
+                      >
+                        <div className="absolute top-2 left-2 text-xs font-semibold text-[#FF4713]">
+                          {formatTime(startTime.toISOString())} - {formatTime(endTime.toISOString())}
+                          <span className="ml-2 text-[#FF4713]/70">({tempSession.duration} min)</span>
+                        </div>
+                      </div>
+                    )
+                  })()}
+
                   {/* Sessions */}
                   {daySessions.map((session) => {
                     const { top, height } = getSessionPosition(session)
                     const sessionColor = SESSION_COLORS[session.type] || session.color || '#009197'
                     const sessionIcon = SESSION_ICONS[session.type] || session.icon || '📌'
                     const isDragging = draggedSession?.id === session.id
+                    const isResizing = resizingSession?.id === session.id
 
                     return (
                       <div
                         key={session.id}
-                        draggable={true}
-                        onDragStart={() => handleDragStart(session)}
+                        draggable={!isResizing}
+                        onDragStart={() => !isResizing && handleDragStart(session)}
                         onDragEnd={() => {
                           setDraggedSession(null)
                           setDragOverTime(null)
                         }}
                         className={`
-                          absolute left-2 right-2 rounded-lg border-2 shadow-sm transition-all cursor-move group
+                          absolute left-2 right-2 rounded-lg border-2 shadow-sm transition-all group
                           ${isDragging ? 'opacity-50 scale-95 shadow-lg' : 'hover:shadow-md hover:scale-[1.01]'}
+                          ${isResizing ? 'opacity-75 shadow-lg' : 'cursor-move'}
                           ${!session.isPublic ? 'opacity-75' : ''}
                         `}
                         style={{
@@ -384,9 +551,17 @@ export function ProgramBuilder({ eventId, sessions, onUpdate }: ProgramBuilderPr
                           borderLeftWidth: '6px',
                           borderLeftColor: sessionColor,
                           borderColor: `${sessionColor}40`,
-                          zIndex: isDragging ? 50 : 20
+                          zIndex: isDragging || isResizing ? 50 : 20
                         }}
                       >
+                        {/* Resize handle top */}
+                        <div
+                          className="absolute top-0 left-0 right-0 h-2 cursor-ns-resize hover:bg-[#FF4713]/20 transition-colors z-30 flex items-center justify-center"
+                          onMouseDown={(e) => handleResizeStart(e, session, 'top')}
+                        >
+                          <div className="w-12 h-1 bg-gray-300 rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
+                        </div>
+
                         <div className="h-full flex flex-col p-3 overflow-hidden">
                           {/* Header */}
                           <div className="flex items-start justify-between gap-2 mb-1">
@@ -506,6 +681,14 @@ export function ProgramBuilder({ eventId, sessions, onUpdate }: ProgramBuilderPr
                               )}
                             </div>
                           )}
+                        </div>
+
+                        {/* Resize handle bottom */}
+                        <div
+                          className="absolute bottom-0 left-0 right-0 h-2 cursor-ns-resize hover:bg-[#FF4713]/20 transition-colors z-30 flex items-center justify-center"
+                          onMouseDown={(e) => handleResizeStart(e, session, 'bottom')}
+                        >
+                          <div className="w-12 h-1 bg-gray-300 rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
                         </div>
                       </div>
                     )
