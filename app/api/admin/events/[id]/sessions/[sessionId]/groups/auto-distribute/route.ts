@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { createLogger } from '@/lib/logger'
+
+const autoDistributeLogger = createLogger({ module: 'session', type: 'auto-distribute' })
 
 /**
  * POST /api/admin/events/[id]/sessions/[sessionId]/groups/auto-distribute
@@ -119,7 +122,7 @@ export async function POST(
       totalDistributed: participants.length,
     })
   } catch (error) {
-    console.error('Error auto-distributing participants:', error)
+    autoDistributeLogger.error({ error, stack: error instanceof Error ? error.stack : undefined }, 'Error auto-distributing participants')
     return NextResponse.json(
       { error: 'Erreur lors de la répartition automatique' },
       { status: 500 }

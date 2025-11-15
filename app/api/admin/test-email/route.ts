@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { sendEmail } from '@/lib/email/resend'
 import { requireAdmin, handleAuthError } from '@/lib/auth-utils'
+import { createLogger } from '@/lib/logger'
+
+const testEmailLogger = createLogger({ module: 'admin', type: 'test-email' })
 
 /**
  * POST /api/admin/test-email
@@ -128,7 +131,7 @@ export async function POST(request: NextRequest) {
       )
     }
   } catch (error) {
-    console.error('Error in test-email API:', error)
+    testEmailLogger.error({ error, stack: error instanceof Error ? error.stack : undefined }, 'Error in test-email API')
     return handleAuthError(error)
   }
 }

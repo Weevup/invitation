@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { createLogger } from '@/lib/logger'
+
+const participantLogger = createLogger({ module: 'session', type: 'participant' })
 
 /**
  * PATCH /api/admin/events/[id]/sessions/[sessionId]/participants/[participantId]
@@ -83,7 +86,7 @@ export async function PATCH(
       message: 'Participant mis à jour avec succès',
     })
   } catch (error) {
-    console.error('Error updating participant:', error)
+    participantLogger.error({ error, stack: error instanceof Error ? error.stack : undefined }, 'Error updating participant')
     return NextResponse.json(
       { error: 'Erreur lors de la mise à jour du participant' },
       { status: 500 }
