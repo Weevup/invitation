@@ -9,6 +9,7 @@ import { WeevupLogo } from '@/components/weevup-logo'
 import { CountdownTimer } from '@/components/countdown-timer'
 import { ScrollReveal } from '@/components/scroll-reveal'
 import Link from 'next/link'
+import Image from 'next/image'
 import { migrateLegacySections, getActiveSections, getSectionWrapperProps } from '@/lib/showcase-utils'
 import { type SectionConfig } from '@/lib/showcase-templates'
 
@@ -735,7 +736,14 @@ export default async function EventShowcasePage({ params }: PageProps) {
                                       >
                                         <div className="aspect-video bg-white rounded-lg p-4 flex items-center justify-center border border-[#9CD9F6]/30">
                                           {sponsor.logo ? (
-                                            <img src={sponsor.logo} alt={sponsor.name} className="max-w-full max-h-full object-contain" />
+                                            <div className="relative w-full h-full">
+                                              <Image
+                                                src={sponsor.logo}
+                                                alt={sponsor.name}
+                                                fill
+                                                className="object-contain"
+                                              />
+                                            </div>
                                           ) : (
                                             <span className="text-center font-semibold" style={{ color: primaryColor }}>{sponsor.name}</span>
                                           )}
@@ -744,7 +752,14 @@ export default async function EventShowcasePage({ params }: PageProps) {
                                     ) : (
                                       <div className="aspect-video bg-white rounded-lg p-4 flex items-center justify-center border border-[#9CD9F6]/30">
                                         {sponsor.logo ? (
-                                          <img src={sponsor.logo} alt={sponsor.name} className="max-w-full max-h-full object-contain" />
+                                          <div className="relative w-full h-full">
+                                            <Image
+                                              src={sponsor.logo}
+                                              alt={sponsor.name}
+                                              fill
+                                              className="object-contain"
+                                            />
+                                          </div>
                                         ) : (
                                           <span className="text-center font-semibold" style={{ color: primaryColor }}>{sponsor.name}</span>
                                         )}

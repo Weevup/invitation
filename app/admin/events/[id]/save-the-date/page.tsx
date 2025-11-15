@@ -15,6 +15,7 @@ import {
   ArrowLeft, Bell, Clock, Info
 } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { toast } from "sonner";
 
 export default function SaveTheDateBuilderPage() {
@@ -520,16 +521,30 @@ export default function SaveTheDateBuilderPage() {
                 >
                   {/* Header Image */}
                   {design.headerImage && (
-                    <div className="h-48 bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center">
-                      <img src={design.headerImage} alt="Header" className="w-full h-full object-cover" />
+                    <div className="relative h-48 bg-gradient-to-br from-gray-200 to-gray-300">
+                      <Image
+                        src={design.headerImage}
+                        alt="Header"
+                        fill
+                        className="object-cover"
+                      />
                     </div>
                   )}
 
                   <div className="p-8 text-center">
                     {/* Logo */}
                     {design.logoImage && (
-                      <div className="mb-6">
-                        <img src={design.logoImage} alt="Logo" className="h-16 mx-auto" />
+                      <div className="mb-6 flex justify-center">
+                        <div className="relative h-16 w-auto max-w-xs">
+                          <Image
+                            src={design.logoImage}
+                            alt="Logo"
+                            width={256}
+                            height={64}
+                            className="h-16 w-auto object-contain"
+                            style={{ width: 'auto', height: '4rem' }}
+                          />
+                        </div>
                       </div>
                     )}
 

@@ -11,6 +11,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
+import Image from 'next/image'
 import {
   User,
   Mail,
@@ -317,7 +318,13 @@ export function GuestDetailsModal({ guest, open, onOpenChange }: GuestDetailsMod
                     </div>
                   ) : qrCodeUrl ? (
                     <>
-                      <img src={qrCodeUrl} alt="QR Code" className="w-64 h-64 border-4 border-white shadow-lg rounded-lg" />
+                      <Image
+                        src={qrCodeUrl}
+                        alt="QR Code"
+                        width={256}
+                        height={256}
+                        className="w-64 h-64 border-4 border-white shadow-lg rounded-lg"
+                      />
                       <p className="text-sm text-gray-600 text-center">
                         À présenter à l&apos;entrée de l&apos;événement
                       </p>
