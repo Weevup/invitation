@@ -3,6 +3,9 @@ import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
 import { encrypt, decrypt } from '@/lib/encryption'
 import { requireAdmin, handleAuthError } from '@/lib/auth-utils'
+import { createLogger } from '@/lib/logger'
+
+const integrationLogger = createLogger({ module: 'integration', type: 'email' })
 
 const EmailIntegrationSchema = z.object({
   provider: z.enum(['SENDGRID', 'RESEND', 'MAILGUN', 'SMTP']),

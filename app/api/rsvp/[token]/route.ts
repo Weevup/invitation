@@ -7,6 +7,9 @@ import { generateQRCode, getCheckinUrl } from '@/lib/qrcode'
 import { formatDateTime } from '@/lib/utils'
 import { rsvpRateLimit, getRateLimitIdentifier, getRateLimitHeaders, normalizeRateLimitResult } from '@/lib/rate-limit'
 import { rsvpSubmissionSchema, validateSchema } from '@/lib/validations'
+import { createLogger } from '@/lib/logger'
+
+const rsvpLogger = createLogger({ module: 'rsvp' })
 
 export async function POST(
   request: NextRequest,
@@ -183,7 +186,7 @@ export async function POST(
       qrCode: qrCodeData,
     })
   } catch (error) {
-    console.error('Error saving RSVP:', error)
+    rsvpLogger.error({ error, stack: error instanceof Error ? error.stack : undefined }, 'Error saving RSVP')
     return NextResponse.json(
       {
         error: 'SERVER_ERROR',
