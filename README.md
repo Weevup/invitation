@@ -31,6 +31,10 @@ Une webapp moderne et élégante de gestion d'invitations pour vos événements 
   - Taux de réponse en temps réel
   - Statistiques par événement
   - Exports CSV/PDF
+- 📈 **Monitoring de production** :
+  - Error tracking avec Sentry (session replay)
+  - Core Web Vitals (LCP, FID, CLS, etc.)
+  - Logging centralisé (Pino + Client Logger)
 - 🎫 **QR Codes** : Génération automatique pour le check-in
 - 🎨 **Page showcase** : Page publique personnalisable pour chaque événement
 - 🔒 **Sécurité** : Encryption AES-256, tokens SHA-256, rate limiting
@@ -74,6 +78,19 @@ Une webapp moderne et élégante de gestion d'invitations pour vos événements 
 - **Crypto** (encryption AES-256-GCM)
 - **bcryptjs** (hashing)
 - **Rate limiting** sur toutes les routes sensibles
+
+### Monitoring & Performance
+- **Sentry** (error tracking & session replay)
+- **Web Vitals** (Core Web Vitals monitoring)
+- **Pino** (structured server logging)
+- **Client Logger** (centralized client-side logging)
+
+### Testing & Quality
+- **Vitest** (unit tests - 15 tests, 100% passing)
+- **Playwright** (E2E tests)
+- **React Testing Library** (component testing)
+- **TypeScript** (strict mode)
+- **ESLint** (zero warnings)
 
 ---
 
@@ -297,6 +314,7 @@ L'application est accessible sur **http://localhost:3000**
 ### Techniques
 
 - 📊 [**Schema Prisma**](prisma/schema.prisma) - Modèle de données
+- 📈 [**Monitoring & Tests**](GUIDE-MONITORING-TESTS.md) - Sentry, Web Vitals, Vitest
 - 🧪 [**Tests E2E**](tests/README.md) - Tests Playwright
 - 🌱 [**Seeds & Démos**](prisma/README-DEMOS.md) - Données de démo
 
@@ -324,6 +342,13 @@ npm run db:seed:demo     # Seed événement démo
 
 ### Tests
 ```bash
+# Tests unitaires (Vitest)
+npm test                 # Lancer les tests unitaires (watch mode)
+npm run test:run         # Lancer une fois (CI)
+npm run test:ui          # Interface visuelle
+npm run test:coverage    # Rapport de coverage
+
+# Tests E2E (Playwright)
 npm run test:e2e         # Tests E2E Playwright
 npm run test:e2e:ui      # Tests en mode UI
 npm run test:e2e:debug   # Debug tests
@@ -409,6 +434,29 @@ invitation/
 
 ## 🧪 Tests
 
+### Tests Unitaires avec Vitest
+
+```bash
+# Mode watch (re-run automatique)
+npm test
+
+# Lancer une fois (CI)
+npm run test:run
+
+# Interface UI visuelle
+npm run test:ui
+
+# Avec coverage
+npm run test:coverage
+```
+
+**Tests inclus** :
+- ✅ Client Logger (11 tests)
+- ✅ Scroll Reveal Component (4 tests)
+- ✅ 100% passing (15/15)
+
+**Voir le guide complet** : [GUIDE-MONITORING-TESTS.md](GUIDE-MONITORING-TESTS.md)
+
 ### Tests E2E avec Playwright
 
 ```bash
@@ -431,6 +479,8 @@ npm run test:e2e:report
 - ✅ Import CSV invités
 - ✅ Formulaire RSVP
 - ✅ Envoi d'emails
+
+**Voir la documentation** : [tests/README.md](tests/README.md)
 
 ---
 
