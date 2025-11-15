@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
+import { createLogger } from '@/lib/logger'
+
+const accommodationLogger = createLogger({ module: 'accommodation', type: 'operations' })
 
 const updateAccommodationSchema = z.object({
   name: z.string().min(1, 'Le nom est requis').optional(),
@@ -96,7 +99,7 @@ export async function GET(
 
     return NextResponse.json({ accommodation })
   } catch (error) {
-    console.error('Error fetching accommodation:', error)
+    accommodationLogger.error({ error, stack: error instanceof Error ? error.stack : undefined }, 'Error fetching accommodation')
     return NextResponse.json(
       { error: 'Erreur lors de la récupération de l\'hébergement' },
       { status: 500 }
@@ -178,7 +181,7 @@ export async function PUT(
         { status: 400 }
       )
     }
-    console.error('Error updating accommodation:', error)
+    accommodationLogger.error({ error, stack: error instanceof Error ? error.stack : undefined }, 'Error updating accommodation')
     return NextResponse.json(
       { error: 'Erreur lors de la mise à jour de l\'hébergement' },
       { status: 500 }
@@ -246,7 +249,7 @@ export async function DELETE(
       message: 'Hébergement supprimé avec succès',
     })
   } catch (error) {
-    console.error('Error deleting accommodation:', error)
+    accommodationLogger.error({ error, stack: error instanceof Error ? error.stack : undefined }, 'Error deleting accommodation')
     return NextResponse.json(
       { error: 'Erreur lors de la suppression de l\'hébergement' },
       { status: 500 }

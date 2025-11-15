@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { createLogger } from '@/lib/logger'
+
+const transportLogger = createLogger({ module: 'transport', type: 'bookings' })
 
 export const runtime = 'nodejs'
 
@@ -45,7 +48,7 @@ export async function GET(
     })
 
   } catch (error) {
-    console.error('Error fetching transport bookings:', error)
+    transportLogger.error({ error, stack: error instanceof Error ? error.stack : undefined }, 'Error fetching transport bookings')
     return NextResponse.json(
       { error: 'Failed to fetch transport bookings' },
       { status: 500 }
@@ -123,7 +126,7 @@ export async function POST(
     })
 
   } catch (error) {
-    console.error('Error creating transport booking:', error)
+    transportLogger.error({ error, stack: error instanceof Error ? error.stack : undefined }, 'Error creating transport booking')
     return NextResponse.json(
       { error: 'Failed to create transport booking' },
       { status: 500 }
