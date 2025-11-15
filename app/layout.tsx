@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Lato, Abril_Fatface } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
+import { WebVitals } from "@/components/web-vitals";
 
 const lato = Lato({
   subsets: ["latin"],
@@ -30,6 +31,7 @@ export default function RootLayout({
       <body className={`${lato.variable} ${abrilFatface.variable} font-sans`}>
         {children}
         <Toaster />
+        <WebVitals />
       </body>
     </html>
   );
