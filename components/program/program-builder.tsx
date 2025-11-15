@@ -114,8 +114,7 @@ export function ProgramBuilder({ eventId, sessions, onUpdate }: ProgramBuilderPr
     const date = new Date(dateString)
     return date.toLocaleTimeString('fr-FR', {
       hour: '2-digit',
-      minute: '2-digit',
-      timeZone: 'Europe/Paris'
+      minute: '2-digit'
     })
   }
 
@@ -124,8 +123,7 @@ export function ProgramBuilder({ eventId, sessions, onUpdate }: ProgramBuilderPr
     return date.toLocaleDateString('fr-FR', {
       weekday: 'short',
       day: 'numeric',
-      month: 'short',
-      timeZone: 'Europe/Paris'
+      month: 'short'
     })
   }
 
