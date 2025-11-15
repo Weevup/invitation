@@ -17,10 +17,11 @@ import {
 import {
   Settings, Plus, Trash2, GripVertical, Eye, Save,
   MessageSquare, CheckSquare, List, Calendar,
-  User, Mail, Phone, Building, Utensils, Users
+  User, Mail, Phone, Building, Utensils, Users, PlayCircle
 } from 'lucide-react'
 import { useParams } from 'next/navigation'
 import { toast } from 'sonner'
+import { RSVPPreviewInteractive } from '@/components/admin/rsvp-preview-interactive'
 
 interface FormField {
   id: string
@@ -59,7 +60,8 @@ export default function RSVPConfigPage() {
 
   const [loading, setLoading] = useState(false)
   const [fields, setFields] = useState<FormField[]>(defaultFields)
-  const [previewMode, setPreviewMode] = useState(false)
+  const [previewMode, setPreviewMode] = useState<'edit' | 'static' | 'interactive'>('edit')
+  const [eventName, setEventName] = useState('Votre événement')
   const [config, setConfig] = useState({
     allowPlusOne: false,
     maxPlusOnes: 1,
@@ -72,13 +74,14 @@ export default function RSVPConfigPage() {
     declineMessage: 'Nous sommes désolés que vous ne puissiez pas être des nôtres. Peut-être une prochaine fois !'
   })
 
-  // Load existing RSVP configuration
+  // Load existing RSVP configuration and event name
   useEffect(() => {
     const loadConfig = async () => {
       try {
-        const response = await fetch(`/api/admin/events/${eventId}/rsvp-config`);
-        if (response.ok) {
-          const data = await response.json();
+        // Load RSVP config
+        const rsvpResponse = await fetch(`/api/admin/events/${eventId}/rsvp-config`);
+        if (rsvpResponse.ok) {
+          const data = await rsvpResponse.json();
           if (data && Object.keys(data).length > 0) {
             if (data.fields) {
               setFields(data.fields);
@@ -86,6 +89,15 @@ export default function RSVPConfigPage() {
             if (data.config) {
               setConfig(prev => ({ ...prev, ...data.config }));
             }
+          }
+        }
+
+        // Load event name
+        const eventResponse = await fetch(`/api/admin/events/${eventId}`);
+        if (eventResponse.ok) {
+          const eventData = await eventResponse.json();
+          if (eventData.event?.name) {
+            setEventName(eventData.event.name);
           }
         }
       } catch (error) {
@@ -163,29 +175,41 @@ export default function RSVPConfigPage() {
         </div>
         <div className="flex gap-2">
           <Button
-            variant="outline"
-            onClick={() => setPreviewMode(!previewMode)}
-            className="border-[#009197] text-[#009197] hover:bg-[#009197] hover:text-white"
+            variant={previewMode === 'static' ? 'default' : 'outline'}
+            onClick={() => setPreviewMode(previewMode === 'static' ? 'edit' : 'static')}
+            className={previewMode === 'static' ? 'bg-[#009197]' : 'border-[#009197] text-[#009197] hover:bg-[#009197] hover:text-white'}
           >
             <Eye className="h-4 w-4 mr-2" />
-            {previewMode ? 'Mode édition' : 'Prévisualiser'}
+            Aperçu
+          </Button>
+          <Button
+            variant={previewMode === 'interactive' ? 'default' : 'outline'}
+            onClick={() => setPreviewMode(previewMode === 'interactive' ? 'edit' : 'interactive')}
+            className={previewMode === 'interactive' ? 'bg-[#FF4713]' : 'border-[#FF4713] text-[#FF4713] hover:bg-[#FF4713] hover:text-white'}
+          >
+            <PlayCircle className="h-4 w-4 mr-2" />
+            Test interactif
           </Button>
           <Button
             onClick={handleSave}
+            disabled={loading}
             className="bg-gradient-to-r from-[#004645] to-[#009197] hover:from-[#006C51] hover:to-[#009197] text-white"
           >
             <Save className="h-4 w-4 mr-2" />
-            Enregistrer
+            {loading ? 'Enregistrement...' : 'Enregistrer'}
           </Button>
         </div>
       </div>
 
-      {previewMode ? (
-        /* Preview Mode */
+      {previewMode === 'interactive' ? (
+        /* Interactive Preview Mode */
+        <RSVPPreviewInteractive fields={fields} config={config} eventName={eventName} />
+      ) : previewMode === 'static' ? (
+        /* Static Preview Mode */
         <Card className="border-[#9CD9F6]/30 bg-white/80 backdrop-blur">
           <CardHeader>
-            <CardTitle className="text-[#004645]">Aperçu du formulaire RSVP</CardTitle>
-            <CardDescription>Voici comment vos invités verront le formulaire</CardDescription>
+            <CardTitle className="text-[#004645]">Aperçu statique du formulaire</CardTitle>
+            <CardDescription>Vue simplifiée de tous les champs du formulaire</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             {fields.map((field) => (
