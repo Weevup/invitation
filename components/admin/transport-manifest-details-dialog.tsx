@@ -194,7 +194,7 @@ export function TransportManifestDetailsDialog({
       fetchManifest()
       if (onSuccess) onSuccess()
     } catch (error) {
-      logger.error(error, { action: 'addParticipant', metadata: { manifestId, guestId } })
+      logger.error(error, { action: 'addParticipant', metadata: { manifestId, guestId: selectedGuestId } })
       toast.error(getUserErrorMessage(error))
     }
   }
@@ -220,7 +220,7 @@ export function TransportManifestDetailsDialog({
       fetchManifest()
       if (onSuccess) onSuccess()
     } catch (error) {
-      logger.error(error, { action: 'removeParticipant', metadata: { manifestId, participantId } })
+      logger.error(error, { action: 'removeParticipant', metadata: { manifestId, participantId: selectedParticipantId } })
       toast.error(getUserErrorMessage(error))
     }
   }
