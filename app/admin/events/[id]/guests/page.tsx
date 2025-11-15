@@ -17,16 +17,15 @@ import { GuestDetailsModal } from '@/components/guest-details-modal'
 import Papa from 'papaparse'
 import { exportBadgesPDF } from '@/lib/badge-export'
 import {
-import { createClientLogger } from '@/lib/client-logger'
-
-const logger = createClientLogger({ component: 'GuestsPage' })
-
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { createClientLogger } from '@/lib/client-logger'
+
+const logger = createClientLogger({ component: 'GuestsPage' })
 
 interface Guest {
   id: string

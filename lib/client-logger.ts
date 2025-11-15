@@ -103,14 +103,29 @@ class ClientLogger {
 
   /**
    * Send error to monitoring service (Sentry, LogRocket, etc.)
-   * Placeholder for future integration
    */
   private sendToMonitoring(error: Error | unknown, context: Record<string, any>): void {
-    // TODO: Integrate with Sentry or other monitoring service
-    // Example:
-    // if (typeof window !== 'undefined' && window.Sentry) {
-    //   window.Sentry.captureException(error, { extra: context })
-    // }
+    // Integrate with Sentry
+    if (typeof window !== 'undefined') {
+      try {
+        const Sentry = (window as any).Sentry
+        if (Sentry && Sentry.captureException) {
+          const { level = 'error', ...extraContext } = context
+
+          Sentry.captureException(error, {
+            level: level,
+            extra: extraContext,
+            tags: {
+              component: context.component,
+              action: context.action,
+            },
+          })
+        }
+      } catch (monitoringError) {
+        // Silently fail if monitoring is not available
+        console.error('Failed to send to monitoring:', monitoringError)
+      }
+    }
   }
 }
 

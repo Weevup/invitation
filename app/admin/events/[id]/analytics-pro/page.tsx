@@ -5,12 +5,11 @@ import { useParams } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import {
+  BarChart3, Building2, Briefcase, TrendingUp, Users, PieChart
+} from 'lucide-react'
 import { createClientLogger } from '@/lib/client-logger'
 
 const logger = createClientLogger({ component: 'AnalyticsProPage' })
-
-  BarChart3, Building2, Briefcase, TrendingUp, Users, PieChart
-} from 'lucide-react'
 
 interface Guest {
   company?: string

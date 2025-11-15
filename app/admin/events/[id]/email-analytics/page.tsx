@@ -6,13 +6,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
-import { createClientLogger } from '@/lib/client-logger'
-
-const logger = createClientLogger({ component: 'EmailAnalyticsPage' })
-
   Mail, MailOpen, MousePointerClick, AlertCircle, TrendingUp,
   Clock, XCircle, CheckCircle, Timer, BarChart3, RefreshCw
 } from 'lucide-react'
+import { createClientLogger } from '@/lib/client-logger'
+
+const logger = createClientLogger({ component: 'EmailAnalyticsPage' })
 
 interface EmailAnalytics {
   overview: {
