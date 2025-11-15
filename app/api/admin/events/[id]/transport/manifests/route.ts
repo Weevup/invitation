@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { createLogger } from '@/lib/logger'
+
+const manifestLogger = createLogger({ module: 'transport', type: 'manifests' })
 
 export const runtime = 'nodejs'
 
@@ -46,7 +49,7 @@ export async function GET(
     })
 
   } catch (error) {
-    console.error('Error fetching transport manifests:', error)
+    manifestLogger.error({ error, stack: error instanceof Error ? error.stack : undefined }, 'Error fetching transport manifests')
     return NextResponse.json(
       { error: 'Failed to fetch transport manifests' },
       { status: 500 }
@@ -141,7 +144,7 @@ export async function POST(
     })
 
   } catch (error) {
-    console.error('Error creating transport manifest:', error)
+    manifestLogger.error({ error, stack: error instanceof Error ? error.stack : undefined }, 'Error creating transport manifest')
     return NextResponse.json(
       { error: 'Failed to create transport manifest' },
       { status: 500 }

@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { Prisma } from '@prisma/client'
+import { createLogger } from '@/lib/logger'
+
+const arrivalsLogger = createLogger({ module: 'transport', type: 'arrivals' })
 
 export async function GET(
   request: NextRequest,
@@ -41,7 +44,7 @@ export async function GET(
 
     return NextResponse.json(arrivals)
   } catch (error) {
-    console.error('Error fetching arrivals:', error)
+    arrivalsLogger.error({ error, stack: error instanceof Error ? error.stack : undefined }, 'Error fetching arrivals')
     return NextResponse.json({ error: 'Failed to fetch arrivals' }, { status: 500 })
   }
 }
