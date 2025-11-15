@@ -2,11 +2,6 @@ const { withSentryConfig } = require('@sentry/nextjs')
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Enable instrumentation for Sentry and other monitoring tools
-  experimental: {
-    instrumentationHook: true,
-  },
-
   images: {
     remotePatterns: [
       // Cloudinary (pour hébergement d'images)
