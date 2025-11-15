@@ -14,6 +14,9 @@ import {
 } from '@/components/ui/select'
 import { Users, Search, X, Check, AlertCircle } from 'lucide-react'
 import { useToast } from '@/components/ui/use-toast'
+import { createClientLogger, getUserErrorMessage } from '@/lib/client-logger'
+
+const logger = createClientLogger({ component: 'ParticipantGroupAssignment' })
 
 interface SessionGroup {
   id: string
@@ -86,10 +89,10 @@ export function ParticipantGroupAssignment({
         setParticipants(participantsData.participants || [])
       }
     } catch (error) {
-      console.error('Error loading data:', error)
+      logger.error(error, { action: 'loadData', metadata: { sessionId, eventId } })
       toast({
         title: 'Erreur',
-        description: 'Impossible de charger les données',
+        description: getUserErrorMessage(error),
         variant: 'destructive',
       })
     } finally {
@@ -116,10 +119,10 @@ export function ParticipantGroupAssignment({
         loadData()
       }
     } catch (error) {
-      console.error('Error assigning participant:', error)
+      logger.error(error, { action: 'assignParticipant', metadata: { sessionId, eventId, participantId, groupId } })
       toast({
         title: 'Erreur',
-        description: "Impossible d'assigner le participant",
+        description: getUserErrorMessage(error),
         variant: 'destructive',
       })
     }

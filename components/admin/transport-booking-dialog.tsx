@@ -25,6 +25,9 @@ import { Switch } from '@/components/ui/switch'
 import { Plus, Loader2 } from 'lucide-react'
 import { TransportType, BookingStatus } from '@prisma/client'
 import { toast } from 'sonner'
+import { createClientLogger, getUserErrorMessage } from '@/lib/client-logger'
+
+const logger = createClientLogger({ component: 'TransportBookingDialog' })
 
 interface Guest {
   id: string
@@ -110,8 +113,8 @@ export function TransportBookingDialog({
         setGuests(data.guests || [])
       }
     } catch (error) {
-      console.error('Error fetching guests:', error)
-      toast.error('Erreur lors du chargement des invités')
+      logger.error(error, { action: 'fetchGuests', metadata: { eventId } })
+      toast.error(getUserErrorMessage(error))
     } finally {
       setLoadingGuests(false)
     }
@@ -182,8 +185,8 @@ export function TransportBookingDialog({
       resetForm()
       onSuccess?.()
     } catch (error) {
-      console.error('Error creating booking:', error)
-      toast.error('Erreur lors de la création de la réservation')
+      logger.error(error, { action: 'createBooking', metadata: { eventId } })
+      toast.error(getUserErrorMessage(error))
     } finally {
       setLoading(false)
     }
