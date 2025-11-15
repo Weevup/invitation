@@ -23,6 +23,9 @@ import {
 } from '@/components/ui/select'
 import { toast } from 'sonner'
 import { Search } from 'lucide-react'
+import { createClientLogger, getUserErrorMessage } from '@/lib/client-logger'
+
+const logger = createClientLogger({ component: 'RoomAssignmentDialog' })
 
 interface RoomAssignmentDialogProps {
   open: boolean
@@ -98,7 +101,8 @@ export function RoomAssignmentDialog({
         setFilteredGuests(data.guests || [])
       }
     } catch (error) {
-      console.error('Error fetching guests:', error)
+      logger.error(error, { action: 'fetchGuests', metadata: { eventId } })
+      toast.error(getUserErrorMessage(error))
     }
   }
 
