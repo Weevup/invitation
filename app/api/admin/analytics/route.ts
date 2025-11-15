@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { requireAdmin, handleAuthError } from '@/lib/auth-utils'
 import { getEventFilter } from '@/lib/permissions'
+import { createLogger } from '@/lib/logger'
+
+const analyticsLogger = createLogger({ module: 'admin', type: 'analytics' })
 
 export async function GET() {
   try {
@@ -116,7 +119,7 @@ export async function GET() {
       topCompanies,
     })
   } catch (error) {
-    console.error('Analytics error:', error)
+    analyticsLogger.error({ error, stack: error instanceof Error ? error.stack : undefined }, 'Analytics error')
     return handleAuthError(error)
   }
 }
