@@ -16,11 +16,15 @@ import type { Metric } from 'web-vitals'
 const vitalsUrl = 'https://vitals.vercel-analytics.com/v1/vitals'
 
 function getConnectionSpeed(): string {
-  return 'connection' in navigator &&
+  if (
+    'connection' in navigator &&
     navigator.connection &&
+    typeof navigator.connection === 'object' &&
     'effectiveType' in navigator.connection
-    ? (navigator.connection as any).effectiveType
-    : ''
+  ) {
+    return (navigator.connection as any).effectiveType
+  }
+  return ''
 }
 
 /**
