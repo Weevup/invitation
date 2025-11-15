@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { checkinRateLimit, getRateLimitIdentifier, getRateLimitHeaders, normalizeRateLimitResult } from '@/lib/rate-limit'
 import { checkinSchema, validateSchema } from '@/lib/validations'
+import { createLogger } from '@/lib/logger'
+
+const checkinLogger = createLogger({ module: 'checkin' })
 
 export async function POST(
   request: NextRequest,
@@ -99,7 +102,7 @@ export async function POST(
       guest: rsvp.guest
     })
   } catch (error) {
-    console.error('Error during checkin:', error)
+    checkinLogger.error({ error, stack: error instanceof Error ? error.stack : undefined, qrCodeId }, 'Error during checkin')
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -158,7 +161,7 @@ export async function GET(
       latestCheckin: isCheckedIn ? rsvp.guest.checkins[0] : null
     })
   } catch (error) {
-    console.error('Error verifying QR code:', error)
+    checkinLogger.error({ error, stack: error instanceof Error ? error.stack : undefined, qrCodeId }, 'Error verifying QR code')
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
