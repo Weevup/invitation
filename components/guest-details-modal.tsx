@@ -12,6 +12,9 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import Image from 'next/image'
+import { createClientLogger } from '@/lib/client-logger'
+
+const logger = createClientLogger({ component: 'GuestDetailsModal' })
 import {
   User,
   Mail,
@@ -87,7 +90,7 @@ export function GuestDetailsModal({ guest, open, onOpenChange }: GuestDetailsMod
       const qrUrl = await generateQRCode(checkinUrl)
       setQrCodeUrl(qrUrl)
     } catch (error) {
-      console.error('Error generating QR code:', error)
+      logger.error(error, { action: 'generateQRCode', metadata: { guestId: guest.id } })
     } finally {
       setLoading(false)
     }

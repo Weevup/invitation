@@ -7,6 +7,9 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import QRCode from 'qrcode'
 import { useState } from 'react'
+import { createClientLogger } from '@/lib/client-logger'
+
+const logger = createClientLogger({ component: 'RSVPConfirmation' })
 
 interface ConfirmationProps {
   attending: boolean
@@ -66,7 +69,7 @@ export function RSVPConfirmation({ attending, guestName, eventName, qrCodeData }
         }
       })
         .then(url => setQrCodeUrl(url))
-        .catch(err => console.error(err))
+        .catch(err => logger.error(err, { action: 'generateQRCode' }))
     }
   }, [qrCodeData])
 

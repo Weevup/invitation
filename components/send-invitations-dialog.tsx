@@ -22,6 +22,9 @@ import { Send, Loader2, CheckCircle, AlertCircle, Mail } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { createClientLogger, getUserErrorMessage } from "@/lib/client-logger";
+
+const logger = createClientLogger({ component: 'SendInvitationsDialog' });
 
 interface SendInvitationsDialogProps {
   eventId: string;
@@ -71,8 +74,8 @@ export function SendInvitationsDialog({
         setTemplates(data);
       }
     } catch (error) {
-      console.error('Error fetching templates:', error);
-      toast.error('Erreur lors du chargement des templates');
+      logger.error(error, { action: 'fetchTemplates' });
+      toast.error(getUserErrorMessage(error));
     } finally {
       setLoadingTemplates(false);
     }
