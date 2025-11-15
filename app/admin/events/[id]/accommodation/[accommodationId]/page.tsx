@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -104,11 +104,7 @@ export default function AccommodationDetailsPage() {
   const [editDialogOpen, setEditDialogOpen] = useState(false)
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null)
 
-  useEffect(() => {
-    fetchAccommodation()
-  }, [accommodationId])
-
-  const fetchAccommodation = async () => {
+  const fetchAccommodation = useCallback(async () => {
     try {
       setLoading(true)
       const response = await fetch(
@@ -123,7 +119,11 @@ export default function AccommodationDetailsPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [eventId, accommodationId])
+
+  useEffect(() => {
+    fetchAccommodation()
+  }, [fetchAccommodation])
 
   const handleOpenAssignment = (room: Room) => {
     setSelectedRoom(room)

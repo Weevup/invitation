@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -51,15 +51,7 @@ export default function RSVPManagementPage() {
   const [copiedToken, setCopiedToken] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState('overview')
 
-  useEffect(() => {
-    fetchData()
-  }, [])
-
-  useEffect(() => {
-    filterGuests()
-  }, [guests, searchTerm, eventFilter, statusFilter])
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       const [guestsRes, eventsRes] = await Promise.all([
         fetch('/api/admin/guests'),
@@ -80,9 +72,9 @@ export default function RSVPManagementPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
 
-  const filterGuests = () => {
+  const filterGuests = useCallback(() => {
     let filtered = guests
 
     // Search filter
@@ -113,7 +105,15 @@ export default function RSVPManagementPage() {
     }
 
     setFilteredGuests(filtered)
-  }
+  }, [guests, searchTerm, eventFilter, statusFilter])
+
+  useEffect(() => {
+    fetchData()
+  }, [fetchData])
+
+  useEffect(() => {
+    filterGuests()
+  }, [filterGuests])
 
   const handleExportCSV = () => {
     let csv = 'Prénom,Nom,Email,Entreprise,Événement,Statut,Date de réponse\n'

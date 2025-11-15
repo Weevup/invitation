@@ -130,14 +130,14 @@ export default function SessionDetailPage({ sessionType, labels }: SessionDetail
     if (!response.ok) throw new Error('Failed to fetch groups')
     const data = await response.json()
     setGroups(data.groups || [])
-  }, [eventId, sessionId])
+  }, [groupsApi])
 
   const fetchParticipants = useCallback(async () => {
     const response = await fetch(participantsApi)
     if (!response.ok) throw new Error('Failed to fetch participants')
     const data = await response.json()
     setParticipants(data.participants || [])
-  }, [eventId, sessionId])
+  }, [participantsApi])
 
   const loadData = useCallback(async () => {
     try {
