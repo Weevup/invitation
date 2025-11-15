@@ -1,18 +1,26 @@
 import { Button } from '@/components/ui/button'
-import { Clock, Edit, Copy, Trash2, Eye, EyeOff } from 'lucide-react'
-import { formatTime, SESSION_COLORS, SESSION_ICONS } from '@/lib/program/constants'
+import { Badge } from '@/components/ui/badge'
+import { Clock, Edit, Copy, Trash2, Eye, EyeOff, MapPin, Users } from 'lucide-react'
+import { formatTime, SESSION_COLORS, SESSION_ICONS, SESSION_TYPE_LABELS } from '@/lib/program/constants'
 import { getSessionPosition, TimelineConfig } from '../utils/time-calculations'
 
 interface Session {
   id: string
   title: string
+  description: string | null
   type: string
+  status: string
   startTime: string
   endTime: string
   duration: number
+  venue: string | null
+  room: string | null
+  capacity: number | null
+  speakers: any
   color: string | null
   icon: string | null
   isPublic: boolean
+  order: number
 }
 
 interface SessionCardProps {
@@ -148,6 +156,48 @@ export function SessionCard({
             </Button>
           </div>
         </div>
+
+        {/* Details (only show if enough height) */}
+        {height > 80 && (
+          <div className="flex flex-wrap gap-2 text-xs mt-1">
+            <Badge
+              variant="outline"
+              className="text-xs"
+              style={{
+                borderColor: sessionColor,
+                color: sessionColor,
+                backgroundColor: `${sessionColor}10`
+              }}
+            >
+              {SESSION_TYPE_LABELS[session.type] || session.type}
+            </Badge>
+            {!session.isPublic && (
+              <Badge variant="outline" className="text-xs">🔒 Privée</Badge>
+            )}
+            {session.status === 'DRAFT' && (
+              <Badge variant="outline" className="text-xs bg-gray-100">Brouillon</Badge>
+            )}
+          </div>
+        )}
+
+        {/* Location and capacity (only show if enough height) */}
+        {height > 120 && (
+          <div className="flex flex-wrap gap-3 text-xs text-[#004645]/70 mt-2">
+            {session.venue && (
+              <div className="flex items-center gap-1">
+                <MapPin className="h-3 w-3 text-[#009197]" />
+                <span>{session.venue}</span>
+                {session.room && <span className="text-[#004645]/50">• {session.room}</span>}
+              </div>
+            )}
+            {session.capacity && (
+              <div className="flex items-center gap-1">
+                <Users className="h-3 w-3 text-[#009197]" />
+                <span>{session.capacity} pers.</span>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Resize handle bottom */}
