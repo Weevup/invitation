@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import {
   Dialog,
   DialogContent,
@@ -74,13 +74,7 @@ export function GuestDetailsModal({ guest, open, onOpenChange }: GuestDetailsMod
   const [qrCodeUrl, setQrCodeUrl] = useState<string>('')
   const [loading, setLoading] = useState(false)
 
-  useEffect(() => {
-    if (open && guest.rsvp?.qrCodeId) {
-      generateQRCodeImage()
-    }
-  }, [open, guest.rsvp?.qrCodeId])
-
-  const generateQRCodeImage = async () => {
+  const generateQRCodeImage = useCallback(async () => {
     if (!guest.rsvp?.qrCodeId) return
 
     setLoading(true)
@@ -94,7 +88,13 @@ export function GuestDetailsModal({ guest, open, onOpenChange }: GuestDetailsMod
     } finally {
       setLoading(false)
     }
-  }
+  }, [guest.rsvp?.qrCodeId, guest.id])
+
+  useEffect(() => {
+    if (open && guest.rsvp?.qrCodeId) {
+      generateQRCodeImage()
+    }
+  }, [open, guest.rsvp?.qrCodeId, generateQRCodeImage])
 
   const downloadQRCode = () => {
     if (!qrCodeUrl) return

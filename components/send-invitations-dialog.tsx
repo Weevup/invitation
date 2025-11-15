@@ -63,7 +63,7 @@ export function SendInvitationsDialog({
     if (open && templates.length === 0) {
       fetchTemplates();
     }
-  }, [open]);
+  }, [open, templates.length]);
 
   const fetchTemplates = async () => {
     setLoadingTemplates(true);
