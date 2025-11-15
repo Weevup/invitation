@@ -10,9 +10,9 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ qrCodeId: string }> }
 ) {
-  try {
-    const { qrCodeId } = await params
+  const { qrCodeId } = await params
 
+  try {
     // Rate limiting
     const identifier = getRateLimitIdentifier(request, qrCodeId)
     const rawResult = await checkinRateLimit.limit(identifier)
@@ -115,9 +115,9 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ qrCodeId: string }> }
 ) {
-  try {
-    const { qrCodeId } = await params
+  const { qrCodeId } = await params
 
+  try {
     const rsvp = await prisma.rSVP.findFirst({
       where: { qrCodeId },
       include: {
