@@ -34,6 +34,9 @@ import { Switch } from '@/components/ui/switch'
 import { Loader2, Edit2, Trash2, X } from 'lucide-react'
 import { TransportType, BookingStatus } from '@prisma/client'
 import { toast } from 'sonner'
+import { createClientLogger, getUserErrorMessage } from '@/lib/client-logger'
+
+const logger = createClientLogger({ component: 'TransportBookingDetailsDialog' })
 
 interface TransportBooking {
   id: string
@@ -173,8 +176,8 @@ export function TransportBookingDetailsDialog({
         onOpenChange(false)
       }
     } catch (error) {
-      console.error('Error fetching booking:', error)
-      toast.error('Erreur lors du chargement de la réservation')
+      logger.error(error, { action: 'fetchBooking', metadata: { bookingId } })
+      toast.error(getUserErrorMessage(error))
       onOpenChange(false)
     } finally {
       setLoadingData(false)
@@ -189,7 +192,7 @@ export function TransportBookingDetailsDialog({
         setGuests(data.guests || [])
       }
     } catch (error) {
-      console.error('Error fetching guests:', error)
+      logger.error(error, { action: 'fetchGuests', metadata: { eventId } })
     }
   }, [eventId])
 
@@ -253,8 +256,8 @@ export function TransportBookingDetailsDialog({
       fetchBooking() // Rafraîchir les données
       onSuccess?.()
     } catch (error) {
-      console.error('Error updating booking:', error)
-      toast.error('Erreur lors de la mise à jour')
+      logger.error(error, { action: 'updateBooking', metadata: { bookingId } })
+      toast.error(getUserErrorMessage(error))
     } finally {
       setLoading(false)
     }
@@ -275,8 +278,8 @@ export function TransportBookingDetailsDialog({
       onOpenChange(false)
       onSuccess?.()
     } catch (error) {
-      console.error('Error deleting booking:', error)
-      toast.error('Erreur lors de la suppression')
+      logger.error(error, { action: 'deleteBooking', metadata: { bookingId } })
+      toast.error(getUserErrorMessage(error))
     } finally {
       setLoading(false)
       setShowDeleteDialog(false)

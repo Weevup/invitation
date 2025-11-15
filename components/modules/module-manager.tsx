@@ -8,6 +8,9 @@ import { Badge } from '@/components/ui/badge'
 import { Loader2, CheckCircle2, AlertCircle } from 'lucide-react'
 import { useEventModules } from '@/lib/modules/use-event-modules'
 import { AVAILABLE_MODULES, MODULE_CATEGORIES, type ModuleType } from '@/lib/modules/types'
+import { createClientLogger } from '@/lib/client-logger'
+
+const logger = createClientLogger({ component: 'ModuleManager' })
 
 interface ModuleManagerProps {
   eventId: string
@@ -39,7 +42,7 @@ export function ModuleManager({ eventId }: ModuleManagerProps) {
 
       await refresh()
     } catch (err) {
-      console.error('Error toggling module:', err)
+      logger.error(err, { action: 'toggleModule', metadata: { moduleType, eventId } })
     } finally {
       setToggling(null)
     }
@@ -71,7 +74,7 @@ export function ModuleManager({ eventId }: ModuleManagerProps) {
 
       await refresh()
     } catch (err) {
-      console.error('Error toggling sub-feature:', err)
+      logger.error(err, { action: 'toggleSubFeature', metadata: { moduleType, configKey, eventId } })
     } finally {
       setTogglingSubFeature(null)
     }

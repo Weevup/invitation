@@ -29,6 +29,7 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { toast } from 'sonner'
+import { createClientLogger, getUserErrorMessage } from '@/lib/client-logger'
 import {
   Users,
   MapPin,
@@ -41,6 +42,8 @@ import {
   Plane,
   Train
 } from 'lucide-react'
+
+const logger = createClientLogger({ component: 'TransportManifestDetailsDialog' })
 
 interface Guest {
   id: string
@@ -133,8 +136,8 @@ export function TransportManifestDetailsDialog({
       const data = await response.json()
       setManifest(data.manifest)
     } catch (error) {
-      console.error('Error fetching manifest:', error)
-      toast.error('Erreur lors du chargement du manifeste')
+      logger.error(error, { action: 'fetchManifest', metadata: { manifestId } })
+      toast.error(getUserErrorMessage(error))
     } finally {
       setLoading(false)
     }
@@ -149,7 +152,7 @@ export function TransportManifestDetailsDialog({
       const data = await response.json()
       setAvailableGuests(data.guests || [])
     } catch (error) {
-      console.error('Error fetching guests:', error)
+      logger.error(error, { action: 'fetchAvailableGuests', metadata: { eventId } })
     }
   }, [eventId])
 
@@ -191,8 +194,8 @@ export function TransportManifestDetailsDialog({
       fetchManifest()
       if (onSuccess) onSuccess()
     } catch (error) {
-      console.error('Error adding participant:', error)
-      toast.error(error instanceof Error ? error.message : 'Erreur lors de l\'ajout')
+      logger.error(error, { action: 'addParticipant', metadata: { manifestId, guestId } })
+      toast.error(getUserErrorMessage(error))
     }
   }
 
@@ -217,8 +220,8 @@ export function TransportManifestDetailsDialog({
       fetchManifest()
       if (onSuccess) onSuccess()
     } catch (error) {
-      console.error('Error removing participant:', error)
-      toast.error('Erreur lors de la suppression')
+      logger.error(error, { action: 'removeParticipant', metadata: { manifestId, participantId } })
+      toast.error(getUserErrorMessage(error))
     }
   }
 
