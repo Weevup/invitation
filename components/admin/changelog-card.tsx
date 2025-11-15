@@ -63,6 +63,54 @@ const typeConfig = {
 
 export const changelogData: ChangelogItem[] = [
   {
+    id: 'badge-system-2025-01-15',
+    title: 'Système de Badges Professionnels',
+    date: '2025-01-15',
+    type: 'feature',
+    description: 'Création complète d\'un système de badges personnalisables avec QR codes, templates prédéfinis et export PDF haute qualité pour vos événements.',
+    highlights: [
+      '🎫 Génération automatique de badges avec QR codes',
+      '🎨 3 templates professionnels (Corporate, VIP, Lanyard)',
+      '📄 Export PDF haute qualité (300 DPI)',
+      '⚙️ Personnalisation complète (taille, orientation, champs)',
+      '📊 Suivi des impressions et statistiques',
+      '🔄 Génération par lot pour plusieurs invités',
+    ],
+    details: `
+### Problème résolu
+Besoin d'un système professionnel pour générer des badges d'identification lors des événements, avec intégration au système de check-in existant.
+
+### Solution
+- **Templates prêts** : 3 designs professionnels (Corporate Standard, VIP Premium, Lanyard)
+- **Personnalisation** : Champs configurables (nom, entreprise, fonction, QR code, logo)
+- **QR Code** : Intégration automatique avec le système de check-in
+- **Export PDF** : Qualité impression 300 DPI, multiple badges par page
+- **Gestion** : Suivi des impressions, génération par lot, statistiques
+
+### Architecture
+- 3 nouveaux modèles Prisma (BadgeTemplate, BadgeDesign, Badge)
+- 5 API routes pour gestion complète
+- Composants React réutilisables
+- Validation Zod stricte
+
+### Impact
+- ⏱️ **Gain de temps** : Templates prêts à l'emploi
+- 🎯 **Qualité pro** : Export PDF 300 DPI
+- 🔗 **Intégration** : QR codes liés au check-in
+- 📊 **Suivi** : Statistiques d'impression
+    `,
+    impact: [
+      { label: 'Templates', value: '3' },
+      { label: 'Qualité PDF', value: '300 DPI' },
+      { label: 'API Routes', value: '5' },
+      { label: 'Lignes ajoutées', value: '+2,100' },
+    ],
+    files: {
+      created: 13,
+      modified: 5,
+    }
+  },
+  {
     id: 'rsvp-improvements-2025-01-15',
     title: 'Prévisualisation Interactive RSVP & Templates',
     date: '2025-01-15',
