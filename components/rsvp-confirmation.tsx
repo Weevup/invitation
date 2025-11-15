@@ -8,6 +8,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import QRCode from 'qrcode'
 import { useState } from 'react'
 import { createClientLogger } from '@/lib/client-logger'
+import Image from 'next/image'
 
 const logger = createClientLogger({ component: 'RSVPConfirmation' })
 
@@ -107,11 +108,12 @@ export function RSVPConfirmation({ attending, guestName, eventName, qrCodeData }
                 <Calendar className="h-5 w-5 text-[#004645]" />
                 <p className="text-sm font-semibold text-[#004645]">Votre QR Code d&apos;accès</p>
               </div>
-              <img
+              <Image
                 src={qrCodeUrl}
                 alt="QR Code"
+                width={250}
+                height={250}
                 className="mx-auto rounded-lg shadow-md mb-4"
-                style={{ width: 250, height: 250 }}
               />
               <p className="text-xs text-[#004645]/60 mb-4">
                 Présentez ce QR code à l&apos;entrée de l&apos;événement

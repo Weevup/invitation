@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent } from '@/components/ui/card'
 import { ImageIcon, Plus, X } from 'lucide-react'
+import Image from 'next/image'
 
 interface GalleryEditorProps {
   images: string[]
@@ -51,11 +52,13 @@ export function GalleryEditor({ images, onChange }: GalleryEditorProps) {
           {images.map((url, index) => (
             <Card key={index} className="relative group">
               <CardContent className="p-2">
-                <div className="aspect-square overflow-hidden rounded bg-gray-100">
-                  <img
+                <div className="aspect-square overflow-hidden rounded bg-gray-100 relative">
+                  <Image
                     src={url}
                     alt={`Gallery ${index + 1}`}
-                    className="w-full h-full object-cover"
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 768px) 50vw, 33vw"
                   />
                 </div>
                 <Button
