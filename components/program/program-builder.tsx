@@ -30,6 +30,7 @@ interface ProgramBuilderProps {
   eventId: string
   sessions: Session[]
   onUpdate: () => void
+  onSessionsChange?: (sessions: Session[]) => void
 }
 
 // Icônes par type de session
@@ -85,7 +86,7 @@ const SESSION_TYPE_LABELS: Record<string, string> = {
   OTHER: 'Autre'
 }
 
-export function ProgramBuilder({ eventId, sessions, onUpdate }: ProgramBuilderProps) {
+export function ProgramBuilder({ eventId, sessions, onUpdate, onSessionsChange }: ProgramBuilderProps) {
   const [draggedSession, setDraggedSession] = useState<Session | null>(null)
   const [editingSession, setEditingSession] = useState<Session | null>(null)
   const [creatingSession, setCreatingSession] = useState(false)
@@ -188,6 +189,19 @@ export function ProgramBuilder({ eventId, sessions, onUpdate }: ProgramBuilderPr
     const newStartTime = getTimeFromPosition(y, baseDate)
     const newEndTime = new Date(newStartTime.getTime() + draggedSession.duration * 60000)
 
+    // Optimistic update
+    if (onSessionsChange) {
+      const updatedSessions = sessions.map(s =>
+        s.id === draggedSession.id
+          ? { ...s, startTime: newStartTime.toISOString(), endTime: newEndTime.toISOString() }
+          : s
+      )
+      onSessionsChange(updatedSessions)
+    }
+
+    setDraggedSession(null)
+    setDragOverTime(null)
+
     try {
       await fetch(`/api/admin/events/${eventId}/sessions/${draggedSession.id}`, {
         method: 'PATCH',
@@ -197,14 +211,10 @@ export function ProgramBuilder({ eventId, sessions, onUpdate }: ProgramBuilderPr
           endTime: newEndTime.toISOString(),
         })
       })
-
-      setDraggedSession(null)
-      setDragOverTime(null)
-      onUpdate()
     } catch (error) {
       console.error('Error moving session:', error)
-      setDraggedSession(null)
-      setDragOverTime(null)
+      // Revert on error
+      onUpdate()
     }
   }
 
@@ -269,6 +279,19 @@ export function ProgramBuilder({ eventId, sessions, onUpdate }: ProgramBuilderPr
       return
     }
 
+    // Optimistic update
+    if (onSessionsChange) {
+      const updatedSessions = sessions.map(s =>
+        s.id === session.id
+          ? { ...s, startTime: newStartTime.toISOString(), endTime: newEndTime.toISOString(), duration: newDuration }
+          : s
+      )
+      onSessionsChange(updatedSessions)
+    }
+
+    setResizingSession(null)
+    setDragOverTime(null)
+
     try {
       await fetch(`/api/admin/events/${eventId}/sessions/${session.id}`, {
         method: 'PATCH',
@@ -279,28 +302,31 @@ export function ProgramBuilder({ eventId, sessions, onUpdate }: ProgramBuilderPr
           duration: newDuration
         })
       })
-
-      setResizingSession(null)
-      setDragOverTime(null)
-      onUpdate()
     } catch (error) {
       console.error('Error resizing session:', error)
-      setResizingSession(null)
-      setDragOverTime(null)
+      // Revert on error
+      onUpdate()
     }
   }
 
   const handleDelete = async (sessionId: string) => {
     if (!confirm('Supprimer cette session ?')) return
 
+    // Optimistic update
+    if (onSessionsChange) {
+      const updatedSessions = sessions.filter(s => s.id !== sessionId)
+      onSessionsChange(updatedSessions)
+    }
+
     try {
       await fetch(`/api/admin/events/${eventId}/sessions/${sessionId}`, {
         method: 'DELETE'
       })
-      onUpdate()
     } catch (error) {
       console.error('Error deleting session:', error)
       alert('Erreur lors de la suppression de la session')
+      // Revert on error
+      onUpdate()
     }
   }
 
@@ -344,15 +370,26 @@ export function ProgramBuilder({ eventId, sessions, onUpdate }: ProgramBuilderPr
   }
 
   const handleToggleVisibility = async (session: Session) => {
+    // Optimistic update
+    if (onSessionsChange) {
+      const updatedSessions = sessions.map(s =>
+        s.id === session.id
+          ? { ...s, isPublic: !s.isPublic }
+          : s
+      )
+      onSessionsChange(updatedSessions)
+    }
+
     try {
       await fetch(`/api/admin/events/${eventId}/sessions/${session.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ isPublic: !session.isPublic })
       })
-      onUpdate()
     } catch (error) {
       console.error('Error toggling visibility:', error)
+      // Revert on error
+      onUpdate()
     }
   }
 

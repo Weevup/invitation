@@ -247,6 +247,7 @@ export default function ProgramPage() {
             eventId={eventId}
             sessions={sessions}
             onUpdate={loadSessions}
+            onSessionsChange={setSessions}
           />
         </TabsContent>
 
