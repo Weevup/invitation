@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { createLogger } from '@/lib/logger'
+
+const moduleLogger = createLogger({ module: 'event', type: 'modules' })
 
 export const runtime = 'nodejs'
 
@@ -49,7 +52,7 @@ export async function GET(
     })
 
   } catch (error) {
-    console.error('Error fetching event modules:', error)
+    moduleLogger.error({ error, stack: error instanceof Error ? error.stack : undefined }, 'Error fetching event modules')
     return NextResponse.json(
       { error: 'Failed to fetch modules' },
       { status: 500 }
@@ -119,7 +122,7 @@ export async function POST(
     })
 
   } catch (error) {
-    console.error('Error updating event module:', error)
+    moduleLogger.error({ error, stack: error instanceof Error ? error.stack : undefined }, 'Error updating event module')
     return NextResponse.json(
       { error: 'Failed to update module' },
       { status: 500 }

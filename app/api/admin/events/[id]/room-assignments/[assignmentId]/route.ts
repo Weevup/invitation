@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { createLogger } from '@/lib/logger'
+
+const roomAssignmentLogger = createLogger({ module: 'accommodation', type: 'assignment-operations' })
 
 /**
  * DELETE /api/admin/events/[id]/room-assignments/[assignmentId]
@@ -73,7 +76,7 @@ export async function DELETE(
       message: 'Assignation supprimée avec succès',
     })
   } catch (error) {
-    console.error('Error deleting room assignment:', error)
+    roomAssignmentLogger.error({ error, stack: error instanceof Error ? error.stack : undefined }, 'Error deleting room assignment')
     return NextResponse.json(
       { error: 'Erreur lors de la suppression de l\'assignation' },
       { status: 500 }
@@ -194,7 +197,7 @@ export async function PUT(
       message: 'Assignation mise à jour avec succès',
     })
   } catch (error) {
-    console.error('Error updating room assignment:', error)
+    roomAssignmentLogger.error({ error, stack: error instanceof Error ? error.stack : undefined }, 'Error updating room assignment')
     return NextResponse.json(
       { error: 'Erreur lors de la mise à jour de l\'assignation' },
       { status: 500 }
