@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { createLogger } from '@/lib/logger'
+
+const exportLogger = createLogger({ module: 'export', type: 'timeline-pdf' })
 import { jsPDF } from 'jspdf'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
@@ -255,7 +258,7 @@ export async function GET(
       },
     })
   } catch (error) {
-    console.error('Error exporting timeline PDF:', error)
+    exportLogger.error({ error, stack: error instanceof Error ? error.stack : undefined }, 'Error exporting timeline PDF')
     return NextResponse.json(
       { error: 'Erreur lors de l\'export de la timeline PDF' },
       { status: 500 }

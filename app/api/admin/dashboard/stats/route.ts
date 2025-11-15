@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { createLogger } from '@/lib/logger'
+
+const dashboardLogger = createLogger({ module: 'admin', type: 'dashboard' })
 import { requireAdmin, handleAuthError } from '@/lib/auth-utils'
 import { getEventFilter } from '@/lib/permissions'
 
@@ -148,7 +151,7 @@ export async function GET() {
         }))
     })
   } catch (error) {
-    console.error('Error fetching dashboard stats:', error)
+    dashboardLogger.error({ error, stack: error instanceof Error ? error.stack : undefined }, 'Error fetching dashboard stats')
     return handleAuthError(error)
   }
 }

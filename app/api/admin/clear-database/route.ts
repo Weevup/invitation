@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { requireAdmin, handleAuthError } from '@/lib/auth-utils'
+import { createLogger } from '@/lib/logger'
+
+const clearDbLogger = createLogger({ module: 'admin', type: 'clear-database' })
 
 export async function POST() {
   try {
@@ -51,7 +54,7 @@ export async function POST() {
       },
     })
   } catch (error) {
-    console.error('Error clearing database:', error)
+    clearDbLogger.error({ error, stack: error instanceof Error ? error.stack : undefined }, 'Error clearing database')
     return handleAuthError(error)
   }
 }

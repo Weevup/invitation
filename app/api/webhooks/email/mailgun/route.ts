@@ -6,6 +6,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import crypto from 'crypto'
+import { createLogger } from '@/lib/logger'
+
+const webhookLogger = createLogger({ module: 'webhook', provider: 'mailgun' })
 
 type MailgunEvent = {
   signature: {
@@ -66,7 +69,7 @@ export async function POST(request: NextRequest) {
 
     // Webhook verification is mandatory in production
     if (process.env.NODE_ENV === 'production' && !webhookSigningKey) {
-      console.error('MAILGUN_WEBHOOK_SIGNING_KEY must be configured in production')
+      webhookLogger.error({ env: process.env.NODE_ENV }, 'MAILGUN_WEBHOOK_SIGNING_KEY must be configured in production')
       return NextResponse.json({ error: 'Webhook not configured' }, { status: 500 })
     }
 
@@ -83,7 +86,7 @@ export async function POST(request: NextRequest) {
       }
     } else if (process.env.NODE_ENV !== 'development') {
       // In non-dev environments without key, log warning but allow (for staging)
-      console.warn('⚠️  Mailgun webhook signature verification is disabled - configure MAILGUN_WEBHOOK_SIGNING_KEY')
+      webhookLogger.warn({ env: process.env.NODE_ENV }, 'Mailgun webhook signature verification is disabled - configure MAILGUN_WEBHOOK_SIGNING_KEY')
     }
 
     const eventData = body['event-data']
@@ -105,7 +108,7 @@ export async function POST(request: NextRequest) {
     })
 
     if (!emailLog) {
-      console.warn(`Email log not found for Mailgun message ${messageId}`)
+      webhookLogger.warn({ messageId, recipient, eventType }, 'Email log not found for Mailgun message')
       return NextResponse.json({ received: true })
     }
 
@@ -183,7 +186,7 @@ export async function POST(request: NextRequest) {
 
       case 'unsubscribed':
         // Could track unsubscribes separately
-        console.log(`Unsubscribe for ${recipient}`)
+        webhookLogger.info({ recipient, messageId, guestId: emailLog.guestId }, 'Email unsubscribe event received')
         break
     }
 
@@ -209,7 +212,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ received: true })
   } catch (error) {
-    console.error('Mailgun webhook error:', error)
+    webhookLogger.error({ error, stack: error instanceof Error ? error.stack : undefined }, 'Mailgun webhook processing failed')
     return NextResponse.json(
       { error: 'Webhook processing failed' },
       { status: 500 }

@@ -4,6 +4,9 @@ import { TransportType, BookingStatus, RoomType, RoomStatus, EmailType, EmailSta
 import { generateGuestToken, hashToken } from '@/lib/auth'
 import bcrypt from 'bcryptjs'
 import { requireAdmin, handleAuthError } from '@/lib/auth-utils'
+import { createLogger } from '@/lib/logger'
+
+const seedLogger = createLogger({ module: 'admin', type: 'seed' })
 
 function generateToken(): string {
   return generateGuestToken()
@@ -36,7 +39,7 @@ export async function POST() {
     })
 
     if (existingEvents.length > 0) {
-      console.log(`[SEED] Suppression de ${existingEvents.length} événement(s) existant(s) pour ${session.user.email}...`)
+      seedLogger.info({ eventCount: existingEvents.length, userEmail: session.user.email }, `Suppression de ${existingEvents.length} événement(s) existant(s) pour ${session.user.email}`)
 
       // Supprimer dans l'ordre pour respecter les contraintes de clés étrangères
       // Supprimer uniquement les données liées aux événements de cet admin
@@ -135,7 +138,7 @@ export async function POST() {
         where: { id: { in: eventIds } }
       })
 
-      console.log('[SEED] Événements existants supprimés avec succès')
+      seedLogger.info('Événements existants supprimés avec succès')
     }
 
     // ====================================
@@ -2474,7 +2477,7 @@ JOUR 2 - Mardi 16 septembre
     })
 
   } catch (error) {
-    console.error('Seed error:', error)
+    seedLogger.error({ error, stack: error instanceof Error ? error.stack : undefined }, 'Seed error')
     return handleAuthError(error)
   }
 }

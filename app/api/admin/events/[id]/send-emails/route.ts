@@ -8,6 +8,9 @@ import {
 } from '@/lib/email-templates';
 import { requireAdmin, handleAuthError } from '@/lib/auth-utils';
 import { requireEventOwnership } from '@/lib/permissions';
+import { createLogger } from '@/lib/logger';
+
+const emailSendLogger = createLogger({ module: 'email', type: 'send' });
 
 export async function POST(
   request: NextRequest,
@@ -295,7 +298,7 @@ export async function POST(
 
         results.sent++;
       } catch (error) {
-        console.error(`Error sending email to ${guest.email}:`, error);
+        emailSendLogger.error({ error, guestEmail: guest.email, guestId: guest.id, eventId, emailType: type }, 'Failed to send email to guest');
         results.failed++;
         results.errors.push(`${guest.email}: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
@@ -306,7 +309,7 @@ export async function POST(
       results,
     });
   } catch (error) {
-    console.error('Error in send-emails route:', error);
+    emailSendLogger.error({ error, stack: error instanceof Error ? error.stack : undefined }, 'Error in send-emails route');
     return handleAuthError(error);
   }
 }

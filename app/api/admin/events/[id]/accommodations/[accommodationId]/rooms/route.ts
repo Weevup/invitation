@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
+import { createLogger } from '@/lib/logger'
+
+const roomLogger = createLogger({ module: 'accommodation', type: 'rooms' })
 
 const roomSchema = z.object({
   roomNumber: z.string().min(1, 'Le numéro de chambre est requis'),
@@ -62,7 +65,7 @@ export async function GET(
 
     return NextResponse.json({ rooms })
   } catch (error) {
-    console.error('Error fetching rooms:', error)
+    roomLogger.error({ error, stack: error instanceof Error ? error.stack : undefined }, 'Error fetching rooms')
     return NextResponse.json(
       { error: 'Erreur lors de la récupération des chambres' },
       { status: 500 }
@@ -140,7 +143,7 @@ export async function POST(
         { status: 400 }
       )
     }
-    console.error('Error creating room:', error)
+    roomLogger.error({ error, stack: error instanceof Error ? error.stack : undefined }, 'Error creating room')
     return NextResponse.json(
       { error: 'Erreur lors de la création de la chambre' },
       { status: 500 }

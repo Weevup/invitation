@@ -3,6 +3,9 @@ import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
 import { requireAdmin, handleAuthError } from '@/lib/auth-utils'
 import { requireEventOwnership } from '@/lib/permissions'
+import { createLogger } from '@/lib/logger'
+
+const showcaseLogger = createLogger({ module: 'event', type: 'showcase' })
 
 interface RouteContext {
   params: Promise<{
@@ -122,7 +125,7 @@ export async function PATCH(
       event,
     })
   } catch (error) {
-    console.error('Error updating showcase:', error)
+    showcaseLogger.error({ error, stack: error instanceof Error ? error.stack : undefined }, 'Error updating showcase')
     return handleAuthError(error)
   }
 }

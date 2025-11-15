@@ -3,6 +3,9 @@ import { prisma } from '@/lib/prisma'
 import * as XLSX from 'xlsx'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
+import { createLogger } from '@/lib/logger'
+
+const exportLogger = createLogger({ module: 'export', type: 'manifeste' })
 
 /**
  * GET /api/admin/events/[id]/export/manifeste
@@ -317,7 +320,7 @@ export async function GET(
       },
     })
   } catch (error) {
-    console.error('Error exporting manifeste:', error)
+    exportLogger.error({ error, stack: error instanceof Error ? error.stack : undefined }, 'Error exporting manifeste')
     return NextResponse.json(
       { error: 'Erreur lors de l\'export du manifeste' },
       { status: 500 }

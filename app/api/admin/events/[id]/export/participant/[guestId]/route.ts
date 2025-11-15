@@ -3,6 +3,9 @@ import { prisma } from '@/lib/prisma'
 import { jsPDF } from 'jspdf'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
+import { createLogger } from '@/lib/logger'
+
+const exportLogger = createLogger({ module: 'export', type: 'participant' })
 
 /**
  * GET /api/admin/events/[id]/export/participant/[guestId]
@@ -365,7 +368,7 @@ export async function GET(
       },
     })
   } catch (error) {
-    console.error('Error exporting participant schedule:', error)
+    exportLogger.error({ error, stack: error instanceof Error ? error.stack : undefined }, 'Error exporting participant schedule')
     return NextResponse.json(
       { error: 'Erreur lors de l\'export du programme participant' },
       { status: 500 }

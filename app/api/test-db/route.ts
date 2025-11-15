@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { createLogger } from '@/lib/logger'
+
+const testDbLogger = createLogger({ module: 'system', type: 'test-db' })
 
 /**
  * Route de test pour vérifier la connexion à la base de données
@@ -42,7 +45,7 @@ export async function GET() {
       }
     })
   } catch (error) {
-    console.error('Database test error:', error)
+    testDbLogger.error({ error, stack: error instanceof Error ? error.stack : undefined }, 'Database test error')
     return NextResponse.json({
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',

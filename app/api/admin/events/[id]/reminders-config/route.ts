@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { requireAdmin, handleAuthError } from '@/lib/auth-utils'
 import { requireEventOwnership } from '@/lib/permissions'
+import { createLogger } from '@/lib/logger'
+
+const remindersLogger = createLogger({ module: 'event', type: 'reminders' })
 
 /**
  * GET /api/admin/events/[id]/reminders-config
@@ -102,7 +105,7 @@ export async function POST(
       message: 'Configuration des rappels sauvegardée',
     })
   } catch (error) {
-    console.error('Error saving reminders config:', error)
+    remindersLogger.error({ error, stack: error instanceof Error ? error.stack : undefined }, 'Error saving reminders config')
     return handleAuthError(error)
   }
 }

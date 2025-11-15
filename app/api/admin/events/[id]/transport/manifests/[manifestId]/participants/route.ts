@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { createLogger } from '@/lib/logger'
+
+const participantLogger = createLogger({ module: 'transport', type: 'participants' })
 
 export const runtime = 'nodejs'
 
@@ -128,7 +131,7 @@ export async function POST(
     })
 
   } catch (error) {
-    console.error('Error adding participant to manifest:', error)
+    participantLogger.error({ error, stack: error instanceof Error ? error.stack : undefined }, 'Error adding participant to manifest')
     return NextResponse.json(
       { error: 'Failed to add participant to manifest' },
       { status: 500 }
@@ -223,7 +226,7 @@ export async function DELETE(
     })
 
   } catch (error) {
-    console.error('Error removing participant from manifest:', error)
+    participantLogger.error({ error, stack: error instanceof Error ? error.stack : undefined }, 'Error removing participant from manifest')
     return NextResponse.json(
       { error: 'Failed to remove participant from manifest' },
       { status: 500 }

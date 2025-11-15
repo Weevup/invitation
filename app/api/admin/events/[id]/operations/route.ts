@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { requireAdmin, handleAuthError } from '@/lib/auth-utils'
+import { createLogger } from '@/lib/logger'
 import {
   buildTimeSlots,
   calculateAlerts,
@@ -8,6 +9,8 @@ import {
   groupTransportsByTime,
   buildAccommodationEvents
 } from './helpers'
+
+const operationsLogger = createLogger({ module: 'event', type: 'operations' })
 
 /**
  * GET /api/admin/events/[id]/operations
@@ -248,7 +251,7 @@ export async function GET(
     })
 
   } catch (error) {
-    console.error('Operations API error:', error)
+    operationsLogger.error({ error, stack: error instanceof Error ? error.stack : undefined }, 'Operations API error')
     return handleAuthError(error)
   }
 }

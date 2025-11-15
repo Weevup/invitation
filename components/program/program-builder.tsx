@@ -3,10 +3,20 @@
 import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Plus, Edit, Trash2, Copy, Eye, EyeOff, Clock, MapPin, Users } from 'lucide-react'
+import { Plus } from 'lucide-react'
 import { SessionEditor } from './session-editor'
+import { SessionCard } from './program-builder/components/SessionCard'
+import { TimeGrid } from './program-builder/components/TimeGrid'
 import { Badge } from '@/components/ui/badge'
-import { SESSION_ICONS, SESSION_COLORS, SESSION_TYPE_LABELS, formatTime, formatDate } from '@/lib/program/constants'
+import { formatTime, formatDate } from '@/lib/program/constants'
+import {
+  DEFAULT_TIMELINE_CONFIG,
+  snapToInterval,
+  getSessionPosition,
+  getTimeFromPosition,
+  generateTimeMarkers,
+  type TimelineConfig,
+} from './program-builder/utils/time-calculations'
 
 interface Session {
   id: string
@@ -41,48 +51,8 @@ export function ProgramBuilder({ eventId, sessions, onUpdate, onSessionsChange }
   const [dragOverTime, setDragOverTime] = useState<Date | null>(null)
   const [resizingSession, setResizingSession] = useState<{ id: string, edge: 'top' | 'bottom' } | null>(null)
 
-  // Constants for timeline visualization
-  const HOUR_HEIGHT = 80 // pixels per hour
-  const MIN_SESSION_HEIGHT = 40 // minimum height for readability
-  const TIME_START = 6 // 6:00 AM
-  const TIME_END = 23 // 11:00 PM
-  const SNAP_INTERVAL = 15 // Snap to 15 minute intervals
-
-  // Snap time to nearest 15 minute interval
-  const snapToInterval = (date: Date): Date => {
-    const minutes = date.getMinutes()
-    const snappedMinutes = Math.round(minutes / SNAP_INTERVAL) * SNAP_INTERVAL
-    const newDate = new Date(date)
-    newDate.setMinutes(snappedMinutes)
-    newDate.setSeconds(0)
-    newDate.setMilliseconds(0)
-    return newDate
-  }
-
-  // Calculate position and height based on time
-  const getSessionPosition = (session: Session) => {
-    const start = new Date(session.startTime)
-    const hours = start.getHours() + start.getMinutes() / 60
-    const offsetFromStart = hours - TIME_START
-    const top = Math.max(0, offsetFromStart * HOUR_HEIGHT)
-
-    // Height based on duration
-    const durationHours = session.duration / 60
-    const height = Math.max(MIN_SESSION_HEIGHT, durationHours * HOUR_HEIGHT)
-
-    return { top, height }
-  }
-
-  // Convert pixel position to time
-  const getTimeFromPosition = (top: number, day: Date) => {
-    const hours = TIME_START + (top / HOUR_HEIGHT)
-    const newTime = new Date(day)
-    newTime.setHours(Math.floor(hours))
-    newTime.setMinutes(Math.round((hours % 1) * 60))
-    newTime.setSeconds(0)
-    newTime.setMilliseconds(0)
-    return snapToInterval(newTime)
-  }
+  // Use timeline configuration
+  const config: TimelineConfig = DEFAULT_TIMELINE_CONFIG
 
   const handleDragStart = (session: Session) => {
     setDraggedSession(session)
@@ -98,7 +68,7 @@ export function ProgramBuilder({ eventId, sessions, onUpdate, onSessionsChange }
     if (dayDate) {
       const baseDate = new Date(dayDate.startTime)
       baseDate.setHours(0, 0, 0, 0)
-      const newTime = getTimeFromPosition(y, baseDate)
+      const newTime = getTimeFromPosition(y, baseDate, config)
       setDragOverTime(newTime)
     }
   }
@@ -117,7 +87,7 @@ export function ProgramBuilder({ eventId, sessions, onUpdate, onSessionsChange }
 
     const baseDate = new Date(dayDate.startTime)
     baseDate.setHours(0, 0, 0, 0)
-    const newStartTime = getTimeFromPosition(y, baseDate)
+    const newStartTime = getTimeFromPosition(y, baseDate, config)
     const newEndTime = new Date(newStartTime.getTime() + draggedSession.duration * 60000)
 
     // Optimistic update
@@ -170,7 +140,7 @@ export function ProgramBuilder({ eventId, sessions, onUpdate, onSessionsChange }
 
     const baseDate = new Date(dayDate.startTime)
     baseDate.setHours(0, 0, 0, 0)
-    const newTime = getTimeFromPosition(y, baseDate)
+    const newTime = getTimeFromPosition(y, baseDate, config)
 
     if (resizingSession.edge === 'top') {
       const endTime = new Date(session.endTime)
@@ -333,16 +303,8 @@ export function ProgramBuilder({ eventId, sessions, onUpdate, onSessionsChange }
   }, {} as Record<string, Session[]>)
 
   // Generate hour markers
-  const generateHourMarkers = () => {
-    const markers = []
-    for (let hour = TIME_START; hour <= TIME_END; hour++) {
-      markers.push(hour)
-    }
-    return markers
-  }
-
-  const hourMarkers = generateHourMarkers()
-  const totalHeight = (TIME_END - TIME_START) * HOUR_HEIGHT
+  const hourMarkers = generateTimeMarkers(config)
+  const totalHeight = (config.timeEnd - config.timeStart) * config.hourHeight
 
   return (
     <>
@@ -380,17 +342,17 @@ export function ProgramBuilder({ eventId, sessions, onUpdate, onSessionsChange }
                     <div
                       key={hour}
                       className="relative border-b border-gray-200 text-xs text-gray-500 font-medium px-2 py-1"
-                      style={{ height: `${HOUR_HEIGHT}px` }}
+                      style={{ height: `${config.hourHeight}px` }}
                     >
                       {hour.toString().padStart(2, '0')}:00
                       {/* 15-minute markers */}
-                      <div className="absolute left-0 right-0" style={{ top: `${HOUR_HEIGHT * 0.25}px` }}>
+                      <div className="absolute left-0 right-0" style={{ top: `${config.hourHeight * 0.25}px` }}>
                         <div className="h-px bg-gray-100 ml-2" />
                       </div>
-                      <div className="absolute left-0 right-0" style={{ top: `${HOUR_HEIGHT * 0.5}px` }}>
+                      <div className="absolute left-0 right-0" style={{ top: `${config.hourHeight * 0.5}px` }}>
                         <div className="h-px bg-gray-200 ml-2" />
                       </div>
-                      <div className="absolute left-0 right-0" style={{ top: `${HOUR_HEIGHT * 0.75}px` }}>
+                      <div className="absolute left-0 right-0" style={{ top: `${config.hourHeight * 0.75}px` }}>
                         <div className="h-px bg-gray-100 ml-2" />
                       </div>
                     </div>
@@ -418,20 +380,20 @@ export function ProgramBuilder({ eventId, sessions, onUpdate, onSessionsChange }
                     <div key={`grid-${hour}`}>
                       <div
                         className="absolute w-full border-b border-gray-100"
-                        style={{ top: `${(hour - TIME_START) * HOUR_HEIGHT}px` }}
+                        style={{ top: `${(hour - config.timeStart) * config.hourHeight}px` }}
                       />
                       {/* 15-minute grid lines */}
                       <div
                         className="absolute w-full border-b border-dashed border-gray-50"
-                        style={{ top: `${(hour - TIME_START) * HOUR_HEIGHT + HOUR_HEIGHT * 0.25}px` }}
+                        style={{ top: `${(hour - config.timeStart) * config.hourHeight + config.hourHeight * 0.25}px` }}
                       />
                       <div
                         className="absolute w-full border-b border-gray-100"
-                        style={{ top: `${(hour - TIME_START) * HOUR_HEIGHT + HOUR_HEIGHT * 0.5}px` }}
+                        style={{ top: `${(hour - config.timeStart) * config.hourHeight + config.hourHeight * 0.5}px` }}
                       />
                       <div
                         className="absolute w-full border-b border-dashed border-gray-50"
-                        style={{ top: `${(hour - TIME_START) * HOUR_HEIGHT + HOUR_HEIGHT * 0.75}px` }}
+                        style={{ top: `${(hour - config.timeStart) * config.hourHeight + config.hourHeight * 0.75}px` }}
                       />
                     </div>
                   ))}
@@ -441,8 +403,8 @@ export function ProgramBuilder({ eventId, sessions, onUpdate, onSessionsChange }
                     <div
                       className="absolute w-full border-2 border-dashed border-[#009197] bg-[#009197]/5 rounded-lg pointer-events-none z-10"
                       style={{
-                        top: `${getSessionPosition({ ...draggedSession, startTime: dragOverTime.toISOString() }).top}px`,
-                        height: `${getSessionPosition(draggedSession).height}px`,
+                        top: `${getSessionPosition({ ...draggedSession, startTime: dragOverTime.toISOString() }, config).top}px`,
+                        height: `${getSessionPosition(draggedSession, config).height}px`,
                         left: '8px',
                         right: '8px'
                       }}
@@ -467,7 +429,7 @@ export function ProgramBuilder({ eventId, sessions, onUpdate, onSessionsChange }
                       duration: Math.round((endTime.getTime() - startTime.getTime()) / 60000)
                     }
 
-                    const { top, height } = getSessionPosition(tempSession)
+                    const { top, height } = getSessionPosition(tempSession, config)
 
                     return (
                       <div
@@ -489,174 +451,27 @@ export function ProgramBuilder({ eventId, sessions, onUpdate, onSessionsChange }
 
                   {/* Sessions */}
                   {daySessions.map((session) => {
-                    const { top, height } = getSessionPosition(session)
-                    const sessionColor = SESSION_COLORS[session.type] || session.color || '#009197'
-                    const sessionIcon = SESSION_ICONS[session.type] || session.icon || '📌'
                     const isDragging = draggedSession?.id === session.id
                     const isResizing = resizingSession?.id === session.id
 
                     return (
-                      <div
+                      <SessionCard
                         key={session.id}
-                        draggable={!isResizing}
-                        onDragStart={() => !isResizing && handleDragStart(session)}
+                        session={session}
+                        config={config}
+                        isDragging={isDragging}
+                        isResizing={isResizing}
+                        onDragStart={handleDragStart}
                         onDragEnd={() => {
                           setDraggedSession(null)
                           setDragOverTime(null)
                         }}
-                        className={`
-                          absolute left-2 right-2 rounded-lg border-2 shadow-sm transition-all group
-                          ${isDragging ? 'opacity-50 scale-95 shadow-lg' : 'hover:shadow-md hover:scale-[1.01]'}
-                          ${isResizing ? 'opacity-75 shadow-lg' : 'cursor-move'}
-                          ${!session.isPublic ? 'opacity-75' : ''}
-                        `}
-                        style={{
-                          top: `${top}px`,
-                          height: `${height}px`,
-                          backgroundColor: 'white',
-                          borderLeftWidth: '6px',
-                          borderLeftColor: sessionColor,
-                          borderColor: `${sessionColor}40`,
-                          zIndex: isDragging || isResizing ? 50 : 20
-                        }}
-                      >
-                        {/* Resize handle top */}
-                        <div
-                          className="absolute top-0 left-0 right-0 h-2 cursor-ns-resize hover:bg-[#FF4713]/20 transition-colors z-30 flex items-center justify-center"
-                          onMouseDown={(e) => handleResizeStart(e, session, 'top')}
-                        >
-                          <div className="w-12 h-1 bg-gray-300 rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
-                        </div>
-
-                        <div className="h-full flex flex-col p-3 overflow-hidden">
-                          {/* Header */}
-                          <div className="flex items-start justify-between gap-2 mb-1">
-                            <div className="flex items-center gap-2 flex-1 min-w-0">
-                              <span className="text-lg flex-shrink-0">{sessionIcon}</span>
-                              <div className="flex-1 min-w-0">
-                                <h4 className="font-semibold text-[#004645] text-sm leading-tight truncate">
-                                  {session.title}
-                                </h4>
-                                <div className="flex items-center gap-1.5 text-xs text-[#004645]/70 mt-0.5">
-                                  <Clock className="h-3 w-3" />
-                                  {formatTime(session.startTime)} - {formatTime(session.endTime)}
-                                  <span className="text-[#004645]/50">• {session.duration} min</span>
-                                </div>
-                              </div>
-                            </div>
-
-                            {/* Actions */}
-                            <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
-                              <Button
-                                type="button"
-                                size="sm"
-                                variant="ghost"
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  handleToggleVisibility(session)
-                                }}
-                                className="h-6 w-6 p-0"
-                                title={session.isPublic ? 'Rendre privée' : 'Rendre publique'}
-                              >
-                                {session.isPublic ? (
-                                  <Eye className="h-3 w-3" />
-                                ) : (
-                                  <EyeOff className="h-3 w-3" />
-                                )}
-                              </Button>
-                              <Button
-                                type="button"
-                                size="sm"
-                                variant="ghost"
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  setEditingSession(session)
-                                }}
-                                className="h-6 w-6 p-0"
-                                title="Modifier"
-                              >
-                                <Edit className="h-3 w-3" />
-                              </Button>
-                              <Button
-                                type="button"
-                                size="sm"
-                                variant="ghost"
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  handleDuplicate(session)
-                                }}
-                                className="h-6 w-6 p-0"
-                                title="Dupliquer"
-                              >
-                                <Copy className="h-3 w-3" />
-                              </Button>
-                              <Button
-                                type="button"
-                                size="sm"
-                                variant="ghost"
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  handleDelete(session.id)
-                                }}
-                                className="h-6 w-6 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
-                                title="Supprimer"
-                              >
-                                <Trash2 className="h-3 w-3" />
-                              </Button>
-                            </div>
-                          </div>
-
-                          {/* Details (only show if enough height) */}
-                          {height > 80 && (
-                            <div className="flex flex-wrap gap-2 text-xs mt-1">
-                              <Badge
-                                variant="outline"
-                                className="text-xs"
-                                style={{
-                                  borderColor: sessionColor,
-                                  color: sessionColor,
-                                  backgroundColor: `${sessionColor}10`
-                                }}
-                              >
-                                {SESSION_TYPE_LABELS[session.type] || session.type}
-                              </Badge>
-                              {!session.isPublic && (
-                                <Badge variant="outline" className="text-xs">🔒 Privée</Badge>
-                              )}
-                              {session.status === 'DRAFT' && (
-                                <Badge variant="outline" className="text-xs bg-gray-100">Brouillon</Badge>
-                              )}
-                            </div>
-                          )}
-
-                          {/* Location and capacity (only show if enough height) */}
-                          {height > 120 && (
-                            <div className="flex flex-wrap gap-3 text-xs text-[#004645]/70 mt-2">
-                              {session.venue && (
-                                <div className="flex items-center gap-1">
-                                  <MapPin className="h-3 w-3 text-[#009197]" />
-                                  <span>{session.venue}</span>
-                                  {session.room && <span className="text-[#004645]/50">• {session.room}</span>}
-                                </div>
-                              )}
-                              {session.capacity && (
-                                <div className="flex items-center gap-1">
-                                  <Users className="h-3 w-3 text-[#009197]" />
-                                  <span>{session.capacity} pers.</span>
-                                </div>
-                              )}
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Resize handle bottom */}
-                        <div
-                          className="absolute bottom-0 left-0 right-0 h-2 cursor-ns-resize hover:bg-[#FF4713]/20 transition-colors z-30 flex items-center justify-center"
-                          onMouseDown={(e) => handleResizeStart(e, session, 'bottom')}
-                        >
-                          <div className="w-12 h-1 bg-gray-300 rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
-                        </div>
-                      </div>
+                        onEdit={setEditingSession}
+                        onDuplicate={handleDuplicate}
+                        onDelete={handleDelete}
+                        onToggleVisibility={handleToggleVisibility}
+                        onResizeStart={handleResizeStart}
+                      />
                     )
                   })}
                 </div>

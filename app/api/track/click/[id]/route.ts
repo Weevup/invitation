@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { createLogger } from '@/lib/logger';
+
+const trackingLogger = createLogger({ module: 'tracking', type: 'click' });
 
 /**
  * Validate that the redirect URL is safe and belongs to our domain
@@ -30,11 +33,11 @@ function isValidRedirectUrl(url: string | null): string {
     }
 
     // Invalid URL, fallback to base
-    console.warn(`Rejected redirect to untrusted host: ${parsed.hostname}`);
+    trackingLogger.warn({ hostname: parsed.hostname, url }, 'Rejected redirect to untrusted host');
     return baseUrl;
   } catch (error) {
     // Invalid URL format, fallback to base
-    console.warn(`Invalid redirect URL format: ${url}`);
+    trackingLogger.warn({ url, error }, 'Invalid redirect URL format');
     return baseUrl;
   }
 }
@@ -92,7 +95,7 @@ export async function GET(
     // Redirige vers l'URL cible
     return NextResponse.redirect(redirectUrl);
   } catch (error) {
-    console.error('Error tracking email click:', error);
+    trackingLogger.error({ error, stack: error instanceof Error ? error.stack : undefined, url: redirectUrl }, 'Error tracking email click');
 
     // Redirige quand même vers l'URL même en cas d'erreur
     return NextResponse.redirect(redirectUrl);

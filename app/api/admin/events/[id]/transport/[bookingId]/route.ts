@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { createLogger } from '@/lib/logger'
+
+const transportLogger = createLogger({ module: 'transport', type: 'operations' })
 
 export const runtime = 'nodejs'
 
@@ -41,7 +44,7 @@ export async function GET(
     })
 
   } catch (error) {
-    console.error('Error fetching transport booking:', error)
+    transportLogger.error({ error, stack: error instanceof Error ? error.stack : undefined }, 'Error fetching transport booking')
     return NextResponse.json(
       { error: 'Failed to fetch transport booking' },
       { status: 500 }
@@ -131,7 +134,7 @@ export async function PUT(
     })
 
   } catch (error) {
-    console.error('Error updating transport booking:', error)
+    transportLogger.error({ error, stack: error instanceof Error ? error.stack : undefined }, 'Error updating transport booking')
     return NextResponse.json(
       { error: 'Failed to update transport booking' },
       { status: 500 }
@@ -173,7 +176,7 @@ export async function DELETE(
     })
 
   } catch (error) {
-    console.error('Error deleting transport booking:', error)
+    transportLogger.error({ error, stack: error instanceof Error ? error.stack : undefined }, 'Error deleting transport booking')
     return NextResponse.json(
       { error: 'Failed to delete transport booking' },
       { status: 500 }

@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { requireAdmin, handleAuthError } from '@/lib/auth-utils'
+import { createLogger } from '@/lib/logger'
+
+const dbStatusLogger = createLogger({ module: 'admin', type: 'database-status' })
 
 interface TableStatus {
   name: string
@@ -198,7 +201,7 @@ export async function GET() {
           status.overall.tablesComplete++
         }
       } catch (error) {
-        console.error(`Error checking table ${table.name}:`, error)
+        dbStatusLogger.error({ error, tableName: table.name, stack: error instanceof Error ? error.stack : undefined }, `Error checking table ${table.name}`)
         status.tables.push({
           name: table.name,
           exists: false
@@ -228,7 +231,7 @@ export async function GET() {
       }
     })
   } catch (error) {
-    console.error('Error checking database status:', error)
+    dbStatusLogger.error({ error, stack: error instanceof Error ? error.stack : undefined }, 'Error checking database status')
     return handleAuthError(error)
   }
 }

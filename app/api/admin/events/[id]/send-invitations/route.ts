@@ -3,6 +3,9 @@ import { prisma } from '@/lib/prisma'
 import { getInvitationEmailTemplate, getReminderEmailTemplate } from '@/lib/email-templates'
 import { formatDateTime } from '@/lib/utils'
 import { requireAdmin, handleAuthError } from '@/lib/auth-utils'
+import { createLogger } from '@/lib/logger'
+
+const invitationsLogger = createLogger({ module: 'email', type: 'invitations' })
 import { requireEventOwnership } from '@/lib/permissions'
 import { sendEmailLegacy as sendEmail, renderTemplate } from '@/lib/email-service'
 
@@ -152,7 +155,7 @@ export async function POST(
       },
     })
   } catch (error) {
-    console.error('Error sending invitations:', error)
+    invitationsLogger.error({ error, stack: error instanceof Error ? error.stack : undefined }, 'Error sending invitations')
     return handleAuthError(error)
   }
 }

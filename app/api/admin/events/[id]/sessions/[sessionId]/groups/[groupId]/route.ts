@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { createLogger } from '@/lib/logger'
+
+const groupLogger = createLogger({ module: 'session', type: 'group-operations' })
 
 /**
  * PATCH /api/admin/events/[id]/sessions/[sessionId]/groups/[groupId]
@@ -49,7 +52,7 @@ export async function PATCH(
       message: 'Groupe mis à jour avec succès',
     })
   } catch (error) {
-    console.error('Error updating group:', error)
+    groupLogger.error({ error, stack: error instanceof Error ? error.stack : undefined }, 'Error updating group')
     return NextResponse.json(
       { error: 'Erreur lors de la mise à jour du groupe' },
       { status: 500 }
@@ -102,7 +105,7 @@ export async function DELETE(
       message: 'Groupe supprimé avec succès',
     })
   } catch (error) {
-    console.error('Error deleting group:', error)
+    groupLogger.error({ error, stack: error instanceof Error ? error.stack : undefined }, 'Error deleting group')
     return NextResponse.json(
       { error: 'Erreur lors de la suppression du groupe' },
       { status: 500 }

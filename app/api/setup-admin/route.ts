@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
+import { createLogger } from '@/lib/logger'
+
+const setupAdminLogger = createLogger({ module: 'system', type: 'setup-admin' })
 
 /**
  * API temporaire pour créer le compte admin principal
@@ -55,7 +58,7 @@ export async function POST(request: NextRequest) {
       },
     })
   } catch (error) {
-    console.error('Error creating admin user:', error)
+    setupAdminLogger.error({ error, stack: error instanceof Error ? error.stack : undefined }, 'Error creating admin user')
     return NextResponse.json(
       {
         error: 'Erreur lors de la création du compte administrateur',

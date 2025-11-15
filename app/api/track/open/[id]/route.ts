@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { createLogger } from '@/lib/logger';
+
+const trackingLogger = createLogger({ module: 'tracking', type: 'open' });
 
 export async function GET(
   request: NextRequest,
@@ -63,7 +66,7 @@ export async function GET(
       },
     });
   } catch (error) {
-    console.error('Error tracking email open:', error);
+    trackingLogger.error({ error, stack: error instanceof Error ? error.stack : undefined }, 'Error tracking email open');
 
     // Retourne quand même un pixel même en cas d'erreur
     return new NextResponse(pixel, {

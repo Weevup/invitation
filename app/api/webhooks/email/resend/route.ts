@@ -6,6 +6,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import crypto from 'crypto'
+import { createLogger } from '@/lib/logger'
+
+const webhookLogger = createLogger({ module: 'webhook', provider: 'resend' })
 
 type ResendEvent = {
   type: 'email.sent' | 'email.delivered' | 'email.delivery_delayed' | 'email.complained' | 'email.bounced' | 'email.opened' | 'email.clicked'
@@ -50,7 +53,7 @@ export async function POST(request: NextRequest) {
 
     // Webhook verification is mandatory in production
     if (process.env.NODE_ENV === 'production' && !webhookSecret) {
-      console.error('RESEND_WEBHOOK_SECRET must be configured in production')
+      webhookLogger.error({ env: process.env.NODE_ENV }, 'RESEND_WEBHOOK_SECRET must be configured in production')
       return NextResponse.json({ error: 'Webhook not configured' }, { status: 500 })
     }
 
@@ -65,7 +68,7 @@ export async function POST(request: NextRequest) {
       }
     } else if (process.env.NODE_ENV !== 'development') {
       // In non-dev environments without key, log warning but allow (for staging)
-      console.warn('⚠️  Resend webhook signature verification is disabled - configure RESEND_WEBHOOK_SECRET')
+      webhookLogger.warn({ env: process.env.NODE_ENV }, 'Resend webhook signature verification is disabled - configure RESEND_WEBHOOK_SECRET')
     }
 
     const { type, data } = event
@@ -86,7 +89,7 @@ export async function POST(request: NextRequest) {
     })
 
     if (!emailLog) {
-      console.warn(`Email log not found for Resend email ${emailId}`)
+      webhookLogger.warn({ emailId, recipient, eventType: type }, 'Email log not found for Resend email')
       return NextResponse.json({ received: true })
     }
 
@@ -159,7 +162,7 @@ export async function POST(request: NextRequest) {
 
       case 'email.delivery_delayed':
         // Just log, don't change status
-        console.log(`Email delivery delayed for ${emailId}`)
+        webhookLogger.info({ emailId, recipient, guestId: emailLog.guestId }, 'Email delivery delayed')
         break
     }
 
@@ -185,7 +188,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ received: true })
   } catch (error) {
-    console.error('Resend webhook error:', error)
+    webhookLogger.error({ error, stack: error instanceof Error ? error.stack : undefined }, 'Resend webhook processing failed')
     return NextResponse.json(
       { error: 'Webhook processing failed' },
       { status: 500 }

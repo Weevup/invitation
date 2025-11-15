@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { generateGuestToken, hashToken } from '@/lib/auth'
 import bcrypt from 'bcryptjs'
+import { createLogger } from '@/lib/logger'
+
+const initLogger = createLogger({ module: 'admin', type: 'init' })
 
 export async function POST() {
   try {
@@ -83,7 +86,7 @@ export async function POST() {
       guestsCreated,
     })
   } catch (error) {
-    console.error('Error initializing:', error)
+    initLogger.error({ error, stack: error instanceof Error ? error.stack : undefined }, 'Error initializing')
     return NextResponse.json(
       {
         error: 'Erreur lors de l\'initialisation',

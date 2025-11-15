@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { createLogger } from '@/lib/logger'
+
+const manifestLogger = createLogger({ module: 'transport', type: 'manifest-operations' })
 
 export const runtime = 'nodejs'
 
@@ -51,7 +54,7 @@ export async function GET(
     })
 
   } catch (error) {
-    console.error('Error fetching transport manifest:', error)
+    manifestLogger.error({ error, stack: error instanceof Error ? error.stack : undefined }, 'Error fetching transport manifest')
     return NextResponse.json(
       { error: 'Failed to fetch transport manifest' },
       { status: 500 }
@@ -152,7 +155,7 @@ export async function PUT(
     })
 
   } catch (error) {
-    console.error('Error updating transport manifest:', error)
+    manifestLogger.error({ error, stack: error instanceof Error ? error.stack : undefined }, 'Error updating transport manifest')
     return NextResponse.json(
       { error: 'Failed to update transport manifest' },
       { status: 500 }
@@ -219,7 +222,7 @@ export async function DELETE(
     })
 
   } catch (error) {
-    console.error('Error deleting transport manifest:', error)
+    manifestLogger.error({ error, stack: error instanceof Error ? error.stack : undefined }, 'Error deleting transport manifest')
     return NextResponse.json(
       { error: 'Failed to delete transport manifest' },
       { status: 500 }

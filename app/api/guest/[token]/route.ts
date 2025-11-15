@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { validateGuestToken } from '@/lib/auth'
+import { createLogger } from '@/lib/logger'
+
+const guestLogger = createLogger({ module: 'guest', type: 'auth' })
 
 export async function GET(
   request: NextRequest,
@@ -54,7 +57,7 @@ export async function GET(
       rsvp: guest.rsvp,
     })
   } catch (error) {
-    console.error('Error fetching guest:', error)
+    guestLogger.error({ error, stack: error instanceof Error ? error.stack : undefined }, 'Error fetching guest data')
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

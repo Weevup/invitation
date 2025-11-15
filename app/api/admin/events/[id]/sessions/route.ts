@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
+import { createLogger } from '@/lib/logger'
+
+const sessionLogger = createLogger({ module: 'session', type: 'management' })
 
 // Validation schema for session creation
 const createSessionSchema = z.object({
@@ -137,7 +140,7 @@ export async function GET(
       total: sessionsWithDuration.length,
     })
   } catch (error) {
-    console.error('Error fetching sessions:', error)
+    sessionLogger.error({ error, stack: error instanceof Error ? error.stack : undefined }, 'Error fetching sessions')
     return NextResponse.json(
       { error: 'Erreur lors de la récupération des sessions' },
       { status: 500 }
@@ -268,7 +271,7 @@ export async function POST(
       )
     }
 
-    console.error('Error creating session:', error)
+    sessionLogger.error({ error, stack: error instanceof Error ? error.stack : undefined }, 'Error creating session')
     return NextResponse.json(
       { error: 'Erreur lors de la création de la session' },
       { status: 500 }
