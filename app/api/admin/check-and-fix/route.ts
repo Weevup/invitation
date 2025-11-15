@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
+import { createLogger } from '@/lib/logger'
+
+const checkFixLogger = createLogger({ module: 'admin', type: 'check-and-fix' })
 
 /**
  * API pour vérifier et corriger automatiquement les problèmes de base de données
@@ -138,7 +141,7 @@ export async function POST() {
     })
 
   } catch (error) {
-    console.error('Check and fix error:', error)
+    checkFixLogger.error({ error, stack: error instanceof Error ? error.stack : undefined }, 'Check and fix error')
     return NextResponse.json({
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',

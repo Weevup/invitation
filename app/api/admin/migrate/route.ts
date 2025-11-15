@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { createLogger } from '@/lib/logger'
+
+const migrateLogger = createLogger({ module: 'admin', type: 'migrate' })
 
 export async function POST() {
   try {
@@ -478,7 +481,7 @@ export async function POST() {
       ]
     })
   } catch (error) {
-    console.error('Error applying migration:', error)
+    migrateLogger.error({ error, stack: error instanceof Error ? error.stack : undefined }, 'Error applying migration')
     return NextResponse.json(
       {
         success: false,
