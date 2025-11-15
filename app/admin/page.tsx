@@ -11,6 +11,9 @@ import {
 import Link from "next/link";
 import { toast } from "sonner";
 import { ChangelogCard, changelogData } from '@/components/admin/changelog-card';
+import { createClientLogger } from "@/lib/client-logger";
+
+const logger = createClientLogger({ component: 'AdminPage' });
 
 interface Event {
   id: string;
@@ -78,7 +81,7 @@ export default function AdminDashboard() {
           setStats(statsData);
         }
       } catch (error) {
-        console.error('Error in auto-refresh:', error);
+        logger.error(error, { action: 'autoRefresh' });
       }
     }, 30000); // 30 seconds
 
@@ -102,7 +105,7 @@ export default function AdminDashboard() {
         setStats(statsData);
       }
     } catch (error) {
-      console.error('Error fetching data:', error);
+      logger.error(error, { action: 'fetchData' });
       toast.error('Erreur lors du chargement des données');
     } finally {
       setLoading(false);
@@ -131,7 +134,7 @@ export default function AdminDashboard() {
         toast.error(`Erreur: ${data.error}${data.details ? '\nDétails: ' + data.details : ''}`);
       }
     } catch (error) {
-      console.error('Error initializing:', error);
+      logger.error(error, { action: 'initialize' });
       toast.error('Erreur de connexion');
     } finally {
       setInitLoading(false);
@@ -156,7 +159,7 @@ export default function AdminDashboard() {
         toast.error(data.error || 'Erreur lors de la suppression');
       }
     } catch (error) {
-      console.error('Error deleting event:', error);
+      logger.error(error, { action: 'deleteEvent' });
       toast.error('Erreur de connexion');
     }
   };

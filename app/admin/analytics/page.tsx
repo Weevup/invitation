@@ -11,6 +11,9 @@ import {
   TrendingUp, Users, CheckCircle, XCircle, Clock, Download,
   Calendar, Building2
 } from 'lucide-react'
+import { createClientLogger } from '@/lib/client-logger'
+
+const logger = createClientLogger({ component: 'AnalyticsPage' })
 
 interface AnalyticsData {
   overview: {
@@ -51,7 +54,7 @@ export default function AnalyticsPage() {
         setData(analyticsData)
       }
     } catch (error) {
-      console.error('Error fetching analytics:', error)
+      logger.error(error, { action: 'fetchAnalytics' })
     } finally {
       setLoading(false)
     }

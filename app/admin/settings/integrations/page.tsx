@@ -12,6 +12,9 @@ import {
   Mail, Check, AlertCircle, Send, Settings, Zap, Shield, BarChart3, ExternalLink, Info, Copy, Trash2
 } from 'lucide-react'
 import { toast } from 'sonner'
+import { createClientLogger } from '@/lib/client-logger'
+
+const logger = createClientLogger({ component: 'IntegrationsPage' })
 
 interface EmailIntegration {
   id: string
@@ -92,7 +95,7 @@ export default function IntegrationsPage() {
         setIntegrations(data)
       }
     } catch (error) {
-      console.error('Error fetching integrations:', error)
+      logger.error(error, { action: 'fetchIntegrations' })
     } finally {
       setLoading(false)
     }
@@ -112,13 +115,13 @@ export default function IntegrationsPage() {
         fetchIntegrations()
       } else {
         const error = await response.json()
-        console.error('[INTEGRATION] Save error:', error)
+        logger.error(error, { action: 'handleSave', metadata: { provider } })
         const errorMessage = error.error || error.message || 'Impossible de sauvegarder la configuration'
         const errorDetails = error.details ? `\n${JSON.stringify(error.details)}` : ''
         toast.error(errorMessage + errorDetails, { duration: 5000 })
       }
     } catch (error) {
-      console.error('[INTEGRATION] Save exception:', error)
+      logger.error(error, { action: 'handleSave', metadata: { provider } })
       toast.error(`Une erreur est survenue: ${error instanceof Error ? error.message : 'Unknown'}`)
     } finally {
       setSaving(false)
@@ -139,13 +142,13 @@ export default function IntegrationsPage() {
         fetchIntegrations()
       } else {
         const error = await response.json()
-        console.error('[INTEGRATION] Test error:', error)
+        logger.error(error, { action: 'handleTest', metadata: { integrationId } })
         const errorMessage = error.error || error.message || 'Impossible d\'envoyer l\'email de test'
         const errorDetails = error.details ? `\n${error.details}` : ''
         toast.error(errorMessage + errorDetails, { duration: 5000 })
       }
     } catch (error) {
-      console.error('[INTEGRATION] Test exception:', error)
+      logger.error(error, { action: 'handleTest', metadata: { integrationId } })
       toast.error(`Une erreur est survenue lors du test: ${error instanceof Error ? error.message : 'Unknown'}`)
     } finally {
       setTesting(null)
