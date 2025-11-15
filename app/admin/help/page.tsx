@@ -750,7 +750,7 @@ ClientLogger.warn('Slow API response', { duration: 5000 })`}</pre>
                   </div>
 
                   <div className="bg-gray-900 rounded-lg p-4 font-mono text-sm text-gray-100">
-                    <div className="text-gray-400 mb-2">// Exemple de test unitaire</div>
+                    <div className="text-gray-400 mb-2">{'//'} Exemple de test unitaire</div>
                     <pre>{`import { describe, it, expect } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { MyComponent } from './my-component'
