@@ -155,7 +155,7 @@ export function BadgeManagementPage({
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="overview">
             <Sparkles className="h-4 w-4 mr-2" />
-            Vue d'ensemble
+            Vue d&apos;ensemble
           </TabsTrigger>
           <TabsTrigger value="generate">
             <Users className="h-4 w-4 mr-2" />
@@ -208,7 +208,7 @@ export function BadgeManagementPage({
               <CardHeader>
                 <CardTitle>Aucun badge généré</CardTitle>
                 <CardDescription>
-                  Commencez par générer des badges pour vos invités dans l'onglet "Générer"
+                  Commencez par générer des badges pour vos invités dans l&apos;onglet &quot;Générer&quot;
                 </CardDescription>
               </CardHeader>
             </Card>
@@ -229,7 +229,7 @@ export function BadgeManagementPage({
                 <Alert variant="destructive">
                   <AlertCircle className="h-4 w-4" />
                   <AlertDescription>
-                    Veuillez d'abord configurer le design des badges dans l'onglet "Design"
+                    Veuillez d&apos;abord configurer le design des badges dans l&apos;onglet &quot;Design&quot;
                   </AlertDescription>
                 </Alert>
               )}
@@ -315,7 +315,7 @@ export function BadgeManagementPage({
             <CardHeader>
               <CardTitle>Configuration du design</CardTitle>
               <CardDescription>
-                Personnalisez l'apparence des badges pour cet événement
+                Personnalisez l&apos;apparence des badges pour cet événement
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -336,7 +336,7 @@ export function BadgeManagementPage({
                   <div className="text-sm text-muted-foreground">
                     Le designer de badges visuel sera disponible dans une prochaine version.
                     <br />
-                    Pour l'instant, un design par défaut est utilisé automatiquement.
+                    Pour l&apos;instant, un design par défaut est utilisé automatiquement.
                   </div>
                 </div>
               ) : (
