@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
+import { createLogger } from '@/lib/logger'
+
+const groupLogger = createLogger({ module: 'session', type: 'groups' })
 
 // Validation schema for group creation
 const createGroupSchema = z.object({
@@ -57,7 +60,7 @@ export async function GET(
       total: groups.length,
     })
   } catch (error) {
-    console.error('Error fetching groups:', error)
+    groupLogger.error({ error, stack: error instanceof Error ? error.stack : undefined }, 'Error fetching groups')
     return NextResponse.json(
       { error: 'Erreur lors de la récupération des groupes' },
       { status: 500 }
@@ -129,7 +132,7 @@ export async function POST(
       )
     }
 
-    console.error('Error creating group:', error)
+    groupLogger.error({ error, stack: error instanceof Error ? error.stack : undefined }, 'Error creating group')
     return NextResponse.json(
       { error: 'Erreur lors de la création du groupe' },
       { status: 500 }

@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
+import { createLogger } from '@/lib/logger'
+
+const participantLogger = createLogger({ module: 'session', type: 'participants' })
 
 // Validation schema for adding participants
 const addParticipantSchema = z.object({
@@ -166,7 +169,7 @@ export async function POST(
       )
     }
 
-    console.error('Error adding participants:', error)
+    participantLogger.error({ error, stack: error instanceof Error ? error.stack : undefined }, 'Error adding participants')
     return NextResponse.json(
       { error: 'Erreur lors de l\'ajout des participants' },
       { status: 500 }
@@ -250,7 +253,7 @@ export async function DELETE(
       message: 'Participant retiré avec succès',
     })
   } catch (error) {
-    console.error('Error removing participant:', error)
+    participantLogger.error({ error, stack: error instanceof Error ? error.stack : undefined }, 'Error removing participant')
     return NextResponse.json(
       { error: 'Erreur lors du retrait du participant' },
       { status: 500 }
@@ -339,7 +342,7 @@ export async function PATCH(
       )
     }
 
-    console.error('Error updating participant:', error)
+    participantLogger.error({ error, stack: error instanceof Error ? error.stack : undefined }, 'Error updating participant')
     return NextResponse.json(
       { error: 'Erreur lors de la mise à jour du participant' },
       { status: 500 }
