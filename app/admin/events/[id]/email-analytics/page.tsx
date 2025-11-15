@@ -6,6 +6,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
+import { createClientLogger } from '@/lib/client-logger'
+
+const logger = createClientLogger({ component: 'EmailAnalyticsPage' })
+
   Mail, MailOpen, MousePointerClick, AlertCircle, TrendingUp,
   Clock, XCircle, CheckCircle, Timer, BarChart3, RefreshCw
 } from 'lucide-react'
@@ -122,7 +126,7 @@ export default function EmailAnalyticsPage() {
       const result = await response.json()
       setData(result)
     } catch (err) {
-      console.error('Error fetching email analytics:', err)
+      logger.error(err, { action: 'fetchEmailAnalytics' })
       setError(err instanceof Error ? err.message : 'Erreur de chargement')
     } finally {
       setLoading(false)

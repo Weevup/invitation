@@ -7,6 +7,10 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Hotel, Plus, MapPin, Star, Bed, Users, ExternalLink } from 'lucide-react'
 import { AccommodationDialog } from '@/components/admin/accommodation-dialog'
+import { createClientLogger } from '@/lib/client-logger'
+
+const logger = createClientLogger({ component: 'AccommodationPage' })
+
 
 interface Accommodation {
   id: string
@@ -46,7 +50,7 @@ export default function AccommodationPage() {
         setAccommodations(data.accommodations || [])
       }
     } catch (error) {
-      console.error('Error fetching accommodations:', error)
+      logger.error(error, { action: 'fetchingAccommodations' })
     } finally {
       setLoading(false)
     }

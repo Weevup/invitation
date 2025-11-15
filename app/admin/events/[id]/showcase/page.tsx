@@ -7,6 +7,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { ShowcaseSkeleton } from '@/components/ui/showcase-skeleton'
 import { Button } from '@/components/ui/button'
 import { Sparkles, AlertCircle, RefreshCw } from 'lucide-react'
+import { createClientLogger } from '@/lib/client-logger'
+
+const logger = createClientLogger({ component: 'ShowcasePage' })
+
 
 interface EventData {
   id: string
@@ -40,7 +44,7 @@ export default function ShowcasePage() {
       const data = await res.json()
       setEvent(data)
     } catch (err) {
-      console.error('Error fetching event:', err)
+      logger.error(err, { action: 'fetchEvent' })
       setError(err instanceof Error ? err.message : 'Une erreur est survenue lors du chargement')
     } finally {
       setLoading(false)

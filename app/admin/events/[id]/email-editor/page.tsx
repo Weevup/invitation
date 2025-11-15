@@ -12,6 +12,10 @@ import { Textarea } from '@/components/ui/textarea'
 import { Sparkles, Save, Download, Send } from 'lucide-react'
 import { EmailEditor, EmailTemplate, PREDEFINED_TEMPLATES, blocksToHTML } from '@/components/email-editor'
 import { toast } from 'sonner'
+import { createClientLogger } from '@/lib/client-logger'
+
+const logger = createClientLogger({ component: 'EmailEditorPage' })
+
 
 export default function EmailEditorPage() {
   const params = useParams()
@@ -88,7 +92,7 @@ export default function EmailEditorPage() {
       setTemplateType('INVITE')
     } catch (error) {
       toast.error('Erreur lors de la sauvegarde')
-      console.error('Save error:', error)
+      logger.error(error, { action: 'SaveError' })
     } finally {
       setSaving(false)
     }

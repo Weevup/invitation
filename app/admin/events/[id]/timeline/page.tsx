@@ -34,6 +34,10 @@ import {
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import { cn } from '@/lib/utils'
+import { createClientLogger } from '@/lib/client-logger'
+
+const logger = createClientLogger({ component: 'TimelinePage' })
+
 
 interface TimelineItem {
   id: string
@@ -154,7 +158,7 @@ export default function TimelinePage() {
         setAlerts(data.alerts || [])
       }
     } catch (error) {
-      console.error('Error fetching timeline:', error)
+      logger.error(error, { action: 'fetchingTimeline' })
     } finally {
       setLoading(false)
     }

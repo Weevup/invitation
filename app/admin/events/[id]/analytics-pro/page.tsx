@@ -5,6 +5,10 @@ import { useParams } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import {
+import { createClientLogger } from '@/lib/client-logger'
+
+const logger = createClientLogger({ component: 'AnalyticsProPage' })
+
   BarChart3, Building2, Briefcase, TrendingUp, Users, PieChart
 } from 'lucide-react'
 
@@ -65,7 +69,7 @@ export default function AnalyticsProPage() {
         calculateStats(data.guests)
       }
     } catch (error) {
-      console.error('Error fetching data:', error)
+      logger.error(error, { action: 'fetchingData' })
     } finally {
       setLoading(false)
     }

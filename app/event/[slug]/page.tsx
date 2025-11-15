@@ -12,6 +12,10 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { migrateLegacySections, getActiveSections, getSectionWrapperProps } from '@/lib/showcase-utils'
 import { type SectionConfig } from '@/lib/showcase-templates'
+import { createClientLogger } from '@/lib/client-logger'
+
+const logger = createClientLogger({ component: 'EventPage' })
+
 
 /**
  * Sanitize CSS to prevent XSS attacks
@@ -124,7 +128,7 @@ async function getEvent(slug: string) {
 
     return event
   } catch (error) {
-    console.error('Error fetching event:', error)
+    logger.error(error, { action: 'fetchingEvent' })
     return null
   }
 }

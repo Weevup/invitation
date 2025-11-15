@@ -9,6 +9,10 @@ import { TimeSlotBlock } from './components/TimeSlotBlock'
 import { BlockDetailsPanel } from './components/BlockDetailsPanel'
 import type { TimeSlot, Alert, KPIs } from '@/app/api/admin/events/[id]/operations/helpers'
 import type { Guest, RSVP } from '@prisma/client'
+import { createClientLogger } from '@/lib/client-logger'
+
+const logger = createClientLogger({ component: 'OperationsPage' })
+
 
 interface OperationsData {
   event: {
@@ -57,7 +61,7 @@ export default function OperationsPage() {
 
       setData(result)
     } catch (err) {
-      console.error('Error fetching operations data:', err)
+      logger.error(err, { action: 'fetchOperationsData' })
       setError(err instanceof Error ? err.message : 'Une erreur est survenue')
     } finally {
       setLoading(false)

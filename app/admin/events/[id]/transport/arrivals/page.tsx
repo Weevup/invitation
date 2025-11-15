@@ -23,6 +23,10 @@ import {
 import Link from 'next/link'
 import { format, isToday, isTomorrow, parseISO, isPast, isFuture } from 'date-fns'
 import { fr } from 'date-fns/locale'
+import { createClientLogger } from '@/lib/client-logger'
+
+const logger = createClientLogger({ component: 'ArrivalsPage' })
+
 
 interface TransportArrival {
   id: string
@@ -110,7 +114,7 @@ export default function TransportArrivalsPage() {
         setArrivals(data)
       }
     } catch (error) {
-      console.error('Error fetching arrivals:', error)
+      logger.error(error, { action: 'fetchingArrivals' })
     } finally {
       setLoading(false)
     }

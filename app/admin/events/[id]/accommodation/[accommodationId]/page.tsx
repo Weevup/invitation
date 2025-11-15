@@ -25,6 +25,10 @@ import { RoomDialog } from '@/components/admin/room-dialog'
 import { RoomAssignmentDialog } from '@/components/admin/room-assignment-dialog'
 import { AccommodationDialog } from '@/components/admin/accommodation-dialog'
 import { toast } from 'sonner'
+import { createClientLogger } from '@/lib/client-logger'
+
+const logger = createClientLogger({ component: 'AccommodationPage' })
+
 
 interface Room {
   id: string
@@ -115,7 +119,7 @@ export default function AccommodationDetailsPage() {
         setAccommodation(data.accommodation)
       }
     } catch (error) {
-      console.error('Error fetching accommodation:', error)
+      logger.error(error, { action: 'fetchingAccommodation' })
     } finally {
       setLoading(false)
     }

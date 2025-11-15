@@ -19,6 +19,10 @@ import {
   Send, UserPlus, TrendingUp
 } from 'lucide-react'
 import Link from 'next/link'
+import { createClientLogger } from '@/lib/client-logger'
+
+const logger = createClientLogger({ component: 'RsvpPage' })
+
 
 interface Guest {
   id: string
@@ -68,7 +72,7 @@ export default function RSVPManagementPage() {
         setEvents(eventsData)
       }
     } catch (error) {
-      console.error('Error fetching data:', error)
+      logger.error(error, { action: 'fetchingData' })
     } finally {
       setLoading(false)
     }

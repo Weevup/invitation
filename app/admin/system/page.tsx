@@ -30,6 +30,10 @@ import {
 import Link from "next/link";
 import { WeevupLogo } from "@/components/weevup-logo";
 import { toast } from "sonner";
+import { createClientLogger } from '@/lib/client-logger'
+
+const logger = createClientLogger({ component: 'SystemPage' })
+
 
 interface DiagnosticCheck {
   name: string
@@ -88,7 +92,7 @@ export default function SystemPage() {
         setLastDbCheck(new Date());
       }
     } catch (error) {
-      console.error('Error fetching database status:', error);
+      logger.error(error, { action: 'fetchingDatabaseStatus' });
       toast.error('Erreur lors de la vérification de la base de données');
     } finally {
       setDbStatusLoading(false);
@@ -108,7 +112,7 @@ export default function SystemPage() {
         setLastDiagnostic(new Date());
       }
     } catch (error) {
-      console.error('Diagnostic failed:', error);
+      logger.error(error, { action: 'DiagnosticFailed' });
       toast.error('Erreur lors du diagnostic');
     } finally {
       setDiagnosticLoading(false);

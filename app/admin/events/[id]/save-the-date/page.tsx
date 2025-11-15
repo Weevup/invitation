@@ -17,6 +17,10 @@ import {
 import Link from "next/link";
 import Image from "next/image";
 import { toast } from "sonner";
+import { createClientLogger } from '@/lib/client-logger'
+
+const logger = createClientLogger({ component: 'SaveTheDatePage' })
+
 
 export default function SaveTheDateBuilderPage() {
   const params = useParams();
@@ -71,7 +75,7 @@ export default function SaveTheDateBuilderPage() {
           }
         }
       } catch (error) {
-        console.error("Failed to load save the date configuration:", error);
+        logger.error(error, { action: 'FailedToLoadSaveTheDateConfiguration' });
       }
     };
 

@@ -15,6 +15,10 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useToast } from "@/components/ui/use-toast";
+import { createClientLogger } from '@/lib/client-logger'
+
+const logger = createClientLogger({ component: 'CommunicationsPage' })
+
 
 interface CommunicationStats {
   saveTheDate: {
@@ -84,7 +88,7 @@ export default function CommunicationsPage() {
     fetch('/api/admin/templates')
       .then(res => res.json())
       .then(data => setTemplates(data.filter((t: EmailTemplate) => t.isActive)))
-      .catch(console.error);
+      .catch(err => logger.error(err, { action: 'fetchTemplates' }));
   }, []);
 
   // Charger la config des auto-reminders au montage
@@ -92,7 +96,7 @@ export default function CommunicationsPage() {
     fetch(`/api/admin/events/${eventId}/reminders-config`)
       .then(res => res.json())
       .then(data => setAutoReminders(data))
-      .catch(console.error);
+      .catch(err => logger.error(err, { action: 'fetchRemindersConfig' }));
   }, [eventId]);
 
   // Charger les statistiques d'emails
@@ -104,7 +108,7 @@ export default function CommunicationsPage() {
         setStats(data);
       }
     } catch (error) {
-      console.error('Error loading email stats:', error);
+      logger.error(error, { action: 'loadingEmailStats' });
     }
   }, [eventId]);
 

@@ -21,6 +21,10 @@ import {
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import { cn } from '@/lib/utils'
+import { createClientLogger } from '@/lib/client-logger'
+
+const logger = createClientLogger({ component: 'TeamBuildingPage' })
+
 
 interface SessionGroup {
   id: string
@@ -73,7 +77,7 @@ export default function TeamBuildingPage() {
         }))
       setSessions(teamBuildingSessions)
     } catch (error) {
-      console.error('Error fetching sessions:', error)
+      logger.error(error, { action: 'fetchingSessions' })
     } finally {
       setLoading(false)
     }

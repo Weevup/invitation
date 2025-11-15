@@ -17,6 +17,10 @@ import { GuestDetailsModal } from '@/components/guest-details-modal'
 import Papa from 'papaparse'
 import { exportBadgesPDF } from '@/lib/badge-export'
 import {
+import { createClientLogger } from '@/lib/client-logger'
+
+const logger = createClientLogger({ component: 'GuestsPage' })
+
   Select,
   SelectContent,
   SelectItem,
@@ -93,7 +97,7 @@ export default function GuestsPage() {
         setEvent(data)
       }
     } catch (error) {
-      console.error('Error fetching event:', error)
+      logger.error(error, { action: 'fetchingEvent' })
     } finally {
       setLoading(false)
     }
@@ -178,7 +182,7 @@ export default function GuestsPage() {
 
       toast.success(`${confirmedGuests.length} badges exportés avec succès`, { id: 'badges-export' })
     } catch (error) {
-      console.error('Error exporting badges:', error)
+      logger.error(error, { action: 'exportingBadges' })
       toast.error('Erreur lors de l\'export des badges', { id: 'badges-export' })
     }
   }

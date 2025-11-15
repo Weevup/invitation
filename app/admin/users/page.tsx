@@ -39,6 +39,10 @@ import {
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import { useToast } from '@/components/ui/use-toast'
+import { createClientLogger } from '@/lib/client-logger'
+
+const logger = createClientLogger({ component: 'UsersPage' })
+
 
 interface User {
   id: string
@@ -115,7 +119,7 @@ export default function UsersPage() {
         })
       }
     } catch (error) {
-      console.error('Error fetching users:', error)
+      logger.error(error, { action: 'fetchingUsers' })
       toast({
         title: 'Erreur',
         description: 'Erreur lors du chargement des utilisateurs',

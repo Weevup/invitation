@@ -15,6 +15,10 @@ import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import { toast } from 'sonner'
+import { createClientLogger } from '@/lib/client-logger'
+
+const logger = createClientLogger({ component: 'InvitationPage' })
+
 
 export default function InvitationDesignPage() {
   const params = useParams()
@@ -83,7 +87,7 @@ export default function InvitationDesignPage() {
           }
         }
       } catch (error) {
-        console.error("Failed to load invitation configuration:", error);
+        logger.error(error, { action: 'FailedToLoadInvitationConfiguration' });
       }
     };
 
