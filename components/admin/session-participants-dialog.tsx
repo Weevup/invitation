@@ -18,6 +18,9 @@ import {
   XCircle
 } from 'lucide-react'
 import { toast } from 'sonner'
+import { createClientLogger, getUserErrorMessage } from '@/lib/client-logger'
+
+const logger = createClientLogger({ component: 'SessionParticipantsDialog' })
 
 interface Guest {
   id: string
@@ -103,8 +106,8 @@ export function SessionParticipantsDialog({
         setAllGuests(data.guests || [])
       }
     } catch (error) {
-      console.error('Error fetching guests:', error)
-      toast.error('Erreur lors du chargement des invités')
+      logger.error(error, { action: 'fetchGuests', metadata: { eventId } })
+      toast.error(getUserErrorMessage(error))
     }
   }
 
@@ -116,7 +119,7 @@ export function SessionParticipantsDialog({
         setParticipants(data.session?.participants || [])
       }
     } catch (error) {
-      console.error('Error fetching participants:', error)
+      logger.error(error, { action: 'fetchParticipants', metadata: { eventId, sessionId: session.id } })
     }
   }
 

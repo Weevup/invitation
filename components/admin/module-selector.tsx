@@ -12,6 +12,9 @@ import { AVAILABLE_MODULES, MODULE_CATEGORIES, ModuleCategory } from '@/lib/modu
 import { ArrowRight } from 'lucide-react'
 import Link from 'next/link'
 import { toast } from 'sonner'
+import { createClientLogger, getUserErrorMessage } from '@/lib/client-logger'
+
+const logger = createClientLogger({ component: 'ModuleSelector' })
 
 // Mapping des modules vers leurs routes
 const MODULE_ROUTES: Record<ModuleType, string> = {
@@ -49,7 +52,7 @@ export function ModuleSelector({ eventId, activeModules = [], onChange }: Module
           setSelectedModules(new Set(active))
         }
       } catch (error) {
-        console.error('Failed to fetch active modules:', error)
+        logger.error(error, { action: 'fetchActiveModules', metadata: { eventId } })
       } finally {
         setIsLoading(false)
       }
@@ -102,8 +105,8 @@ export function ModuleSelector({ eventId, activeModules = [], onChange }: Module
         setTimeout(() => window.location.reload(), 1000)
       }
     } catch (error) {
-      console.error('Failed to update module:', error)
-      toast.error('Erreur lors de la mise à jour du module')
+      logger.error(error, { action: 'updateModule', metadata: { eventId, moduleType } })
+      toast.error(getUserErrorMessage(error))
       // Revert on error
       setSelectedModules(new Set(selectedModules))
     } finally {
