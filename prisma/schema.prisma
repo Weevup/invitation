@@ -252,6 +252,9 @@ model Event {
   scheduledEmails      ScheduledEmail[]     @relation("EventScheduledEmails")
   remindersConfig      EventRemindersConfig? @relation("EventRemindersConfig")
 
+  // Phase 2.5: Badge system
+  badgeDesign          BadgeDesign?         @relation("EventBadgeDesign")
+
   @@index([slug])
   @@index([adminId])
 }
@@ -313,6 +316,9 @@ model Guest {
   manifests         ManifestParticipant[] @relation("GuestManifests")
   sessionParticipations SessionParticipant[] @relation("GuestSessions")
   roomAssignments   RoomAssignment[]      @relation("GuestRoomAssignments")
+
+  // Phase 2.5: Badge system
+  badge             Badge?                @relation("GuestBadge")
 
   @@unique([eventId, email])
   @@index([tokenHash])
@@ -1043,4 +1049,178 @@ enum ScheduledEmailStatus {
   SENT
   FAILED
   CANCELLED
+}
+
+// ============================================
+// Phase 2.5: Badge System
+// ============================================
+
+enum BadgeSize {
+  STANDARD      // 85.6mm × 54mm (credit card size)
+  LARGE         // 100mm × 70mm
+  LANYARD       // 100mm × 150mm
+  A6            // 105mm × 148mm
+}
+
+enum BadgeOrientation {
+  PORTRAIT
+  LANDSCAPE
+}
+
+enum BadgeFieldType {
+  FIRST_NAME
+  LAST_NAME
+  FULL_NAME
+  COMPANY
+  JOB_TITLE
+  EMAIL
+  QR_CODE
+  EVENT_NAME
+  EVENT_DATE
+  CUSTOM_TEXT
+  LOGO
+  PHOTO
+}
+
+model BadgeTemplate {
+  id          String  @id @default(cuid())
+  name        String  // "Corporate Standard", "VIP", "Staff", "Speaker"
+  description String? @db.Text
+
+  // Template settings
+  size        BadgeSize        @default(STANDARD)
+  orientation BadgeOrientation @default(PORTRAIT)
+
+  // Layout configuration (JSON)
+  // {
+  //   backgroundColor: "#ffffff",
+  //   borderColor: "#004645",
+  //   borderWidth: 2,
+  //   sections: [
+  //     { type: "header", height: 80, backgroundColor: "#004645" },
+  //     { type: "body", height: 200 },
+  //     { type: "footer", height: 60, backgroundColor: "#f5f5f5" }
+  //   ]
+  // }
+  layout      Json
+
+  // Field configuration (JSON)
+  // [
+  //   { id: "1", type: "FULL_NAME", x: 50, y: 120, fontSize: 24, fontWeight: "bold", color: "#333", align: "center" },
+  //   { id: "2", type: "COMPANY", x: 50, y: 150, fontSize: 16, color: "#666", align: "center" },
+  //   { id: "3", type: "QR_CODE", x: 150, y: 220, size: 80 }
+  // ]
+  fields      Json
+
+  // Styling
+  fontFamily  String   @default("Arial")
+
+  // Preview image URL (auto-generated)
+  previewUrl  String?
+
+  // Default template for events
+  isDefault   Boolean  @default(false)
+
+  // Visibility
+  isActive    Boolean  @default(true)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  badgeDesigns BadgeDesign[] @relation("BadgeTemplateDesigns")
+
+  @@index([isDefault])
+  @@index([isActive])
+}
+
+model BadgeDesign {
+  id          String  @id @default(cuid())
+
+  // Event relation
+  eventId     String  @unique
+  event       Event   @relation("EventBadgeDesign", fields: [eventId], references: [id], onDelete: Cascade)
+
+  // Template base (optional - can be fully custom)
+  templateId  String?
+  template    BadgeTemplate? @relation("BadgeTemplateDesigns", fields: [templateId], references: [id], onDelete: SetNull)
+
+  // Custom design (overrides template)
+  name        String  @default("Event Badge")
+  size        BadgeSize        @default(STANDARD)
+  orientation BadgeOrientation @default(PORTRAIT)
+
+  // Layout & fields (same structure as template)
+  layout      Json
+  fields      Json
+
+  // Styling
+  fontFamily  String   @default("Arial")
+
+  // Event logo
+  eventLogoUrl String?
+
+  // QR code settings
+  includeQRCode Boolean @default(true)
+  qrCodeSize    Int     @default(80) // pixels
+
+  // Batch printing settings
+  badgesPerPage Int     @default(10) // How many badges per A4 page
+  pageMargin    Int     @default(10) // mm
+  badgeSpacing  Int     @default(5)  // mm between badges
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  badges      Badge[]  @relation("BadgeDesignBadges")
+
+  @@index([eventId])
+  @@index([templateId])
+}
+
+model Badge {
+  id          String   @id @default(cuid())
+
+  // Guest relation
+  guestId     String   @unique
+  guest       Guest    @relation("GuestBadge", fields: [guestId], references: [id], onDelete: Cascade)
+
+  // Design relation
+  badgeDesignId String
+  badgeDesign BadgeDesign @relation("BadgeDesignBadges", fields: [badgeDesignId], references: [id], onDelete: Cascade)
+
+  // Generated badge data
+  // Stores the rendered field values for this specific guest
+  // {
+  //   "FULL_NAME": "John Doe",
+  //   "COMPANY": "Acme Inc",
+  //   "JOB_TITLE": "CEO",
+  //   "QR_CODE": "data:image/png;base64,..."
+  // }
+  renderedData Json
+
+  // PDF URL (if pre-generated)
+  pdfUrl       String?
+
+  // Print tracking
+  printedCount Int      @default(0)
+  lastPrintedAt DateTime?
+  printedBy    String?  // Admin ID who printed
+
+  // Status
+  isReady      Boolean  @default(false) // Ready to print
+  isIssued     Boolean  @default(false) // Badge has been issued to guest
+  issuedAt     DateTime?
+
+  // Notes
+  notes        String?  @db.Text
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([guestId])
+  @@index([badgeDesignId])
+  @@index([isReady])
+  @@index([isIssued])
 }

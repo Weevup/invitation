@@ -198,6 +198,111 @@ export const emailTemplateSchema = z.object({
   isActive: z.boolean().optional().default(true),
 })
 
+// ============================================
+// Badge System Validations
+// ============================================
+
+/**
+ * Badge field configuration schema
+ */
+export const badgeFieldSchema = z.object({
+  id: z.string(),
+  type: z.enum([
+    'FIRST_NAME',
+    'LAST_NAME',
+    'FULL_NAME',
+    'COMPANY',
+    'JOB_TITLE',
+    'EMAIL',
+    'QR_CODE',
+    'EVENT_NAME',
+    'EVENT_DATE',
+    'CUSTOM_TEXT',
+    'LOGO',
+    'PHOTO',
+  ]),
+  x: z.number().min(0, 'Position X invalide'),
+  y: z.number().min(0, 'Position Y invalide'),
+  width: z.number().min(0, 'Largeur invalide').optional(),
+  height: z.number().min(0, 'Hauteur invalide').optional(),
+  fontSize: z.number().min(8).max(72, 'Taille de police invalide').optional(),
+  fontWeight: z.enum(['normal', 'bold', 'bolder', 'lighter']).optional(),
+  fontStyle: z.enum(['normal', 'italic']).optional(),
+  color: z.string().regex(/^#[0-9A-Fa-f]{6}$/, 'Couleur invalide').optional(),
+  textAlign: z.enum(['left', 'center', 'right']).optional(),
+  customText: z.string().max(200, 'Texte personnalisé trop long').optional(),
+  size: z.number().min(10).max(500, 'Taille invalide').optional(), // For QR codes
+})
+
+/**
+ * Badge layout section schema
+ */
+export const badgeSectionSchema = z.object({
+  type: z.enum(['header', 'body', 'footer']),
+  height: z.number().min(0, 'Hauteur invalide'),
+  backgroundColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/, 'Couleur invalide').optional(),
+  borderColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/, 'Couleur invalide').optional(),
+  borderWidth: z.number().min(0).max(20, 'Épaisseur de bordure invalide').optional(),
+})
+
+/**
+ * Badge layout configuration schema
+ */
+export const badgeLayoutSchema = z.object({
+  backgroundColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/, 'Couleur de fond invalide'),
+  borderColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/, 'Couleur de bordure invalide').optional(),
+  borderWidth: z.number().min(0).max(20, 'Épaisseur de bordure invalide').optional(),
+  borderRadius: z.number().min(0).max(50, 'Rayon de bordure invalide').optional(),
+  sections: z.array(badgeSectionSchema).optional(),
+})
+
+/**
+ * Validation pour créer un template de badge
+ */
+export const createBadgeTemplateSchema = z.object({
+  name: z.string().min(1, 'Le nom est requis').max(100, 'Nom trop long'),
+  description: z.string().max(500, 'Description trop longue').optional(),
+  size: z.enum(['STANDARD', 'LARGE', 'LANYARD', 'A6']),
+  orientation: z.enum(['PORTRAIT', 'LANDSCAPE']),
+  layout: badgeLayoutSchema,
+  fields: z.array(badgeFieldSchema),
+  fontFamily: z.string().max(50, 'Nom de police trop long').optional(),
+  isDefault: z.boolean().optional(),
+})
+
+/**
+ * Validation pour créer/modifier un design de badge pour un événement
+ */
+export const createBadgeDesignSchema = z.object({
+  name: z.string().min(1, 'Le nom est requis').max(100, 'Nom trop long').optional(),
+  templateId: z.string().cuid('ID de template invalide').optional(),
+  size: z.enum(['STANDARD', 'LARGE', 'LANYARD', 'A6']),
+  orientation: z.enum(['PORTRAIT', 'LANDSCAPE']),
+  layout: badgeLayoutSchema,
+  fields: z.array(badgeFieldSchema).min(1, 'Au moins un champ est requis'),
+  fontFamily: z.string().max(50, 'Nom de police trop long').optional(),
+  eventLogoUrl: z.string().url('URL de logo invalide').optional().or(z.literal('')),
+  includeQRCode: z.boolean().optional(),
+  qrCodeSize: z.number().min(50).max(200, 'Taille de QR code invalide').optional(),
+  badgesPerPage: z.number().int().min(1).max(20, 'Nombre de badges par page invalide').optional(),
+  pageMargin: z.number().min(0).max(50, 'Marge invalide').optional(),
+  badgeSpacing: z.number().min(0).max(20, 'Espacement invalide').optional(),
+})
+
+/**
+ * Validation pour générer des badges
+ */
+export const generateBadgesSchema = z.object({
+  guestIds: z.array(z.string().cuid('ID d\'invité invalide')).min(1, 'Au moins un invité est requis'),
+})
+
+/**
+ * Validation pour marquer un badge comme imprimé
+ */
+export const markBadgePrintedSchema = z.object({
+  badgeIds: z.array(z.string().cuid('ID de badge invalide')).min(1, 'Au moins un badge est requis'),
+})
+
 /**
  * Helper pour valider et retourner une erreur formatée
  */
