@@ -28,7 +28,8 @@ import {
   Database,
   Presentation,
   Trophy,
-  PartyPopper
+  PartyPopper,
+  CreditCard
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useEventModules } from '@/lib/modules/use-event-modules'
@@ -170,6 +171,11 @@ export default function EventLayout({
           label: 'Check-in',
           href: `/admin/events/${eventId}/checkin`,
           icon: QrCode,
+        },
+        {
+          label: 'Badges',
+          href: `/admin/events/${eventId}/badges`,
+          icon: CreditCard,
         },
         {
           label: 'Analytics Pro',
