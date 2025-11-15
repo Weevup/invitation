@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -96,7 +96,7 @@ export default function CommunicationsPage() {
   }, [eventId]);
 
   // Charger les statistiques d'emails
-  const loadStats = async () => {
+  const loadStats = useCallback(async () => {
     try {
       const response = await fetch(`/api/admin/events/${eventId}/email-stats`);
       if (response.ok) {
@@ -106,13 +106,13 @@ export default function CommunicationsPage() {
     } catch (error) {
       console.error('Error loading email stats:', error);
     }
-  };
+  }, [eventId]);
 
   useEffect(() => {
     if (eventId) {
       loadStats();
     }
-  }, [eventId]);
+  }, [eventId, loadStats]);
 
   const handleScheduleSend = async (type: "saveTheDate" | "invitation" | "reminder") => {
     const date = scheduleDates[type];

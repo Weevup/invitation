@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useParams } from 'next/navigation'
 import { ShowcaseBuilder } from '@/components/showcase-builder'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -29,7 +29,7 @@ export default function ShowcasePage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const loadEvent = async () => {
+  const loadEvent = useCallback(async () => {
     setLoading(true)
     setError(null)
     try {
@@ -45,11 +45,11 @@ export default function ShowcasePage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [eventId])
 
   useEffect(() => {
     loadEvent()
-  }, [eventId])
+  }, [loadEvent])
 
   if (loading) {
     return <ShowcaseSkeleton />

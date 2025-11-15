@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useParams } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -102,13 +102,7 @@ export default function TransportArrivalsPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [filterPeriod, setFilterPeriod] = useState<'all' | 'today' | 'tomorrow' | 'upcoming'>('upcoming')
 
-  useEffect(() => {
-    if (eventId) {
-      fetchArrivals()
-    }
-  }, [eventId])
-
-  const fetchArrivals = async () => {
+  const fetchArrivals = useCallback(async () => {
     try {
       const response = await fetch(`/api/admin/events/${eventId}/transport/arrivals`)
       if (response.ok) {
@@ -120,7 +114,13 @@ export default function TransportArrivalsPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [eventId])
+
+  useEffect(() => {
+    if (eventId) {
+      fetchArrivals()
+    }
+  }, [eventId, fetchArrivals])
 
   const getArrivalDateTime = (arrival: TransportArrival) => {
     if (!arrival.arrival?.date) return null

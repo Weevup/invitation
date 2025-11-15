@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useParams } from 'next/navigation'
 import { Loader2 } from 'lucide-react'
 import { OperationsHeader } from './components/OperationsHeader'
@@ -38,11 +38,7 @@ export default function OperationsPage() {
   const [error, setError] = useState<string | null>(null)
   const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null)
 
-  useEffect(() => {
-    fetchOperationsData()
-  }, [eventId])
-
-  async function fetchOperationsData() {
+  const fetchOperationsData = useCallback(async () => {
     try {
       setLoading(true)
       setError(null)
@@ -66,7 +62,11 @@ export default function OperationsPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [eventId])
+
+  useEffect(() => {
+    fetchOperationsData()
+  }, [fetchOperationsData])
 
   if (loading) {
     return (
