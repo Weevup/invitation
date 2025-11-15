@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { requireAdmin, handleAuthError } from '@/lib/auth-utils'
+import { createLogger } from '@/lib/logger'
+
+const analyticsLogger = createLogger({ module: 'email', type: 'analytics' })
 import { requireEventOwnership } from '@/lib/permissions'
 
 export async function GET(
@@ -185,7 +188,7 @@ export async function GET(
       bounces,
     })
   } catch (error) {
-    console.error('Error fetching email analytics:', error)
+    analyticsLogger.error({ error, stack: error instanceof Error ? error.stack : undefined }, 'Error fetching email analytics')
     return handleAuthError(error)
   }
 }

@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { createLogger } from '@/lib/logger'
+
+const timelineLogger = createLogger({ module: 'event', type: 'timeline' })
 
 /**
  * GET /api/admin/events/[id]/timeline
@@ -672,7 +675,7 @@ export async function GET(
       alerts,
     })
   } catch (error) {
-    console.error('Error fetching timeline:', error)
+    timelineLogger.error({ error, stack: error instanceof Error ? error.stack : undefined }, 'Error fetching timeline')
     return NextResponse.json(
       { error: 'Erreur lors de la récupération de la timeline' },
       { status: 500 }
