@@ -13,7 +13,9 @@ Guide d'utilisation détaillé avec tous les cas d'usage.
 5. [Personnaliser la Page Showcase](#5-personnaliser-la-page-showcase)
 6. [Check-in le Jour J](#6-check-in-le-jour-j)
 7. [Analytics & Rapports](#7-analytics--rapports)
-8. [Cas d'Usage Avancés](#8-cas-dusage-avancés)
+8. [Monitoring & Performance](#8-monitoring--performance)
+9. [Tests & Qualité](#9-tests--qualité)
+10. [Cas d'Usage Avancés](#10-cas-dusage-avancés)
 
 ---
 
@@ -750,7 +752,277 @@ Taux de présence :
 
 ---
 
-## 8. Cas d'Usage Avancés
+## 8. Monitoring & Performance
+
+### Vue d'ensemble
+
+L'application intègre un système complet de monitoring de production pour assurer la fiabilité et les performances.
+
+### Sentry : Error Tracking
+
+#### Qu'est-ce que Sentry ?
+
+Sentry capture automatiquement toutes les erreurs en production :
+- ✅ **59 composants/pages** tracés automatiquement
+- ✅ **Session Replay** : Revoyez ce qui s'est passé avant un crash
+- ✅ **Alertes temps réel** : Notifications par email/Slack
+- ✅ **Stack traces** : Debug précis avec source maps
+
+#### Configuration (Production)
+
+**1. Créez un compte gratuit** sur [sentry.io](https://sentry.io)
+
+**2. Ajoutez la variable d'environnement** dans Vercel :
+
+```env
+NEXT_PUBLIC_SENTRY_DSN="https://votre-dsn@sentry.io/votre-project-id"
+```
+
+**3. C'est tout !** Les erreurs sont automatiquement capturées.
+
+#### Utilisation du Dashboard
+
+**Allez sur** : [sentry.io](https://sentry.io) → Votre projet
+
+**Vous verrez** :
+- 🐛 **Issues** : Toutes les erreurs groupées
+- 📹 **Replays** : Vidéos des sessions avec erreurs
+- 📊 **Performance** : Temps de chargement des pages
+- 👥 **Users** : Qui a rencontré des erreurs
+
+**Pour chaque erreur** :
+```
+Error: Failed to load guests
+├─ Stack trace : guest-list.tsx:45
+├─ User : admin@weevup.com
+├─ Browser : Chrome 120 on macOS
+├─ Breadcrumbs :
+│  ├─ User clicked "Refresh"
+│  ├─ API call to /api/guests
+│  └─ Network error (timeout)
+└─ Session Replay : [Voir la vidéo]
+```
+
+#### Alertes
+
+**Configurez des alertes** pour être notifié :
+
+1. **Settings** → **Alerts** → **Create Alert Rule**
+2. **Exemples** :
+   - Plus de 10 erreurs en 5 minutes
+   - Nouvelle erreur jamais vue
+   - Erreur affectant > 100 utilisateurs
+
+### Web Vitals : Performance
+
+#### Métriques Trackées
+
+L'application mesure automatiquement les **Core Web Vitals** de Google :
+
+| Métrique | Description | Objectif |
+|----------|-------------|----------|
+| **LCP** | Largest Contentful Paint | < 2.5s |
+| **FID** | First Input Delay | < 100ms |
+| **CLS** | Cumulative Layout Shift | < 0.1 |
+| **INP** | Interaction to Next Paint | < 200ms |
+
+#### Voir les Métriques
+
+**Option 1 : Vercel Analytics** (recommandé)
+
+1. **Activez** Analytics dans Vercel Dashboard
+2. **Ajoutez** la variable d'environnement :
+   ```env
+   NEXT_PUBLIC_VERCEL_ANALYTICS_ID="votre-analytics-id"
+   ```
+3. **Consultez** : Vercel Dashboard → Analytics
+
+**Option 2 : Sentry**
+
+Les métriques sont automatiquement envoyées à Sentry si configuré.
+
+#### Conseils d'Optimisation
+
+**LCP trop lent (> 2.5s)** :
+- ✅ Images déjà optimisées (Next.js Image)
+- 🔧 Utilisez un CDN pour les images
+- 🔧 Activez la compression Vercel
+
+**CLS trop élevé (> 0.1)** :
+- ✅ Dimensions images déjà fixées
+- 🔧 Réservez l'espace pour le contenu dynamique
+
+### Logging Centralisé
+
+#### Pour les Développeurs
+
+**Serveur (API Routes)** :
+```typescript
+import { logger } from '@/lib/logger'
+
+logger.info({ action: 'fetchGuests' }, 'Fetching guests')
+logger.error({ error }, 'Failed to fetch guests')
+```
+
+**Client (Components)** :
+```typescript
+import { createClientLogger } from '@/lib/client-logger'
+
+const logger = createClientLogger({ component: 'GuestList' })
+
+try {
+  await fetchData()
+} catch (error) {
+  logger.error(error, { action: 'fetchData' })
+  toast.error(getUserErrorMessage(error))
+}
+```
+
+#### Avantages
+
+- ✅ Logs structurés JSON (serveur)
+- ✅ Reporting automatique à Sentry (client)
+- ✅ Messages user-friendly
+- ✅ Contexte enrichi (composant, action, metadata)
+
+**Guide complet** : [GUIDE-MONITORING-TESTS.md](GUIDE-MONITORING-TESTS.md)
+
+---
+
+## 9. Tests & Qualité
+
+### Tests Unitaires (Vitest)
+
+#### Qu'est-ce que Vitest ?
+
+Vitest est un framework de tests ultra-rapide pour JavaScript/TypeScript :
+- ⚡ **10x plus rapide** que Jest
+- 🎯 **Compatible** avec Jest (même API)
+- 🔧 **TypeScript natif** sans configuration
+
+#### Lancer les Tests
+
+```bash
+# Mode watch (re-run automatique)
+npm test
+
+# Lancer une fois (CI)
+npm run test:run
+
+# Interface UI visuelle
+npm run test:ui
+
+# Avec coverage
+npm run test:coverage
+```
+
+#### Tests Inclus
+
+**15 tests, 100% passing** :
+- ✅ Client Logger (11 tests)
+  - Messages d'erreur personnalisés
+  - Création de logger avec contexte
+- ✅ Scroll Reveal Component (4 tests)
+  - Rendu des children
+  - Classes et styling
+
+#### Écrire un Test (Exemple)
+
+```typescript
+// lib/__tests__/mon-util.test.ts
+import { describe, it, expect } from 'vitest'
+import { maFonction } from '../mon-util'
+
+describe('maFonction', () => {
+  it('devrait retourner le résultat attendu', () => {
+    const result = maFonction('input')
+    expect(result).toBe('expected output')
+  })
+})
+```
+
+#### Tests de Composants React
+
+```typescript
+// components/__tests__/MonComposant.test.tsx
+import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { MonComposant } from '../MonComposant'
+
+describe('MonComposant', () => {
+  it('devrait afficher le contenu', () => {
+    render(<MonComposant title="Test" />)
+    expect(screen.getByText('Test')).toBeInTheDocument()
+  })
+
+  it('devrait gérer le clic', async () => {
+    const user = userEvent.setup()
+    const handleClick = vi.fn()
+
+    render(<MonComposant onClick={handleClick} />)
+    await user.click(screen.getByRole('button'))
+
+    expect(handleClick).toHaveBeenCalledOnce()
+  })
+})
+```
+
+### Tests E2E (Playwright)
+
+#### Qu'est-ce que Playwright ?
+
+Playwright teste l'application comme un vrai utilisateur :
+- 🌐 **Multi-navigateurs** (Chrome, Firefox, Safari)
+- 📱 **Mobile** et Desktop
+- 🎭 **Headless** ou avec interface
+
+#### Lancer les Tests
+
+```bash
+# Lancer tous les tests
+npm run test:e2e
+
+# Mode UI interactif
+npm run test:e2e:ui
+
+# Mode debug
+npm run test:e2e:debug
+
+# Générer un rapport
+npm run test:e2e:report
+```
+
+#### Tests Inclus
+
+**3 scénarios complets** :
+- ✅ **Admin Dashboard**
+  - Login
+  - Navigation
+  - Création d'événement
+- ✅ **Guest RSVP**
+  - Magic link
+  - Formulaire multi-étapes
+  - Confirmation
+- ✅ **Email Preview**
+  - Templates
+  - Personnalisation
+
+### Checklist Qualité
+
+**Avant de déployer** :
+
+- [ ] `npm run lint` → 0 warnings
+- [ ] `npm run test:run` → 100% passing
+- [ ] `npm run test:e2e` → Tous les scénarios passent
+- [ ] `npm run build` → Build sans erreurs
+- [ ] Sentry configuré en production
+- [ ] Web Vitals < seuils (LCP < 2.5s, etc.)
+
+**Guide complet** : [GUIDE-MONITORING-TESTS.md](GUIDE-MONITORING-TESTS.md)
+
+---
+
+## 10. Cas d'Usage Avancés
 
 ### Cas 1 : Événement Multi-Sessions
 
