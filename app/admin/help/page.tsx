@@ -94,7 +94,7 @@ export default function HelpPage() {
                     <div>
                       <p className="font-medium text-[#004645]">Testez la prévisualisation RSVP interactive</p>
                       <p className="text-sm text-[#004645]/70 mt-1">
-                        Allez dans Configuration RSVP → Cliquez sur "Test interactif" pour voir le parcours complet
+                        Allez dans Configuration RSVP → Cliquez sur &quot;Test interactif&quot; pour voir le parcours complet
                       </p>
                     </div>
                   </div>
@@ -103,7 +103,7 @@ export default function HelpPage() {
                     <div>
                       <p className="font-medium text-[#004645]">Utilisez les templates RSVP</p>
                       <p className="text-sm text-[#004645]/70 mt-1">
-                        Cliquez sur "Templates" ✨ et choisissez parmi 7 configurations prédéfinies (Mariage, Corporate, etc.)
+                        Cliquez sur &quot;Templates&quot; ✨ et choisissez parmi 7 configurations prédéfinies (Mariage, Corporate, etc.)
                       </p>
                     </div>
                   </div>
@@ -112,7 +112,7 @@ export default function HelpPage() {
                     <div>
                       <p className="font-medium text-[#004645]">Profitez des nouveaux champs enrichis</p>
                       <p className="text-sm text-[#004645]/70 mt-1">
-                        Collectez contact d'urgence, taille vêtement, horaires précis d'arrivée/départ, budget événement
+                        Collectez contact d&apos;urgence, taille vêtement, horaires précis d&apos;arrivée/départ, budget événement
                       </p>
                     </div>
                   </div>
