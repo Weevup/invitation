@@ -1,5 +1,46 @@
 import { z } from 'zod'
 
+// Zod schemas for showcase data structures
+export const speakerSchema = z.object({
+  name: z.string(),
+  title: z.string(),
+  bio: z.string(),
+  photo: z.string(),
+  email: z.string().email().optional(),
+})
+
+export const sponsorSchema = z.object({
+  name: z.string(),
+  logo: z.string(),
+  website: z.string().url(),
+  tier: z.enum(['platinum', 'gold', 'silver', 'bronze']),
+})
+
+export const timelineItemSchema = z.object({
+  time: z.string(),
+  title: z.string(),
+  description: z.string(),
+  icon: z.string().optional(),
+})
+
+export const faqItemSchema = z.object({
+  question: z.string(),
+  answer: z.string(),
+})
+
+export const sectionConfigSchema = z.object({
+  id: z.string(),
+  enabled: z.boolean(),
+  order: z.number(),
+  customSettings: z.record(z.unknown()).optional(),
+})
+
+export const emergencyContactSchema = z.object({
+  name: z.string(),
+  phone: z.string(),
+  relationship: z.string(),
+})
+
 /**
  * Validation pour la création d'un invité
  */
@@ -24,6 +65,12 @@ export const createGuestSchema = z.object({
   dietaryReqs: z.string().max(1000, 'Texte trop long').optional(),
   accessibility: z.string().max(1000, 'Texte trop long').optional(),
   adminNotes: z.string().max(2000, 'Notes trop longues').optional(),
+
+  // Enhanced fields
+  emergencyContact: emergencyContactSchema.optional(),
+  tShirtSize: z.enum(['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL']).optional(),
+  arrivalTime: z.string().datetime().optional(),
+  departureTime: z.string().datetime().optional(),
 })
 
 /**
@@ -112,12 +159,12 @@ export const showcaseConfigSchema = z.object({
   primaryColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/, 'Couleur hexadécimale invalide').optional(),
   secondaryColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/, 'Couleur hexadécimale invalide').optional(),
   customCSS: z.string().max(10000).optional(),
-  sections: z.array(z.any()).optional(), // JSON complexe, validation plus souple
-  gallery: z.array(z.any()).optional(),
-  faq: z.array(z.any()).optional(),
-  speakers: z.array(z.any()).optional(),
-  sponsors: z.array(z.any()).optional(),
-  timeline: z.array(z.any()).optional(),
+  sections: z.array(sectionConfigSchema).optional(),
+  gallery: z.array(z.string().url()).optional(),
+  faq: z.array(faqItemSchema).optional(),
+  speakers: z.array(speakerSchema).optional(),
+  sponsors: z.array(sponsorSchema).optional(),
+  timeline: z.array(timelineItemSchema).optional(),
 })
 
 /**

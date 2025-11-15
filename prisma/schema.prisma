@@ -185,6 +185,14 @@ model Event {
   requireMeal    Boolean   @default(false)
   mealOptions    String[]  @default([])
 
+  // Enhanced fields
+  capacity            Int?      // Capacité maximale participants
+  registrationDeadline DateTime? // Date limite inscription
+  hashtag             String?   // Hashtag événement (#MyEvent2025)
+  socialMediaUrls     Json?     // {twitter, instagram, linkedin, facebook}
+  budgetTotal         Float?    // Budget total événement
+  budgetCurrency      String    @default("EUR")
+
   // Communication Configuration
   saveTheDateConfig  Json? // Save the Date email configuration
   invitationConfig   Json? // Invitation email configuration
@@ -268,9 +276,15 @@ model Guest {
   phoneNumber   String?     // Numéro de téléphone
 
   // Event-specific needs
-  dietaryReqs   String?     @db.Text  // Restrictions alimentaires
+  dietaryReqs   String?     @db.Text  // Restrictions alimentaires (JSON: {type, allergens, details})
   accessibility String?     @db.Text  // Besoins d'accessibilité
   adminNotes    String?     @db.Text  // Notes privées admin
+
+  // Enhanced fields
+  emergencyContact  Json?       // Contact urgence: {name, phone, relationship}
+  tShirtSize        String?     // Taille vêtement (XS, S, M, L, XL, XXL)
+  arrivalTime       DateTime?   // Heure d'arrivée précise
+  departureTime     DateTime?   // Heure de départ précise
 
   // Authentication
   token         String      @unique // Will be hashed
@@ -663,6 +677,11 @@ model Session {
   equipment       String[]       @default([]) // ["Projector", "Microphone", "Whiteboard"]
   materials       String?        @db.Text     // Materials needed
   catering        String?        // Coffee break, lunch, etc.
+
+  // Enhanced fields
+  prerequisites   String?        @db.Text     // Prérequis pour participer
+  difficulty      String?        // Niveau: "beginner", "intermediate", "advanced"
+  targetAudience  String?        @db.Text     // Public cible
 
   // Display settings
   color           String?        // Color for calendar display
