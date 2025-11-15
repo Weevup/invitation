@@ -22,6 +22,9 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { useToast } from '@/components/ui/use-toast'
+import { createClientLogger, getUserErrorMessage } from '@/lib/client-logger'
+
+const logger = createClientLogger({ component: 'RoomDialog' })
 
 interface RoomDialogProps {
   open: boolean
@@ -156,7 +159,7 @@ export function RoomDialog({
 
       onSuccess?.()
     } catch (error: any) {
-      console.error('Error creating room:', error)
+      logger.error(error, { action: 'createRoom', metadata: { eventId, accommodationId } })
       toast({
         title: 'Erreur',
         description: error.message || 'Une erreur est survenue lors de la création',

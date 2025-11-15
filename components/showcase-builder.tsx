@@ -36,6 +36,9 @@ import { SectionBySectionEditor } from '@/components/showcase/section-by-section
 import { SplitPreview } from '@/components/showcase/split-preview'
 import { themePresets } from '@/lib/showcase-presets'
 import { type SectionConfig, type ShowcaseTemplate } from '@/lib/showcase-templates'
+import { createClientLogger } from '@/lib/client-logger'
+
+const logger = createClientLogger({ component: 'ShowcaseBuilder' })
 
 interface Speaker {
   name: string
@@ -359,7 +362,7 @@ export function ShowcaseBuilder({ eventId, eventSlug, initialData }: ShowcaseBui
       setTimeout(() => setSaved(false), 3000)
     } catch (err) {
       setError('Erreur lors de la sauvegarde')
-      console.error('Save error:', err)
+      logger.error(err, { action: 'saveShowcase', metadata: { eventId } })
     } finally {
       setSaving(false)
     }

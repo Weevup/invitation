@@ -9,6 +9,9 @@ import { Textarea } from '@/components/ui/textarea'
 import { Switch } from '@/components/ui/switch'
 import { Loader2, Save, CheckCircle } from 'lucide-react'
 import { ModuleType } from '@/lib/modules/types'
+import { createClientLogger, getUserErrorMessage } from '@/lib/client-logger'
+
+const logger = createClientLogger({ component: 'ModuleConfigEditor' })
 
 interface ModuleConfigEditorProps {
   eventId: string
@@ -188,7 +191,7 @@ export function ModuleConfigEditor({ eventId, moduleType, initialConfig, onSave 
       setTimeout(() => setSaved(false), 3000)
       onSave?.()
     } catch (error) {
-      console.error('Error saving config:', error)
+      logger.error(error, { action: 'saveConfig', metadata: { eventId, moduleType } })
     } finally {
       setSaving(false)
     }
