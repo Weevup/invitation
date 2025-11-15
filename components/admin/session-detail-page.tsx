@@ -114,7 +114,9 @@ export default function SessionDetailPage({ sessionType, labels }: SessionDetail
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedGroupFilter, setSelectedGroupFilter] = useState<string>('all')
 
-  const apiBase = `/api/admin/events/${eventId}/sessions/${sessionId}/${sessionType}`
+  // Routes API pour les groupes et participants
+  const groupsApi = `/api/admin/events/${eventId}/sessions/${sessionId}/groups`
+  const participantsApi = `/api/admin/events/${eventId}/sessions/${sessionId}/participants`
 
   useEffect(() => {
     loadData()
@@ -141,14 +143,14 @@ export default function SessionDetailPage({ sessionType, labels }: SessionDetail
   }
 
   async function fetchGroups() {
-    const response = await fetch(apiBase)
+    const response = await fetch(groupsApi)
     if (!response.ok) throw new Error('Failed to fetch groups')
     const data = await response.json()
     setGroups(data.groups || [])
   }
 
   async function fetchParticipants() {
-    const response = await fetch(`/api/admin/events/${eventId}/sessions/${sessionId}/participants`)
+    const response = await fetch(participantsApi)
     if (!response.ok) throw new Error('Failed to fetch participants')
     const data = await response.json()
     setParticipants(data.participants || [])
@@ -156,7 +158,7 @@ export default function SessionDetailPage({ sessionType, labels }: SessionDetail
 
   async function handleCreateGroup() {
     try {
-      const response = await fetch(apiBase, {
+      const response = await fetch(groupsApi, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -189,7 +191,7 @@ export default function SessionDetailPage({ sessionType, labels }: SessionDetail
 
     try {
       const response = await fetch(
-        `${apiBase}/${editingGroup.id}`,
+        `${groupsApi}/${editingGroup.id}`,
         {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
@@ -221,7 +223,7 @@ export default function SessionDetailPage({ sessionType, labels }: SessionDetail
 
     try {
       const response = await fetch(
-        `${apiBase}/${groupId}`,
+        `${groupsApi}/${groupId}`,
         { method: 'DELETE' }
       )
 
@@ -254,7 +256,7 @@ export default function SessionDetailPage({ sessionType, labels }: SessionDetail
 
     try {
       const response = await fetch(
-        `${apiBase}/auto-distribute`,
+        `${groupsApi}/auto-distribute`,
         { method: 'POST' }
       )
 
