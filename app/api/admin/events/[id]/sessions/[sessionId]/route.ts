@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
+import { createLogger } from '@/lib/logger'
+
+const sessionLogger = createLogger({ module: 'session', type: 'operations' })
 
 // Validation schema for session update
 const updateSessionSchema = z.object({
@@ -130,7 +133,7 @@ export async function GET(
       },
     })
   } catch (error) {
-    console.error('Error fetching session:', error)
+    sessionLogger.error({ error, stack: error instanceof Error ? error.stack : undefined }, 'Error fetching session')
     return NextResponse.json(
       { error: 'Erreur lors de la récupération de la session' },
       { status: 500 }
@@ -177,7 +180,7 @@ export async function PATCH(
       message: 'Session mise à jour avec succès',
     })
   } catch (error) {
-    console.error('Error patching session:', error)
+    sessionLogger.error({ error, stack: error instanceof Error ? error.stack : undefined }, 'Error patching session')
     return NextResponse.json(
       { error: 'Erreur lors de la mise à jour de la session' },
       { status: 500 }
@@ -290,7 +293,7 @@ export async function PUT(
       )
     }
 
-    console.error('Error updating session:', error)
+    sessionLogger.error({ error, stack: error instanceof Error ? error.stack : undefined }, 'Error updating session')
     return NextResponse.json(
       { error: 'Erreur lors de la mise à jour de la session' },
       { status: 500 }
@@ -356,7 +359,7 @@ export async function DELETE(
       message: 'Session supprimée avec succès',
     })
   } catch (error) {
-    console.error('Error deleting session:', error)
+    sessionLogger.error({ error, stack: error instanceof Error ? error.stack : undefined }, 'Error deleting session')
     return NextResponse.json(
       { error: 'Erreur lors de la suppression de la session' },
       { status: 500 }
