@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { requireAdmin, handleAuthError } from '@/lib/auth-utils'
 import { requireEventOwnership } from '@/lib/permissions'
+import { getCachedConfirmedGuests } from '@/lib/cache'
 
 /**
  * GET /api/admin/events/[id]/checkin-guests
@@ -23,48 +24,50 @@ export async function GET(
     // Vérifier que l'admin est propriétaire de l'événement
     await requireEventOwnership(eventId, session.user.id)
 
-    // Charger le nom de l'événement en parallèle
+    // Charger le nom de l'événement et les invités confirmés (CACHED 5 min)
     const [event, guests] = await Promise.all([
       prisma.event.findUnique({
         where: { id: eventId },
         select: { id: true, name: true },
       }),
-      // Charger uniquement les invités confirmés avec les champs nécessaires
-      prisma.guest.findMany({
-      where: {
-        eventId,
-        rsvp: {
-          attending: true,
-        },
-      },
-      select: {
-        id: true,
-        firstName: true,
-        lastName: true,
-        email: true,
-        company: true,
-        rsvp: {
-          select: {
-            attending: true,
-            plusOnes: true,
-            mealChoice: true,
+      // Charger uniquement les invités confirmés avec cache
+      getCachedConfirmedGuests(eventId, () =>
+        prisma.guest.findMany({
+          where: {
+            eventId,
+            rsvp: {
+              attending: true,
+            },
           },
-        },
-        checkins: {
           select: {
             id: true,
-            checkedInAt: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            company: true,
+            rsvp: {
+              select: {
+                attending: true,
+                plusOnes: true,
+                mealChoice: true,
+              },
+            },
+            checkins: {
+              select: {
+                id: true,
+                checkedInAt: true,
+              },
+              orderBy: {
+                checkedInAt: 'desc',
+              },
+            },
           },
-          orderBy: {
-            checkedInAt: 'desc',
-          },
-        },
-      },
-      orderBy: [
-        { lastName: 'asc' },
-        { firstName: 'asc' },
-      ],
-    }),
+          orderBy: [
+            { lastName: 'asc' },
+            { firstName: 'asc' },
+          ],
+        })
+      ),
     ])
 
     if (!event) {

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { requireAdmin, handleAuthError } from '@/lib/auth-utils'
 import { requireEventOwnership } from '@/lib/permissions'
+import { getCachedEvent, getCachedEventStats, invalidateEventCache } from '@/lib/cache'
 
 /**
  * GET /api/admin/events/[id]
@@ -24,78 +25,82 @@ export async function GET(
     const { searchParams } = new URL(request.url)
     const includeGuests = searchParams.get('includeGuests') === 'true'
 
-    // OPTIMISATION: Charger uniquement les stats par défaut
+    // OPTIMISATION: Charger uniquement les stats par défaut + CACHE
     if (!includeGuests) {
       const [event, stats] = await Promise.all([
-        // 1. Données de base de l'événement
-        prisma.event.findUnique({
-          where: { id },
-          select: {
-            id: true,
-            name: true,
-            slug: true,
-            description: true,
-            startsAt: true,
-            endsAt: true,
-            venueName: true,
-            address: true,
-            city: true,
-            country: true,
-            createdAt: true,
-            updatedAt: true,
-            adminId: true,
-            // Counts optimisés
-            _count: {
-              select: {
-                guests: true,
-                rsvps: true,
+        // 1. Données de base de l'événement (CACHED 5 min)
+        getCachedEvent(id, () =>
+          prisma.event.findUnique({
+            where: { id },
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+              description: true,
+              startsAt: true,
+              endsAt: true,
+              venueName: true,
+              address: true,
+              city: true,
+              country: true,
+              createdAt: true,
+              updatedAt: true,
+              adminId: true,
+              // Counts optimisés
+              _count: {
+                select: {
+                  guests: true,
+                  rsvps: true,
+                },
               },
             },
-          },
-        }),
-        // 2. Statistiques agrégées (parallèle)
-        Promise.all([
-          // Invités ayant répondu
-          prisma.rSVP.count({
-            where: {
-              eventId: id,
-              attending: { not: null },
-            },
-          }),
-          // Invités confirmés
-          prisma.rSVP.count({
-            where: {
-              eventId: id,
-              attending: true,
-            },
-          }),
-          // Invités déclinés
-          prisma.rSVP.count({
-            where: {
-              eventId: id,
-              attending: false,
-            },
-          }),
-          // Invités check-in
-          prisma.guest.count({
-            where: {
-              eventId: id,
-              checkins: {
-                some: {},
+          })
+        ),
+        // 2. Statistiques agrégées (parallèle + CACHED 5 min)
+        getCachedEventStats(id, () =>
+          Promise.all([
+            // Invités ayant répondu
+            prisma.rSVP.count({
+              where: {
+                eventId: id,
+                attending: { not: null },
               },
-            },
-          }),
-          // Total +1s
-          prisma.rSVP.aggregate({
-            where: {
-              eventId: id,
-              attending: true,
-            },
-            _sum: {
-              plusOnes: true,
-            },
-          }),
-        ]),
+            }),
+            // Invités confirmés
+            prisma.rSVP.count({
+              where: {
+                eventId: id,
+                attending: true,
+              },
+            }),
+            // Invités déclinés
+            prisma.rSVP.count({
+              where: {
+                eventId: id,
+                attending: false,
+              },
+            }),
+            // Invités check-in
+            prisma.guest.count({
+              where: {
+                eventId: id,
+                checkins: {
+                  some: {},
+                },
+              },
+            }),
+            // Total +1s
+            prisma.rSVP.aggregate({
+              where: {
+                eventId: id,
+                attending: true,
+              },
+              _sum: {
+                plusOnes: true,
+              },
+            }),
+          ])
+        ),
       ])
 
       if (!event) {
@@ -177,6 +182,9 @@ export async function PUT(
       data: body,
     })
 
+    // Invalider le cache après mise à jour
+    await invalidateEventCache(id)
+
     return NextResponse.json(event)
   } catch (error) {
     return handleAuthError(error)
@@ -201,6 +209,9 @@ export async function DELETE(
     await prisma.event.delete({
       where: { id },
     })
+
+    // Invalider le cache après suppression
+    await invalidateEventCache(id)
 
     return NextResponse.json({ success: true })
   } catch (error) {
