@@ -73,6 +73,8 @@
     "next-themes": "^0.4.4",
     "nodemailer": "^6.9.16",
     "papaparse": "^5.4.1",
+    "pino": "^10.1.0",
+    "pino-pretty": "^13.1.2",
     "qrcode": "^1.5.4",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
