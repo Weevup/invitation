@@ -69,6 +69,20 @@ export function RoomAssignmentDialog({
     notes: '',
   })
 
+  const fetchGuests = useCallback(async () => {
+    try {
+      const response = await fetch(`/api/admin/events/${eventId}/guests`)
+      if (response.ok) {
+        const data = await response.json()
+        setGuests(data.guests || [])
+        setFilteredGuests(data.guests || [])
+      }
+    } catch (error) {
+      logger.error(error, { action: 'fetchGuests', metadata: { eventId } })
+      toast.error(getUserErrorMessage(error))
+    }
+  }, [eventId])
+
   useEffect(() => {
     if (open) {
       fetchGuests()
@@ -91,20 +105,6 @@ export function RoomAssignmentDialog({
       setFilteredGuests(guests)
     }
   }, [guestSearch, guests])
-
-  const fetchGuests = useCallback(async () => {
-    try {
-      const response = await fetch(`/api/admin/events/${eventId}/guests`)
-      if (response.ok) {
-        const data = await response.json()
-        setGuests(data.guests || [])
-        setFilteredGuests(data.guests || [])
-      }
-    } catch (error) {
-      logger.error(error, { action: 'fetchGuests', metadata: { eventId } })
-      toast.error(getUserErrorMessage(error))
-    }
-  }, [eventId])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
