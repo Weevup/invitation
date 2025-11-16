@@ -43,6 +43,7 @@ export function AddGuestDialog({ eventId, onGuestAdded }: AddGuestDialogProps) {
     industry: "",
     linkedinUrl: "",
     phoneNumber: "",
+    phone: "", // For SMS notifications (international format)
     // Event-specific needs
     dietaryReqs: "",
     accessibility: "",
@@ -81,6 +82,7 @@ export function AddGuestDialog({ eventId, onGuestAdded }: AddGuestDialogProps) {
           industry: "",
           linkedinUrl: "",
           phoneNumber: "",
+          phone: "",
           dietaryReqs: "",
           accessibility: "",
           adminNotes: "",
@@ -238,15 +240,32 @@ export function AddGuestDialog({ eventId, onGuestAdded }: AddGuestDialogProps) {
                 </div>
               </div>
 
+              <div className="space-y-2">
+                <Label htmlFor="phone">
+                  Téléphone mobile (pour SMS)
+                  <span className="text-xs text-muted-foreground ml-2">Format international: +33...</span>
+                </Label>
+                <Input
+                  id="phone"
+                  type="tel"
+                  value={formData.phone}
+                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  placeholder="+33612345678"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Format requis pour SMS : +33612345678 (sans espaces)
+                </p>
+              </div>
+
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="phoneNumber">Téléphone</Label>
+                  <Label htmlFor="phoneNumber">Téléphone fixe (optionnel)</Label>
                   <Input
                     id="phoneNumber"
                     type="tel"
                     value={formData.phoneNumber}
                     onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
-                    placeholder="+33 6 12 34 56 78"
+                    placeholder="01 23 45 67 89"
                   />
                 </div>
                 <div className="space-y-2">

@@ -25,6 +25,17 @@ interface CSVRow {
   email: string;
   company?: string;
   tags?: string;
+  // Professional fields
+  jobTitle?: string;
+  department?: string;
+  companySize?: string;
+  industry?: string;
+  phone?: string; // For SMS (international format)
+  phoneNumber?: string; // Landline
+  linkedinUrl?: string;
+  // Event needs
+  dietaryReqs?: string;
+  accessibility?: string;
 }
 
 export function ImportCSVDialog({ eventId, onImportComplete }: ImportCSVDialogProps) {
@@ -94,6 +105,17 @@ export function ImportCSVDialog({ eventId, onImportComplete }: ImportCSVDialogPr
                 tags: row.tags
                   ? row.tags.split(",").map((t) => t.trim()).filter(Boolean)
                   : [],
+                // Professional fields
+                jobTitle: row.jobTitle?.trim() || null,
+                department: row.department?.trim() || null,
+                companySize: row.companySize?.trim() || null,
+                industry: row.industry?.trim() || null,
+                phone: row.phone?.trim() || null, // SMS phone (international)
+                phoneNumber: row.phoneNumber?.trim() || null, // Landline
+                linkedinUrl: row.linkedinUrl?.trim() || null,
+                // Event needs
+                dietaryReqs: row.dietaryReqs?.trim() || null,
+                accessibility: row.accessibility?.trim() || null,
               }),
             });
 
@@ -142,8 +164,8 @@ export function ImportCSVDialog({ eventId, onImportComplete }: ImportCSVDialogPr
         <DialogHeader>
           <DialogTitle>Importer des invités depuis un CSV</DialogTitle>
           <DialogDescription>
-            Format attendu: firstName, lastName, email, company (optionnel), tags
-            (optionnel, séparés par des virgules)
+            Colonnes requises : firstName, lastName, email<br/>
+            Colonnes optionnelles : company, jobTitle, phone, phoneNumber, tags, etc.
           </DialogDescription>
         </DialogHeader>
 
@@ -236,13 +258,16 @@ export function ImportCSVDialog({ eventId, onImportComplete }: ImportCSVDialogPr
           {!file && (
             <div className="text-xs text-gray-600 bg-gray-50 p-3 rounded-md">
               <p className="font-medium mb-1">Exemple de format CSV:</p>
-              <code className="block bg-white p-2 rounded border mt-1">
-                firstName,lastName,email,company,tags
+              <code className="block bg-white p-2 rounded border mt-1 text-[10px]">
+                firstName,lastName,email,company,phone,jobTitle,tags
                 <br />
-                Sophie,Martin,sophie@example.com,Tech Solutions,VIP
+                Sophie,Martin,sophie@example.com,Tech Solutions,+33612345678,CEO,VIP
                 <br />
-                Jean,Dupont,jean@example.com,Digital Agency,Presse,Sponsor
+                Jean,Dupont,jean@example.com,Digital Agency,+33687654321,CTO,Presse,Sponsor
               </code>
+              <p className="mt-2 text-muted-foreground">
+                💡 <strong>Phone</strong> doit être au format international (+33...) pour recevoir des SMS
+              </p>
             </div>
           )}
         </div>

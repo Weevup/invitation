@@ -257,6 +257,9 @@ model Event {
 
   // SMS Notifications
   notifications        Notification[]       @relation("EventNotifications")
+  smsTemplates         SMSTemplate[]        @relation("EventSMSTemplates")
+  smsCampaigns         SMSCampaign[]        @relation("EventSMSCampaigns")
+  scheduledSMS         ScheduledSMS[]       @relation("EventScheduledSMS")
 
   @@index([slug])
   @@index([adminId])
@@ -333,6 +336,8 @@ model Guest {
 
   // SMS Notifications
   notifications     Notification[]        @relation("GuestNotifications")
+  scheduledSMS      ScheduledSMS[]        @relation("GuestScheduledSMS")
+  smsOptOuts        SMSOptOut[]           @relation("GuestSMSOptOut")
 
   @@unique([eventId, email])
   @@index([tokenHash])
@@ -1296,4 +1301,179 @@ model Notification {
   @@index([eventId])
   @@index([status])
   @@index([sentAt])
+}
+
+// ============================================
+// ADVANCED SMS FEATURES
+// ============================================
+
+// SMS Template for reusable message templates with variables
+model SMSTemplate {
+  id          String   @id @default(cuid())
+
+  // Template info
+  name        String   // "RSVP Confirmation", "Reminder J-7", etc.
+  description String?  @db.Text
+  category    String   @default("custom") // "rsvp", "reminder", "info", "custom"
+
+  // Message content with variables
+  message     String   @db.Text // "Bonjour {firstName}, votre invitation pour {eventName} le {eventDate} est confirmée !"
+
+  // Variables available (JSON array of variable names)
+  variables   Json     @default("[]") // ["firstName", "lastName", "eventName", "eventDate", etc.]
+
+  // Usage tracking
+  usageCount  Int      @default(0)
+  lastUsedAt  DateTime?
+
+  // Status
+  isActive    Boolean  @default(true)
+  isDefault   Boolean  @default(false)
+
+  // Owner (global or event-specific)
+  eventId     String?
+  event       Event?   @relation("EventSMSTemplates", fields: [eventId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  campaigns   SMSCampaign[] @relation("CampaignTemplate")
+
+  @@index([eventId])
+  @@index([category])
+  @@index([isActive])
+}
+
+// SMS Campaign for grouped scheduled sends
+model SMSCampaign {
+  id          String   @id @default(cuid())
+
+  // Campaign info
+  name        String   // "Rappel J-7 Gala 2025"
+  description String?  @db.Text
+
+  // Event relation
+  eventId     String
+  event       Event    @relation("EventSMSCampaigns", fields: [eventId], references: [id], onDelete: Cascade)
+
+  // Template
+  templateId  String?
+  template    SMSTemplate? @relation("CampaignTemplate", fields: [templateId], references: [id], onDelete: SetNull)
+
+  // Message (if not using template)
+  message     String?  @db.Text
+
+  // Targeting
+  targetType  String   @default("manual") // "all", "confirmed", "pending", "tags", "manual"
+  targetTags  String[] @default([]) // If targetType = "tags"
+  guestIds    String[] @default([]) // If targetType = "manual"
+
+  // Scheduling
+  scheduledFor DateTime?
+  status      SMSCampaignStatus @default(DRAFT)
+
+  // Execution tracking
+  sentCount   Int      @default(0)
+  failedCount Int      @default(0)
+  sentAt      DateTime?
+  completedAt DateTime?
+
+  // Metadata
+  metadata    Json?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  scheduledSMS ScheduledSMS[] @relation("CampaignSMS")
+
+  @@index([eventId])
+  @@index([status])
+  @@index([scheduledFor])
+}
+
+enum SMSCampaignStatus {
+  DRAFT
+  SCHEDULED
+  SENDING
+  SENT
+  FAILED
+  CANCELLED
+}
+
+// Scheduled SMS for individual scheduled messages
+model ScheduledSMS {
+  id          String   @id @default(cuid())
+
+  // Guest and Event
+  guestId     String
+  guest       Guest    @relation("GuestScheduledSMS", fields: [guestId], references: [id], onDelete: Cascade)
+
+  eventId     String
+  event       Event    @relation("EventScheduledSMS", fields: [eventId], references: [id], onDelete: Cascade)
+
+  // Campaign (optional)
+  campaignId  String?
+  campaign    SMSCampaign? @relation("CampaignSMS", fields: [campaignId], references: [id], onDelete: Cascade)
+
+  // Message
+  message     String   @db.Text
+  templateName String? // Template name used for this message
+
+  // Scheduling
+  scheduledFor DateTime
+  status      ScheduledSMSStatus @default(PENDING)
+
+  // Execution
+  sentAt      DateTime?
+  notificationId String? // Reference to created Notification
+  error       String?  @db.Text
+
+  // Auto-resend configuration
+  maxRetries  Int      @default(0)
+  retryCount  Int      @default(0)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([guestId])
+  @@index([eventId])
+  @@index([campaignId])
+  @@index([status])
+  @@index([scheduledFor])
+}
+
+enum ScheduledSMSStatus {
+  PENDING
+  SCHEDULED
+  SENDING
+  SENT
+  FAILED
+  CANCELLED
+}
+
+// SMS Opt-out management
+model SMSOptOut {
+  id          String   @id @default(cuid())
+
+  // Guest or phone number
+  guestId     String?
+  guest       Guest?   @relation("GuestSMSOptOut", fields: [guestId], references: [id], onDelete: Cascade)
+
+  phone       String   // Phone number that opted out (normalized format)
+
+  // Opt-out details
+  reason      String?  @db.Text // "STOP", "User request", etc.
+  source      String   @default("manual") // "sms_reply", "manual", "api"
+
+  // Metadata
+  metadata    Json?
+
+  optedOutAt  DateTime @default(now())
+  createdAt   DateTime @default(now())
+
+  @@unique([phone])
+  @@index([guestId])
+  @@index([phone])
 }
