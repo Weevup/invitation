@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState, useCallback } from 'react'
-import { useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -15,7 +15,6 @@ import { ImportCSVDialog } from '@/components/import-csv-dialog'
 import { SendInvitationsDialog } from '@/components/send-invitations-dialog'
 import { GuestDetailsModal } from '@/components/guest-details-modal'
 import Papa from 'papaparse'
-import { exportBadgesPDF } from '@/lib/badge-export'
 import {
   Select,
   SelectContent,
@@ -74,6 +73,7 @@ interface EventDetails {
 
 export default function GuestsPage() {
   const params = useParams()
+  const router = useRouter()
   const eventId = params.id as string
 
   const [event, setEvent] = useState<EventDetails | null>(null)
@@ -154,36 +154,6 @@ export default function GuestsPage() {
     link.click()
 
     toast.success(`${event.guests.length} invités exportés`)
-  }
-
-  const handleExportBadges = async () => {
-    if (!event) return
-
-    const confirmedGuests = event.guests.filter(g => g.rsvp?.attending === true && g.rsvp?.qrCodeId)
-
-    if (confirmedGuests.length === 0) {
-      toast.error('Aucun invité confirmé avec QR code disponible')
-      return
-    }
-
-    try {
-      toast.loading('Génération des badges en cours...', { id: 'badges-export' })
-
-      await exportBadgesPDF({
-        eventName: event.name,
-        eventDate: new Date().toLocaleDateString('fr-FR', {
-          day: 'numeric',
-          month: 'long',
-          year: 'numeric'
-        }),
-        guests: confirmedGuests
-      })
-
-      toast.success(`${confirmedGuests.length} badges exportés avec succès`, { id: 'badges-export' })
-    } catch (error) {
-      logger.error(error, { action: 'exportingBadges' })
-      toast.error('Erreur lors de l\'export des badges', { id: 'badges-export' })
-    }
   }
 
   if (loading) {
@@ -284,12 +254,12 @@ export default function GuestsPage() {
           </Button>
           <Button
             variant="outline"
-            onClick={handleExportBadges}
+            onClick={() => router.push(`/admin/events/${eventId}/badges`)}
             disabled={!hasGuests}
             className="border-[#009197] text-[#009197] hover:bg-[#009197] hover:text-white"
           >
             <CreditCard className="h-4 w-4 mr-2" />
-            Exporter Badges
+            Gérer les badges
           </Button>
           <SendInvitationsDialog
             eventId={eventId}
