@@ -211,12 +211,27 @@ export function BadgeManagementPage({
               onRefresh={() => router.refresh()}
             />
           ) : (
-            <Card>
-              <CardHeader>
-                <CardTitle>Aucun badge généré</CardTitle>
-                <CardDescription>
-                  Commencez par générer des badges pour vos invités dans l&apos;onglet &quot;Générer&quot;
+            <Card className="border-[#9CD9F6]/30">
+              <CardHeader className="text-center py-12">
+                <div className="mx-auto mb-4 p-4 bg-[#9CD9F6]/10 rounded-full w-fit">
+                  <CreditCard className="h-12 w-12 text-[#009197]" />
+                </div>
+                <CardTitle className="text-2xl">Prêt à créer vos badges!</CardTitle>
+                <CardDescription className="text-base mt-2">
+                  Vous utilisez le template <strong>{badgeDesign?.name || 'par défaut'}</strong>.
+                  <br />
+                  Cliquez sur le bouton ci-dessous pour commencer.
                 </CardDescription>
+                <div className="mt-6">
+                  <Button
+                    size="lg"
+                    onClick={() => setActiveTab('generate')}
+                    className="bg-[#009197] hover:bg-[#007a7f]"
+                  >
+                    <Sparkles className="h-5 w-5 mr-2" />
+                    Générer mes premiers badges
+                  </Button>
+                </div>
               </CardHeader>
             </Card>
           )}
@@ -224,11 +239,19 @@ export function BadgeManagementPage({
 
         {/* Generate Tab */}
         <TabsContent value="generate" className="space-y-4">
+          <Alert className="border-[#009197]/30 bg-[#009197]/5">
+            <CheckCircle className="h-4 w-4 text-[#009197]" />
+            <AlertDescription className="text-[#004645]">
+              <strong>Comment ça marche:</strong> Sélectionnez les invités, cliquez sur Générer,
+              puis allez dans l&apos;onglet Vue d&apos;ensemble pour exporter le PDF des badges.
+            </AlertDescription>
+          </Alert>
+
           <Card>
             <CardHeader>
               <CardTitle>Générer les badges</CardTitle>
               <CardDescription>
-                Sélectionnez les invités pour lesquels générer des badges. Template: <strong>{badgeDesign?.name || 'Par défaut'}</strong>
+                Template utilisé: <strong>{badgeDesign?.name || 'Par défaut'}</strong> ({badgeDesign?.size}, {badgeDesign?.orientation === 'PORTRAIT' ? 'Portrait' : 'Paysage'})
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
