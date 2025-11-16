@@ -106,7 +106,7 @@ export async function POST(
       guest: updatedGuest,
     })
   } catch (error) {
-    logger.error({ error, action: 'uploadPhoto', guestId }, 'Error uploading photo')
+    logger.error({ error, action: 'uploadPhoto' }, 'Error uploading photo')
     return handleAuthError(error)
   }
 }
