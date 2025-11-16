@@ -335,13 +335,37 @@ export async function generateBatchBadgeData(
 }
 
 /**
- * Get default badge templates
+ * Badge template category type
  */
-export function getDefaultBadgeTemplates() {
+export type BadgeTemplateCategory = 'corporate' | 'event' | 'vip'
+
+/**
+ * Badge template type with category
+ */
+export interface BadgeTemplate {
+  name: string
+  description: string
+  category: BadgeTemplateCategory
+  size: keyof typeof BADGE_SIZES
+  orientation: 'PORTRAIT' | 'LANDSCAPE'
+  layout: BadgeLayout
+  fields: BadgeField[]
+  fontFamily?: string
+  isDefault?: boolean
+}
+
+/**
+ * Get default badge templates organized by category
+ */
+export function getDefaultBadgeTemplates(): BadgeTemplate[] {
   return [
+    // ============================================
+    // CORPORATE TEMPLATES
+    // ============================================
     {
       name: 'Corporate Standard',
       description: 'Professional badge with company name and QR code',
+      category: 'corporate',
       size: 'STANDARD' as const,
       orientation: 'PORTRAIT' as const,
       layout: {
@@ -369,7 +393,7 @@ export function getDefaultBadgeTemplates() {
         {
           id: '1',
           type: 'FULL_NAME' as const,
-          x: 426, // Center of 85.6mm width
+          x: 426,
           y: 250,
           fontSize: 28,
           fontWeight: 'bold' as const,
@@ -406,60 +430,350 @@ export function getDefaultBadgeTemplates() {
       isDefault: true,
     },
     {
-      name: 'VIP Badge',
-      description: 'Elegant badge for VIP guests',
-      size: 'LARGE' as const,
+      name: 'Modern Tech',
+      description: 'Clean minimalist design for tech events',
+      category: 'corporate',
+      size: 'STANDARD' as const,
       orientation: 'PORTRAIT' as const,
       layout: {
-        backgroundColor: '#1a1a1a',
-        borderColor: '#FFD700',
+        backgroundColor: '#0A0E27',
+        borderColor: '#00D9FF',
+        borderWidth: 1,
+      },
+      fields: [
+        {
+          id: '1',
+          type: 'FULL_NAME' as const,
+          x: 426,
+          y: 200,
+          fontSize: 32,
+          fontWeight: 'bold' as const,
+          color: '#FFFFFF',
+          textAlign: 'center' as const,
+        },
+        {
+          id: '2',
+          type: 'JOB_TITLE' as const,
+          x: 426,
+          y: 250,
+          fontSize: 16,
+          color: '#00D9FF',
+          textAlign: 'center' as const,
+        },
+        {
+          id: '3',
+          type: 'COMPANY' as const,
+          x: 426,
+          y: 280,
+          fontSize: 14,
+          color: '#A0A0A0',
+          textAlign: 'center' as const,
+        },
+        {
+          id: '4',
+          type: 'QR_CODE' as const,
+          x: 326,
+          y: 350,
+          size: 180,
+        },
+      ],
+      fontFamily: 'Helvetica',
+      isDefault: false,
+    },
+    {
+      name: 'Executive',
+      description: 'Elegant design for C-level executives',
+      category: 'corporate',
+      size: 'LARGE' as const,
+      orientation: 'LANDSCAPE' as const,
+      layout: {
+        backgroundColor: '#2C3E50',
+        borderColor: '#C0C0C0',
+        borderWidth: 2,
+        sections: [
+          {
+            type: 'header' as const,
+            height: 180,
+            backgroundColor: '#34495E',
+          },
+        ],
+      },
+      fields: [
+        {
+          id: '1',
+          type: 'PHOTO' as const,
+          x: 100,
+          y: 250,
+          width: 200,
+          height: 200,
+        },
+        {
+          id: '2',
+          type: 'FULL_NAME' as const,
+          x: 700,
+          y: 280,
+          fontSize: 36,
+          fontWeight: 'bold' as const,
+          color: '#ECF0F1',
+          textAlign: 'center' as const,
+        },
+        {
+          id: '3',
+          type: 'JOB_TITLE' as const,
+          x: 700,
+          y: 340,
+          fontSize: 20,
+          color: '#BDC3C7',
+          textAlign: 'center' as const,
+        },
+        {
+          id: '4',
+          type: 'COMPANY' as const,
+          x: 700,
+          y: 380,
+          fontSize: 18,
+          color: '#95A5A6',
+          textAlign: 'center' as const,
+        },
+        {
+          id: '5',
+          type: 'QR_CODE' as const,
+          x: 950,
+          y: 280,
+          size: 150,
+        },
+      ],
+      fontFamily: 'Georgia',
+      isDefault: false,
+    },
+
+    // ============================================
+    // EVENT TEMPLATES
+    // ============================================
+    {
+      name: 'Conference Speaker',
+      description: 'Distinctive badge for conference speakers',
+      category: 'event',
+      size: 'LANYARD' as const,
+      orientation: 'PORTRAIT' as const,
+      layout: {
+        backgroundColor: '#ffffff',
+        borderColor: '#E74C3C',
         borderWidth: 3,
+        sections: [
+          {
+            type: 'header' as const,
+            height: 200,
+            backgroundColor: '#E74C3C',
+          },
+        ],
       },
       fields: [
         {
           id: '1',
           type: 'CUSTOM_TEXT' as const,
           x: 590,
-          y: 100,
-          fontSize: 20,
+          y: 80,
+          fontSize: 32,
           fontWeight: 'bold' as const,
-          color: '#FFD700',
+          color: '#FFFFFF',
           textAlign: 'center' as const,
-          customText: 'VIP',
+          customText: 'SPEAKER',
+        },
+        {
+          id: '2',
+          type: 'PHOTO' as const,
+          x: 390,
+          y: 280,
+          width: 400,
+          height: 400,
+        },
+        {
+          id: '3',
+          type: 'FULL_NAME' as const,
+          x: 590,
+          y: 750,
+          fontSize: 40,
+          fontWeight: 'bold' as const,
+          color: '#2C3E50',
+          textAlign: 'center' as const,
+        },
+        {
+          id: '4',
+          type: 'JOB_TITLE' as const,
+          x: 590,
+          y: 820,
+          fontSize: 24,
+          color: '#7F8C8D',
+          textAlign: 'center' as const,
+        },
+        {
+          id: '5',
+          type: 'COMPANY' as const,
+          x: 590,
+          y: 860,
+          fontSize: 20,
+          color: '#95A5A6',
+          textAlign: 'center' as const,
+        },
+        {
+          id: '6',
+          type: 'EVENT_NAME' as const,
+          x: 590,
+          y: 1400,
+          fontSize: 28,
+          fontWeight: 'bold' as const,
+          color: '#E74C3C',
+          textAlign: 'center' as const,
+        },
+        {
+          id: '7',
+          type: 'QR_CODE' as const,
+          x: 390,
+          y: 1000,
+          size: 380,
+        },
+      ],
+      fontFamily: 'Helvetica',
+      isDefault: false,
+    },
+    {
+      name: 'Festival Pass',
+      description: 'Vibrant design for festivals and music events',
+      category: 'event',
+      size: 'LANYARD' as const,
+      orientation: 'PORTRAIT' as const,
+      layout: {
+        backgroundColor: '#FF6B6B',
+        borderColor: '#FFA500',
+        borderWidth: 4,
+      },
+      fields: [
+        {
+          id: '1',
+          type: 'EVENT_NAME' as const,
+          x: 590,
+          y: 150,
+          fontSize: 44,
+          fontWeight: 'bold' as const,
+          color: '#FFFFFF',
+          textAlign: 'center' as const,
+        },
+        {
+          id: '2',
+          type: 'CUSTOM_TEXT' as const,
+          x: 590,
+          y: 220,
+          fontSize: 28,
+          color: '#FFEB3B',
+          textAlign: 'center' as const,
+          customText: '2025',
+        },
+        {
+          id: '3',
+          type: 'FULL_NAME' as const,
+          x: 590,
+          y: 600,
+          fontSize: 48,
+          fontWeight: 'bold' as const,
+          color: '#FFFFFF',
+          textAlign: 'center' as const,
+        },
+        {
+          id: '4',
+          type: 'CUSTOM_TEXT' as const,
+          x: 590,
+          y: 680,
+          fontSize: 24,
+          fontWeight: 'bold' as const,
+          color: '#FFEB3B',
+          textAlign: 'center' as const,
+          customText: 'GENERAL ADMISSION',
+        },
+        {
+          id: '5',
+          type: 'QR_CODE' as const,
+          x: 390,
+          y: 900,
+          size: 400,
+        },
+        {
+          id: '6',
+          type: 'EVENT_DATE' as const,
+          x: 590,
+          y: 1400,
+          fontSize: 24,
+          color: '#FFFFFF',
+          textAlign: 'center' as const,
+        },
+      ],
+      fontFamily: 'Arial',
+      isDefault: false,
+    },
+    {
+      name: 'Workshop Attendee',
+      description: 'Practical badge for workshop and training sessions',
+      category: 'event',
+      size: 'STANDARD' as const,
+      orientation: 'LANDSCAPE' as const,
+      layout: {
+        backgroundColor: '#FFFFFF',
+        borderColor: '#3498DB',
+        borderWidth: 2,
+        sections: [
+          {
+            type: 'header' as const,
+            height: 120,
+            backgroundColor: '#3498DB',
+          },
+        ],
+      },
+      fields: [
+        {
+          id: '1',
+          type: 'CUSTOM_TEXT' as const,
+          x: 415,
+          y: 50,
+          fontSize: 24,
+          fontWeight: 'bold' as const,
+          color: '#FFFFFF',
+          textAlign: 'center' as const,
+          customText: 'WORKSHOP',
         },
         {
           id: '2',
           type: 'FULL_NAME' as const,
-          x: 590,
-          y: 350,
-          fontSize: 32,
+          x: 415,
+          y: 200,
+          fontSize: 28,
           fontWeight: 'bold' as const,
-          color: '#ffffff',
+          color: '#2C3E50',
           textAlign: 'center' as const,
         },
         {
           id: '3',
           type: 'COMPANY' as const,
-          x: 590,
-          y: 400,
-          fontSize: 20,
-          color: '#cccccc',
+          x: 415,
+          y: 245,
+          fontSize: 16,
+          color: '#7F8C8D',
           textAlign: 'center' as const,
         },
         {
           id: '4',
           type: 'QR_CODE' as const,
-          x: 490,
-          y: 500,
+          x: 315,
+          y: 300,
           size: 200,
         },
       ],
-      fontFamily: 'Georgia',
+      fontFamily: 'Arial',
       isDefault: false,
     },
     {
       name: 'Simple Lanyard',
       description: 'Vertical badge for lanyard holders',
+      category: 'event',
       size: 'LANYARD' as const,
       orientation: 'PORTRAIT' as const,
       layout: {
@@ -516,6 +830,235 @@ export function getDefaultBadgeTemplates() {
       ],
       fontFamily: 'Arial',
       isDefault: false,
+    },
+
+    // ============================================
+    // VIP / PREMIUM TEMPLATES
+    // ============================================
+    {
+      name: 'VIP Badge',
+      description: 'Elegant badge for VIP guests',
+      category: 'vip',
+      size: 'LARGE' as const,
+      orientation: 'PORTRAIT' as const,
+      layout: {
+        backgroundColor: '#1a1a1a',
+        borderColor: '#FFD700',
+        borderWidth: 3,
+      },
+      fields: [
+        {
+          id: '1',
+          type: 'CUSTOM_TEXT' as const,
+          x: 590,
+          y: 100,
+          fontSize: 20,
+          fontWeight: 'bold' as const,
+          color: '#FFD700',
+          textAlign: 'center' as const,
+          customText: 'VIP',
+        },
+        {
+          id: '2',
+          type: 'FULL_NAME' as const,
+          x: 590,
+          y: 350,
+          fontSize: 32,
+          fontWeight: 'bold' as const,
+          color: '#ffffff',
+          textAlign: 'center' as const,
+        },
+        {
+          id: '3',
+          type: 'COMPANY' as const,
+          x: 590,
+          y: 400,
+          fontSize: 20,
+          color: '#cccccc',
+          textAlign: 'center' as const,
+        },
+        {
+          id: '4',
+          type: 'QR_CODE' as const,
+          x: 490,
+          y: 500,
+          size: 200,
+        },
+      ],
+      fontFamily: 'Georgia',
+      isDefault: false,
+    },
+    {
+      name: 'Platinum Member',
+      description: 'Premium badge for platinum tier members',
+      category: 'vip',
+      size: 'LARGE' as const,
+      orientation: 'PORTRAIT' as const,
+      layout: {
+        backgroundColor: '#E8E8E8',
+        borderColor: '#C0C0C0',
+        borderWidth: 3,
+        sections: [
+          {
+            type: 'header' as const,
+            height: 200,
+            backgroundColor: '#4A4A4A',
+          },
+        ],
+      },
+      fields: [
+        {
+          id: '1',
+          type: 'CUSTOM_TEXT' as const,
+          x: 590,
+          y: 80,
+          fontSize: 28,
+          fontWeight: 'bold' as const,
+          color: '#C0C0C0',
+          textAlign: 'center' as const,
+          customText: 'PLATINUM',
+        },
+        {
+          id: '2',
+          type: 'PHOTO' as const,
+          x: 390,
+          y: 250,
+          width: 400,
+          height: 400,
+        },
+        {
+          id: '3',
+          type: 'FULL_NAME' as const,
+          x: 590,
+          y: 700,
+          fontSize: 36,
+          fontWeight: 'bold' as const,
+          color: '#2C2C2C',
+          textAlign: 'center' as const,
+        },
+        {
+          id: '4',
+          type: 'COMPANY' as const,
+          x: 590,
+          y: 760,
+          fontSize: 22,
+          color: '#5A5A5A',
+          textAlign: 'center' as const,
+        },
+        {
+          id: '5',
+          type: 'QR_CODE' as const,
+          x: 490,
+          y: 860,
+          size: 200,
+        },
+      ],
+      fontFamily: 'Georgia',
+      isDefault: false,
+    },
+    {
+      name: 'Press & Media',
+      description: 'Professional badge for press and media personnel',
+      category: 'vip',
+      size: 'STANDARD' as const,
+      orientation: 'LANDSCAPE' as const,
+      layout: {
+        backgroundColor: '#FFFFFF',
+        borderColor: '#FF5722',
+        borderWidth: 3,
+        sections: [
+          {
+            type: 'header' as const,
+            height: 100,
+            backgroundColor: '#FF5722',
+          },
+        ],
+      },
+      fields: [
+        {
+          id: '1',
+          type: 'CUSTOM_TEXT' as const,
+          x: 415,
+          y: 40,
+          fontSize: 28,
+          fontWeight: 'bold' as const,
+          color: '#FFFFFF',
+          textAlign: 'center' as const,
+          customText: 'PRESS',
+        },
+        {
+          id: '2',
+          type: 'PHOTO' as const,
+          x: 80,
+          y: 150,
+          width: 180,
+          height: 180,
+        },
+        {
+          id: '3',
+          type: 'FULL_NAME' as const,
+          x: 550,
+          y: 180,
+          fontSize: 30,
+          fontWeight: 'bold' as const,
+          color: '#2C3E50',
+          textAlign: 'center' as const,
+        },
+        {
+          id: '4',
+          type: 'COMPANY' as const,
+          x: 550,
+          y: 230,
+          fontSize: 18,
+          color: '#FF5722',
+          textAlign: 'center' as const,
+        },
+        {
+          id: '5',
+          type: 'QR_CODE' as const,
+          x: 650,
+          y: 180,
+          size: 140,
+        },
+      ],
+      fontFamily: 'Helvetica',
+      isDefault: false,
+    },
+  ]
+}
+
+/**
+ * Get templates by category
+ */
+export function getTemplatesByCategory(category: BadgeTemplateCategory): BadgeTemplate[] {
+  return getDefaultBadgeTemplates().filter((t) => t.category === category)
+}
+
+/**
+ * Get template categories with metadata
+ */
+export function getTemplateCategories() {
+  return [
+    {
+      id: 'corporate' as const,
+      name: 'Corporate',
+      description: 'Professional badges for business events',
+      icon: 'Briefcase',
+      count: getTemplatesByCategory('corporate').length,
+    },
+    {
+      id: 'event' as const,
+      name: 'Events',
+      description: 'Badges for conferences, workshops, and festivals',
+      icon: 'Calendar',
+      count: getTemplatesByCategory('event').length,
+    },
+    {
+      id: 'vip' as const,
+      name: 'VIP & Premium',
+      description: 'Exclusive badges for VIP guests and media',
+      icon: 'Star',
+      count: getTemplatesByCategory('vip').length,
     },
   ]
 }
