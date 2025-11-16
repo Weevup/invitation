@@ -6,8 +6,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { requireAdmin, handleAuthError } from '@/lib/auth-utils'
 import { prisma } from '@/lib/prisma'
 import { put, del } from '@vercel/blob'
 import { createLogger } from '@/lib/logger'
@@ -22,16 +21,12 @@ const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Auth check
-    const session = await getServerSession(authOptions)
-    if (!session?.user || session.user.role !== 'ADMIN') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    const guestId = params.id
+    await requireAdmin()
+    const { id: guestId } = await params
 
     // Verify guest exists
     const guest = await prisma.guest.findUnique({
@@ -111,11 +106,8 @@ export async function POST(
       guest: updatedGuest,
     })
   } catch (error) {
-    logger.error(error, { action: 'uploadPhoto', metadata: { guestId: params.id } })
-    return NextResponse.json(
-      { error: 'Failed to upload photo' },
-      { status: 500 }
-    )
+    logger.error(error, { action: 'uploadPhoto' })
+    return handleAuthError(error)
   }
 }
 
@@ -124,16 +116,12 @@ export async function POST(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Auth check
-    const session = await getServerSession(authOptions)
-    if (!session?.user || session.user.role !== 'ADMIN') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    const guestId = params.id
+    await requireAdmin()
+    const { id: guestId } = await params
 
     // Get guest with photo URL
     const guest = await prisma.guest.findUnique({
@@ -175,10 +163,7 @@ export async function DELETE(
       message: 'Photo deleted successfully',
     })
   } catch (error) {
-    logger.error(error, { action: 'deletePhoto', metadata: { guestId: params.id } })
-    return NextResponse.json(
-      { error: 'Failed to delete photo' },
-      { status: 500 }
-    )
+    logger.error(error, { action: 'deletePhoto' })
+    return handleAuthError(error)
   }
 }
