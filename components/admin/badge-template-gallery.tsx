@@ -112,7 +112,7 @@ export function BadgeTemplateGallery({
       <Alert>
         <Info className="h-4 w-4" />
         <AlertDescription>
-          Cliquez sur un template pour l'appliquer immédiatement à vos badges.
+          Cliquez sur un template pour l&apos;appliquer immédiatement à vos badges.
           Les badges déjà générés ne seront pas modifiés.
         </AlertDescription>
       </Alert>
