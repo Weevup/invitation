@@ -4,9 +4,10 @@ import { useState, useRef, useCallback } from 'react'
 import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { Upload, Camera, X, Loader2, Check } from 'lucide-react'
+import { Upload, Camera, X, Loader2, Check, Scissors } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 import { cn } from '@/lib/utils'
+import { PhotoCropModal } from './photo-crop-modal'
 
 interface PhotoUploadProps {
   guestId: string
@@ -28,12 +29,17 @@ export function PhotoUpload({
   const [showWebcam, setShowWebcam] = useState(false)
   const [stream, setStream] = useState<MediaStream | null>(null)
 
+  // Crop modal state
+  const [showCropModal, setShowCropModal] = useState(false)
+  const [imageToCrop, setImageToCrop] = useState<string | null>(null)
+  const [originalFile, setOriginalFile] = useState<File | null>(null)
+
   const fileInputRef = useRef<HTMLInputElement>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const { toast } = useToast()
 
-  // Handle file selection
+  // Handle file selection - open crop modal
   const handleFileSelect = async (file: File) => {
     if (!file) return
 
@@ -57,7 +63,30 @@ export function PhotoUpload({
       return
     }
 
-    await uploadPhoto(file)
+    // Open crop modal
+    const imageUrl = URL.createObjectURL(file)
+    setImageToCrop(imageUrl)
+    setOriginalFile(file)
+    setShowCropModal(true)
+  }
+
+  // Handle crop complete - upload the cropped image
+  const handleCropComplete = async (croppedBlob: Blob, previewUrl: string) => {
+    // Create a File from the cropped blob
+    const croppedFile = new File(
+      [croppedBlob],
+      originalFile?.name || 'cropped-photo.jpg',
+      { type: 'image/jpeg' }
+    )
+
+    await uploadPhoto(croppedFile)
+
+    // Clean up
+    if (imageToCrop) {
+      URL.revokeObjectURL(imageToCrop)
+    }
+    setImageToCrop(null)
+    setOriginalFile(null)
   }
 
   // Upload photo to API
@@ -152,13 +181,13 @@ export function PhotoUpload({
     if (files.length > 0) {
       await handleFileSelect(files[0])
     }
-  }, [guestId])
+  }, [])
 
   // Webcam handlers
   const startWebcam = async () => {
     try {
       const mediaStream = await navigator.mediaDevices.getUserMedia({
-        video: { width: 640, height: 480 },
+        video: { width: 1280, height: 720 },
       })
       setStream(mediaStream)
       setShowWebcam(true)
@@ -209,8 +238,13 @@ export function PhotoUpload({
       })
 
       stopWebcam()
-      await uploadPhoto(file)
-    }, 'image/jpeg', 0.9)
+
+      // Open crop modal with captured image
+      const imageUrl = URL.createObjectURL(file)
+      setImageToCrop(imageUrl)
+      setOriginalFile(file)
+      setShowCropModal(true)
+    }, 'image/jpeg', 0.95)
   }
 
   return (
@@ -265,12 +299,18 @@ export function PhotoUpload({
                 onClick={() => fileInputRef.current?.click()}
               >
                 <CardContent className="p-8 text-center">
-                  <Upload className="h-12 w-12 mx-auto mb-4 text-[#009197]" />
+                  <div className="flex items-center justify-center gap-2 mb-4">
+                    <Upload className="h-12 w-12 text-[#009197]" />
+                    <Scissors className="h-8 w-8 text-[#FF4713]" />
+                  </div>
                   <p className="text-sm font-medium text-[#004645] mb-1">
                     Glissez-déposez une photo ici
                   </p>
-                  <p className="text-xs text-[#004645]/70">
+                  <p className="text-xs text-[#004645]/70 mb-2">
                     ou cliquez pour parcourir (JPEG, PNG, WebP - Max 5MB)
+                  </p>
+                  <p className="text-xs text-[#FF4713] font-medium">
+                    ✂️ Recadrage automatique disponible
                   </p>
                   {isUploading && (
                     <div className="mt-4 flex items-center justify-center gap-2 text-[#009197]">
@@ -335,6 +375,25 @@ export function PhotoUpload({
             </Card>
           )}
         </div>
+      )}
+
+      {/* Crop Modal */}
+      {imageToCrop && originalFile && (
+        <PhotoCropModal
+          open={showCropModal}
+          onClose={() => {
+            setShowCropModal(false)
+            if (imageToCrop) {
+              URL.revokeObjectURL(imageToCrop)
+            }
+            setImageToCrop(null)
+            setOriginalFile(null)
+          }}
+          imageSrc={imageToCrop}
+          onCropComplete={handleCropComplete}
+          originalFileName={originalFile.name}
+          originalFileSize={originalFile.size}
+        />
       )}
     </div>
   )
