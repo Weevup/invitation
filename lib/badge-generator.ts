@@ -197,7 +197,14 @@ export async function generateBadgeData(
     // Fetch guest with RSVP and event data
     const guest = await prisma.guest.findUnique({
       where: { id: guestId },
-      include: {
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        company: true,
+        jobTitle: true,
+        photoUrl: true,
         event: {
           select: {
             id: true,
@@ -231,7 +238,7 @@ export async function generateBadgeData(
       qrCodeId: guest.rsvp.qrCodeId,
       eventName: guest.event.name,
       eventDate: guest.event.startsAt,
-      photoUrl: null, // TODO: Add photo support
+      photoUrl: guest.photoUrl,
     }
 
     // Generate QR code if needed
