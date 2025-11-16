@@ -13,6 +13,7 @@ import { toast } from 'sonner'
 import { AddGuestDialog } from '@/components/add-guest-dialog'
 import { ImportCSVDialog } from '@/components/import-csv-dialog'
 import { SendInvitationsDialog } from '@/components/send-invitations-dialog'
+import { SendSMSDialog } from '@/components/send-sms-dialog'
 import { GuestDetailsModal } from '@/components/guest-details-modal'
 import Papa from 'papaparse'
 import {
@@ -41,6 +42,7 @@ interface Guest {
   companySize?: string
   industry?: string
   phoneNumber?: string
+  phone?: string
   linkedinUrl?: string
   // Event needs
   dietaryReqs?: string
@@ -221,6 +223,11 @@ export default function GuestsPage() {
 
   const hasGuests = event.guests.length > 0
 
+  // Count guests with phone numbers (use phone or phoneNumber field)
+  const guestsWithPhone = filteredGuests.filter(
+    (g) => g.phone || g.phoneNumber
+  ).length
+
   return (
     <div className="space-y-6">
       {/* Guest Details Modal */}
@@ -261,6 +268,12 @@ export default function GuestsPage() {
             <CreditCard className="h-4 w-4 mr-2" />
             Gérer les badges
           </Button>
+          <SendSMSDialog
+            eventId={eventId}
+            guestIds={filteredGuests.map((g) => g.id)}
+            guestsWithPhone={guestsWithPhone}
+            totalGuests={filteredGuests.length}
+          />
           <SendInvitationsDialog
             eventId={eventId}
             totalGuests={event.guests.length}
