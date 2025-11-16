@@ -10,7 +10,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
 import { BadgeList } from '@/components/admin/badge-list'
 import { PhotoUpload } from '@/components/admin/photo-upload'
-import { BadgeConfig } from '@/components/admin/badge-config'
+import { BadgeTemplateGallery } from '@/components/admin/badge-template-gallery'
 import {
   CreditCard,
   Settings,
@@ -83,12 +83,6 @@ export function BadgeManagementPage({
   const handleGenerateBadges = async () => {
     if (selectedGuestIds.size === 0) {
       toast.error('Veuillez sélectionner au moins un invité')
-      return
-    }
-
-    if (!badgeDesign) {
-      toast.error('Veuillez d\'abord configurer le design des badges')
-      setActiveTab('design')
       return
     }
 
@@ -166,37 +160,26 @@ export function BadgeManagementPage({
           <TabsTrigger value="design">
             <Settings className="h-4 w-4 mr-2" />
             Design
-            {!badgeDesign && (
-              <Badge variant="destructive" className="ml-2 h-5 px-1">!</Badge>
-            )}
           </TabsTrigger>
         </TabsList>
 
         {/* Overview Tab */}
         <TabsContent value="overview" className="space-y-4">
-          {!badgeDesign ? (
-            <Alert>
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>
-                Aucun design de badge configuré.
-                <Button
-                  variant="link"
-                  className="px-2"
-                  onClick={() => setActiveTab('design')}
-                >
-                  Configurer maintenant
-                </Button>
-              </AlertDescription>
-            </Alert>
-          ) : (
-            <Alert className="border-green-200 bg-green-50">
-              <CheckCircle className="h-4 w-4 text-green-600" />
-              <AlertDescription className="text-green-800">
-                Design de badge configuré: {badgeDesign.name} ({badgeDesign.size},{' '}
-                {badgeDesign.orientation === 'PORTRAIT' ? 'Portrait' : 'Paysage'})
-              </AlertDescription>
-            </Alert>
-          )}
+          <Alert className="border-green-200 bg-green-50">
+            <CheckCircle className="h-4 w-4 text-green-600" />
+            <AlertDescription className="text-green-800">
+              <strong>Template actuel:</strong> {badgeDesign?.name || 'Par défaut'} ({badgeDesign?.size || 'STANDARD'},{' '}
+              {badgeDesign?.orientation === 'PORTRAIT' ? 'Portrait' : 'Paysage'})
+              {' • '}
+              <Button
+                variant="link"
+                className="px-1 h-auto text-green-700 underline"
+                onClick={() => setActiveTab('design')}
+              >
+                Changer de template
+              </Button>
+            </AlertDescription>
+          </Alert>
 
           {badges.length > 0 ? (
             <BadgeList
@@ -223,26 +206,17 @@ export function BadgeManagementPage({
             <CardHeader>
               <CardTitle>Générer les badges</CardTitle>
               <CardDescription>
-                Sélectionnez les invités pour lesquels générer des badges
+                Sélectionnez les invités pour lesquels générer des badges. Template: <strong>{badgeDesign?.name || 'Par défaut'}</strong>
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              {!badgeDesign && (
-                <Alert variant="destructive">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>
-                    Veuillez d&apos;abord configurer le design des badges dans l&apos;onglet &quot;Design&quot;
-                  </AlertDescription>
-                </Alert>
-              )}
-
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Checkbox
                     id="select-all-generate"
                     checked={allEligibleSelected}
                     onCheckedChange={handleSelectAll}
-                    disabled={eligibleGuests.length === 0 || !badgeDesign}
+                    disabled={eligibleGuests.length === 0}
                   />
                   <Label htmlFor="select-all-generate" className="cursor-pointer">
                     {selectedGuestIds.size > 0
@@ -253,7 +227,7 @@ export function BadgeManagementPage({
 
                 <Button
                   onClick={handleGenerateBadges}
-                  disabled={selectedGuestIds.size === 0 || generating || !badgeDesign}
+                  disabled={selectedGuestIds.size === 0 || generating}
                 >
                   {generating ? (
                     <>
@@ -283,7 +257,6 @@ export function BadgeManagementPage({
                         onCheckedChange={(checked) =>
                           handleSelectGuest(guest.id, checked as boolean)
                         }
-                        disabled={!badgeDesign}
                       />
                       <Label
                         htmlFor={`guest-${guest.id}`}
@@ -396,14 +369,23 @@ export function BadgeManagementPage({
 
         {/* Design Tab */}
         <TabsContent value="design" className="space-y-4">
-          <BadgeConfig
-            eventId={event.id}
-            currentDesign={badgeDesign}
-            onSave={() => {
-              toast.success('Design sauvegardé!')
-              router.refresh()
-            }}
-          />
+          <Card>
+            <CardHeader>
+              <CardTitle>Templates de badges professionnels</CardTitle>
+              <CardDescription>
+                Choisissez un template pré-conçu pour vos badges. Cliquez pour appliquer immédiatement.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <BadgeTemplateGallery
+                eventId={event.id}
+                currentDesign={badgeDesign}
+                onSave={() => {
+                  router.refresh()
+                }}
+              />
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
     </div>
