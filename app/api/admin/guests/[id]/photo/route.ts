@@ -66,9 +66,9 @@ export async function POST(
     if (guest.photoUrl) {
       try {
         await del(guest.photoUrl)
-        logger.info('Deleted old photo', { guestId, oldUrl: guest.photoUrl })
+        logger.info({ guestId, oldUrl: guest.photoUrl }, 'Deleted old photo')
       } catch (error) {
-        logger.warn('Failed to delete old photo', { error, guestId })
+        logger.warn({ error, guestId }, 'Failed to delete old photo')
       }
     }
 
@@ -79,7 +79,7 @@ export async function POST(
       addRandomSuffix: false,
     })
 
-    logger.info('Uploaded photo to Blob', { guestId, url: blob.url })
+    logger.info({ guestId, url: blob.url }, 'Uploaded photo to Blob')
 
     // Update guest record
     const updatedGuest = await prisma.guest.update({
@@ -106,7 +106,7 @@ export async function POST(
       guest: updatedGuest,
     })
   } catch (error) {
-    logger.error(error, { action: 'uploadPhoto' })
+    logger.error({ error, action: 'uploadPhoto', guestId }, 'Error uploading photo')
     return handleAuthError(error)
   }
 }
@@ -143,9 +143,9 @@ export async function DELETE(
     // Delete from Vercel Blob
     try {
       await del(guest.photoUrl)
-      logger.info('Deleted photo from Blob', { guestId, url: guest.photoUrl })
+      logger.info({ guestId, url: guest.photoUrl }, 'Deleted photo from Blob')
     } catch (error) {
-      logger.error(error, { action: 'deletePhotoFromBlob', metadata: { guestId, url: guest.photoUrl } })
+      logger.error({ error, action: 'deletePhotoFromBlob', guestId, url: guest.photoUrl }, 'Failed to delete photo from Blob')
       // Continue even if blob deletion fails
     }
 
@@ -163,7 +163,7 @@ export async function DELETE(
       message: 'Photo deleted successfully',
     })
   } catch (error) {
-    logger.error(error, { action: 'deletePhoto' })
+    logger.error({ error, action: 'deletePhoto' }, 'Error deleting photo')
     return handleAuthError(error)
   }
 }
