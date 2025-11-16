@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { auth } from '@/auth'
 import { prisma } from '@/lib/prisma'
 import { BadgeManagementPage } from './badge-management-page'
+import { getDefaultBadgeTemplates } from '@/lib/badge-generator'
 
 export default async function EventBadgesPage({
   params,
@@ -32,13 +33,39 @@ export default async function EventBadgesPage({
     redirect('/admin/events')
   }
 
-  // Fetch badge design if exists
-  const badgeDesign = await prisma.badgeDesign.findUnique({
+  // Fetch or create badge design
+  let badgeDesign = await prisma.badgeDesign.findUnique({
     where: { eventId },
     include: {
       template: true,
     },
   })
+
+  // Auto-create default badge design if none exists
+  if (!badgeDesign) {
+    const defaultTemplates = getDefaultBadgeTemplates()
+    const defaultTemplate = defaultTemplates.find((t) => t.isDefault) || defaultTemplates[0]
+
+    badgeDesign = await prisma.badgeDesign.create({
+      data: {
+        eventId,
+        name: defaultTemplate.name,
+        size: defaultTemplate.size,
+        orientation: defaultTemplate.orientation,
+        layout: defaultTemplate.layout as any,
+        fields: defaultTemplate.fields as any,
+        fontFamily: defaultTemplate.fontFamily || 'Inter',
+        includeQRCode: true,
+        qrCodeSize: 80,
+        badgesPerPage: 10,
+        pageMargin: 10,
+        badgeSpacing: 5,
+      },
+      include: {
+        template: true,
+      },
+    })
+  }
 
   // Fetch guests with RSVP for badge generation
   const guests = await prisma.guest.findMany({
