@@ -12,6 +12,14 @@ import { BadgeList } from '@/components/admin/badge-list'
 import { PhotoUpload } from '@/components/admin/photo-upload'
 import { BadgeTemplateGallery } from '@/components/admin/badge-template-gallery'
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
+import {
   CreditCard,
   Settings,
   Users,
@@ -22,6 +30,7 @@ import {
   Camera,
   Check,
   X,
+  Palette,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Alert, AlertDescription } from '@/components/ui/alert'
@@ -144,7 +153,7 @@ export function BadgeManagementPage({
 
       {/* Main Content */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="overview">
             <Sparkles className="h-4 w-4 mr-2" />
             Vue d&apos;ensemble
@@ -157,27 +166,40 @@ export function BadgeManagementPage({
             <Camera className="h-4 w-4 mr-2" />
             Photos
           </TabsTrigger>
-          <TabsTrigger value="design">
-            <Settings className="h-4 w-4 mr-2" />
-            Design
-          </TabsTrigger>
         </TabsList>
 
         {/* Overview Tab */}
         <TabsContent value="overview" className="space-y-4">
           <Alert className="border-green-200 bg-green-50">
             <CheckCircle className="h-4 w-4 text-green-600" />
-            <AlertDescription className="text-green-800">
-              <strong>Template actuel:</strong> {badgeDesign?.name || 'Par défaut'} ({badgeDesign?.size || 'STANDARD'},{' '}
-              {badgeDesign?.orientation === 'PORTRAIT' ? 'Portrait' : 'Paysage'})
-              {' • '}
-              <Button
-                variant="link"
-                className="px-1 h-auto text-green-700 underline"
-                onClick={() => setActiveTab('design')}
-              >
-                Changer de template
-              </Button>
+            <AlertDescription className="text-green-800 flex items-center justify-between">
+              <span>
+                <strong>Template actuel:</strong> {badgeDesign?.name || 'Par défaut'} ({badgeDesign?.size || 'STANDARD'},{' '}
+                {badgeDesign?.orientation === 'PORTRAIT' ? 'Portrait' : 'Paysage'})
+              </span>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button variant="outline" size="sm">
+                    <Palette className="h-4 w-4 mr-2" />
+                    Changer de template
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle>Choisir un template de badge</DialogTitle>
+                    <DialogDescription>
+                      Sélectionnez un template professionnel. Les badges déjà générés ne seront pas modifiés.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <BadgeTemplateGallery
+                    eventId={event.id}
+                    currentDesign={badgeDesign}
+                    onSave={() => {
+                      router.refresh()
+                    }}
+                  />
+                </DialogContent>
+              </Dialog>
             </AlertDescription>
           </Alert>
 
@@ -363,27 +385,6 @@ export function BadgeManagementPage({
                   </div>
                 </div>
               )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Design Tab */}
-        <TabsContent value="design" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Templates de badges professionnels</CardTitle>
-              <CardDescription>
-                Choisissez un template pré-conçu pour vos badges. Cliquez pour appliquer immédiatement.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <BadgeTemplateGallery
-                eventId={event.id}
-                currentDesign={badgeDesign}
-                onSave={() => {
-                  router.refresh()
-                }}
-              />
             </CardContent>
           </Card>
         </TabsContent>
