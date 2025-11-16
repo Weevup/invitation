@@ -10,6 +10,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
 import { BadgeList } from '@/components/admin/badge-list'
 import { PhotoUpload } from '@/components/admin/photo-upload'
+import { BadgeConfig } from '@/components/admin/badge-config'
 import {
   CreditCard,
   Settings,
@@ -126,13 +127,6 @@ export function BadgeManagementPage({
     }
   }
 
-  const handleSetupDesign = () => {
-    // For now, use default design
-    // In future, this would open a design editor
-    toast.info('Le designer de badges sera disponible prochainement')
-    setActiveTab('design')
-  }
-
   const eligibleGuests = guests.filter((g) => !g.badge)
   const guestsWithBadges = guests.filter((g) => g.badge)
   const allEligibleSelected =
@@ -188,7 +182,7 @@ export function BadgeManagementPage({
                 <Button
                   variant="link"
                   className="px-2"
-                  onClick={handleSetupDesign}
+                  onClick={() => setActiveTab('design')}
                 >
                   Configurer maintenant
                 </Button>
@@ -402,45 +396,14 @@ export function BadgeManagementPage({
 
         {/* Design Tab */}
         <TabsContent value="design" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Configuration du design</CardTitle>
-              <CardDescription>
-                Personnalisez l&apos;apparence des badges pour cet événement
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {badgeDesign ? (
-                <div className="space-y-4">
-                  <Alert>
-                    <CheckCircle className="h-4 w-4" />
-                    <AlertDescription>
-                      Design actuel: <strong>{badgeDesign.name}</strong>
-                      <br />
-                      Taille: {badgeDesign.size}, Orientation:{' '}
-                      {badgeDesign.orientation === 'PORTRAIT' ? 'Portrait' : 'Paysage'}
-                      <br />
-                      QR Code: {badgeDesign.includeQRCode ? 'Oui' : 'Non'}
-                    </AlertDescription>
-                  </Alert>
-
-                  <div className="text-sm text-muted-foreground">
-                    Le designer de badges visuel sera disponible dans une prochaine version.
-                    <br />
-                    Pour l&apos;instant, un design par défaut est utilisé automatiquement.
-                  </div>
-                </div>
-              ) : (
-                <Alert>
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>
-                    Aucun design configuré. Un design par défaut sera utilisé automatiquement
-                    lors de la génération des badges.
-                  </AlertDescription>
-                </Alert>
-              )}
-            </CardContent>
-          </Card>
+          <BadgeConfig
+            eventId={event.id}
+            currentDesign={badgeDesign}
+            onSave={() => {
+              toast.success('Design sauvegardé!')
+              router.refresh()
+            }}
+          />
         </TabsContent>
       </Tabs>
     </div>
