@@ -1,5 +1,5 @@
 import { Twilio } from 'twilio'
-import { prisma } from '@/lib/db'
+import { prisma } from '@/lib/prisma'
 import { logger } from '@/lib/logger'
 import type { NotificationType, NotificationStatus } from '@prisma/client'
 
