@@ -19,6 +19,10 @@ export const BADGE_SIZES = {
   A6: { width: 105, height: 148 },
 } as const
 
+// Export types for use in other components
+export type BadgeSize = keyof typeof BADGE_SIZES
+export type BadgeOrientation = 'PORTRAIT' | 'LANDSCAPE'
+
 // Convert mm to pixels at 300 DPI (print quality)
 const MM_TO_PX = 11.811 // 300 DPI
 
@@ -80,8 +84,8 @@ export interface BadgeLayout {
 }
 
 export interface BadgeDesignConfig {
-  size: keyof typeof BADGE_SIZES
-  orientation: 'PORTRAIT' | 'LANDSCAPE'
+  size: BadgeSize
+  orientation: BadgeOrientation
   layout: BadgeLayout
   fields: BadgeField[]
   fontFamily?: string
@@ -346,8 +350,8 @@ export interface BadgeTemplate {
   name: string
   description: string
   category: BadgeTemplateCategory
-  size: keyof typeof BADGE_SIZES
-  orientation: 'PORTRAIT' | 'LANDSCAPE'
+  size: BadgeSize
+  orientation: BadgeOrientation
   layout: BadgeLayout
   fields: BadgeField[]
   fontFamily?: string
