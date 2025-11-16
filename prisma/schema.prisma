@@ -289,6 +289,10 @@ model Guest {
   arrivalTime       DateTime?   // Heure d'arrivée précise
   departureTime     DateTime?   // Heure de départ précise
 
+  // Badge photo
+  photoUrl          String?     // URL Vercel Blob Storage for badge photo
+  photoUploadedAt   DateTime?   // Timestamp of photo upload
+
   // Authentication
   token         String      @unique // Will be hashed
   tokenHash     String      @unique // Hashed version for lookup

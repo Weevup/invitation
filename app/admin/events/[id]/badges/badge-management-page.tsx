@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
 import { BadgeList } from '@/components/admin/badge-list'
+import { PhotoUpload } from '@/components/admin/photo-upload'
 import {
   CreditCard,
   Settings,
@@ -17,6 +18,9 @@ import {
   AlertCircle,
   CheckCircle,
   Loader2,
+  Camera,
+  Check,
+  X,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Alert, AlertDescription } from '@/components/ui/alert'
@@ -152,7 +156,7 @@ export function BadgeManagementPage({
 
       {/* Main Content */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="overview">
             <Sparkles className="h-4 w-4 mr-2" />
             Vue d&apos;ensemble
@@ -160,6 +164,10 @@ export function BadgeManagementPage({
           <TabsTrigger value="generate">
             <Users className="h-4 w-4 mr-2" />
             Générer
+          </TabsTrigger>
+          <TabsTrigger value="photos">
+            <Camera className="h-4 w-4 mr-2" />
+            Photos
           </TabsTrigger>
           <TabsTrigger value="design">
             <Settings className="h-4 w-4 mr-2" />
@@ -303,6 +311,89 @@ export function BadgeManagementPage({
               {guestsWithBadges.length > 0 && (
                 <div className="text-sm text-muted-foreground">
                   {guestsWithBadges.length} invité(s) ont déjà un badge généré
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Photos Tab */}
+        <TabsContent value="photos" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Gérer les photos des invités</CardTitle>
+              <CardDescription>
+                Uploadez des photos pour les invités afin de les afficher sur leurs badges
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {guests.length === 0 ? (
+                <Alert>
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>
+                    Aucun invité avec RSVP confirmé. Seuls les invités ayant confirmé leur présence peuvent avoir une photo.
+                  </AlertDescription>
+                </Alert>
+              ) : (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {guests.map((guest: any) => (
+                      <Card key={guest.id} className="border-[#9CD9F6]/30">
+                        <CardHeader className="pb-3">
+                          <CardTitle className="text-base flex items-center justify-between">
+                            <span>
+                              {guest.firstName} {guest.lastName}
+                            </span>
+                            {guest.photoUrl && (
+                              <Badge variant="secondary" className="bg-green-100 text-green-800">
+                                <Check className="h-3 w-3 mr-1" />
+                                Photo
+                              </Badge>
+                            )}
+                            {!guest.photoUrl && (
+                              <Badge variant="secondary" className="bg-gray-100 text-gray-600">
+                                <X className="h-3 w-3 mr-1" />
+                                Aucune
+                              </Badge>
+                            )}
+                          </CardTitle>
+                          <CardDescription className="text-xs">
+                            {guest.company && <span>{guest.company} • </span>}
+                            {guest.email}
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <PhotoUpload
+                            guestId={guest.id}
+                            currentPhotoUrl={guest.photoUrl}
+                            onPhotoUploaded={() => {
+                              toast.success('Photo uploadée avec succès')
+                              router.refresh()
+                            }}
+                            onPhotoDeleted={() => {
+                              toast.success('Photo supprimée')
+                              router.refresh()
+                            }}
+                          />
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+
+                  <div className="flex items-center gap-4 text-sm text-muted-foreground pt-4 border-t">
+                    <div className="flex items-center gap-2">
+                      <Badge variant="secondary" className="bg-green-100 text-green-800">
+                        <Check className="h-3 w-3" />
+                      </Badge>
+                      {guests.filter((g: any) => g.photoUrl).length} avec photo
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="secondary" className="bg-gray-100 text-gray-600">
+                        <X className="h-3 w-3" />
+                      </Badge>
+                      {guests.filter((g: any) => !g.photoUrl).length} sans photo
+                    </div>
+                  </div>
                 </div>
               )}
             </CardContent>

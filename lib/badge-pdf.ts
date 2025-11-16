@@ -11,6 +11,31 @@ import { createLogger } from './logger'
 
 const pdfLogger = createLogger({ module: 'badge', type: 'pdf' })
 
+/**
+ * Fetch image from URL and convert to base64 data URL
+ */
+async function fetchImageAsDataURL(url: string): Promise<string | null> {
+  try {
+    const response = await fetch(url)
+    if (!response.ok) {
+      pdfLogger.warn({ url, status: response.status }, 'Failed to fetch image')
+      return null
+    }
+
+    const arrayBuffer = await response.arrayBuffer()
+    const buffer = Buffer.from(arrayBuffer)
+    const base64 = buffer.toString('base64')
+
+    // Detect content type from response or URL
+    const contentType = response.headers.get('content-type') || 'image/jpeg'
+
+    return `data:${contentType};base64,${base64}`
+  } catch (error) {
+    pdfLogger.error({ error, url }, 'Error fetching image for PDF')
+    return null
+  }
+}
+
 export interface BadgeData {
   renderedData: Record<string, any>
   guestName: string
@@ -117,19 +142,12 @@ async function drawBadge(
         )
       }
     } else if (field.type === 'LOGO' || field.type === 'PHOTO') {
-      // Draw image
+      // Draw image (should be data URL after preprocessing)
       try {
-        if (value && value.startsWith('http')) {
-          // For HTTP images, you'd need to fetch and convert to base64
-          // For now, skip external images
-          pdfLogger.warn(
-            { field: field.type, url: value },
-            'Skipping external image in PDF'
-          )
-        } else if (value && value.startsWith('data:image')) {
+        if (value && value.startsWith('data:image')) {
           const imgWidth = field.width ? pxToMm(field.width) : 20
           const imgHeight = field.height ? pxToMm(field.height) : 20
-          pdf.addImage(value, 'PNG', fieldX, fieldY, imgWidth, imgHeight)
+          pdf.addImage(value, 'JPEG', fieldX, fieldY, imgWidth, imgHeight)
         }
       } catch (error) {
         pdfLogger.error(
@@ -223,6 +241,58 @@ function calculateBadgePositions(
 }
 
 /**
+ * Pre-process badges to fetch remote images and convert to data URLs
+ */
+async function preprocessBadges(
+  badges: BadgeData[],
+  fields: BadgeField[]
+): Promise<BadgeData[]> {
+  const imageFields = fields.filter(
+    (f) => f.type === 'LOGO' || f.type === 'PHOTO'
+  )
+
+  if (imageFields.length === 0) {
+    return badges
+  }
+
+  const processedBadges = await Promise.all(
+    badges.map(async (badge) => {
+      const renderedData = { ...badge.renderedData }
+
+      for (const field of imageFields) {
+        const value = renderedData[field.type]
+
+        if (value && typeof value === 'string' && value.startsWith('http')) {
+          // Fetch and convert to data URL
+          const dataURL = await fetchImageAsDataURL(value)
+          if (dataURL) {
+            renderedData[field.type] = dataURL
+            pdfLogger.info(
+              { field: field.type, originalUrl: value },
+              'Converted remote image to data URL'
+            )
+          } else {
+            // Remove field if fetch failed
+            delete renderedData[field.type]
+            pdfLogger.warn(
+              { field: field.type, url: value },
+              'Failed to fetch image, removing from badge'
+            )
+          }
+        }
+      }
+
+      return {
+        ...badge,
+        renderedData,
+      }
+    })
+  )
+
+  return processedBadges
+}
+
+/**
  * Generate PDF with badges
  */
 export async function generateBadgesPDF(
@@ -230,6 +300,9 @@ export async function generateBadgesPDF(
   options: BadgePDFOptions
 ): Promise<Buffer> {
   try {
+    // Pre-process badges to fetch remote images
+    const processedBadges = await preprocessBadges(badges, options.fields)
+
     const pdf = createPDFDocument()
     const badgeSize = BADGE_SIZES[options.size]
     const { width, height } =
@@ -251,15 +324,15 @@ export async function generateBadgesPDF(
     let badgeIndex = 0
     let pageIndex = 0
 
-    while (badgeIndex < badges.length) {
+    while (badgeIndex < processedBadges.length) {
       if (pageIndex > 0) {
         pdf.addPage()
       }
 
       // Draw badges for this page
-      for (let i = 0; i < positions.length && badgeIndex < badges.length; i++) {
+      for (let i = 0; i < positions.length && badgeIndex < processedBadges.length; i++) {
         const position = positions[i]
-        const badge = badges[badgeIndex]
+        const badge = processedBadges[badgeIndex]
 
         await drawBadge(pdf, position.x, position.y, badge, options)
 
@@ -272,7 +345,7 @@ export async function generateBadgesPDF(
     const pdfBuffer = Buffer.from(pdf.output('arraybuffer'))
 
     pdfLogger.info(
-      { badgeCount: badges.length, pages: pageIndex },
+      { badgeCount: processedBadges.length, pages: pageIndex },
       'PDF generated successfully'
     )
 

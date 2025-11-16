@@ -56,6 +56,7 @@ export default async function EventBadgesPage({
       company: true,
       jobTitle: true,
       status: true,
+      photoUrl: true,
       badge: {
         select: {
           id: true,
