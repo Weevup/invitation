@@ -1,6 +1,7 @@
 import { Twilio } from 'twilio'
 import { prisma } from '@/lib/prisma'
 import { logger } from '@/lib/logger'
+import { isOptedOut } from '@/lib/sms-optout-service'
 import type { NotificationType, NotificationStatus } from '@prisma/client'
 
 // Twilio configuration from environment variables
@@ -49,6 +50,16 @@ export async function sendSMS(options: SendSMSOptions): Promise<SMSResult> {
   if (!to.startsWith('+')) {
     logger.warn({ guestId, to }, 'Invalid phone number format (missing + prefix)')
     throw new Error('Phone number must be in international format (e.g., +33612345678)')
+  }
+
+  // Check opt-out list
+  const optedOut = await isOptedOut(to)
+  if (optedOut) {
+    logger.warn(
+      { guestId, to },
+      'Guest has opted out from SMS, skipping send'
+    )
+    throw new Error('Recipient has opted out from SMS notifications')
   }
 
   // Create notification record in database (PENDING state)
