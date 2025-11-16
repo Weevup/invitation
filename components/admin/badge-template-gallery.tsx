@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Alert, AlertDescription } from '@/components/ui/alert'
+import { BadgePreview } from '@/components/admin/badge-preview'
 import {
   getDefaultBadgeTemplates,
   getTemplatesByCategory,
@@ -16,7 +17,6 @@ import {
   Briefcase,
   Calendar,
   Crown,
-  CreditCard,
   Check,
   Loader2,
   CheckCircle,
@@ -181,38 +181,8 @@ export function BadgeTemplateGallery({
 
                 <CardContent className="space-y-4">
                   {/* Visual Preview */}
-                  <div
-                    className={`relative border-2 rounded-lg p-6 bg-gradient-to-br ${
-                      template.layout.backgroundColor === '#1a1a1a' ||
-                      template.layout.backgroundColor === '#1e293b'
-                        ? 'from-gray-800 to-gray-900 border-gray-700'
-                        : 'from-white to-gray-50 border-gray-200'
-                    }`}
-                    style={{
-                      aspectRatio: template.orientation === 'PORTRAIT' ? '5/7' : '7/5',
-                    }}
-                  >
-                    <div className="h-full flex flex-col items-center justify-center gap-3">
-                      <CreditCard
-                        className={`h-12 w-12 ${
-                          template.layout.backgroundColor === '#1a1a1a' ||
-                          template.layout.backgroundColor === '#1e293b'
-                            ? 'text-gray-400'
-                            : 'text-gray-300'
-                        }`}
-                      />
-                      <div
-                        className={`text-sm font-medium ${
-                          template.layout.backgroundColor === '#1a1a1a' ||
-                          template.layout.backgroundColor === '#1e293b'
-                            ? 'text-gray-300'
-                            : 'text-gray-500'
-                        }`}
-                      >
-                        {template.fields.length} champs
-                      </div>
-                    </div>
-
+                  <div className="relative">
+                    <BadgePreview template={template} />
                     {/* Category badge */}
                     <div className="absolute bottom-2 left-2">
                       <Badge variant="outline" className="text-xs bg-white/90 backdrop-blur">
