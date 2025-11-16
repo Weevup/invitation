@@ -255,6 +255,9 @@ model Event {
   // Phase 2.5: Badge system
   badgeDesign          BadgeDesign?         @relation("EventBadgeDesign")
 
+  // SMS Notifications
+  notifications        Notification[]       @relation("EventNotifications")
+
   @@index([slug])
   @@index([adminId])
 }
@@ -277,6 +280,10 @@ model Guest {
   industry      String?     // Secteur d'activité
   linkedinUrl   String?     // Profil LinkedIn
   phoneNumber   String?     // Numéro de téléphone
+
+  // SMS Notifications
+  phone         String?     // Phone number for SMS (international format: +33612345678)
+  phoneVerified Boolean     @default(false)
 
   // Event-specific needs
   dietaryReqs   String?     @db.Text  // Restrictions alimentaires (JSON: {type, allergens, details})
@@ -323,6 +330,9 @@ model Guest {
 
   // Phase 2.5: Badge system
   badge             Badge?                @relation("GuestBadge")
+
+  // SMS Notifications
+  notifications     Notification[]        @relation("GuestNotifications")
 
   @@unique([eventId, email])
   @@index([tokenHash])
@@ -1227,4 +1237,63 @@ model Badge {
   @@index([badgeDesignId])
   @@index([isReady])
   @@index([isIssued])
+}
+
+// ============================================
+// SMS NOTIFICATIONS SYSTEM (MVP)
+// ============================================
+
+enum NotificationType {
+  SMS
+  EMAIL
+  PUSH
+}
+
+enum NotificationStatus {
+  PENDING
+  SENDING
+  SENT
+  DELIVERED
+  FAILED
+  CANCELLED
+}
+
+model Notification {
+  id          String   @id @default(cuid())
+
+  // Recipient
+  guestId     String
+  guest       Guest    @relation("GuestNotifications", fields: [guestId], references: [id], onDelete: Cascade)
+
+  // Event context
+  eventId     String
+  event       Event    @relation("EventNotifications", fields: [eventId], references: [id], onDelete: Cascade)
+
+  // Message details
+  type        NotificationType
+  message     String   @db.Text
+  subject     String?  // For future email/push support
+
+  // Delivery tracking
+  status      NotificationStatus @default(PENDING)
+  sentAt      DateTime?
+  deliveredAt DateTime?
+  error       String?  @db.Text
+
+  // Provider details (Twilio, etc.)
+  provider    String?  // "twilio"
+  providerId  String?  // External provider message ID
+  providerResponse Json? // Full provider response
+
+  // Metadata
+  templateName String?  // e.g., "RSVP Confirmation"
+  metadata    Json?    // Additional context
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([guestId])
+  @@index([eventId])
+  @@index([status])
+  @@index([sentAt])
 }
