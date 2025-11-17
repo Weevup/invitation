@@ -29,7 +29,9 @@ import {
   Presentation,
   Trophy,
   PartyPopper,
-  CreditCard
+  CreditCard,
+  MessageSquare,
+  LineChart,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useEventModules } from '@/lib/modules/use-event-modules'
@@ -206,6 +208,21 @@ export default function EventLayout({
           label: 'Configuration RSVP',
           href: `/admin/events/${eventId}/rsvp-config`,
           icon: UserCheck,
+        },
+      ],
+    },
+    {
+      title: "SMS & NOTIFICATIONS",
+      items: [
+        {
+          label: 'Templates SMS',
+          href: `/admin/events/${eventId}/sms-templates`,
+          icon: MessageSquare,
+        },
+        {
+          label: 'Analytics SMS',
+          href: `/admin/events/${eventId}/notifications/analytics`,
+          icon: LineChart,
         },
       ],
     },
