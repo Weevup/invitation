@@ -274,75 +274,95 @@ export default function SMSTemplatesPage() {
       </div>
 
       {/* Templates Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {templates.map((template) => (
-          <Card key={template.id} className="border-[#9CD9F6]/30 hover:shadow-md transition-shadow">
-            <CardHeader>
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <CardTitle className="text-lg text-[#004645] flex items-center gap-2">
-                    {template.name}
-                    {template.isDefault && (
-                      <Badge variant="secondary" className="text-xs">Par défaut</Badge>
-                    )}
-                  </CardTitle>
-                  <CardDescription className="mt-1">
-                    <Badge variant="outline" className="text-xs">
-                      {CATEGORIES.find(c => c.value === template.category)?.label || template.category}
-                    </Badge>
-                  </CardDescription>
+      {templates.length === 0 ? (
+        <Card className="border-[#9CD9F6]/30">
+          <CardContent className="flex flex-col items-center justify-center py-12">
+            <MessageSquare className="h-16 w-16 text-[#009197]/40 mb-4" />
+            <h3 className="text-xl font-semibold text-[#004645] mb-2">
+              Aucun template pour le moment
+            </h3>
+            <p className="text-[#004645]/70 text-center max-w-md mb-6">
+              Créez votre premier template de SMS ou chargez les templates par défaut pour commencer rapidement.
+            </p>
+            <div className="flex gap-3">
+              <Button onClick={() => { resetForm(); setEditingTemplate(null); setDialogOpen(true); }}>
+                <Plus className="h-4 w-4 mr-2" />
+                Créer un template
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {templates.map((template) => (
+            <Card key={template.id} className="border-[#9CD9F6]/30 hover:shadow-md transition-shadow">
+              <CardHeader>
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <CardTitle className="text-lg text-[#004645] flex items-center gap-2">
+                      {template.name}
+                      {template.isDefault && (
+                        <Badge variant="secondary" className="text-xs">Par défaut</Badge>
+                      )}
+                    </CardTitle>
+                    <CardDescription className="mt-1">
+                      <Badge variant="outline" className="text-xs">
+                        {CATEGORIES.find(c => c.value === template.category)?.label || template.category}
+                      </Badge>
+                    </CardDescription>
+                  </div>
                 </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-[#004645]/70 mb-4 line-clamp-3">
-                {template.message}
-              </p>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-[#004645]/70 mb-4 line-clamp-3">
+                  {template.message}
+                </p>
 
-              <div className="flex items-center justify-between text-xs text-muted-foreground mb-4">
-                <span>{template.usageCount} utilisations</span>
-                <span>{template.message.length} caractères</span>
-              </div>
+                <div className="flex items-center justify-between text-xs text-muted-foreground mb-4">
+                  <span>{template.usageCount} utilisations</span>
+                  <span>{template.message.length} caractères</span>
+                </div>
 
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handlePreview(template)}
-                  className="flex-1"
-                >
-                  <Eye className="h-3 w-3 mr-1" />
-                  Aperçu
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleEdit(template)}
-                >
-                  <Edit className="h-3 w-3" />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleDuplicate(template)}
-                >
-                  <Copy className="h-3 w-3" />
-                </Button>
-                {!template.isDefault && (
+                <div className="flex gap-2">
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => handleDelete(template.id)}
-                    className="text-red-600 hover:text-red-700"
+                    onClick={() => handlePreview(template)}
+                    className="flex-1"
                   >
-                    <Trash2 className="h-3 w-3" />
+                    <Eye className="h-3 w-3 mr-1" />
+                    Aperçu
                   </Button>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleEdit(template)}
+                  >
+                    <Edit className="h-3 w-3" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleDuplicate(template)}
+                  >
+                    <Copy className="h-3 w-3" />
+                  </Button>
+                  {!template.isDefault && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleDelete(template.id)}
+                      className="text-red-600 hover:text-red-700"
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
 
       {/* Create/Edit Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
