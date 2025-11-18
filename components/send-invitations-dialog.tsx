@@ -30,6 +30,8 @@ interface SendInvitationsDialogProps {
   eventId: string;
   totalGuests: number;
   pendingGuests: number;
+  selectedGuestIds?: string[];
+  onComplete?: () => void;
 }
 
 interface EmailTemplate {
@@ -44,6 +46,8 @@ export function SendInvitationsDialog({
   eventId,
   totalGuests,
   pendingGuests,
+  selectedGuestIds,
+  onComplete,
 }: SendInvitationsDialogProps) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -96,6 +100,7 @@ export function SendInvitationsDialog({
           body: JSON.stringify({
             type: emailType,
             templateId: templateId || undefined,
+            guestIds: selectedGuestIds && selectedGuestIds.length > 0 ? selectedGuestIds : undefined,
           }),
         }
       );
@@ -106,6 +111,10 @@ export function SendInvitationsDialog({
         setResults(data.results);
         if (data.results.success > 0) {
           toast.success(`${data.results.success} email(s) envoyé(s) avec succès`);
+          // Call onComplete callback if provided
+          if (onComplete) {
+            onComplete();
+          }
         }
       } else {
         setResults({
@@ -137,6 +146,10 @@ export function SendInvitationsDialog({
   };
 
   const getTargetCount = () => {
+    // If specific guests are selected, use that count
+    if (selectedGuestIds && selectedGuestIds.length > 0) {
+      return selectedGuestIds.length;
+    }
     return emailType === "reminder" ? pendingGuests : totalGuests;
   };
 
@@ -156,7 +169,9 @@ export function SendInvitationsDialog({
       <DialogTrigger asChild>
         <Button>
           <Send className="h-4 w-4 mr-2" />
-          Envoyer les invitations
+          {selectedGuestIds && selectedGuestIds.length > 0
+            ? `Envoyer aux ${selectedGuestIds.length} sélectionnés`
+            : 'Envoyer les invitations'}
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[550px]">
@@ -255,12 +270,16 @@ export function SendInvitationsDialog({
               <p className="text-blue-800">
                 <strong>📧 {getTargetCount()} email(s)</strong> seront envoyés.
               </p>
-              {emailType === "invitation" && (
+              {selectedGuestIds && selectedGuestIds.length > 0 ? (
+                <p className="text-blue-700 mt-1 text-xs">
+                  ✓ Envoi ciblé uniquement aux invités sélectionnés
+                </p>
+              ) : emailType === "invitation" ? (
                 <p className="text-blue-700 mt-1 text-xs">
                   Note : Les invités qui ont déjà reçu une invitation recevront
                   à nouveau l&apos;email.
                 </p>
-              )}
+              ) : null}
             </div>
           </div>
         ) : (
