@@ -16,6 +16,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { toast } from 'sonner'
 import { createClientLogger } from '@/lib/client-logger'
+import { ImageUpload } from '@/components/admin/image-upload'
 
 const logger = createClientLogger({ component: 'InvitationPage' })
 
@@ -615,13 +616,18 @@ export default function InvitationDesignPage() {
                 </div>
 
                 <div>
-                  <Label className="text-sm">Image d&apos;en-tête (URL)</Label>
-                  <Input
-                    value={design.headerImage}
-                    onChange={(e) => updateDesign('headerImage', e.target.value)}
-                    className="border-[#9CD9F6]/30"
-                    placeholder="https://..."
+                  <Label className="text-sm mb-2 block">Image d&apos;en-tête</Label>
+                  <ImageUpload
+                    currentImageUrl={design.headerImage}
+                    onImageUploaded={(url) => updateDesign('headerImage', url)}
+                    onImageDeleted={() => updateDesign('headerImage', '')}
+                    label="Image d'en-tête"
+                    aspectRatio="wide"
+                    maxSizeMB={10}
                   />
+                  <p className="text-xs text-[#004645]/60 mt-2">
+                    Format recommandé : 1200x400px
+                  </p>
                 </div>
               </CardContent>
             </Card>
