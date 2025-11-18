@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import {
-  Users, Download, Search, Link as LinkIcon, UserPlus, Upload, Eye, Filter, CreditCard
+  Users, Download, Search, Link as LinkIcon, UserPlus, Upload, Eye, Filter, CreditCard, CheckSquare, Square, X
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { AddGuestDialog } from '@/components/add-guest-dialog'
@@ -88,6 +88,8 @@ export default function GuestsPage() {
   const [companySizeFilter, setCompanySizeFilter] = useState<string>('all')
   const [industryFilter, setIndustryFilter] = useState<string>('all')
   const [jobTitleFilter, setJobTitleFilter] = useState<string>('all')
+  // Selection state
+  const [selectedGuestIds, setSelectedGuestIds] = useState<Set<string>>(new Set())
 
   const fetchEvent = useCallback(async () => {
     try {
@@ -227,6 +229,31 @@ export default function GuestsPage() {
   const guestsWithPhone = filteredGuests.filter(
     (g) => g.phone || g.phoneNumber
   ).length
+
+  // Selection handlers
+  const toggleSelectAll = () => {
+    if (selectedGuestIds.size === filteredGuests.length) {
+      setSelectedGuestIds(new Set())
+    } else {
+      setSelectedGuestIds(new Set(filteredGuests.map(g => g.id)))
+    }
+  }
+
+  const toggleSelectGuest = (guestId: string) => {
+    const newSelection = new Set(selectedGuestIds)
+    if (newSelection.has(guestId)) {
+      newSelection.delete(guestId)
+    } else {
+      newSelection.add(guestId)
+    }
+    setSelectedGuestIds(newSelection)
+  }
+
+  const clearSelection = () => {
+    setSelectedGuestIds(new Set())
+  }
+
+  const isAllSelected = filteredGuests.length > 0 && selectedGuestIds.size === filteredGuests.length
 
   return (
     <div className="space-y-6">
@@ -385,6 +412,75 @@ export default function GuestsPage() {
         </Card>
       )}
 
+      {/* Quick Selection Filters */}
+      {hasGuests && (
+        <Card className="border-[#009197]/30 bg-gradient-to-r from-[#009197]/5 to-transparent">
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-3 flex-wrap">
+              <span className="text-sm font-medium text-[#004645]">Sélection rapide :</span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const nonInvitedIds = filteredGuests
+                    .filter(g => g.status !== 'INVITED' && !g.rsvp)
+                    .map(g => g.id)
+                  setSelectedGuestIds(new Set(nonInvitedIds))
+                }}
+                className="border-[#009197] text-[#009197] hover:bg-[#009197] hover:text-white"
+              >
+                Nouveaux invités ({filteredGuests.filter(g => g.status !== 'INVITED' && !g.rsvp).length})
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const noResponseIds = filteredGuests
+                    .filter(g => !g.rsvp || g.rsvp.attending === null)
+                    .map(g => g.id)
+                  setSelectedGuestIds(new Set(noResponseIds))
+                }}
+                className="border-[#FF4713] text-[#FF4713] hover:bg-[#FF4713] hover:text-white"
+              >
+                Sans réponse ({filteredGuests.filter(g => !g.rsvp || g.rsvp.attending === null).length})
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const confirmedIds = filteredGuests
+                    .filter(g => g.rsvp?.attending === true)
+                    .map(g => g.id)
+                  setSelectedGuestIds(new Set(confirmedIds))
+                }}
+                className="border-green-600 text-green-600 hover:bg-green-600 hover:text-white"
+              >
+                Confirmés ({filteredGuests.filter(g => g.rsvp?.attending === true).length})
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setSelectedGuestIds(new Set(filteredGuests.map(g => g.id)))}
+                className="border-[#004645] text-[#004645] hover:bg-[#004645] hover:text-white"
+              >
+                Tous les filtrés ({filteredGuests.length})
+              </Button>
+              {selectedGuestIds.size > 0 && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={clearSelection}
+                  className="text-[#FF4713] hover:bg-[#FF4713]/10"
+                >
+                  <X className="h-4 w-4 mr-1" />
+                  Désélectionner tout
+                </Button>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Guests Table */}
       <Card className="border-[#9CD9F6]/30 bg-white/80 backdrop-blur">
         <CardHeader>
@@ -440,6 +536,19 @@ export default function GuestsPage() {
               <table className="w-full">
                 <thead className="border-b border-[#9CD9F6]/30">
                   <tr className="text-left text-sm text-[#004645]/70">
+                    <th className="pb-3 font-medium w-12">
+                      <button
+                        onClick={toggleSelectAll}
+                        className="p-1 hover:bg-[#9CD9F6]/20 rounded transition-colors"
+                        title={isAllSelected ? "Tout désélectionner" : "Tout sélectionner"}
+                      >
+                        {isAllSelected ? (
+                          <CheckSquare className="h-5 w-5 text-[#009197]" />
+                        ) : (
+                          <Square className="h-5 w-5 text-[#004645]/40" />
+                        )}
+                      </button>
+                    </th>
                     <th className="pb-3 font-medium">Invité</th>
                     <th className="pb-3 font-medium">Email</th>
                     <th className="pb-3 font-medium">Entreprise</th>
@@ -450,7 +559,26 @@ export default function GuestsPage() {
                 </thead>
                 <tbody className="divide-y divide-[#9CD9F6]/30">
                   {filteredGuests?.map((guest) => (
-                    <tr key={guest.id} className="text-sm hover:bg-[#9CD9F6]/5 transition-colors">
+                    <tr
+                      key={guest.id}
+                      className={`text-sm transition-colors ${
+                        selectedGuestIds.has(guest.id)
+                          ? 'bg-[#9CD9F6]/10'
+                          : 'hover:bg-[#9CD9F6]/5'
+                      }`}
+                    >
+                      <td className="py-3">
+                        <button
+                          onClick={() => toggleSelectGuest(guest.id)}
+                          className="p-1 hover:bg-[#9CD9F6]/20 rounded transition-colors"
+                        >
+                          {selectedGuestIds.has(guest.id) ? (
+                            <CheckSquare className="h-5 w-5 text-[#009197]" />
+                          ) : (
+                            <Square className="h-5 w-5 text-[#004645]/40" />
+                          )}
+                        </button>
+                      </td>
                       <td className="py-3">
                         <div className="font-medium text-[#004645]">
                           {guest.firstName} {guest.lastName}
@@ -531,6 +659,41 @@ export default function GuestsPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Floating Selection Action Bar */}
+      {selectedGuestIds.size > 0 && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50">
+          <Card className="border-[#009197] shadow-2xl bg-white">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <CheckSquare className="h-5 w-5 text-[#009197]" />
+                  <span className="font-medium text-[#004645]">
+                    {selectedGuestIds.size} invité{selectedGuestIds.size > 1 ? 's' : ''} sélectionné{selectedGuestIds.size > 1 ? 's' : ''}
+                  </span>
+                </div>
+                <div className="h-6 w-px bg-[#9CD9F6]" />
+                <SendInvitationsDialog
+                  eventId={eventId}
+                  totalGuests={event.guests.length}
+                  pendingGuests={event.guests.filter((g) => !g.rsvp || g.rsvp.attending === null).length}
+                  selectedGuestIds={Array.from(selectedGuestIds)}
+                  onComplete={clearSelection}
+                />
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={clearSelection}
+                  className="text-[#FF4713] hover:bg-[#FF4713]/10"
+                >
+                  <X className="h-4 w-4 mr-1" />
+                  Annuler
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   )
 }
