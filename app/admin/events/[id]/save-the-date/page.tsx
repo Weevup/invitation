@@ -18,6 +18,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { toast } from "sonner";
 import { createClientLogger } from '@/lib/client-logger'
+import { ImageUpload } from "@/components/admin/image-upload";
 
 const logger = createClientLogger({ component: 'SaveTheDatePage' })
 
@@ -290,33 +291,35 @@ export default function SaveTheDateBuilderPage() {
                         Personnalisez les couleurs et images
                       </CardDescription>
                     </CardHeader>
-                    <CardContent className="space-y-4">
+                    <CardContent className="space-y-6">
                       <div>
-                        <Label>Image d&apos;en-tête</Label>
-                        <div className="flex gap-2">
-                          <Input
-                            value={design.headerImage}
-                            onChange={(e) => setDesign({ ...design, headerImage: e.target.value })}
-                            placeholder="URL de l'image"
-                          />
-                          <Button variant="outline" size="icon">
-                            <Upload className="h-4 w-4" />
-                          </Button>
-                        </div>
+                        <Label className="mb-2 block">Image d&apos;en-tête</Label>
+                        <ImageUpload
+                          currentImageUrl={design.headerImage}
+                          onImageUploaded={(url) => setDesign({ ...design, headerImage: url })}
+                          onImageDeleted={() => setDesign({ ...design, headerImage: '' })}
+                          label="Image d'en-tête"
+                          aspectRatio="wide"
+                          maxSizeMB={10}
+                        />
+                        <p className="text-xs text-[#004645]/60 mt-2">
+                          Format recommandé : 1200x400px (ratio 21:9)
+                        </p>
                       </div>
 
                       <div>
-                        <Label>Logo</Label>
-                        <div className="flex gap-2">
-                          <Input
-                            value={design.logoImage}
-                            onChange={(e) => setDesign({ ...design, logoImage: e.target.value })}
-                            placeholder="URL du logo"
-                          />
-                          <Button variant="outline" size="icon">
-                            <Upload className="h-4 w-4" />
-                          </Button>
-                        </div>
+                        <Label className="mb-2 block">Logo</Label>
+                        <ImageUpload
+                          currentImageUrl={design.logoImage}
+                          onImageUploaded={(url) => setDesign({ ...design, logoImage: url })}
+                          onImageDeleted={() => setDesign({ ...design, logoImage: '' })}
+                          label="Logo"
+                          aspectRatio="square"
+                          maxSizeMB={5}
+                        />
+                        <p className="text-xs text-[#004645]/60 mt-2">
+                          Format recommandé : 256x256px (carré)
+                        </p>
                       </div>
 
                       <div className="grid grid-cols-2 gap-4">
