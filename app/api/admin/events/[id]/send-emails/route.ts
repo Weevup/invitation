@@ -98,12 +98,16 @@ export async function POST(
 
     // Envoi immédiat
     const results = {
-      sent: 0,
+      total: 0,
+      success: 0,
       failed: 0,
       errors: [] as string[],
     };
 
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+
+    // Set total number of guests to process
+    results.total = event.guests.length;
 
     for (const guest of event.guests) {
       try {
@@ -296,7 +300,7 @@ export async function POST(
           },
         });
 
-        results.sent++;
+        results.success++;
       } catch (error) {
         emailSendLogger.error({ error, guestEmail: guest.email, guestId: guest.id, eventId, emailType: type }, 'Failed to send email to guest');
         results.failed++;

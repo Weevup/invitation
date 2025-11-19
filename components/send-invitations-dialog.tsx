@@ -62,13 +62,6 @@ export function SendInvitationsDialog({
     errors: string[];
   } | null>(null);
 
-  // Fetch templates when dialog opens
-  useEffect(() => {
-    if (open && templates.length === 0) {
-      fetchTemplates();
-    }
-  }, [open, templates.length]);
-
   const fetchTemplates = async () => {
     setLoadingTemplates(true);
     try {
@@ -84,6 +77,14 @@ export function SendInvitationsDialog({
       setLoadingTemplates(false);
     }
   };
+
+  // Fetch templates when dialog opens
+  useEffect(() => {
+    if (open && templates.length === 0) {
+      fetchTemplates();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, templates.length]);
 
   const handleSend = async () => {
     setLoading(true);
