@@ -120,8 +120,8 @@ export function ImportCSVDialog({ eventId, onImportComplete }: ImportCSVDialogPr
           setProgress({ current: i + 1, total: data.length });
 
           // Validate required fields
-          if (!row.firstName || !row.lastName || !row.email) {
-            errors.push(`Ligne ${i + 2}: Prénom, nom et email sont requis`);
+          if (!row.firstName || !row.email) {
+            errors.push(`Ligne ${i + 2}: Prénom et email sont requis`);
             continue;
           }
 
@@ -222,7 +222,7 @@ export function ImportCSVDialog({ eventId, onImportComplete }: ImportCSVDialogPr
   const downloadTemplate = () => {
     const csvContent = `firstName,lastName,email,company,phone,phoneNumber,jobTitle,department,companySize,industry,linkedinUrl,tags,dietaryReqs,accessibility
 Sophie,Martin,sophie.martin@example.com,Tech Solutions,+33612345678,,CEO,Direction,GE,Technologie,https://linkedin.com/in/sophiemartin,"VIP,Sponsor",Végétarien,
-Jean,Dupont,jean.dupont@example.com,Digital Agency,+33687654321,0145678901,CTO,Technique,PME,Digital,,Presse,Sans gluten,
+Jean,,jean.dupont@example.com,Digital Agency,+33687654321,0145678901,CTO,Technique,PME,Digital,,Presse,Sans gluten,
 Marie,Bernard,marie.bernard@example.com,StartupCo,+33698765432,,Product Manager,Produit,TPE,SaaS,,"Innovation,Tech",,Accès PMR`;
 
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -247,8 +247,8 @@ Marie,Bernard,marie.bernard@example.com,StartupCo,+33698765432,,Product Manager,
             <div>
               <DialogTitle>Importer des invités depuis un CSV</DialogTitle>
               <DialogDescription>
-                Colonnes requises : firstName, lastName, email<br/>
-                Colonnes optionnelles : company, jobTitle, phone, phoneNumber, tags, etc.
+                Colonnes requises : firstName, email<br/>
+                Colonnes optionnelles : lastName, company, jobTitle, phone, phoneNumber, tags, etc.
               </DialogDescription>
             </div>
             <Button
@@ -373,9 +373,10 @@ Marie,Bernard,marie.bernard@example.com,StartupCo,+33698765432,,Product Manager,
                 <br />
                 Sophie,Martin,sophie@example.com,Tech Solutions,+33612345678,CEO,VIP
                 <br />
-                Jean,Dupont,jean@example.com,Digital Agency,+33687654321,CTO,Presse,Sponsor
+                Jean,,jean@example.com,Digital Agency,+33687654321,CTO,Presse,Sponsor
               </code>
               <p className="mt-2 text-muted-foreground">
+                💡 <strong>lastName</strong> est optionnel - vous pouvez le laisser vide<br/>
                 💡 <strong>Phone</strong> doit être au format international (+33...) pour recevoir des SMS
               </p>
             </div>
