@@ -112,10 +112,15 @@ export default function EmailAnalyticsPage() {
 
   const [data, setData] = useState<EmailAnalytics | null>(null)
   const [loading, setLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const fetchData = useCallback(async () => {
-    setLoading(true)
+  const fetchData = useCallback(async (isManualRefresh = false) => {
+    if (isManualRefresh) {
+      setRefreshing(true)
+    } else {
+      setLoading(true)
+    }
     setError(null)
     try {
       const response = await fetch(`/api/admin/events/${eventId}/email-analytics`)
@@ -129,11 +134,19 @@ export default function EmailAnalyticsPage() {
       setError(err instanceof Error ? err.message : 'Erreur de chargement')
     } finally {
       setLoading(false)
+      setRefreshing(false)
     }
   }, [eventId])
 
   useEffect(() => {
     fetchData()
+
+    // Auto-refresh every 30 seconds for real-time email tracking
+    const interval = setInterval(() => {
+      fetchData()
+    }, 30000)
+
+    return () => clearInterval(interval)
   }, [fetchData])
 
   if (loading) {
@@ -184,10 +197,16 @@ export default function EmailAnalyticsPage() {
           </h2>
           <p className="text-[#004645]/70">
             Statistiques détaillées sur vos envois d&apos;emails
+            <span className="text-xs ml-2 text-[#009197]">• Actualisation auto toutes les 30s</span>
           </p>
         </div>
-        <Button onClick={fetchData} variant="outline" className="border-[#009197] text-[#009197]">
-          <RefreshCw className="h-4 w-4 mr-2" />
+        <Button
+          onClick={() => fetchData(true)}
+          variant="outline"
+          className="border-[#009197] text-[#009197] hover:bg-[#009197] hover:text-white"
+          disabled={refreshing}
+        >
+          <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
           Actualiser
         </Button>
       </div>

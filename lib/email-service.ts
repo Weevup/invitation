@@ -7,7 +7,7 @@
  */
 
 import nodemailer from 'nodemailer'
-import { decrypt } from './encryption'
+import { decrypt, safeDecrypt } from './encryption'
 import { emailLogger } from './logger'
 
 export interface EmailData {
@@ -229,7 +229,7 @@ async function sendViaSendGrid(
   fromName?: string | null,
   replyTo?: string | null
 ): Promise<EmailResult> {
-  const apiKey = integration.apiKey ? decrypt(integration.apiKey) : ''
+  const apiKey = integration.apiKey || ''
 
   const payload = {
     personalizations: [{
@@ -272,7 +272,7 @@ async function sendViaResend(
   fromName?: string | null,
   replyTo?: string | null
 ): Promise<EmailResult> {
-  const apiKey = integration.apiKey ? decrypt(integration.apiKey) : ''
+  const apiKey = integration.apiKey || ''
 
   const payload = {
     from: fromName ? `${fromName} <${from}>` : from,
@@ -308,7 +308,7 @@ async function sendViaMailgun(
   fromName?: string | null,
   replyTo?: string | null
 ): Promise<EmailResult> {
-  const apiKey = integration.apiKey ? decrypt(integration.apiKey) : ''
+  const apiKey = integration.apiKey || ''
   const domain = integration.apiSecret
 
   const formData = new FormData()
@@ -345,7 +345,7 @@ async function sendViaSMTP(
   fromName?: string | null,
   replyTo?: string | null
 ): Promise<EmailResult> {
-  const smtpPass = integration.smtpPass ? decrypt(integration.smtpPass) : ''
+  const smtpPass = integration.smtpPass || ''
 
   const transporter = nodemailer.createTransport({
     host: integration.smtpHost || undefined,
@@ -420,12 +420,12 @@ export async function sendEmailLegacy(params: {
         integration = {
           id: dbIntegration.id,
           provider: dbIntegration.provider as any,
-          apiKey: dbIntegration.apiKey ? decrypt(dbIntegration.apiKey) : null,
-          apiSecret: dbIntegration.apiSecret ? decrypt(dbIntegration.apiSecret) : null,
+          apiKey: dbIntegration.apiKey ? safeDecrypt(dbIntegration.apiKey) : null,
+          apiSecret: dbIntegration.apiSecret ? safeDecrypt(dbIntegration.apiSecret) : null,
           smtpHost: dbIntegration.smtpHost,
           smtpPort: dbIntegration.smtpPort,
           smtpUser: dbIntegration.smtpUser,
-          smtpPass: dbIntegration.smtpPass ? decrypt(dbIntegration.smtpPass) : null,
+          smtpPass: dbIntegration.smtpPass ? safeDecrypt(dbIntegration.smtpPass) : null,
           fromEmail: dbIntegration.fromEmail,
           fromName: dbIntegration.fromName,
           replyTo: dbIntegration.replyTo,
