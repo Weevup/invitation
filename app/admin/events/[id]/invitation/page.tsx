@@ -189,12 +189,98 @@ export default function InvitationDesignPage() {
               color: design.textColor
             }}
           >
-            {/* Header Image */}
-            {design.headerImage && (
-              <div className="w-full h-64 bg-cover bg-center" style={{ backgroundImage: `url(${design.headerImage})` }} />
-            )}
+            {/* Minimal Layout */}
+            {design.layout === 'minimal' ? (
+              <div className="relative w-full min-h-[600px] flex items-center justify-center">
+                {/* Background Image */}
+                {design.headerImage && (
+                  <div
+                    className="absolute inset-0 bg-cover bg-center"
+                    style={{
+                      backgroundImage: `url(${design.headerImage})`,
+                      filter: 'brightness(0.7)'
+                    }}
+                  />
+                )}
 
-            <div className="p-8 md:p-12 space-y-8">
+                {/* Overlay Content */}
+                <div className="relative z-10 text-center space-y-8 p-8">
+                  {design.logoUrl && (
+                    <div className="flex justify-center mb-6">
+                      <div className="relative h-20 w-auto max-w-xs">
+                        <Image
+                          src={design.logoUrl}
+                          alt="Logo"
+                          width={256}
+                          height={80}
+                          className="h-20 w-auto object-contain drop-shadow-lg"
+                          style={{ width: 'auto', height: '5rem' }}
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  <h1
+                    className="text-6xl md:text-7xl font-bold text-white drop-shadow-2xl"
+                    style={{
+                      fontFamily: design.fontFamily,
+                      textShadow: '0 4px 6px rgba(0, 0, 0, 0.5)'
+                    }}
+                  >
+                    {design.eventName}
+                  </h1>
+
+                  {design.description && (
+                    <p className="text-xl md:text-2xl text-white max-w-2xl mx-auto drop-shadow-lg">
+                      {design.description}
+                    </p>
+                  )}
+
+                  {/* Compact event info */}
+                  <div className="flex flex-wrap gap-4 justify-center text-white text-lg">
+                    {design.showDate && design.date && (
+                      <div className="flex items-center gap-2 bg-black/30 backdrop-blur-sm px-4 py-2 rounded-full">
+                        <Calendar className="h-5 w-5" />
+                        <span>{new Date(design.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })}</span>
+                      </div>
+                    )}
+                    {design.showTime && design.time && (
+                      <div className="flex items-center gap-2 bg-black/30 backdrop-blur-sm px-4 py-2 rounded-full">
+                        <Clock className="h-5 w-5" />
+                        <span>{design.time}</span>
+                      </div>
+                    )}
+                    {design.showLocation && design.location && (
+                      <div className="flex items-center gap-2 bg-black/30 backdrop-blur-sm px-4 py-2 rounded-full">
+                        <MapPin className="h-5 w-5" />
+                        <span>{design.location}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* RSVP Button */}
+                  <div className="flex justify-center pt-6">
+                    <Button
+                      size="lg"
+                      className="text-white font-bold text-lg px-8 py-6 shadow-2xl"
+                      style={{
+                        background: `linear-gradient(to right, ${design.primaryColor}, ${design.secondaryColor})`
+                      }}
+                    >
+                      Confirmer ma présence
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <>
+                {/* Classic Layout */}
+                {/* Header Image */}
+                {design.headerImage && (
+                  <div className="w-full h-64 bg-cover bg-center" style={{ backgroundImage: `url(${design.headerImage})` }} />
+                )}
+
+                <div className="p-8 md:p-12 space-y-8">
               {/* Logo */}
               {design.logoUrl && (
                 <div className="flex justify-center">
@@ -308,6 +394,8 @@ export default function InvitationDesignPage() {
                 </Button>
               </div>
             </div>
+              </>
+            )}
           </div>
         </Card>
       ) : (
@@ -331,9 +419,19 @@ export default function InvitationDesignPage() {
                     className="border-[#9CD9F6]/30"
                     placeholder="Vous êtes invité(e) - {{event.name}}"
                   />
-                  <p className="text-xs text-[#004645]/60 mt-1">
-                    Utilisez {"{{event.name}}"} pour le nom de l&apos;événement, {"{{event.date}}"} pour la date
-                  </p>
+                  <div className="mt-2 p-3 bg-gray-50 rounded-md text-xs text-[#004645]/70">
+                    <p className="font-semibold mb-1">📝 Variables disponibles :</p>
+                    <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+                      <span><code className="text-[#009197]">{"{{event.name}}"}</code> - Nom de l&apos;événement</span>
+                      <span><code className="text-[#009197]">{"{{event.date}}"}</code> - Date complète</span>
+                      <span><code className="text-[#009197]">{"{{event.time}}"}</code> - Heure</span>
+                      <span><code className="text-[#009197]">{"{{event.location}}"}</code> - Lieu</span>
+                      <span><code className="text-[#009197]">{"{{guest.firstName}}"}</code> - Prénom</span>
+                      <span><code className="text-[#009197]">{"{{guest.lastName}}"}</code> - Nom</span>
+                      <span><code className="text-[#009197]">{"{{guest.fullName}}"}</code> - Nom complet</span>
+                      <span><code className="text-[#009197]">{"{{event.city}}"}</code> - Ville</span>
+                    </div>
+                  </div>
                 </div>
 
                 <div>
@@ -345,7 +443,7 @@ export default function InvitationDesignPage() {
                     placeholder="⏰ Rappel : {{event.name}} - Ne manquez pas !"
                   />
                   <p className="text-xs text-[#004645]/60 mt-1">
-                    Utilisé pour les rappels RSVP
+                    Utilisé pour les rappels RSVP • Mêmes variables disponibles qu&apos;au-dessus
                   </p>
                 </div>
 
@@ -519,6 +617,83 @@ export default function InvitationDesignPage() {
 
           {/* Design & Apparence */}
           <div className="space-y-4">
+            <Card className="border-[#9CD9F6]/30 bg-white/80 backdrop-blur">
+              <CardHeader>
+                <CardTitle className="text-[#004645] flex items-center gap-2">
+                  <Layout className="h-5 w-5" />
+                  Style de mise en page
+                </CardTitle>
+                <CardDescription>
+                  Choisissez le style d&apos;affichage de votre invitation
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => updateDesign('layout', 'classic')}
+                    className={`p-4 border-2 rounded-lg text-left transition-all ${
+                      design.layout === 'classic'
+                        ? 'border-[#009197] bg-[#9CD9F6]/10'
+                        : 'border-gray-200 hover:border-[#009197]/50'
+                    }`}
+                  >
+                    <p className="font-semibold text-sm mb-1">Classic</p>
+                    <p className="text-xs text-gray-600">Mise en page traditionnelle avec tous les détails</p>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => updateDesign('layout', 'minimal')}
+                    className={`p-4 border-2 rounded-lg text-left transition-all ${
+                      design.layout === 'minimal'
+                        ? 'border-[#009197] bg-[#9CD9F6]/10'
+                        : 'border-gray-200 hover:border-[#009197]/50'
+                    }`}
+                  >
+                    <p className="font-semibold text-sm mb-1">Minimal</p>
+                    <p className="text-xs text-gray-600">Image pleine largeur + titre + bouton RSVP</p>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => updateDesign('layout', 'modern')}
+                    className={`p-4 border-2 rounded-lg text-left transition-all ${
+                      design.layout === 'modern'
+                        ? 'border-[#009197] bg-[#9CD9F6]/10'
+                        : 'border-gray-200 hover:border-[#009197]/50'
+                    }`}
+                  >
+                    <p className="font-semibold text-sm mb-1">Modern</p>
+                    <p className="text-xs text-gray-600">Design épuré et contemporain</p>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => updateDesign('layout', 'elegant')}
+                    className={`p-4 border-2 rounded-lg text-left transition-all ${
+                      design.layout === 'elegant'
+                        ? 'border-[#009197] bg-[#9CD9F6]/10'
+                        : 'border-gray-200 hover:border-[#009197]/50'
+                    }`}
+                  >
+                    <p className="font-semibold text-sm mb-1">Elegant</p>
+                    <p className="text-xs text-gray-600">Style raffiné pour événements formels</p>
+                  </button>
+                </div>
+
+                {design.layout === 'minimal' && (
+                  <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                    <p className="text-sm text-blue-900">
+                      <strong>Mode Minimal :</strong> Parfait pour une invitation simple et visuelle.
+                      L&apos;image d&apos;en-tête sera affichée en pleine largeur avec le titre de l&apos;événement
+                      superposé et le bouton RSVP directement dessus.
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
             <Card className="border-[#9CD9F6]/30 bg-white/80 backdrop-blur">
               <CardHeader>
                 <CardTitle className="text-[#004645] flex items-center gap-2">

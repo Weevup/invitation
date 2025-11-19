@@ -174,6 +174,9 @@ export async function POST(
             'event.name': config.eventName || event.name,
             'event.date': config.dateAnnouncement || new Date(event.startsAt).toLocaleDateString('fr-FR'),
             'event.location': config.locationHint || event.city || '',
+            'guest.firstName': guest.firstName,
+            'guest.lastName': guest.lastName,
+            'guest.fullName': `${guest.firstName} ${guest.lastName}`,
           };
 
           // Use custom subject or fallback to default
@@ -225,7 +228,17 @@ export async function POST(
               month: 'long',
               day: 'numeric'
             }),
+            'event.time': new Date(event.startsAt).toLocaleTimeString('fr-FR', {
+              hour: '2-digit',
+              minute: '2-digit'
+            }),
             'event.location': event.venueName || '',
+            'event.address': event.address || '',
+            'event.city': event.city || '',
+            'guest.firstName': guest.firstName,
+            'guest.lastName': guest.lastName,
+            'guest.fullName': `${guest.firstName} ${guest.lastName}`,
+            'guest.email': guest.email,
           };
 
           // Use custom subject or fallback to default
@@ -271,7 +284,17 @@ export async function POST(
               month: 'long',
               day: 'numeric'
             }),
+            'event.time': new Date(event.startsAt).toLocaleTimeString('fr-FR', {
+              hour: '2-digit',
+              minute: '2-digit'
+            }),
             'event.location': event.venueName || '',
+            'event.address': event.address || '',
+            'event.city': event.city || '',
+            'guest.firstName': guest.firstName,
+            'guest.lastName': guest.lastName,
+            'guest.fullName': `${guest.firstName} ${guest.lastName}`,
+            'guest.email': guest.email,
           };
 
           // Use custom subject or fallback to default

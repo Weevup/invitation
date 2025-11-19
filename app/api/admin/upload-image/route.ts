@@ -46,22 +46,48 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Check if Vercel Blob token is configured
+    if (!process.env.BLOB_READ_WRITE_TOKEN) {
+      logger.warn('BLOB_READ_WRITE_TOKEN not configured')
+      return NextResponse.json(
+        {
+          error: 'BLOB_TOKEN_NOT_CONFIGURED',
+          message: 'Le stockage d\'images n\'est pas configuré. Veuillez ajouter BLOB_READ_WRITE_TOKEN dans les variables d\'environnement Vercel.'
+        },
+        { status: 503 }
+      )
+    }
+
     // Upload to Vercel Blob
     const fileExtension = file.type.split('/')[1]
     const fileName = `event-images/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExtension}`
 
-    const blob = await put(fileName, file, {
-      access: 'public',
-      addRandomSuffix: false,
-    })
+    try {
+      const blob = await put(fileName, file, {
+        access: 'public',
+        addRandomSuffix: false,
+      })
 
-    logger.info({ url: blob.url, fileName }, 'Uploaded image to Blob')
+      logger.info({ url: blob.url, fileName }, 'Uploaded image to Blob')
 
-    return NextResponse.json({
-      success: true,
-      url: blob.url,
-      fileName: fileName,
-    })
+      return NextResponse.json({
+        success: true,
+        url: blob.url,
+        fileName: fileName,
+      })
+    } catch (blobError) {
+      logger.error({ error: blobError, fileName }, 'Failed to upload to Vercel Blob')
+
+      // More specific error for Blob issues
+      return NextResponse.json(
+        {
+          error: 'BLOB_UPLOAD_FAILED',
+          message: 'Échec du téléchargement vers le stockage. Vérifiez la configuration Vercel Blob.',
+          details: blobError instanceof Error ? blobError.message : 'Unknown error'
+        },
+        { status: 500 }
+      )
+    }
   } catch (error) {
     logger.error({ error, action: 'uploadImage' }, 'Error uploading image')
     return handleAuthError(error)

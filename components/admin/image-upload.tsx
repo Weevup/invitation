@@ -64,11 +64,13 @@ export function ImageUpload({
         body: formData,
       })
 
-      if (!response.ok) {
-        throw new Error('Upload failed')
-      }
-
       const data = await response.json()
+
+      if (!response.ok) {
+        // More specific error message
+        const errorMessage = data.error || data.message || 'Upload failed'
+        throw new Error(errorMessage)
+      }
 
       setImageUrl(data.url)
       onImageUploaded(data.url)
@@ -76,7 +78,20 @@ export function ImageUpload({
       toast.success('Image téléchargée avec succès')
     } catch (error) {
       console.error('Error uploading image:', error)
-      toast.error('Erreur lors du téléchargement de l\'image')
+      const errorMessage = error instanceof Error ? error.message : 'Erreur lors du téléchargement'
+
+      // Show more helpful error messages
+      if (errorMessage.includes('BLOB_')) {
+        toast.error('Erreur de configuration du stockage. Vérifiez que BLOB_READ_WRITE_TOKEN est configuré dans les variables d\'environnement.')
+      } else if (errorMessage.includes('Unauthorized') || errorMessage.includes('403')) {
+        toast.error('Accès non autorisé. Veuillez vous reconnecter.')
+      } else if (errorMessage.includes('Invalid file type')) {
+        toast.error('Type de fichier invalide. Utilisez JPEG, PNG ou WebP.')
+      } else if (errorMessage.includes('File too large')) {
+        toast.error(`Fichier trop volumineux. Taille maximale : ${maxSizeMB}MB`)
+      } else {
+        toast.error(`Erreur: ${errorMessage}`)
+      }
     } finally {
       setIsUploading(false)
     }
