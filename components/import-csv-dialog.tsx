@@ -44,6 +44,7 @@ export function ImportCSVDialog({ eventId, onImportComplete }: ImportCSVDialogPr
   const [loading, setLoading] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<CSVRow[]>([]);
+  const [progress, setProgress] = useState<{ current: number; total: number } | null>(null);
   const [results, setResults] = useState<{
     success: number;
     errors: string[];
@@ -56,23 +57,44 @@ export function ImportCSVDialog({ eventId, onImportComplete }: ImportCSVDialogPr
       setFile(selectedFile);
       setResults(null);
 
+      // Validate file type
+      if (!selectedFile.name.endsWith('.csv')) {
+        toast.error('Le fichier doit être au format CSV');
+        setFile(null);
+        return;
+      }
+
       // Parse CSV for preview
       Papa.parse(selectedFile, {
         header: true,
         skipEmptyLines: true,
         complete: (results) => {
           const data = results.data as CSVRow[];
+          if (data.length === 0) {
+            toast.error('Le fichier CSV est vide');
+            setFile(null);
+            return;
+          }
           setPreview(data.slice(0, 5)); // Show first 5 rows
+          toast.success(`Fichier chargé : ${data.length} ligne(s) détectée(s)`);
         },
+        error: (error) => {
+          toast.error(`Erreur de lecture du CSV : ${error.message}`);
+          setFile(null);
+        }
       });
     }
   };
 
   const handleImport = async () => {
-    if (!file) return;
+    if (!file) {
+      toast.error('Aucun fichier sélectionné');
+      return;
+    }
 
     setLoading(true);
     setResults(null);
+    setProgress(null);
 
     toast.info(`Démarrage de l'import...`);
 
@@ -84,10 +106,18 @@ export function ImportCSVDialog({ eventId, onImportComplete }: ImportCSVDialogPr
         const errors: string[] = [];
         let successCount = 0;
 
+        if (data.length === 0) {
+          toast.error('Le fichier CSV est vide');
+          setLoading(false);
+          return;
+        }
+
+        setProgress({ current: 0, total: data.length });
         toast.info(`${data.length} ligne(s) détectée(s). Import en cours...`);
 
         for (let i = 0; i < data.length; i++) {
           const row = data[i];
+          setProgress({ current: i + 1, total: data.length });
 
           // Validate required fields
           if (!row.firstName || !row.lastName || !row.email) {
@@ -97,48 +127,56 @@ export function ImportCSVDialog({ eventId, onImportComplete }: ImportCSVDialogPr
 
           // Import guest
           try {
+            const payload = {
+              firstName: row.firstName.trim(),
+              lastName: row.lastName.trim(),
+              email: row.email.trim().toLowerCase(),
+              company: row.company?.trim() || undefined,
+              tags: row.tags
+                ? row.tags.split(",").map((t) => t.trim()).filter(Boolean)
+                : [],
+              // Professional fields
+              jobTitle: row.jobTitle?.trim() || undefined,
+              department: row.department?.trim() || undefined,
+              companySize: row.companySize?.trim() || undefined,
+              industry: row.industry?.trim() || undefined,
+              phone: row.phone?.trim() || undefined, // SMS phone (international)
+              phoneNumber: row.phoneNumber?.trim() || undefined, // Landline
+              linkedinUrl: row.linkedinUrl?.trim() || undefined,
+              // Event needs
+              dietaryReqs: row.dietaryReqs?.trim() || undefined,
+              accessibility: row.accessibility?.trim() || undefined,
+            };
+
+            console.log(`Importing guest ${i + 1}/${data.length}:`, payload);
+
             const response = await fetch(`/api/admin/events/${eventId}/guests`, {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
               },
-              body: JSON.stringify({
-                firstName: row.firstName.trim(),
-                lastName: row.lastName.trim(),
-                email: row.email.trim().toLowerCase(),
-                company: row.company?.trim() || null,
-                tags: row.tags
-                  ? row.tags.split(",").map((t) => t.trim()).filter(Boolean)
-                  : [],
-                // Professional fields
-                jobTitle: row.jobTitle?.trim() || null,
-                department: row.department?.trim() || null,
-                companySize: row.companySize?.trim() || null,
-                industry: row.industry?.trim() || null,
-                phone: row.phone?.trim() || null, // SMS phone (international)
-                phoneNumber: row.phoneNumber?.trim() || null, // Landline
-                linkedinUrl: row.linkedinUrl?.trim() || null,
-                // Event needs
-                dietaryReqs: row.dietaryReqs?.trim() || null,
-                accessibility: row.accessibility?.trim() || null,
-              }),
+              body: JSON.stringify(payload),
             });
 
             if (response.ok) {
               successCount++;
+              console.log(`✓ Guest ${i + 1} imported successfully`);
             } else {
               const error = await response.json();
-              errors.push(
-                `Ligne ${i + 2} (${row.email}): ${error.error || "Erreur inconnue"}`
-              );
+              const errorMsg = `Ligne ${i + 2} (${row.email}): ${error.error || error.message || "Erreur inconnue"}`;
+              console.error(`✗ Guest ${i + 1} failed:`, error);
+              errors.push(errorMsg);
             }
           } catch (error) {
-            errors.push(`Ligne ${i + 2} (${row.email}): Erreur de connexion`);
+            const errorMsg = `Ligne ${i + 2} (${row.email}): ${error instanceof Error ? error.message : 'Erreur de connexion'}`;
+            console.error(`✗ Guest ${i + 1} exception:`, error);
+            errors.push(errorMsg);
           }
         }
 
         setResults({ success: successCount, errors });
         setLoading(false);
+        setProgress(null);
 
         if (successCount > 0) {
           toast.success(`✅ ${successCount} invité(s) importé(s) avec succès !`);
@@ -148,7 +186,17 @@ export function ImportCSVDialog({ eventId, onImportComplete }: ImportCSVDialogPr
         if (errors.length > 0) {
           toast.error(`❌ ${errors.length} erreur(s) lors de l'import`);
         }
+
+        if (successCount === 0 && errors.length === 0) {
+          toast.warning('Aucun invité n\'a été importé');
+        }
       },
+      error: (error) => {
+        console.error('CSV parsing error:', error);
+        toast.error(`Erreur de lecture du CSV : ${error.message}`);
+        setLoading(false);
+        setProgress(null);
+      }
     });
   };
 
@@ -228,8 +276,24 @@ Marie,Bernard,marie.bernard@example.com,StartupCo,+33698765432,,Product Manager,
             </label>
           </div>
 
+          {/* Progress Indicator */}
+          {progress && loading && (
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm text-gray-700">
+                <span>Import en cours...</span>
+                <span>{progress.current} / {progress.total}</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2.5">
+                <div
+                  className="bg-[#009197] h-2.5 rounded-full transition-all duration-300"
+                  style={{ width: `${(progress.current / progress.total) * 100}%` }}
+                ></div>
+              </div>
+            </div>
+          )}
+
           {/* Preview */}
-          {preview.length > 0 && !results && (
+          {preview.length > 0 && !results && !progress && (
             <div>
               <h4 className="text-sm font-medium mb-2">
                 Aperçu ({preview.length} premières lignes):
@@ -310,12 +374,42 @@ Marie,Bernard,marie.bernard@example.com,StartupCo,+33698765432,,Product Manager,
         </div>
 
         <DialogFooter>
+          {results && (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                setResults(null);
+                setFile(null);
+                setPreview([]);
+                if (fileInputRef.current) {
+                  fileInputRef.current.value = "";
+                }
+              }}
+            >
+              Importer un autre fichier
+            </Button>
+          )}
           <Button type="button" variant="outline" onClick={handleClose} disabled={loading}>
             {results ? "Fermer" : "Annuler"}
           </Button>
           {!results && (
-            <Button onClick={handleImport} disabled={!file || loading}>
-              {loading ? "Import en cours..." : "Importer"}
+            <Button
+              onClick={handleImport}
+              disabled={!file || loading}
+              className="bg-[#009197] hover:bg-[#004645]"
+            >
+              {loading ? (
+                <>
+                  <Upload className="h-4 w-4 mr-2 animate-pulse" />
+                  Import en cours...
+                </>
+              ) : (
+                <>
+                  <Upload className="h-4 w-4 mr-2" />
+                  Importer {preview.length > 0 && `(${preview.length}+ lignes)`}
+                </>
+              )}
             </Button>
           )}
         </DialogFooter>
