@@ -242,12 +242,15 @@ export function EditGuestDialog({ eventId, guest, open, onOpenChange, onGuestUpd
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="companySize">Taille de l&apos;entreprise</Label>
-                  <Select value={formData.companySize} onValueChange={(value) => setFormData({ ...formData, companySize: value })}>
+                  <Select
+                    value={formData.companySize || "none"}
+                    onValueChange={(value) => setFormData({ ...formData, companySize: value === "none" ? "" : value })}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Sélectionnez..." />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Aucune</SelectItem>
+                      <SelectItem value="none">Aucune</SelectItem>
                       <SelectItem value="TPE">TPE (1-10 employés)</SelectItem>
                       <SelectItem value="PME">PME (11-250 employés)</SelectItem>
                       <SelectItem value="ETI">ETI (251-5000 employés)</SelectItem>

@@ -7,11 +7,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import {
-  Users, Download, Search, Link as LinkIcon, UserPlus, Upload, Eye, Filter, CreditCard, CheckSquare, Square, X, RefreshCw, Edit
+  Users, Download, Search, Link as LinkIcon, UserPlus, Upload, Eye, Filter, CreditCard, CheckSquare, Square, X, RefreshCw, Edit, Trash2
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { AddGuestDialog } from '@/components/add-guest-dialog'
 import { EditGuestDialog } from '@/components/edit-guest-dialog'
+import { DeleteGuestDialog } from '@/components/delete-guest-dialog'
 import { ImportCSVDialog } from '@/components/import-csv-dialog'
 import { SendInvitationsDialog } from '@/components/send-invitations-dialog'
 import { SendSMSDialog } from '@/components/send-sms-dialog'
@@ -86,6 +87,8 @@ export default function GuestsPage() {
   const [selectedGuest, setSelectedGuest] = useState<Guest | null>(null)
   const [editingGuest, setEditingGuest] = useState<Guest | null>(null)
   const [editDialogOpen, setEditDialogOpen] = useState(false)
+  const [deletingGuest, setDeletingGuest] = useState<Guest | null>(null)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [tagFilter, setTagFilter] = useState<string>('all')
   // Professional filters
@@ -313,6 +316,24 @@ export default function GuestsPage() {
           onGuestUpdated={() => {
             fetchEvent()
             toast.success('Invité mis à jour')
+          }}
+        />
+      )}
+
+      {/* Delete Guest Dialog */}
+      {deletingGuest && (
+        <DeleteGuestDialog
+          eventId={eventId}
+          guest={deletingGuest}
+          open={deleteDialogOpen}
+          onOpenChange={(open) => {
+            setDeleteDialogOpen(open)
+            if (!open) {
+              setDeletingGuest(null)
+            }
+          }}
+          onGuestDeleted={() => {
+            fetchEvent()
           }}
         />
       )}
@@ -722,6 +743,18 @@ export default function GuestsPage() {
                             title="Exporter le programme PDF"
                           >
                             <Download className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => {
+                              setDeletingGuest(guest)
+                              setDeleteDialogOpen(true)
+                            }}
+                            className="text-red-600 hover:text-red-800 hover:bg-red-50"
+                            title="Supprimer l'invité"
+                          >
+                            <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
                       </td>
