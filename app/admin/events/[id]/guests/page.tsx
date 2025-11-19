@@ -154,7 +154,7 @@ export default function GuestsPage() {
 
     const csvData = event.guests.map((guest) => ({
       Prénom: guest.firstName,
-      Nom: guest.lastName,
+      Nom: guest.lastName || '',
       Email: guest.email,
       Entreprise: guest.company || '',
       Tags: guest.tags.join(', '),

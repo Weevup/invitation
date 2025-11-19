@@ -127,7 +127,7 @@ export default function RSVPManagementPage() {
       const responseDate = guest.rsvp?.createdAt
         ? new Date(guest.rsvp.createdAt).toLocaleDateString('fr-FR')
         : 'N/A'
-      csv += `${guest.firstName},${guest.lastName},${guest.email},${guest.company || ''},${guest.event.name},${status},${responseDate}\n`
+      csv += `${guest.firstName},${guest.lastName || ''},${guest.email},${guest.company || ''},${guest.event.name},${status},${responseDate}\n`
     })
 
     const blob = new Blob([csv], { type: 'text/csv' })

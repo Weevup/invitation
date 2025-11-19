@@ -271,7 +271,7 @@ model Guest {
   event     Event       @relation(fields: [eventId], references: [id], onDelete: Cascade)
 
   firstName String
-  lastName  String
+  lastName  String?
   email     String
   company   String?
   tags      String[]    @default([])

@@ -172,13 +172,12 @@ export function EditGuestDialog({ eventId, guest, open, onOpenChange, onGuestUpd
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="lastName">Nom *</Label>
+                  <Label htmlFor="lastName">Nom</Label>
                   <Input
                     id="lastName"
-                    required
                     value={formData.lastName}
                     onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                    placeholder="Martin"
+                    placeholder="Martin (optionnel)"
                   />
                 </div>
               </div>

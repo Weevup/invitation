@@ -46,7 +46,7 @@ export const emergencyContactSchema = z.object({
  */
 export const createGuestSchema = z.object({
   firstName: z.string().min(1, 'Le prénom est requis').max(100, 'Le prénom est trop long'),
-  lastName: z.string().min(1, 'Le nom est requis').max(100, 'Le nom est trop long'),
+  lastName: z.string().max(100, 'Le nom est trop long').optional().or(z.literal('')),
   email: z.string().email('Email invalide').max(255, 'Email trop long'),
   company: z.string().max(200, 'Nom de société trop long').optional(),
   tags: z.array(z.string()).optional(),
@@ -174,7 +174,7 @@ export const showcaseConfigSchema = z.object({
 export const importGuestsSchema = z.array(
   z.object({
     firstName: z.string().min(1),
-    lastName: z.string().min(1),
+    lastName: z.string().optional(),
     email: z.string().email(),
     company: z.string().optional(),
     tags: z.string().optional(), // Comma-separated tags

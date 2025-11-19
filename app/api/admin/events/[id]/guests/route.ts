@@ -227,7 +227,7 @@ export async function POST(
       data: {
         eventId,
         firstName,
-        lastName,
+        lastName: lastName || null,
         email,
         company: company || null,
         tags: combinedTags,
