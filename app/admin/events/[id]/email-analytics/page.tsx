@@ -177,7 +177,7 @@ export default function EmailAnalyticsPage() {
         <Card className="border-red-200 bg-red-50">
           <CardContent className="pt-6">
             <p className="text-red-800">{error || 'Erreur de chargement'}</p>
-            <Button onClick={fetchData} className="mt-4" variant="outline">
+            <Button onClick={() => fetchData(true)} className="mt-4" variant="outline">
               <RefreshCw className="h-4 w-4 mr-2" />
               Réessayer
             </Button>
