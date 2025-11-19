@@ -132,7 +132,7 @@ export async function POST(
             'event.address': event.address || '',
             'event.description': event.description || '',
             'guest.firstName': guest.firstName,
-            'guest.lastName': guest.lastName,
+            'guest.lastName': guest.lastName || '',
             'guest.email': guest.email,
             'rsvpLink': `${baseUrl}/guest/${guest.token}`,
             'rsvpDeadline': event.rsvpDeadline ? new Date(event.rsvpDeadline).toLocaleDateString('fr-FR') : ''

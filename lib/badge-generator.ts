@@ -97,7 +97,7 @@ export interface BadgeDesignConfig {
 export interface GuestBadgeData {
   id: string
   firstName: string
-  lastName: string
+  lastName: string | null
   email: string
   company?: string | null
   jobTitle?: string | null
@@ -147,10 +147,10 @@ export function resolveFieldValue(
       return guestData.firstName
 
     case 'LAST_NAME':
-      return guestData.lastName
+      return guestData.lastName || ''
 
     case 'FULL_NAME':
-      return `${guestData.firstName} ${guestData.lastName}`
+      return guestData.lastName ? `${guestData.firstName} ${guestData.lastName}` : guestData.firstName
 
     case 'COMPANY':
       return guestData.company || ''
