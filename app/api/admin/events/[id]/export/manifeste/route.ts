@@ -118,7 +118,7 @@ export async function GET(
 
       guestsData.push([
         guest.firstName,
-        guest.lastName,
+        guest.lastName || '',
         guest.email,
         guest.company || '',
         guest.status,
@@ -229,8 +229,9 @@ export async function GET(
     const matrixData = [matrixHeaders]
 
     for (const guest of event.guests.filter(g => g.rsvp?.attending === true)) {
+      const fullName = guest.lastName ? `${guest.firstName} ${guest.lastName}` : guest.firstName
       const row = [
-        `${guest.firstName} ${guest.lastName}`,
+        fullName,
         guest.email,
       ]
 
