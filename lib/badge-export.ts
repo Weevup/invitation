@@ -93,7 +93,7 @@ export async function exportBadgesPDF(options: BadgeExportOptions): Promise<void
     doc.setFontSize(12)
     doc.setTextColor(0, 70, 69) // #004645
     doc.setFont('helvetica', 'bold')
-    const fullName = `${guest.firstName} ${guest.lastName}`
+    const fullName = guest.lastName ? `${guest.firstName} ${guest.lastName}` : guest.firstName
     doc.text(fullName, x + badgeWidth / 2, y + 22, { align: 'center' })
 
     // Company

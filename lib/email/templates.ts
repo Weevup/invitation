@@ -54,9 +54,9 @@ export function getTemplateVariables(
 
     // Guest data
     'guest.firstName': guest.firstName,
-    'guest.lastName': guest.lastName,
+    'guest.lastName': guest.lastName || '',
     'guest.email': guest.email,
-    'guest.fullName': `${guest.firstName} ${guest.lastName}`,
+    'guest.fullName': guest.lastName ? `${guest.firstName} ${guest.lastName}` : guest.firstName,
 
     // Links
     'rsvpLink': rsvpLink,

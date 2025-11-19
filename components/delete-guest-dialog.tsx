@@ -47,7 +47,8 @@ export function DeleteGuestDialog({ eventId, guest, open, onOpenChange, onGuestD
       });
 
       if (response.ok) {
-        toast.success(`${guest.firstName} ${guest.lastName} a été supprimé(e)`);
+        const fullName = guest.lastName ? `${guest.firstName} ${guest.lastName}` : guest.firstName;
+        toast.success(`${fullName} a été supprimé(e)`);
         onOpenChange(false);
         onGuestDeleted();
       } else {

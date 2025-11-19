@@ -146,8 +146,8 @@ export function buildTemplateVariables(
   return {
     // Guest variables
     firstName: guest.firstName,
-    lastName: guest.lastName,
-    fullName: `${guest.firstName} ${guest.lastName}`,
+    lastName: guest.lastName || '',
+    fullName: guest.lastName ? `${guest.firstName} ${guest.lastName}` : guest.firstName,
     email: guest.email,
     company: guest.company || undefined,
     jobTitle: guest.jobTitle || undefined,

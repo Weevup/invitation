@@ -164,7 +164,7 @@ export async function POST(
             ctaText: config.ctaText || 'Je bloque la date',
             ctaLink: config.showInterestForm ? `${baseUrl}/event/${event.slug}` : undefined,
             footerMessage: config.footerMessage || 'Invitation officielle à venir',
-            guestName: `${guest.firstName} ${guest.lastName}`,
+            guestName: guest.lastName ? `${guest.firstName} ${guest.lastName}` : guest.firstName,
             logoUrl: config.logoImage,
             headerImage: config.headerImage,
           });
@@ -175,8 +175,8 @@ export async function POST(
             'event.date': config.dateAnnouncement || new Date(event.startsAt).toLocaleDateString('fr-FR'),
             'event.location': config.locationHint || event.city || '',
             'guest.firstName': guest.firstName,
-            'guest.lastName': guest.lastName,
-            'guest.fullName': `${guest.firstName} ${guest.lastName}`,
+            'guest.lastName': guest.lastName || '',
+            'guest.fullName': guest.lastName ? `${guest.firstName} ${guest.lastName}` : guest.firstName,
           };
 
           // Use custom subject or fallback to default
@@ -214,7 +214,7 @@ export async function POST(
             secondaryColor: invitationConfig.secondaryColor || '#009197',
             accentColor: invitationConfig.accentColor || '#FF4713',
             rsvpLink: `${baseUrl}/guest/${guest.token}`,
-            guestName: `${guest.firstName} ${guest.lastName}`,
+            guestName: guest.lastName ? `${guest.firstName} ${guest.lastName}` : guest.firstName,
             logoUrl: invitationConfig.logoUrl,
             headerImage: invitationConfig.headerImage,
           });
@@ -236,8 +236,8 @@ export async function POST(
             'event.address': event.address || '',
             'event.city': event.city || '',
             'guest.firstName': guest.firstName,
-            'guest.lastName': guest.lastName,
-            'guest.fullName': `${guest.firstName} ${guest.lastName}`,
+            'guest.lastName': guest.lastName || '',
+            'guest.fullName': guest.lastName ? `${guest.firstName} ${guest.lastName}` : guest.firstName,
             'guest.email': guest.email,
           };
 
@@ -270,7 +270,7 @@ export async function POST(
             }),
             location: event.venueName || '',
             address: event.address || '',
-            guestName: `${guest.firstName} ${guest.lastName}`,
+            guestName: guest.lastName ? `${guest.firstName} ${guest.lastName}` : guest.firstName,
             qrCodeUrl: `${baseUrl}/api/qr/${guest.token}`,
             primaryColor: '#004645',
           });
@@ -292,8 +292,8 @@ export async function POST(
             'event.address': event.address || '',
             'event.city': event.city || '',
             'guest.firstName': guest.firstName,
-            'guest.lastName': guest.lastName,
-            'guest.fullName': `${guest.firstName} ${guest.lastName}`,
+            'guest.lastName': guest.lastName || '',
+            'guest.fullName': guest.lastName ? `${guest.firstName} ${guest.lastName}` : guest.firstName,
             'guest.email': guest.email,
           };
 
