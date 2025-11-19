@@ -169,6 +169,7 @@ export async function POST(
       industry,
       linkedinUrl,
       phoneNumber,
+      phone, // SMS phone number
       // Event-specific needs
       dietaryReqs,
       accessibility,
@@ -237,6 +238,7 @@ export async function POST(
         industry: industry || null,
         linkedinUrl: linkedinUrl || null,
         phoneNumber: phoneNumber || null,
+        phone: phone || null, // SMS phone number
         // Event-specific needs
         dietaryReqs: dietaryReqs || null,
         accessibility: accessibility || null,

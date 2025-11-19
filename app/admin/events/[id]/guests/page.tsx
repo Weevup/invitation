@@ -157,7 +157,8 @@ export default function GuestsPage() {
       Département: guest.department || '',
       'Taille Entreprise': guest.companySize || '',
       Secteur: guest.industry || '',
-      Téléphone: guest.phoneNumber || '',
+      'Téléphone Fixe': guest.phoneNumber || '',
+      'Téléphone Mobile (SMS)': guest.phone || '',
       LinkedIn: guest.linkedinUrl || '',
       // Besoins événementiels
       'Restrictions Alimentaires': guest.dietaryReqs || '',

@@ -11,8 +11,9 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Users, Upload, CheckCircle, AlertCircle } from "lucide-react";
+import { Users, Upload, CheckCircle, AlertCircle, Download } from "lucide-react";
 import Papa from "papaparse";
+import { toast } from "sonner";
 
 interface ImportCSVDialogProps {
   eventId: string;
@@ -73,6 +74,8 @@ export function ImportCSVDialog({ eventId, onImportComplete }: ImportCSVDialogPr
     setLoading(true);
     setResults(null);
 
+    toast.info(`Démarrage de l'import...`);
+
     Papa.parse(file, {
       header: true,
       skipEmptyLines: true,
@@ -80,6 +83,8 @@ export function ImportCSVDialog({ eventId, onImportComplete }: ImportCSVDialogPr
         const data = results.data as CSVRow[];
         const errors: string[] = [];
         let successCount = 0;
+
+        toast.info(`${data.length} ligne(s) détectée(s). Import en cours...`);
 
         for (let i = 0; i < data.length; i++) {
           const row = data[i];
@@ -136,7 +141,12 @@ export function ImportCSVDialog({ eventId, onImportComplete }: ImportCSVDialogPr
         setLoading(false);
 
         if (successCount > 0) {
+          toast.success(`✅ ${successCount} invité(s) importé(s) avec succès !`);
           onImportComplete();
+        }
+
+        if (errors.length > 0) {
+          toast.error(`❌ ${errors.length} erreur(s) lors de l'import`);
         }
       },
     });
@@ -152,6 +162,20 @@ export function ImportCSVDialog({ eventId, onImportComplete }: ImportCSVDialogPr
     }
   };
 
+  const downloadTemplate = () => {
+    const csvContent = `firstName,lastName,email,company,phone,phoneNumber,jobTitle,department,companySize,industry,linkedinUrl,tags,dietaryReqs,accessibility
+Sophie,Martin,sophie.martin@example.com,Tech Solutions,+33612345678,,CEO,Direction,GE,Technologie,https://linkedin.com/in/sophiemartin,"VIP,Sponsor",Végétarien,
+Jean,Dupont,jean.dupont@example.com,Digital Agency,+33687654321,0145678901,CTO,Technique,PME,Digital,,Presse,Sans gluten,
+Marie,Bernard,marie.bernard@example.com,StartupCo,+33698765432,,Product Manager,Produit,TPE,SaaS,,"Innovation,Tech",,Accès PMR`;
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'template-import-invites.csv';
+    link.click();
+    toast.success('Template CSV téléchargé');
+  };
+
   return (
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogTrigger asChild>
@@ -162,11 +186,24 @@ export function ImportCSVDialog({ eventId, onImportComplete }: ImportCSVDialogPr
       </DialogTrigger>
       <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Importer des invités depuis un CSV</DialogTitle>
-          <DialogDescription>
-            Colonnes requises : firstName, lastName, email<br/>
-            Colonnes optionnelles : company, jobTitle, phone, phoneNumber, tags, etc.
-          </DialogDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <DialogTitle>Importer des invités depuis un CSV</DialogTitle>
+              <DialogDescription>
+                Colonnes requises : firstName, lastName, email<br/>
+                Colonnes optionnelles : company, jobTitle, phone, phoneNumber, tags, etc.
+              </DialogDescription>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={downloadTemplate}
+              className="ml-4"
+            >
+              <Download className="h-4 w-4 mr-2" />
+              Template CSV
+            </Button>
+          </div>
         </DialogHeader>
 
         <div className="space-y-4">
