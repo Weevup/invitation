@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import {
-  Users, Download, Search, Link as LinkIcon, UserPlus, Upload, Eye, Filter, CreditCard, CheckSquare, Square, X
+  Users, Download, Search, Link as LinkIcon, UserPlus, Upload, Eye, Filter, CreditCard, CheckSquare, Square, X, RefreshCw
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { AddGuestDialog } from '@/components/add-guest-dialog'
@@ -81,6 +81,7 @@ export default function GuestsPage() {
   const [event, setEvent] = useState<EventDetails | null>(null)
   const [search, setSearch] = useState('')
   const [loading, setLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
   const [selectedGuest, setSelectedGuest] = useState<Guest | null>(null)
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [tagFilter, setTagFilter] = useState<string>('all')
@@ -91,23 +92,44 @@ export default function GuestsPage() {
   // Selection state
   const [selectedGuestIds, setSelectedGuestIds] = useState<Set<string>>(new Set())
 
-  const fetchEvent = useCallback(async () => {
+  const fetchEvent = useCallback(async (isManualRefresh = false) => {
+    if (isManualRefresh) {
+      setRefreshing(true)
+    }
     try {
       // Charger l'événement avec tous les invités (mode legacy nécessaire pour cette page)
       const response = await fetch(`/api/admin/events/${eventId}?includeGuests=true`)
       if (response.ok) {
         const data = await response.json()
         setEvent(data)
+        if (isManualRefresh) {
+          toast.success('Liste des invités actualisée')
+        }
       }
     } catch (error) {
       logger.error(error, { action: 'fetchingEvent' })
+      if (isManualRefresh) {
+        toast.error('Erreur lors de l\'actualisation')
+      }
     } finally {
       setLoading(false)
+      setRefreshing(false)
     }
   }, [eventId])
 
+  const handleManualRefresh = () => {
+    fetchEvent(true)
+  }
+
   useEffect(() => {
     fetchEvent()
+
+    // Auto-refresh every 30 seconds to get latest RSVP updates
+    const interval = setInterval(() => {
+      fetchEvent()
+    }, 30000)
+
+    return () => clearInterval(interval)
   }, [fetchEvent])
 
   const copyInvitationLink = (token: string) => {
@@ -262,7 +284,13 @@ export default function GuestsPage() {
         <GuestDetailsModal
           guest={selectedGuest}
           open={!!selectedGuest}
-          onOpenChange={(open) => !open && setSelectedGuest(null)}
+          onOpenChange={(open) => {
+            if (!open) {
+              setSelectedGuest(null)
+              // Refresh data when closing modal in case guest status changed
+              fetchEvent()
+            }
+          }}
         />
       )}
 
@@ -274,9 +302,20 @@ export default function GuestsPage() {
           </h2>
           <p className="text-[#004645]/70">
             {event.guests.length} invité{event.guests.length !== 1 ? 's' : ''} au total
+            <span className="text-xs ml-2 text-[#009197]">• Actualisation auto toutes les 30s</span>
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={handleManualRefresh}
+            disabled={refreshing}
+            className="border-[#9CD9F6] text-[#009197] hover:bg-[#009197] hover:text-white"
+            title="Actualiser la liste des invités"
+          >
+            <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
+            Actualiser
+          </Button>
           <Button
             variant="outline"
             onClick={handleExportCSV}
