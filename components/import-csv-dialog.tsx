@@ -205,8 +205,17 @@ export function ImportCSVDialog({ eventId, onImportComplete }: ImportCSVDialogPr
     setFile(null);
     setPreview([]);
     setResults(null);
+    setProgress(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
+    }
+  };
+
+  const handleOpenChange = (newOpen: boolean) => {
+    if (newOpen) {
+      setOpen(true);
+    } else {
+      handleClose();
     }
   };
 
@@ -225,7 +234,7 @@ Marie,Bernard,marie.bernard@example.com,StartupCo,+33698765432,,Product Manager,
   };
 
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <Button variant="outline">
           <Users className="h-4 w-4 mr-2" />
