@@ -60,6 +60,7 @@ export const createGuestSchema = z.object({
   industry: z.string().max(100, 'Secteur trop long').optional(),
   linkedinUrl: z.string().url('URL LinkedIn invalide').max(500, 'URL trop longue').optional().or(z.literal('')),
   phoneNumber: z.string().max(20, 'Numéro trop long').optional(),
+  phone: z.string().max(20, 'Numéro SMS trop long').optional(), // For SMS (international format)
 
   // Event-specific needs
   dietaryReqs: z.string().max(1000, 'Texte trop long').optional(),
