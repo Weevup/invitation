@@ -52,7 +52,7 @@ export function SendInvitationsDialog({
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [emailType, setEmailType] = useState<"invitation" | "save-the-date" | "reminder">("invitation");
-  const [templateId, setTemplateId] = useState<string>("");
+  const [templateId, setTemplateId] = useState<string>("default");
   const [templates, setTemplates] = useState<EmailTemplate[]>([]);
   const [loadingTemplates, setLoadingTemplates] = useState(false);
   const [results, setResults] = useState<{
@@ -100,7 +100,7 @@ export function SendInvitationsDialog({
           },
           body: JSON.stringify({
             type: emailType,
-            templateId: templateId || undefined,
+            templateId: templateId !== "default" ? templateId : undefined,
             guestIds: selectedGuestIds && selectedGuestIds.length > 0 ? selectedGuestIds : undefined,
           }),
         }
@@ -143,7 +143,7 @@ export function SendInvitationsDialog({
     setOpen(false);
     setResults(null);
     setEmailType("invitation");
-    setTemplateId("");
+    setTemplateId("default");
   };
 
   const getTargetCount = () => {
@@ -241,7 +241,7 @@ export function SendInvitationsDialog({
                   } />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">
+                  <SelectItem value="default">
                     <div className="flex items-center gap-2">
                       <Mail className="h-4 w-4" />
                       <span>Template par défaut (hardcodé)</span>
@@ -260,7 +260,7 @@ export function SendInvitationsDialog({
                 </SelectContent>
               </Select>
               <p className="text-xs text-gray-500">
-                {templateId
+                {templateId !== "default"
                   ? "Un template personnalisé sera utilisé"
                   : "Le template codé en dur dans l'application sera utilisé"}
               </p>
