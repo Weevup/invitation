@@ -419,9 +419,19 @@ export default function InvitationDesignPage() {
                     className="border-[#9CD9F6]/30"
                     placeholder="Vous êtes invité(e) - {{event.name}}"
                   />
-                  <p className="text-xs text-[#004645]/60 mt-1">
-                    Utilisez {"{{event.name}}"} pour le nom de l&apos;événement, {"{{event.date}}"} pour la date
-                  </p>
+                  <div className="mt-2 p-3 bg-gray-50 rounded-md text-xs text-[#004645]/70">
+                    <p className="font-semibold mb-1">📝 Variables disponibles :</p>
+                    <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+                      <span><code className="text-[#009197]">{"{{event.name}}"}</code> - Nom de l&apos;événement</span>
+                      <span><code className="text-[#009197]">{"{{event.date}}"}</code> - Date complète</span>
+                      <span><code className="text-[#009197]">{"{{event.time}}"}</code> - Heure</span>
+                      <span><code className="text-[#009197]">{"{{event.location}}"}</code> - Lieu</span>
+                      <span><code className="text-[#009197]">{"{{guest.firstName}}"}</code> - Prénom</span>
+                      <span><code className="text-[#009197]">{"{{guest.lastName}}"}</code> - Nom</span>
+                      <span><code className="text-[#009197]">{"{{guest.fullName}}"}</code> - Nom complet</span>
+                      <span><code className="text-[#009197]">{"{{event.city}}"}</code> - Ville</span>
+                    </div>
+                  </div>
                 </div>
 
                 <div>
@@ -433,7 +443,7 @@ export default function InvitationDesignPage() {
                     placeholder="⏰ Rappel : {{event.name}} - Ne manquez pas !"
                   />
                   <p className="text-xs text-[#004645]/60 mt-1">
-                    Utilisé pour les rappels RSVP
+                    Utilisé pour les rappels RSVP • Mêmes variables disponibles qu&apos;au-dessus
                   </p>
                 </div>
 
