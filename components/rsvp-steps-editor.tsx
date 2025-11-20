@@ -770,13 +770,13 @@ export function RsvpStepsEditor({ steps, onChange }: RsvpStepsEditorProps) {
                             </Select>
                           ) : (
                             <Input
-                              type={editingStep.conditional.field === 'plusOnes' ? 'number' : 'text'}
-                              value={editingStep.conditional.value}
+                              type={editingStep.conditional!.field === 'plusOnes' ? 'number' : 'text'}
+                              value={editingStep.conditional!.value}
                               onChange={(e) => setEditingStep({
                                 ...editingStep,
                                 conditional: {
                                   ...editingStep.conditional!,
-                                  value: editingStep.conditional.field === 'plusOnes'
+                                  value: editingStep.conditional!.field === 'plusOnes'
                                     ? parseInt(e.target.value) || 0
                                     : e.target.value
                                 }
