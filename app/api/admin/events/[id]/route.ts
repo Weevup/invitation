@@ -46,6 +46,12 @@ export async function GET(
               createdAt: true,
               updatedAt: true,
               adminId: true,
+              rsvpConfig: true,
+              showcaseTheme: true,
+              showcaseCustomHTML: true,
+              showcaseCustomCSS: true,
+              showcasePrimaryColor: true,
+              showcaseSecondaryColor: true,
               // Counts optimisés
               _count: {
                 select: {
@@ -166,6 +172,36 @@ export async function GET(
  * Met à jour un événement (avec vérification d'ownership)
  */
 export async function PUT(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const session = await requireAdmin()
+    const { id } = await params
+    const body = await request.json()
+
+    // Vérifier que l'admin est propriétaire de l'événement
+    await requireEventOwnership(id, session.user.id)
+
+    const event = await prisma.event.update({
+      where: { id },
+      data: body,
+    })
+
+    // Invalider le cache après mise à jour
+    await invalidateEventCache(id)
+
+    return NextResponse.json(event)
+  } catch (error) {
+    return handleAuthError(error)
+  }
+}
+
+/**
+ * PATCH /api/admin/events/[id]
+ * Met à jour partiellement un événement (avec vérification d'ownership)
+ */
+export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
