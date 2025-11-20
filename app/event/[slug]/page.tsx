@@ -168,6 +168,21 @@ export default async function EventShowcasePage({ params }: PageProps) {
     return sectionContents[sectionId]?.[field] || defaultValue
   }
 
+  // If theme is "custom", render custom HTML/CSS directly
+  if (event.showcaseTheme === 'custom' && event.showcaseCustomHTML) {
+    return (
+      <>
+        {/* Custom CSS */}
+        {event.showcaseCustomCSS && (
+          <style dangerouslySetInnerHTML={{ __html: sanitizeCSS(event.showcaseCustomCSS) }} />
+        )}
+
+        {/* Custom HTML - sanitized for safety */}
+        <div dangerouslySetInnerHTML={{ __html: event.showcaseCustomHTML }} />
+      </>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#9CD9F6] via-white to-[#9CD9F6]">
       {/* Custom CSS if provided */}

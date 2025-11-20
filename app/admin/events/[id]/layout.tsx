@@ -33,6 +33,7 @@ import {
   MessageSquare,
   LineChart,
   FileText,
+  Code,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useEventModules } from '@/lib/modules/use-event-modules'
@@ -164,6 +165,11 @@ export default function EventLayout({
           label: 'Showcase',
           href: `/admin/events/${eventId}/showcase`,
           icon: Sparkles,
+        },
+        {
+          label: 'Showcase HTML/CSS',
+          href: `/admin/events/${eventId}/showcase-custom`,
+          icon: Code,
         },
         {
           label: 'Invités',
