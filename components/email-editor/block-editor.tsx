@@ -1,9 +1,13 @@
 "use client"
 
+import { useState } from 'react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Upload, Loader2 } from 'lucide-react'
+import { toast } from 'sonner'
 import {
   EmailBlock,
   HeaderBlock,
@@ -62,6 +66,91 @@ function HeaderBlockEditor({
   block: HeaderBlock
   updateContent: (key: string, value: any) => void
 }) {
+  const [uploadingLogo, setUploadingLogo] = useState(false)
+  const [uploadingBg, setUploadingBg] = useState(false)
+
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('Veuillez sélectionner une image valide')
+      return
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('L\'image est trop grande (max 5MB)')
+      return
+    }
+
+    setUploadingLogo(true)
+
+    try {
+      const formData = new FormData()
+      formData.append('image', file)
+
+      const response = await fetch('/api/admin/upload-image', {
+        method: 'POST',
+        body: formData,
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.message || 'Échec de l\'upload')
+      }
+
+      const data = await response.json()
+      updateContent('logoUrl', data.url)
+      toast.success('Logo téléchargé avec succès')
+    } catch (error) {
+      console.error('Error uploading logo:', error)
+      toast.error(error instanceof Error ? error.message : 'Erreur lors de l\'upload')
+    } finally {
+      setUploadingLogo(false)
+    }
+  }
+
+  const handleBgUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('Veuillez sélectionner une image valide')
+      return
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('L\'image est trop grande (max 5MB)')
+      return
+    }
+
+    setUploadingBg(true)
+
+    try {
+      const formData = new FormData()
+      formData.append('image', file)
+
+      const response = await fetch('/api/admin/upload-image', {
+        method: 'POST',
+        body: formData,
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.message || 'Échec de l\'upload')
+      }
+
+      const data = await response.json()
+      updateContent('backgroundImage', data.url)
+      toast.success('Image de fond téléchargée avec succès')
+    } catch (error) {
+      console.error('Error uploading background:', error)
+      toast.error(error instanceof Error ? error.message : 'Erreur lors de l\'upload')
+    } finally {
+      setUploadingBg(false)
+    }
+  }
+
   return (
     <div className="space-y-4">
       <div>
@@ -83,21 +172,65 @@ function HeaderBlockEditor({
       </div>
 
       <div>
-        <Label>URL Logo (optionnel)</Label>
-        <Input
-          value={block.content.logoUrl || ''}
-          onChange={(e) => updateContent('logoUrl', e.target.value)}
-          placeholder="https://example.com/logo.png"
-        />
+        <Label>Logo (optionnel)</Label>
+        <div className="flex gap-2">
+          <Input
+            value={block.content.logoUrl || ''}
+            onChange={(e) => updateContent('logoUrl', e.target.value)}
+            placeholder="https://example.com/logo.png ou uploadez"
+            className="flex-1"
+          />
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => document.getElementById('logo-upload-input')?.click()}
+            disabled={uploadingLogo}
+          >
+            {uploadingLogo ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Upload className="h-4 w-4" />
+            )}
+          </Button>
+          <input
+            id="logo-upload-input"
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={handleLogoUpload}
+          />
+        </div>
       </div>
 
       <div>
         <Label>Image d&apos;arrière-plan (optionnel)</Label>
-        <Input
-          value={block.content.backgroundImage || ''}
-          onChange={(e) => updateContent('backgroundImage', e.target.value)}
-          placeholder="https://example.com/bg.jpg"
-        />
+        <div className="flex gap-2">
+          <Input
+            value={block.content.backgroundImage || ''}
+            onChange={(e) => updateContent('backgroundImage', e.target.value)}
+            placeholder="https://example.com/bg.jpg ou uploadez"
+            className="flex-1"
+          />
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => document.getElementById('bg-upload-input')?.click()}
+            disabled={uploadingBg}
+          >
+            {uploadingBg ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Upload className="h-4 w-4" />
+            )}
+          </Button>
+          <input
+            id="bg-upload-input"
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={handleBgUpload}
+          />
+        </div>
       </div>
 
       <div className="grid grid-cols-2 gap-4">
@@ -314,16 +447,100 @@ function ImageBlockEditor({
   block: ImageBlock
   updateContent: (key: string, value: any) => void
 }) {
+  const [uploading, setUploading] = useState(false)
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Veuillez sélectionner une image valide')
+      return
+    }
+
+    // Validate file size (5MB max)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('L\'image est trop grande (max 5MB)')
+      return
+    }
+
+    setUploading(true)
+
+    try {
+      const formData = new FormData()
+      formData.append('image', file)
+
+      const response = await fetch('/api/admin/upload-image', {
+        method: 'POST',
+        body: formData,
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.message || 'Échec de l\'upload')
+      }
+
+      const data = await response.json()
+      updateContent('url', data.url)
+      toast.success('Image téléchargée avec succès')
+    } catch (error) {
+      console.error('Error uploading image:', error)
+      toast.error(error instanceof Error ? error.message : 'Erreur lors de l\'upload')
+    } finally {
+      setUploading(false)
+    }
+  }
+
   return (
     <div className="space-y-4">
       <div>
-        <Label>URL de l&apos;image</Label>
-        <Input
-          value={block.content.url}
-          onChange={(e) => updateContent('url', e.target.value)}
-          placeholder="https://example.com/image.jpg"
-        />
+        <Label>Image</Label>
+        <div className="flex gap-2">
+          <Input
+            value={block.content.url}
+            onChange={(e) => updateContent('url', e.target.value)}
+            placeholder="https://example.com/image.jpg ou uploadez une image"
+            className="flex-1"
+          />
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => document.getElementById('image-upload-input')?.click()}
+            disabled={uploading}
+          >
+            {uploading ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Upload className="h-4 w-4" />
+            )}
+          </Button>
+          <input
+            id="image-upload-input"
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={handleImageUpload}
+          />
+        </div>
+        <p className="text-xs text-[#004645]/70 mt-1">
+          Collez une URL ou cliquez sur le bouton pour uploader une image (max 5MB)
+        </p>
       </div>
+
+      {block.content.url && (
+        <div className="border rounded-lg p-2 bg-gray-50">
+          <img
+            src={block.content.url}
+            alt="Preview"
+            className="max-h-32 mx-auto"
+            onError={(e) => {
+              e.currentTarget.src = ''
+              e.currentTarget.alt = 'Erreur de chargement'
+            }}
+          />
+        </div>
+      )}
 
       <div>
         <Label>Texte alternatif</Label>
