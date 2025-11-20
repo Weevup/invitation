@@ -9,18 +9,30 @@ const integrationLogger = createLogger({ module: 'integration', type: 'email' })
 
 const EmailIntegrationSchema = z.object({
   provider: z.enum(['SENDGRID', 'RESEND', 'MAILGUN', 'SMTP']),
-  apiKey: z.string().optional(),
-  apiSecret: z.string().optional(),
-  smtpHost: z.string().optional(),
-  smtpPort: z.number().optional(),
-  smtpUser: z.string().optional(),
-  smtpPass: z.string().optional(),
-  fromEmail: z.string().email().optional(),
-  fromName: z.string().optional(),
-  replyTo: z.string().email().optional(),
+  apiKey: z.string().nullish(),
+  apiSecret: z.string().nullish(),
+  smtpHost: z.string().nullish(),
+  smtpPort: z.number().nullish(),
+  smtpUser: z.string().nullish(),
+  smtpPass: z.string().nullish(),
+  fromEmail: z.union([z.string().email(), z.null(), z.undefined()]).optional(),
+  fromName: z.string().nullish(),
+  replyTo: z.union([z.string().email(), z.null(), z.undefined()]).optional(),
   trackOpens: z.boolean().default(true),
   trackClicks: z.boolean().default(true),
   isPrimary: z.boolean().default(false),
+}).refine((data) => {
+  // Pour SendGrid, Resend, Mailgun : apiKey est requis
+  if (['SENDGRID', 'RESEND', 'MAILGUN'].includes(data.provider)) {
+    return !!data.apiKey
+  }
+  // Pour SMTP : smtpHost, smtpPort, smtpUser sont requis
+  if (data.provider === 'SMTP') {
+    return !!data.smtpHost && !!data.smtpPort && !!data.smtpUser
+  }
+  return true
+}, {
+  message: "Configuration incomplète pour ce provider"
 })
 
 /**
