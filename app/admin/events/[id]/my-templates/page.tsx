@@ -114,8 +114,7 @@ export default function MyTemplatesPage() {
   }
 
   const handleEdit = (template: EmailTemplate) => {
-    // TODO: Implement edit functionality
-    toast.info('Fonctionnalité de modification à venir')
+    router.push(`/admin/events/${eventId}/email-editor?templateId=${template.id}`)
   }
 
   if (loading) {

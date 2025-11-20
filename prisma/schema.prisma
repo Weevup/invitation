@@ -498,6 +498,7 @@ model EmailTemplate {
   subject     String
   htmlContent String    @db.Text
   textContent String?   @db.Text
+  blocksJson  String?   @db.Text // WYSIWYG editor structure
 
   // Design settings
   primaryColor   String  @default("#004645")

@@ -1,7 +1,7 @@
 "use client"
 
-import { useState } from 'react'
-import { useParams } from 'next/navigation'
+import { useState, useEffect } from 'react'
+import { useParams, useSearchParams } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { Sparkles, Save, Download, Send } from 'lucide-react'
+import { Sparkles, Save, Download, Send, Loader2 } from 'lucide-react'
 import { EmailEditor, EmailTemplate, PREDEFINED_TEMPLATES, blocksToHTML } from '@/components/email-editor'
 import { toast } from 'sonner'
 import { createClientLogger } from '@/lib/client-logger'
@@ -19,18 +19,63 @@ const logger = createClientLogger({ component: 'EmailEditorPage' })
 
 export default function EmailEditorPage() {
   const params = useParams()
+  const searchParams = useSearchParams()
   const eventId = params.id as string
+  const templateId = searchParams.get('templateId')
 
   const [selectedTemplate, setSelectedTemplate] = useState<EmailTemplate | null>(null)
-  const [showTemplateSelector, setShowTemplateSelector] = useState(true)
+  const [showTemplateSelector, setShowTemplateSelector] = useState(!templateId)
   const [showSaveDialog, setShowSaveDialog] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [loading, setLoading] = useState(!!templateId)
+  const [editingTemplateId, setEditingTemplateId] = useState<string | null>(templateId)
 
   // Save form state
   const [templateName, setTemplateName] = useState('')
   const [templateDescription, setTemplateDescription] = useState('')
   const [templateSubject, setTemplateSubject] = useState('')
   const [templateType, setTemplateType] = useState('INVITE')
+
+  // Load template if editing
+  useEffect(() => {
+    if (templateId) {
+      loadTemplate(templateId)
+    }
+  }, [templateId])
+
+  const loadTemplate = async (id: string) => {
+    setLoading(true)
+    try {
+      const response = await fetch(`/api/admin/templates/${id}`)
+      if (!response.ok) throw new Error('Failed to load template')
+
+      const data = await response.json()
+
+      // Try to parse blocksJson if available
+      if (data.blocksJson) {
+        const parsedTemplate = JSON.parse(data.blocksJson)
+        setSelectedTemplate(parsedTemplate)
+      } else {
+        // Fallback to empty template if no blocks JSON
+        toast.info('Template chargé en mode HTML uniquement')
+        setSelectedTemplate(PREDEFINED_TEMPLATES.blank)
+      }
+
+      // Pre-fill save form
+      setTemplateName(data.name)
+      setTemplateDescription(data.description || '')
+      setTemplateSubject(data.subject)
+      setTemplateType(data.type)
+      setEditingTemplateId(id)
+
+      toast.success('Template chargé avec succès')
+    } catch (error) {
+      logger.error(error, { action: 'loadTemplate' })
+      toast.error('Erreur lors du chargement du template')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const handleSelectTemplate = (templateId: string) => {
     const template = PREDEFINED_TEMPLATES[templateId]
@@ -54,12 +99,19 @@ export default function EmailEditorPage() {
     setSaving(true)
     try {
       const html = blocksToHTML(selectedTemplate)
+      const blocksJson = JSON.stringify(selectedTemplate)
 
       // Generate unique slug from name
       const slug = templateName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
 
-      const response = await fetch('/api/admin/templates', {
-        method: 'POST',
+      const isEditing = !!editingTemplateId
+      const url = isEditing
+        ? `/api/admin/templates/${editingTemplateId}`
+        : '/api/admin/templates'
+      const method = isEditing ? 'PUT' : 'POST'
+
+      const response = await fetch(url, {
+        method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: templateName,
@@ -69,6 +121,7 @@ export default function EmailEditorPage() {
           subject: templateSubject,
           htmlContent: html,
           textContent: '', // Could be improved later
+          blocksJson, // Store the editor structure
           primaryColor: selectedTemplate.globalStyles?.primaryColor || '#004645',
           secondaryColor: selectedTemplate.globalStyles?.secondaryColor || '#009197',
           accentColor: '#FF4713',
@@ -82,14 +135,14 @@ export default function EmailEditorPage() {
       }
 
       const savedTemplate = await response.json()
-      toast.success(`Template "${templateName}" sauvegardé avec succès !`)
+      toast.success(`Template "${templateName}" ${isEditing ? 'mis à jour' : 'sauvegardé'} avec succès !`)
 
-      // Reset form
+      // Keep editing mode if we were editing
+      if (!isEditing) {
+        setEditingTemplateId(savedTemplate.id)
+      }
+
       setShowSaveDialog(false)
-      setTemplateName('')
-      setTemplateDescription('')
-      setTemplateSubject('')
-      setTemplateType('INVITE')
     } catch (error) {
       toast.error('Erreur lors de la sauvegarde')
       logger.error(error, { action: 'SaveError' })
@@ -285,7 +338,19 @@ export default function EmailEditorPage() {
       </Dialog>
 
       {/* Editor */}
-      {selectedTemplate ? (
+      {loading ? (
+        <Card className="border-[#9CD9F6]/30">
+          <CardContent className="pt-12 pb-12 text-center">
+            <Loader2 className="h-16 w-16 mx-auto mb-4 text-[#009197] animate-spin" />
+            <h3 className="text-xl font-semibold text-[#004645] mb-2">
+              Chargement du template...
+            </h3>
+            <p className="text-[#004645]/70">
+              Veuillez patienter
+            </p>
+          </CardContent>
+        </Card>
+      ) : selectedTemplate ? (
         <EmailEditor
           initialTemplate={selectedTemplate}
           onChange={(template) => setSelectedTemplate(template)}
