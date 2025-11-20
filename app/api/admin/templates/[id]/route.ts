@@ -48,6 +48,7 @@ export async function PUT(
         subject: body.subject,
         htmlContent: body.htmlContent,
         textContent: body.textContent,
+        blocksJson: body.blocksJson,
         primaryColor: body.primaryColor,
         secondaryColor: body.secondaryColor,
         accentColor: body.accentColor,

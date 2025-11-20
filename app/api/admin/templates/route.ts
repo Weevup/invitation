@@ -44,6 +44,7 @@ export async function POST(request: NextRequest) {
         subject: body.subject,
         htmlContent: body.htmlContent,
         textContent: body.textContent,
+        blocksJson: body.blocksJson,
         primaryColor: body.primaryColor || '#004645',
         secondaryColor: body.secondaryColor || '#009197',
         accentColor: body.accentColor || '#FF4713',
