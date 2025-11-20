@@ -95,7 +95,21 @@ export async function POST(request: NextRequest) {
     if (validated.apiKey) {
       integrationLogger.debug('Encrypting API key')
       try {
-        encryptedData.apiKey = encrypt(validated.apiKey)
+        // Clean API key: remove whitespace, newlines, and non-ASCII characters
+        const cleanedApiKey = validated.apiKey
+          .trim()
+          .replace(/[\r\n\t]/g, '')  // Remove newlines, carriage returns, tabs
+          .replace(/[^\x00-\x7F]/g, '') // Remove non-ASCII characters (like •)
+
+        if (!cleanedApiKey) {
+          return NextResponse.json(
+            { error: 'Clé API invalide après nettoyage' },
+            { status: 400 }
+          )
+        }
+
+        encryptedData.apiKey = encrypt(cleanedApiKey)
+        integrationLogger.info({ keyLength: cleanedApiKey.length, startsWithSG: cleanedApiKey.startsWith('SG.') }, 'API key cleaned and encrypted')
       } catch (encryptError) {
         integrationLogger.error({ error: encryptError }, 'API key encryption failed')
         return NextResponse.json(
