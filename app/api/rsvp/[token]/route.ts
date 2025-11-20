@@ -163,13 +163,21 @@ export async function POST(
     }
 
     // Send confirmation email
+    // Build venue string, only include city if it exists
+    let eventVenue = guest.event.venueName || 'Lieu à préciser'
+    if (guest.event.city) {
+      eventVenue += `, ${guest.event.city}`
+    }
+
     const emailHtml = getConfirmationEmailTemplate({
       guestName: guest.firstName,
       eventName: guest.event.name,
       eventDate: formatDateTime(guest.event.startsAt),
-      eventVenue: `${guest.event.venueName}, ${guest.event.city}`,
+      eventVenue,
       attending: attending || false,
-      qrCodeUrl: qrCodeData || undefined,
+      // Don't send QR code in email (base64 images are blocked by email clients)
+      // QR code is shown on the confirmation page instead
+      qrCodeUrl: undefined,
     })
 
     await sendEmail({
