@@ -20,6 +20,36 @@ export interface RsvpStep {
     placeholder: string
     required: boolean
   }
+  texts?: {
+    // For 'response' type
+    responseQuestion?: string
+    responseYes?: string
+    responseNo?: string
+    // For 'plus-ones' type
+    plusOnesLabel?: string
+    plusOnesNone?: string
+    // For 'meal' type
+    mealLabel?: string
+    allergiesLabel?: string
+    allergiesPlaceholder?: string
+    // For 'practical' type
+    practicalTitle?: string
+    accessibilityLabel?: string
+    accessibilityPlaceholder?: string
+    transportLabel?: string
+    transportPlaceholder?: string
+    lodgingLabel?: string
+    lodgingPlaceholder?: string
+    // For 'consent' type
+    consentLabel?: string
+    // For 'summary' type
+    summaryTitle?: string
+    summaryIntro?: string
+    // Common
+    continueButton?: string
+    backButton?: string
+    submitButton?: string
+  }
 }
 
 export default function RsvpStepsPage() {

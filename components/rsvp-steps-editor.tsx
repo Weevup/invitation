@@ -415,6 +415,298 @@ export function RsvpStepsEditor({ steps, onChange }: RsvpStepsEditorProps) {
                 </>
               )}
 
+              {/* Textes personnalisables pour Response */}
+              {editingStep.type === 'response' && (
+                <div className="space-y-3 border-t pt-4">
+                  <h4 className="font-semibold text-sm text-[#004645]">Textes personnalisés</h4>
+                  <div>
+                    <Label className="text-xs">Question</Label>
+                    <Input
+                      value={editingStep.texts?.responseQuestion || ''}
+                      onChange={(e) => setEditingStep({
+                        ...editingStep,
+                        texts: { ...editingStep.texts, responseQuestion: e.target.value }
+                      })}
+                      placeholder="Participez-vous à l'événement ?"
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <Label className="text-xs">Texte &quot;Oui&quot;</Label>
+                      <Input
+                        value={editingStep.texts?.responseYes || ''}
+                        onChange={(e) => setEditingStep({
+                          ...editingStep,
+                          texts: { ...editingStep.texts, responseYes: e.target.value }
+                        })}
+                        placeholder="✓ J'accepte avec plaisir"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-xs">Texte &quot;Non&quot;</Label>
+                      <Input
+                        value={editingStep.texts?.responseNo || ''}
+                        onChange={(e) => setEditingStep({
+                          ...editingStep,
+                          texts: { ...editingStep.texts, responseNo: e.target.value }
+                        })}
+                        placeholder="✗ Je ne peux pas venir"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Textes personnalisables pour Plus Ones */}
+              {editingStep.type === 'plus-ones' && (
+                <div className="space-y-3 border-t pt-4">
+                  <h4 className="font-semibold text-sm text-[#004645]">Textes personnalisés</h4>
+                  <div>
+                    <Label className="text-xs">Label du champ</Label>
+                    <Input
+                      value={editingStep.texts?.plusOnesLabel || ''}
+                      onChange={(e) => setEditingStep({
+                        ...editingStep,
+                        texts: { ...editingStep.texts, plusOnesLabel: e.target.value }
+                      })}
+                      placeholder="Nombre d'accompagnants"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs">Texte &quot;Aucun&quot;</Label>
+                    <Input
+                      value={editingStep.texts?.plusOnesNone || ''}
+                      onChange={(e) => setEditingStep({
+                        ...editingStep,
+                        texts: { ...editingStep.texts, plusOnesNone: e.target.value }
+                      })}
+                      placeholder="Aucun"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Textes personnalisables pour Meal */}
+              {editingStep.type === 'meal' && (
+                <div className="space-y-3 border-t pt-4">
+                  <h4 className="font-semibold text-sm text-[#004645]">Textes personnalisés</h4>
+                  <div>
+                    <Label className="text-xs">Label choix de repas</Label>
+                    <Input
+                      value={editingStep.texts?.mealLabel || ''}
+                      onChange={(e) => setEditingStep({
+                        ...editingStep,
+                        texts: { ...editingStep.texts, mealLabel: e.target.value }
+                      })}
+                      placeholder="Choix de repas"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs">Label allergies</Label>
+                    <Input
+                      value={editingStep.texts?.allergiesLabel || ''}
+                      onChange={(e) => setEditingStep({
+                        ...editingStep,
+                        texts: { ...editingStep.texts, allergiesLabel: e.target.value }
+                      })}
+                      placeholder="Allergies ou régimes spécifiques"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs">Placeholder allergies</Label>
+                    <Input
+                      value={editingStep.texts?.allergiesPlaceholder || ''}
+                      onChange={(e) => setEditingStep({
+                        ...editingStep,
+                        texts: { ...editingStep.texts, allergiesPlaceholder: e.target.value }
+                      })}
+                      placeholder="Précisez vos éventuelles allergies..."
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Textes personnalisables pour Practical */}
+              {editingStep.type === 'practical' && (
+                <div className="space-y-3 border-t pt-4">
+                  <h4 className="font-semibold text-sm text-[#004645]">Textes personnalisés</h4>
+                  <div>
+                    <Label className="text-xs">Titre de la section</Label>
+                    <Input
+                      value={editingStep.texts?.practicalTitle || ''}
+                      onChange={(e) => setEditingStep({
+                        ...editingStep,
+                        texts: { ...editingStep.texts, practicalTitle: e.target.value }
+                      })}
+                      placeholder="Informations pratiques"
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <Label className="text-xs">Label accessibilité</Label>
+                      <Input
+                        value={editingStep.texts?.accessibilityLabel || ''}
+                        onChange={(e) => setEditingStep({
+                          ...editingStep,
+                          texts: { ...editingStep.texts, accessibilityLabel: e.target.value }
+                        })}
+                        placeholder="Besoins d'accessibilité"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-xs">Placeholder accessibilité</Label>
+                      <Input
+                        value={editingStep.texts?.accessibilityPlaceholder || ''}
+                        onChange={(e) => setEditingStep({
+                          ...editingStep,
+                          texts: { ...editingStep.texts, accessibilityPlaceholder: e.target.value }
+                        })}
+                        placeholder="PMR, assistance..."
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <Label className="text-xs">Label transport</Label>
+                      <Input
+                        value={editingStep.texts?.transportLabel || ''}
+                        onChange={(e) => setEditingStep({
+                          ...editingStep,
+                          texts: { ...editingStep.texts, transportLabel: e.target.value }
+                        })}
+                        placeholder="Besoins de transport"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-xs">Placeholder transport</Label>
+                      <Input
+                        value={editingStep.texts?.transportPlaceholder || ''}
+                        onChange={(e) => setEditingStep({
+                          ...editingStep,
+                          texts: { ...editingStep.texts, transportPlaceholder: e.target.value }
+                        })}
+                        placeholder="Navette, parking..."
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <Label className="text-xs">Label hébergement</Label>
+                      <Input
+                        value={editingStep.texts?.lodgingLabel || ''}
+                        onChange={(e) => setEditingStep({
+                          ...editingStep,
+                          texts: { ...editingStep.texts, lodgingLabel: e.target.value }
+                        })}
+                        placeholder="Besoins d'hébergement"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-xs">Placeholder hébergement</Label>
+                      <Input
+                        value={editingStep.texts?.lodgingPlaceholder || ''}
+                        onChange={(e) => setEditingStep({
+                          ...editingStep,
+                          texts: { ...editingStep.texts, lodgingPlaceholder: e.target.value }
+                        })}
+                        placeholder="Hôtel, nuitée..."
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Textes personnalisables pour Consent */}
+              {editingStep.type === 'consent' && (
+                <div className="space-y-3 border-t pt-4">
+                  <h4 className="font-semibold text-sm text-[#004645]">Textes personnalisés</h4>
+                  <div>
+                    <Label className="text-xs">Texte du consentement</Label>
+                    <Textarea
+                      value={editingStep.texts?.consentLabel || ''}
+                      onChange={(e) => setEditingStep({
+                        ...editingStep,
+                        texts: { ...editingStep.texts, consentLabel: e.target.value }
+                      })}
+                      placeholder="J'autorise la prise et l'utilisation de photographies..."
+                      rows={3}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Textes personnalisables pour Summary */}
+              {editingStep.type === 'summary' && (
+                <div className="space-y-3 border-t pt-4">
+                  <h4 className="font-semibold text-sm text-[#004645]">Textes personnalisés</h4>
+                  <div>
+                    <Label className="text-xs">Titre</Label>
+                    <Input
+                      value={editingStep.texts?.summaryTitle || ''}
+                      onChange={(e) => setEditingStep({
+                        ...editingStep,
+                        texts: { ...editingStep.texts, summaryTitle: e.target.value }
+                      })}
+                      placeholder="Récapitulatif"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs">Texte d&apos;introduction</Label>
+                    <Textarea
+                      value={editingStep.texts?.summaryIntro || ''}
+                      onChange={(e) => setEditingStep({
+                        ...editingStep,
+                        texts: { ...editingStep.texts, summaryIntro: e.target.value }
+                      })}
+                      placeholder="Vous pourrez modifier votre réponse jusqu'au..."
+                      rows={2}
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs">Texte bouton validation</Label>
+                    <Input
+                      value={editingStep.texts?.submitButton || ''}
+                      onChange={(e) => setEditingStep({
+                        ...editingStep,
+                        texts: { ...editingStep.texts, submitButton: e.target.value }
+                      })}
+                      placeholder="Valider ma réponse"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Boutons communs pour toutes les étapes sauf message */}
+              {editingStep.type !== 'message' && editingStep.type !== 'summary' && (
+                <div className="space-y-3 border-t pt-4">
+                  <h4 className="font-semibold text-sm text-[#004645]">Boutons de navigation</h4>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <Label className="text-xs">Texte bouton &quot;Retour&quot;</Label>
+                      <Input
+                        value={editingStep.texts?.backButton || ''}
+                        onChange={(e) => setEditingStep({
+                          ...editingStep,
+                          texts: { ...editingStep.texts, backButton: e.target.value }
+                        })}
+                        placeholder="Retour"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-xs">Texte bouton &quot;Continuer&quot;</Label>
+                      <Input
+                        value={editingStep.texts?.continueButton || ''}
+                        onChange={(e) => setEditingStep({
+                          ...editingStep,
+                          texts: { ...editingStep.texts, continueButton: e.target.value }
+                        })}
+                        placeholder="Continuer"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <div className="flex justify-end gap-2 pt-4">
                 <Button
                   variant="outline"

@@ -126,6 +126,16 @@ export default function GuestPage() {
     fetchGuestData();
   }, [fetchGuestData]);
 
+  // Helper to get custom text for a step
+  const getStepText = (stepType: string, textKey: string, defaultValue: string): string => {
+    if (!data?.event.rsvpConfig?.customSteps) return defaultValue;
+
+    const step = data.event.rsvpConfig.customSteps.find(s => s.type === stepType && s.enabled);
+    if (!step?.texts) return defaultValue;
+
+    return (step.texts as any)[textKey] || defaultValue;
+  };
+
   // Rebuild steps when event data or attending status changes
   useEffect(() => {
     if (data?.event) {
@@ -372,7 +382,7 @@ export default function GuestPage() {
                     animate={{ opacity: 1, x: 0 }}
                     className="space-y-4"
                   >
-                    <Label className="text-lg">Participez-vous à l&apos;événement ?</Label>
+                    <Label className="text-lg">{getStepText('response', 'responseQuestion', "Participez-vous à l'événement ?")}</Label>
                     <RadioGroup
                       value={attending === null ? "" : attending.toString()}
                       onValueChange={(value) => {
@@ -383,13 +393,13 @@ export default function GuestPage() {
                       <div className="flex items-center space-x-2 p-4 border rounded-lg hover:bg-accent cursor-pointer">
                         <RadioGroupItem value="true" id="yes" />
                         <Label htmlFor="yes" className="cursor-pointer flex-1">
-                          ✓ J&apos;accepte avec plaisir
+                          {getStepText('response', 'responseYes', "✓ J'accepte avec plaisir")}
                         </Label>
                       </div>
                       <div className="flex items-center space-x-2 p-4 border rounded-lg hover:bg-accent cursor-pointer">
                         <RadioGroupItem value="false" id="no" />
                         <Label htmlFor="no" className="cursor-pointer flex-1">
-                          ✗ Je ne peux malheureusement pas venir
+                          {getStepText('response', 'responseNo', "✗ Je ne peux malheureusement pas venir")}
                         </Label>
                       </div>
                     </RadioGroup>
@@ -401,7 +411,7 @@ export default function GuestPage() {
                       disabled={attending === null}
                       className="w-full bg-gradient-to-r from-[#004645] to-[#009197] hover:from-[#006C51] hover:to-[#009197] text-white"
                     >
-                      Continuer
+                      {getStepText('response', 'continueButton', "Continuer")}
                     </Button>
                   </motion.div>
                 )}
@@ -414,7 +424,7 @@ export default function GuestPage() {
                     className="space-y-4"
                   >
                     <Label htmlFor="plusOnes" className="text-lg">
-                      Nombre d&apos;accompagnants (max {event.maxPlusOnes})
+                      {getStepText('plus-ones', 'plusOnesLabel', `Nombre d'accompagnants (max ${event.maxPlusOnes})`)}
                     </Label>
                     <Select
                       value={plusOnes.toString()}
@@ -426,7 +436,7 @@ export default function GuestPage() {
                       <SelectContent>
                         {Array.from({ length: event.maxPlusOnes + 1 }, (_, i) => (
                           <SelectItem key={i} value={i.toString()}>
-                            {i === 0 ? "Aucun" : i}
+                            {i === 0 ? getStepText('plus-ones', 'plusOnesNone', "Aucun") : i}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -440,7 +450,7 @@ export default function GuestPage() {
                         }}
                         className="border-[#004645] text-[#004645] hover:bg-[#004645] hover:text-white"
                       >
-                        Retour
+                        {getStepText('plus-ones', 'backButton', "Retour")}
                       </Button>
                       <Button
                         onClick={() => {
@@ -449,7 +459,7 @@ export default function GuestPage() {
                         }}
                         className="flex-1 bg-gradient-to-r from-[#004645] to-[#009197] hover:from-[#006C51] hover:to-[#009197] text-white"
                       >
-                        Continuer
+                        {getStepText('plus-ones', 'continueButton', "Continuer")}
                       </Button>
                     </div>
                   </motion.div>
@@ -463,7 +473,7 @@ export default function GuestPage() {
                     className="space-y-4"
                   >
                     <Label htmlFor="meal" className="text-lg">
-                      Choix de repas
+                      {getStepText('meal', 'mealLabel', "Choix de repas")}
                     </Label>
                     <Select value={mealChoice} onValueChange={setMealChoice}>
                       <SelectTrigger>
@@ -478,12 +488,12 @@ export default function GuestPage() {
                       </SelectContent>
                     </Select>
                     <div className="space-y-2">
-                      <Label htmlFor="allergies">Allergies ou régimes spécifiques</Label>
+                      <Label htmlFor="allergies">{getStepText('meal', 'allergiesLabel', "Allergies ou régimes spécifiques")}</Label>
                       <Textarea
                         id="allergies"
                         value={allergies}
                         onChange={(e) => setAllergies(e.target.value)}
-                        placeholder="Précisez vos éventuelles allergies..."
+                        placeholder={getStepText('meal', 'allergiesPlaceholder', "Précisez vos éventuelles allergies...")}
                       />
                     </div>
                     <div className="flex space-x-2">
@@ -495,7 +505,7 @@ export default function GuestPage() {
                         }}
                         className="border-[#004645] text-[#004645] hover:bg-[#004645] hover:text-white"
                       >
-                        Retour
+                        {getStepText('meal', 'backButton', "Retour")}
                       </Button>
                       <Button
                         onClick={() => {
@@ -504,7 +514,7 @@ export default function GuestPage() {
                         }}
                         className="flex-1 bg-gradient-to-r from-[#004645] to-[#009197] hover:from-[#006C51] hover:to-[#009197] text-white"
                       >
-                        Continuer
+                        {getStepText('meal', 'continueButton', "Continuer")}
                       </Button>
                     </div>
                   </motion.div>
@@ -517,39 +527,39 @@ export default function GuestPage() {
                     animate={{ opacity: 1, x: 0 }}
                     className="space-y-4"
                   >
-                    <h3 className="text-lg font-semibold">Informations pratiques</h3>
+                    <h3 className="text-lg font-semibold">{getStepText('practical', 'practicalTitle', "Informations pratiques")}</h3>
                     {event.enableAccessibility && (
                       <div className="space-y-2">
                         <Label htmlFor="accessibility">
-                          Besoins d&apos;accessibilité
+                          {getStepText('practical', 'accessibilityLabel', "Besoins d'accessibilité")}
                         </Label>
                         <Textarea
                           id="accessibility"
                           value={accessibilityNotes}
                           onChange={(e) => setAccessibilityNotes(e.target.value)}
-                          placeholder="PMR, assistance particulière..."
+                          placeholder={getStepText('practical', 'accessibilityPlaceholder', "PMR, assistance particulière...")}
                         />
                       </div>
                     )}
                     {event.enableTransport && (
                       <div className="space-y-2">
-                        <Label htmlFor="transport">Besoins de transport</Label>
+                        <Label htmlFor="transport">{getStepText('practical', 'transportLabel', "Besoins de transport")}</Label>
                         <Textarea
                           id="transport"
                           value={transportNeeds}
                           onChange={(e) => setTransportNeeds(e.target.value)}
-                          placeholder="Navette, parking..."
+                          placeholder={getStepText('practical', 'transportPlaceholder', "Navette, parking...")}
                         />
                       </div>
                     )}
                     {event.enableLodging && (
                       <div className="space-y-2">
-                        <Label htmlFor="lodging">Besoins d&apos;hébergement</Label>
+                        <Label htmlFor="lodging">{getStepText('practical', 'lodgingLabel', "Besoins d'hébergement")}</Label>
                         <Textarea
                           id="lodging"
                           value={lodgingNeeds}
                           onChange={(e) => setLodgingNeeds(e.target.value)}
-                          placeholder="Hôtel, nuitée..."
+                          placeholder={getStepText('practical', 'lodgingPlaceholder', "Hôtel, nuitée...")}
                         />
                       </div>
                     )}
@@ -562,7 +572,7 @@ export default function GuestPage() {
                         }}
                         className="border-[#004645] text-[#004645] hover:bg-[#004645] hover:text-white"
                       >
-                        Retour
+                        {getStepText('practical', 'backButton', "Retour")}
                       </Button>
                       <Button
                         onClick={() => {
@@ -571,7 +581,7 @@ export default function GuestPage() {
                         }}
                         className="flex-1 bg-gradient-to-r from-[#004645] to-[#009197] hover:from-[#006C51] hover:to-[#009197] text-white"
                       >
-                        Continuer
+                        {getStepText('practical', 'continueButton', "Continuer")}
                       </Button>
                     </div>
                   </motion.div>
@@ -595,8 +605,7 @@ export default function GuestPage() {
                           className="mt-1"
                         />
                         <Label htmlFor="photos" className="cursor-pointer">
-                          J&apos;autorise la prise et l&apos;utilisation de photographies durant
-                          l&apos;événement à des fins de communication
+                          {getStepText('consent', 'consentLabel', "J'autorise la prise et l'utilisation de photographies durant l'événement à des fins de communication")}
                         </Label>
                       </div>
                     )}
@@ -609,7 +618,7 @@ export default function GuestPage() {
                         }}
                         className="border-[#004645] text-[#004645] hover:bg-[#004645] hover:text-white"
                       >
-                        Retour
+                        {getStepText('consent', 'backButton', "Retour")}
                       </Button>
                       <Button
                         onClick={() => {
@@ -618,7 +627,7 @@ export default function GuestPage() {
                         }}
                         className="flex-1 bg-gradient-to-r from-[#004645] to-[#009197] hover:from-[#006C51] hover:to-[#009197] text-white"
                       >
-                        Continuer
+                        {getStepText('consent', 'continueButton', "Continuer")}
                       </Button>
                     </div>
                   </motion.div>
@@ -685,7 +694,7 @@ export default function GuestPage() {
                     animate={{ opacity: 1, x: 0 }}
                     className="space-y-4"
                   >
-                    <h3 className="text-lg font-semibold">Récapitulatif</h3>
+                    <h3 className="text-lg font-semibold">{getStepText('summary', 'summaryTitle', "Récapitulatif")}</h3>
                     <div className="bg-muted p-4 rounded-lg space-y-2 text-sm">
                       <p>
                         <strong>Participation :</strong>{" "}
@@ -711,11 +720,17 @@ export default function GuestPage() {
                         </>
                       )}
                     </div>
-                    <p className="text-sm text-[#004645]/70">
-                      Vous pourrez modifier votre réponse jusqu&apos;au{" "}
-                      {event.rsvpDeadline &&
-                        new Date(event.rsvpDeadline).toLocaleDateString("fr-FR")}
-                    </p>
+                    {getStepText('summary', 'summaryIntro', '') ? (
+                      <p className="text-sm text-[#004645]/70">
+                        {getStepText('summary', 'summaryIntro', '')}
+                      </p>
+                    ) : (
+                      <p className="text-sm text-[#004645]/70">
+                        Vous pourrez modifier votre réponse jusqu&apos;au{" "}
+                        {event.rsvpDeadline &&
+                          new Date(event.rsvpDeadline).toLocaleDateString("fr-FR")}
+                      </p>
+                    )}
                     <div className="flex space-x-2">
                       <Button
                         variant="outline"
@@ -738,7 +753,7 @@ export default function GuestPage() {
                             Enregistrement...
                           </>
                         ) : (
-                          "Valider ma réponse"
+                          getStepText('summary', 'submitButton', "Valider ma réponse")
                         )}
                       </Button>
                     </div>
