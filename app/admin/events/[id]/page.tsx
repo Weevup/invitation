@@ -13,6 +13,7 @@ import { AddGuestDialog } from '@/components/add-guest-dialog'
 import { ImportCSVDialog } from '@/components/import-csv-dialog'
 import { SendInvitationsDialog } from '@/components/send-invitations-dialog'
 import { ModuleSelector } from '@/components/admin/module-selector'
+import { EventLaunchChecklist } from '@/components/admin/event-launch-checklist'
 import { createClientLogger } from '@/lib/client-logger'
 
 const logger = createClientLogger({ component: 'Page' })
@@ -94,6 +95,9 @@ export default function EventOverviewPage() {
 
   return (
     <div className="space-y-8">
+      {/* Launch Checklist - Phase 1 Quick Win */}
+      <EventLaunchChecklist eventId={eventId} totalGuests={totalGuests} />
+
       {/* Timeline du cycle de l'événement */}
       <Card className="border-[#FF4713]/30 bg-gradient-to-r from-[#FF4713]/5 via-[#009197]/5 to-[#004645]/5 backdrop-blur">
         <CardHeader>
