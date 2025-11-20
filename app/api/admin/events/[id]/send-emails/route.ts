@@ -135,6 +135,8 @@ export async function POST(
             'guest.lastName': guest.lastName || '',
             'guest.email': guest.email,
             'rsvpLink': `${baseUrl}/guest/${guest.token}`,
+            'showcaseLink': `${baseUrl}/events/${event.slug}`,
+            'unsubscribeLink': `${baseUrl}/unsubscribe/${guest.token}`,
             'rsvpDeadline': event.rsvpDeadline ? new Date(event.rsvpDeadline).toLocaleDateString('fr-FR') : ''
           };
 
