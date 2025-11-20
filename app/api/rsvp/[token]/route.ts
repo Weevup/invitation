@@ -8,7 +8,6 @@ import { formatDateTime } from '@/lib/utils'
 import { rsvpRateLimit, getRateLimitIdentifier, getRateLimitHeaders, normalizeRateLimitResult } from '@/lib/rate-limit'
 import { rsvpSubmissionSchema, validateSchema } from '@/lib/validations'
 import { createLogger } from '@/lib/logger'
-import { safeDecrypt } from '@/lib/encryption'
 
 const rsvpLogger = createLogger({ module: 'rsvp' })
 
@@ -206,22 +205,46 @@ export async function POST(
         throw new Error('No active email integration found')
       }
 
-      // Decrypt API keys
-      const apiKey = emailIntegration.apiKey ? safeDecrypt(emailIntegration.apiKey) : null
+      // Send with direct sendEmail (2 arguments: data, integration)
+      const emailResult = await sendEmailDirect(
+        {
+          to: guest.email,
+          from: emailIntegration.fromEmail || 'noreply@example.com',
+          fromName: emailIntegration.fromName || 'Weevup',
+          subject: renderedSubject,
+          html: renderedHtml,
+        },
+        {
+          id: emailIntegration.id,
+          provider: emailIntegration.provider,
+          apiKey: emailIntegration.apiKey,
+          apiSecret: emailIntegration.apiSecret,
+          smtpHost: emailIntegration.smtpHost,
+          smtpPort: emailIntegration.smtpPort,
+          smtpUser: emailIntegration.smtpUser,
+          smtpPass: emailIntegration.smtpPass,
+          fromEmail: emailIntegration.fromEmail,
+          fromName: emailIntegration.fromName,
+          replyTo: emailIntegration.replyTo,
+          trackOpens: emailIntegration.trackOpens,
+          trackClicks: emailIntegration.trackClicks,
+        }
+      )
 
-      // Send with direct sendEmail (creates EmailLog)
-      await sendEmailDirect({
-        to: guest.email,
-        from: emailIntegration.fromEmail || 'noreply@example.com',
-        fromName: emailIntegration.fromName || 'Weevup',
-        subject: renderedSubject,
-        html: renderedHtml,
-        provider: emailIntegration.provider,
-        apiKey: apiKey || undefined,
-        eventId: guest.eventId,
-        guestId: guest.id,
-        type: 'CONFIRMATION',
-      })
+      // Log email send (manually since we're not using sendEmailLegacy)
+      if (emailResult.success) {
+        await prisma.emailLog.create({
+          data: {
+            eventId: guest.eventId,
+            guestId: guest.id,
+            type: 'CONFIRMATION',
+            status: 'SENT',
+            subject: renderedSubject,
+            providerId: emailResult.messageId,
+            sentAt: new Date(),
+          }
+        })
+      }
     } else {
       // Fallback to default template
       const emailHtml = getConfirmationEmailTemplate({
