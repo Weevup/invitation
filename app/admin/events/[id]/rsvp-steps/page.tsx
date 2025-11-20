@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { RsvpStepsEditor } from '@/components/rsvp-steps-editor'
 import { RsvpPreview } from '@/components/rsvp-preview'
 import { RsvpThemeEditor, type RsvpTheme } from '@/components/rsvp-theme-editor'
+import { RsvpTemplates } from '@/components/rsvp-templates'
 import { Loader2, Save, Eye, Monitor, Layout } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -180,6 +181,11 @@ export default function RsvpStepsPage() {
     }
   }
 
+  const handleLoadTemplate = (templateSteps: RsvpStep[]) => {
+    setSteps(templateSteps)
+    toast.success('Modèle chargé avec succès ! Vous pouvez maintenant le personnaliser.')
+  }
+
   const handlePreview = async () => {
     try {
       // Fetch first guest to get a token for preview
@@ -225,6 +231,7 @@ export default function RsvpStepsPage() {
             </p>
           </div>
           <div className="flex gap-2">
+            <RsvpTemplates onSelectTemplate={handleLoadTemplate} />
             <Button
               variant="outline"
               onClick={() => setSplitScreenEnabled(!splitScreenEnabled)}
