@@ -747,11 +747,13 @@ export function getConfirmationEmailTemplate(params: {
               <p><strong>📍 Lieu :</strong> ${params.eventVenue}</p>
             </div>
 
-            ${params.attending && params.qrCodeUrl ? `
-              <div class="qr-code">
-                <p><strong>Votre QR code d'accès :</strong></p>
-                <img src="${params.qrCodeUrl}" alt="QR Code" style="max-width: 200px;" />
-                <p style="font-size: 14px; color: #718096;">Présentez ce code à l'entrée de l'événement</p>
+            ${params.attending ? `
+              <div style="background: #edf2f7; padding: 20px; border-radius: 6px; margin: 20px 0; border-left: 4px solid #48bb78;">
+                <p style="margin: 0;"><strong>📱 Votre QR code d'accès</strong></p>
+                <p style="font-size: 14px; color: #718096; margin: 10px 0 0 0;">
+                  Un QR code a été généré et est disponible sur la page de confirmation que vous venez de voir.
+                  Vous pouvez le télécharger et le sauvegarder sur votre téléphone pour présentation à l'entrée de l'événement.
+                </p>
               </div>
             ` : ''}
 

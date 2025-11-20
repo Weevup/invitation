@@ -162,6 +162,12 @@ export async function POST(
       qrCodeData = await generateQRCode(checkinUrl)
     }
 
+    // Build venue string (avoid "null" in output)
+    let eventVenue = guest.event.venueName || ''
+    if (guest.event.city) {
+      eventVenue += eventVenue ? `, ${guest.event.city}` : guest.event.city
+    }
+
     // Try to use custom CONFIRMATION template if available
     const customTemplate = await prisma.emailTemplate.findFirst({
       where: {
@@ -173,12 +179,6 @@ export async function POST(
         { updatedAt: 'desc' }  // Or most recent
       ]
     })
-
-    // Build venue string (avoid "null" in output)
-    let eventVenue = guest.event.venueName || ''
-    if (guest.event.city) {
-      eventVenue += eventVenue ? `, ${guest.event.city}` : guest.event.city
-    }
 
     if (customTemplate) {
       // Use custom WYSIWYG template
@@ -206,6 +206,7 @@ export async function POST(
       }
 
       // Send with direct sendEmail (2 arguments: data, integration)
+      // Note: sendEmail will handle decryption internally, so pass encrypted values
       const emailResult = await sendEmailDirect(
         {
           to: guest.email,
