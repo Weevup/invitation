@@ -428,6 +428,178 @@ export const PREDEFINED_TEMPLATES: Record<string, EmailTemplate> = {
     ],
   },
 
+  'confirmation-accepted': {
+    id: 'confirmation-accepted',
+    name: 'Confirmation de présence',
+    globalStyles: {
+      fontFamily: 'Arial',
+      primaryColor: '#48bb78',
+      secondaryColor: '#38a169',
+      backgroundColor: '#F5F5F5',
+      containerWidth: 600,
+    },
+    blocks: [
+      {
+        id: 'header-1',
+        type: 'header',
+        order: 0,
+        content: {
+          title: '✓ Confirmation enregistrée',
+          subtitle: 'Merci pour votre réponse !',
+          backgroundColor: '#48bb78',
+          textColor: '#FFFFFF',
+          align: 'center',
+        },
+      },
+      {
+        id: 'spacer-1',
+        type: 'spacer',
+        order: 1,
+        content: {
+          height: 'large',
+        },
+      },
+      {
+        id: 'text-1',
+        type: 'text',
+        order: 2,
+        content: {
+          html: '<p>Bonjour <strong>{{guest.firstName}}</strong>,</p><p>Merci d\'avoir confirmé votre présence à notre événement ! Nous sommes ravis de vous compter parmi nous.</p>',
+          fontSize: 'medium',
+          align: 'left',
+          color: '#333333',
+          padding: 'medium',
+        },
+      },
+      {
+        id: 'infobox-1',
+        type: 'infoBox',
+        order: 3,
+        content: {
+          icon: '📅',
+          title: '{{event.name}}',
+          description: 'Date : {{event.date}}\nLieu : {{event.location}}',
+          backgroundColor: '#f0fff4',
+          borderColor: '#48bb78',
+        },
+      },
+      {
+        id: 'spacer-2',
+        type: 'spacer',
+        order: 4,
+        content: {
+          height: 'medium',
+        },
+      },
+      {
+        id: 'infobox-2',
+        type: 'infoBox',
+        order: 5,
+        content: {
+          icon: '📱',
+          title: 'Votre QR code d\'accès',
+          description: 'Un QR code a été généré et est disponible sur la page de confirmation. Vous pourrez le présenter à l\'entrée de l\'événement.',
+          backgroundColor: '#edf2f7',
+          borderColor: '#48bb78',
+        },
+      },
+      {
+        id: 'spacer-3',
+        type: 'spacer',
+        order: 6,
+        content: {
+          height: 'large',
+        },
+      },
+      {
+        id: 'text-2',
+        type: 'text',
+        order: 7,
+        content: {
+          html: '<p style="color: #718096; font-size: 14px;">Vous pouvez modifier votre réponse à tout moment en utilisant le lien de votre invitation initiale.</p>',
+          fontSize: 'small',
+          align: 'center',
+          color: '#718096',
+          padding: 'medium',
+        },
+      },
+    ],
+  },
+
+  'confirmation-declined': {
+    id: 'confirmation-declined',
+    name: 'Réponse négative enregistrée',
+    globalStyles: {
+      fontFamily: 'Arial',
+      primaryColor: '#667eea',
+      secondaryColor: '#764ba2',
+      backgroundColor: '#F5F5F5',
+      containerWidth: 600,
+    },
+    blocks: [
+      {
+        id: 'header-1',
+        type: 'header',
+        order: 0,
+        content: {
+          title: 'Réponse enregistrée',
+          subtitle: 'Nous espérons vous voir prochainement',
+          backgroundColor: '#667eea',
+          textColor: '#FFFFFF',
+          align: 'center',
+        },
+      },
+      {
+        id: 'spacer-1',
+        type: 'spacer',
+        order: 1,
+        content: {
+          height: 'large',
+        },
+      },
+      {
+        id: 'text-1',
+        type: 'text',
+        order: 2,
+        content: {
+          html: '<p>Bonjour <strong>{{guest.firstName}}</strong>,</p><p>Nous avons bien enregistré votre réponse concernant <strong>{{event.name}}</strong>.</p><p>Nous sommes désolés que vous ne puissiez pas être parmi nous cette fois-ci, mais nous espérons vous voir lors d\'un prochain événement !</p>',
+          fontSize: 'medium',
+          align: 'left',
+          color: '#333333',
+          padding: 'medium',
+        },
+      },
+      {
+        id: 'spacer-2',
+        type: 'spacer',
+        order: 3,
+        content: {
+          height: 'medium',
+        },
+      },
+      {
+        id: 'text-2',
+        type: 'text',
+        order: 4,
+        content: {
+          html: '<p style="color: #718096; font-size: 14px;">Vous pouvez modifier votre réponse à tout moment en utilisant le lien de votre invitation initiale.</p>',
+          fontSize: 'small',
+          align: 'center',
+          color: '#718096',
+          padding: 'medium',
+        },
+      },
+      {
+        id: 'spacer-3',
+        type: 'spacer',
+        order: 5,
+        content: {
+          height: 'large',
+        },
+      },
+    ],
+  },
+
   'blank': {
     id: 'blank',
     name: 'Vide (Partir de zéro)',

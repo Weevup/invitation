@@ -143,7 +143,7 @@ export default function EventLayout({
   // Navigation organized by sections for better UX
   const navigationSections: NavigationSection[] = [
     {
-      title: "GESTION ÉVÉNEMENT",
+      title: "🎯 GESTION ÉVÉNEMENT",
       items: [
         {
           label: 'Vue d\'ensemble',
@@ -194,20 +194,25 @@ export default function EventLayout({
       ],
     },
     {
-      title: "EMAIL & COMMUNICATIONS",
+      title: "📧 EMAIL & COMMUNICATIONS",
       items: [
         {
-          label: 'Templates',
+          label: 'Templates classiques',
           href: `/admin/events/${eventId}/templates`,
           icon: Wand2,
         },
         {
-          label: 'Mes Templates WYSIWYG',
+          label: 'Éditeur visuel',
           href: `/admin/events/${eventId}/my-templates`,
           icon: FileText,
         },
         {
-          label: 'Campagnes',
+          label: 'Confirmation RSVP',
+          href: `/admin/events/${eventId}/confirmation-email`,
+          icon: Mail,
+        },
+        {
+          label: 'Envoi de campagnes',
           href: `/admin/events/${eventId}/communications`,
           icon: Settings,
         },
@@ -224,7 +229,7 @@ export default function EventLayout({
       ],
     },
     {
-      title: "SMS & NOTIFICATIONS",
+      title: "💬 SMS & NOTIFICATIONS",
       items: [
         {
           label: 'Templates SMS',
