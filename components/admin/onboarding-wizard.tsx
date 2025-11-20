@@ -280,7 +280,7 @@ function WelcomeStep() {
           <div className="flex items-start gap-3">
             <Mail className="h-5 w-5 text-[#009197] mt-0.5" />
             <div>
-              <p className="font-medium">Service d'envoi d'emails</p>
+              <p className="font-medium">Service d&apos;envoi d&apos;emails</p>
               <p className="text-sm text-muted-foreground">
                 Connectez SendGrid, Resend ou utilisez SMTP
               </p>
@@ -289,7 +289,7 @@ function WelcomeStep() {
           <div className="flex items-start gap-3">
             <Users className="h-5 w-5 text-[#009197] mt-0.5" />
             <div>
-              <p className="font-medium">Liste d'invités</p>
+              <p className="font-medium">Liste d&apos;invités</p>
               <p className="text-sm text-muted-foreground">
                 Importez depuis CSV ou ajoutez manuellement
               </p>
@@ -298,7 +298,7 @@ function WelcomeStep() {
           <div className="flex items-start gap-3">
             <FileText className="h-5 w-5 text-[#009197] mt-0.5" />
             <div>
-              <p className="font-medium">Email d'invitation</p>
+              <p className="font-medium">Email d&apos;invitation</p>
               <p className="text-sm text-muted-foreground">
                 Créez un email personnalisé avec notre éditeur visuel
               </p>
@@ -321,7 +321,7 @@ function EmailSetupStep({ completed, onSetup }: { completed: boolean; onSetup: (
               <div>
                 <p className="font-semibold text-green-900">Configuration email complète !</p>
                 <p className="text-sm text-green-700">
-                  Votre intégration email est active et prête à l'emploi.
+                  Votre intégration email est active et prête à l&apos;emploi.
                 </p>
               </div>
             </div>
@@ -330,7 +330,7 @@ function EmailSetupStep({ completed, onSetup }: { completed: boolean; onSetup: (
       ) : (
         <Card>
           <CardHeader>
-            <CardTitle>Connectez votre service d'envoi d'emails</CardTitle>
+            <CardTitle>Connectez votre service d&apos;envoi d&apos;emails</CardTitle>
             <CardDescription>
               Pour envoyer des invitations, vous devez configurer une intégration email.
             </CardDescription>
@@ -340,7 +340,7 @@ function EmailSetupStep({ completed, onSetup }: { completed: boolean; onSetup: (
               <div className="border rounded-lg p-4">
                 <h4 className="font-medium mb-1">SendGrid</h4>
                 <p className="text-sm text-muted-foreground">
-                  Service d'emailing professionnel avec analytics détaillées
+                  Service d&apos;emailing professionnel avec analytics détaillées
                 </p>
               </div>
               <div className="border rounded-lg p-4">
@@ -390,7 +390,7 @@ function GuestsSetupStep({ completed, onSetup }: { completed: boolean; onSetup: 
           <CardHeader>
             <CardTitle>Ajoutez vos invités</CardTitle>
             <CardDescription>
-              Importez votre liste d'invités ou ajoutez-les manuellement.
+              Importez votre liste d&apos;invités ou ajoutez-les manuellement.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -432,9 +432,9 @@ function TemplateSetupStep({ completed, onSetup }: { completed: boolean; onSetup
             <div className="flex items-center gap-3">
               <CheckCircle2 className="h-8 w-8 text-green-600" />
               <div>
-                <p className="font-semibold text-green-900">Template d'invitation créé !</p>
+                <p className="font-semibold text-green-900">Template d&apos;invitation créé !</p>
                 <p className="text-sm text-green-700">
-                  Votre email d'invitation est prêt à être envoyé.
+                  Votre email d&apos;invitation est prêt à être envoyé.
                 </p>
               </div>
             </div>
@@ -443,7 +443,7 @@ function TemplateSetupStep({ completed, onSetup }: { completed: boolean; onSetup
       ) : (
         <Card>
           <CardHeader>
-            <CardTitle>Créez votre email d'invitation</CardTitle>
+            <CardTitle>Créez votre email d&apos;invitation</CardTitle>
             <CardDescription>
               Utilisez notre éditeur visuel pour personnaliser votre invitation.
             </CardDescription>

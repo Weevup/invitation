@@ -303,7 +303,7 @@ export default function EmailsHubPage() {
               <SelectItem value="7">7 derniers jours</SelectItem>
               <SelectItem value="30">30 derniers jours</SelectItem>
               <SelectItem value="90">90 derniers jours</SelectItem>
-              <SelectItem value="all">Tout l'historique</SelectItem>
+              <SelectItem value="all">Tout l&apos;historique</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -321,13 +321,13 @@ export default function EmailsHubPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-xs text-muted-foreground">Type d'email avec le meilleur taux d'ouverture</p>
+              <p className="text-xs text-muted-foreground">Type d&apos;email avec le meilleur taux d&apos;ouverture</p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="pb-2">
-              <CardDescription>Temps d'ouverture moyen</CardDescription>
+              <CardDescription>Temps d&apos;ouverture moyen</CardDescription>
               <CardTitle className="text-lg">{insights.avgHoursToOpen.toFixed(1)}h</CardTitle>
             </CardHeader>
             <CardContent>
@@ -428,7 +428,7 @@ export default function EmailsHubPage() {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardDescription>Taux d'ouverture</CardDescription>
+            <CardDescription>Taux d&apos;ouverture</CardDescription>
             <CardTitle className="text-3xl">{analytics.avgOpenRate.toFixed(0)}%</CardTitle>
           </CardHeader>
           <CardContent>
@@ -554,7 +554,7 @@ export default function EmailsHubPage() {
             onClick={() => router.push(`/admin/events/${eventId}/campaigns`)}
           >
             <Send className="h-4 w-4 mr-2" />
-            Campagnes d'envoi
+            Campagnes d&apos;envoi
           </Button>
         </CardContent>
       </Card>
@@ -626,7 +626,7 @@ export default function EmailsHubPage() {
                 }}
               />
               <p className="text-xs text-muted-foreground mt-2">
-                L'email contiendra des données de test pour prévisualiser le rendu
+                L&apos;email contiendra des données de test pour prévisualiser le rendu
               </p>
             </div>
           </div>
