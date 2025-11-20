@@ -201,7 +201,7 @@ export default function RsvpStepsPage() {
           <p>• <strong>Activez/désactivez</strong> les étapes selon vos besoins</p>
           <p>• <strong>Ajoutez des messages</strong> pour guider vos invités</p>
           <p>• <strong>Créez des questions personnalisées</strong> pour collecter des informations spécifiques</p>
-          <p>• Les étapes "Réponse" et "Récapitulatif" sont obligatoires</p>
+          <p>• Les étapes &quot;Réponse&quot; et &quot;Récapitulatif&quot; sont obligatoires</p>
         </CardContent>
       </Card>
 

@@ -300,7 +300,7 @@ export function RsvpStepsEditor({ steps, onChange }: RsvpStepsEditorProps) {
           <DialogHeader>
             <DialogTitle>Ajouter une étape</DialogTitle>
             <DialogDescription>
-              Choisissez le type d'étape à ajouter à votre parcours RSVP
+              Choisissez le type d&apos;étape à ajouter à votre parcours RSVP
             </DialogDescription>
           </DialogHeader>
           <div className="grid grid-cols-2 gap-3 mt-4">
@@ -336,7 +336,7 @@ export function RsvpStepsEditor({ steps, onChange }: RsvpStepsEditorProps) {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Modifier l'étape</DialogTitle>
+            <DialogTitle>Modifier l&apos;étape</DialogTitle>
             <DialogDescription>
               Personnalisez le contenu et les paramètres de cette étape
             </DialogDescription>
@@ -344,7 +344,7 @@ export function RsvpStepsEditor({ steps, onChange }: RsvpStepsEditorProps) {
           {editingStep && (
             <div className="space-y-4 mt-4">
               <div>
-                <Label>Libellé de l'étape</Label>
+                <Label>Libellé de l&apos;étape</Label>
                 <Input
                   value={editingStep.label}
                   onChange={(e) => setEditingStep({ ...editingStep, label: e.target.value })}
