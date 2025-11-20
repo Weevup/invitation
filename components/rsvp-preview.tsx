@@ -10,7 +10,8 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Progress } from '@/components/ui/progress'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Smartphone } from 'lucide-react'
+import { motion, useMotionValue, useTransform, PanInfo } from 'framer-motion'
 import type { RsvpStep } from '@/app/admin/events/[id]/rsvp-steps/page'
 import type { RsvpTheme } from './rsvp-theme-editor'
 
@@ -102,6 +103,18 @@ export function RsvpPreview({ steps, eventName, theme = {} }: RsvpPreviewProps) 
     }
   }
 
+  // Swipe gesture handling
+  const handleDragEnd = (event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+    const swipeThreshold = 50
+    if (info.offset.x > swipeThreshold) {
+      // Swiped right -> go to previous step
+      prevStep()
+    } else if (info.offset.x < -swipeThreshold) {
+      // Swiped left -> go to next step
+      nextStep()
+    }
+  }
+
   // Reset to first step when steps change or conditions change
   useEffect(() => {
     if (enabledSteps.length > 0 && currentStepIndex >= enabledSteps.length) {
@@ -129,9 +142,15 @@ export function RsvpPreview({ steps, eventName, theme = {} }: RsvpPreviewProps) 
 
   return (
     <div className="space-y-4" style={{ fontFamily: appliedTheme.fontFamily }}>
+      {/* Mobile Optimization Badge */}
+      <div className="flex items-center justify-center gap-2 text-xs text-[#009197] bg-[#009197]/10 py-2 px-3 rounded-lg">
+        <Smartphone className="h-4 w-4" />
+        <span>Optimisé mobile - Swipez pour naviguer</span>
+      </div>
+
       {/* Progress Bar */}
       <Card
-        className="backdrop-blur"
+        className="backdrop-blur sticky top-0 z-10"
         style={{
           backgroundColor: appliedTheme.backgroundColor,
           borderColor: appliedTheme.accentColor,
@@ -150,8 +169,19 @@ export function RsvpPreview({ steps, eventName, theme = {} }: RsvpPreviewProps) 
         </CardContent>
       </Card>
 
-      {/* Step Content */}
-      <Card
+      {/* Step Content with Swipe Gesture */}
+      <motion.div
+        drag="x"
+        dragConstraints={{ left: 0, right: 0 }}
+        dragElastic={0.2}
+        onDragEnd={handleDragEnd}
+        initial={{ opacity: 0, x: 20 }}
+        animate={{ opacity: 1, x: 0 }}
+        exit={{ opacity: 0, x: -20 }}
+        transition={{ duration: 0.3 }}
+        key={currentStepIndex}
+      >
+        <Card
         className="backdrop-blur"
         style={{
           backgroundColor: appliedTheme.backgroundColor,
@@ -389,6 +419,7 @@ export function RsvpPreview({ steps, eventName, theme = {} }: RsvpPreviewProps) 
           </div>
         </CardContent>
       </Card>
+      </motion.div>
 
       {/* Preview Notice */}
       <div className="text-center text-xs text-[#004645]/50 italic">
