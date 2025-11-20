@@ -212,7 +212,7 @@ export default function EventLayout({
         },
         {
           label: 'Configuration RSVP',
-          href: `/admin/events/${eventId}/rsvp-config`,
+          href: `/admin/events/${eventId}/rsvp-steps`,
           icon: UserCheck,
         },
       ],

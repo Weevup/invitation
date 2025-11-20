@@ -65,3 +65,11 @@ export async function POST(
     return handleAuthError(error);
   }
 }
+
+// PUT - Sauvegarder la configuration RSVP (alias de POST)
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  return POST(request, { params });
+}

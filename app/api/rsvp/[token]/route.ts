@@ -74,6 +74,7 @@ export async function POST(
       transportNeeds,
       lodgingNeeds,
       consentPhotos,
+      customAnswers,
     } = validation.data
 
     // Check if deadline passed
@@ -132,6 +133,7 @@ export async function POST(
         transportNeeds,
         lodgingNeeds,
         consentPhotos: consentPhotos || false,
+        customAnswers: customAnswers || {},
       },
       update: {
         attending: attending ?? null,
@@ -142,6 +144,7 @@ export async function POST(
         transportNeeds,
         lodgingNeeds,
         consentPhotos: consentPhotos || false,
+        customAnswers: customAnswers || {},
         updatedAt: new Date(),
       },
     })
