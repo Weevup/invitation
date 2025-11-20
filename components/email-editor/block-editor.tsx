@@ -372,8 +372,43 @@ function ButtonBlockEditor({
         <Input
           value={block.content.url}
           onChange={(e) => updateContent('url', e.target.value)}
-          placeholder="https://example.com"
+          placeholder="https://example.com ou {{rsvpLink}}"
         />
+        <div className="mt-2 space-y-2">
+          <p className="text-xs font-semibold text-[#004645]">💡 Liens dynamiques :</p>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="text-xs h-7"
+              onClick={() => updateContent('url', '{{rsvpLink}}')}
+            >
+              Lien RSVP
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="text-xs h-7"
+              onClick={() => updateContent('url', '{{showcaseLink}}')}
+            >
+              Page événement
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="text-xs h-7"
+              onClick={() => updateContent('url', '{{unsubscribeLink}}')}
+            >
+              Désinscription
+            </Button>
+          </div>
+          <p className="text-xs text-[#004645]/70 italic">
+            Ces variables seront automatiquement remplacées par les liens personnalisés lors de l&apos;envoi
+          </p>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 gap-4">
