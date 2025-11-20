@@ -8,6 +8,7 @@ import { formatDateTime } from '@/lib/utils'
 import { rsvpRateLimit, getRateLimitIdentifier, getRateLimitHeaders, normalizeRateLimitResult } from '@/lib/rate-limit'
 import { rsvpSubmissionSchema, validateSchema } from '@/lib/validations'
 import { createLogger } from '@/lib/logger'
+import { safeDecrypt } from '@/lib/encryption'
 
 const rsvpLogger = createLogger({ module: 'rsvp' })
 
