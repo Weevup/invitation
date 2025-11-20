@@ -95,6 +95,7 @@ export const rsvpSubmissionSchema = z.object({
   transportNeeds: z.string().max(1000, 'Besoins de transport trop longs').optional(),
   lodgingNeeds: z.string().max(1000, 'Besoins d\'hébergement trop longs').optional(),
   consentPhotos: z.boolean().optional().default(false),
+  customAnswers: z.record(z.string().max(5000, 'Réponse trop longue')).optional(),
 })
 
 /**

@@ -196,7 +196,7 @@ model Event {
   // Communication Configuration
   saveTheDateConfig  Json? // Save the Date email configuration
   invitationConfig   Json? // Invitation email configuration
-  rsvpConfig         Json? // RSVP form configuration
+  rsvpConfig         Json? // RSVP form configuration - customSteps: [{id, type, label, content, enabled, order}]
 
   // Features enabled
   enableTransport   Boolean @default(false)
@@ -366,6 +366,9 @@ model RSVP {
 
   // Consents
   consentPhotos Boolean @default(false)
+
+  // Custom answers from customSteps
+  customAnswers Json?
 
   // QR Code for check-in
   qrCodeId String @unique @default(cuid())

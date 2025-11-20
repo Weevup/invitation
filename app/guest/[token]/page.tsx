@@ -15,6 +15,8 @@ import { motion } from "framer-motion";
 import { RSVPProgress } from "@/components/rsvp-progress";
 import { RSVPConfirmation } from "@/components/rsvp-confirmation";
 import { buildSteps, getNextStep, getPreviousStep, type StepConfig } from "@/lib/rsvp-steps";
+import { RsvpCustomStep } from "@/components/rsvp-custom-steps";
+import type { RsvpStep } from "@/app/admin/events/[id]/rsvp-steps/page";
 
 interface GuestData {
   guest: {
@@ -44,6 +46,9 @@ interface GuestData {
     enableLodging: boolean;
     enableAccessibility: boolean;
     enablePhotoConsent: boolean;
+    rsvpConfig?: {
+      customSteps?: RsvpStep[];
+    };
   };
   rsvp?: {
     attending?: boolean;
@@ -79,6 +84,7 @@ export default function GuestPage() {
   const [lodgingNeeds, setLodgingNeeds] = useState("");
   const [consentPhotos, setConsentPhotos] = useState(false);
   const [qrCode, setQrCode] = useState<string | null>(null);
+  const [customAnswers, setCustomAnswers] = useState<Record<string, string>>({});
 
   const fetchGuestData = useCallback(async () => {
     try {
@@ -123,18 +129,43 @@ export default function GuestPage() {
   // Rebuild steps when event data or attending status changes
   useEffect(() => {
     if (data?.event) {
-      const newSteps = buildSteps(
-        {
-          allowPlusOnes: data.event.allowPlusOnes,
-          requireMeal: data.event.requireMeal,
-          enableAccessibility: data.event.enableAccessibility,
-          enableTransport: data.event.enableTransport,
-          enableLodging: data.event.enableLodging,
-          enablePhotoConsent: data.event.enablePhotoConsent,
-        },
-        attending
-      );
-      setSteps(newSteps);
+      // Use custom steps if defined, otherwise build default steps
+      if (data.event.rsvpConfig?.customSteps && data.event.rsvpConfig.customSteps.length > 0) {
+        // Filter and map custom steps to StepConfig format
+        const enabledCustomSteps = data.event.rsvpConfig.customSteps
+          .filter(s => s.enabled)
+          .sort((a, b) => a.order - b.order)
+          .map(s => ({
+            id: s.id,
+            label: s.label,
+            enabled: true
+          }));
+
+        // Filter steps based on attending status
+        let filteredSteps = enabledCustomSteps;
+        if (attending === false) {
+          // Only show response and summary when declining
+          filteredSteps = enabledCustomSteps.filter(s =>
+            s.id === 'response' || s.id === 'summary' || s.id.startsWith('welcome') || s.id.startsWith('message')
+          );
+        }
+
+        setSteps(filteredSteps);
+      } else {
+        // Use default step builder
+        const newSteps = buildSteps(
+          {
+            allowPlusOnes: data.event.allowPlusOnes,
+            requireMeal: data.event.requireMeal,
+            enableAccessibility: data.event.enableAccessibility,
+            enableTransport: data.event.enableTransport,
+            enableLodging: data.event.enableLodging,
+            enablePhotoConsent: data.event.enablePhotoConsent,
+          },
+          attending
+        );
+        setSteps(newSteps);
+      }
 
       // If attending status changes from true to false, jump to summary
       if (attending === false && currentStepId !== 'response') {
@@ -167,6 +198,7 @@ export default function GuestPage() {
           transportNeeds,
           lodgingNeeds,
           consentPhotos,
+          customAnswers,
         }),
       });
 
@@ -591,6 +623,60 @@ export default function GuestPage() {
                     </div>
                   </motion.div>
                 )}
+
+                {/* Custom Steps (message and custom fields) */}
+                {data.event.rsvpConfig?.customSteps
+                  ?.filter(s => s.enabled && (s.type === 'message' || s.type === 'custom'))
+                  .map(customStep => {
+                    if (currentStepId !== customStep.id) return null;
+
+                    return (
+                      <motion.div
+                        key={customStep.id}
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        className="space-y-4"
+                      >
+                        <RsvpCustomStep
+                          step={customStep}
+                          value={customAnswers[customStep.id] || ''}
+                          onChange={(value) => setCustomAnswers({ ...customAnswers, [customStep.id]: value })}
+                        />
+                        <div className="flex space-x-2">
+                          <Button
+                            variant="outline"
+                            onClick={() => {
+                              const prev = getPreviousStep(customStep.id, steps);
+                              if (prev) setCurrentStepId(prev);
+                            }}
+                            className="border-[#004645] text-[#004645] hover:bg-[#004645] hover:text-white"
+                          >
+                            Retour
+                          </Button>
+                          <Button
+                            onClick={() => {
+                              // Validation for required custom fields
+                              if (customStep.type === 'custom' && customStep.customField?.required) {
+                                if (!customAnswers[customStep.id]?.trim()) {
+                                  toast({
+                                    title: "Champ obligatoire",
+                                    description: "Veuillez répondre à cette question",
+                                    variant: "destructive",
+                                  });
+                                  return;
+                                }
+                              }
+                              const next = getNextStep(customStep.id, steps);
+                              if (next) setCurrentStepId(next);
+                            }}
+                            className="flex-1 bg-gradient-to-r from-[#004645] to-[#009197] hover:from-[#006C51] hover:to-[#009197] text-white"
+                          >
+                            Continuer
+                          </Button>
+                        </div>
+                      </motion.div>
+                    );
+                  })}
 
                 {/* Step: Summary */}
                 {currentStepId === 'summary' && (
