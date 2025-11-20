@@ -163,87 +163,90 @@ export async function POST(
       qrCodeData = await generateQRCode(checkinUrl)
     }
 
-    // Send confirmation email
-    // Build venue string, only include city if it exists
-    let eventVenue = guest.event.venueName || 'Lieu à préciser'
+    // Build venue string (avoid "null" in output)
+    let eventVenue = guest.event.venueName || ''
     if (guest.event.city) {
-      eventVenue += `, ${guest.event.city}`
+      eventVenue += eventVenue ? `, ${guest.event.city}` : guest.event.city
     }
 
-    // Try to use custom template if available
+    // Try to use custom CONFIRMATION template if available
     const customTemplate = await prisma.emailTemplate.findFirst({
       where: {
-        eventId: guest.eventId,
         type: 'CONFIRMATION',
         isActive: true,
       },
+      orderBy: [
+        { isDefault: 'desc' }, // Prefer default template
+        { updatedAt: 'desc' }  // Or most recent
+      ]
     })
 
-    // Get email integration
-    const emailIntegration = await prisma.emailIntegration.findFirst({
-      where: {
-        isPrimary: true,
-        isActive: true
-      }
-    })
-
-    if (customTemplate && emailIntegration) {
-      // Use custom template with template variables
+    if (customTemplate) {
+      // Use custom WYSIWYG template
       const variables: TemplateVariables = {
         'guest.firstName': guest.firstName,
         'guest.lastName': guest.lastName || '',
         'guest.email': guest.email,
         'event.name': guest.event.name,
         'event.date': formatDateTime(guest.event.startsAt),
-        'event.time': new Date(guest.event.startsAt).toLocaleTimeString('fr-FR', {
-          hour: '2-digit',
-          minute: '2-digit'
-        }),
+        'event.time': new Date(guest.event.startsAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
         'event.location': eventVenue,
         'event.address': guest.event.address || '',
       }
 
-      const emailHtml = renderTemplate(customTemplate.htmlContent, variables)
-      const emailSubject = renderTemplate(customTemplate.subject, variables)
+      const renderedHtml = renderTemplate(customTemplate.htmlContent, variables)
+      const renderedSubject = renderTemplate(customTemplate.subject, variables)
 
-      // Decrypt integration credentials
-      const integrationData = {
-        id: emailIntegration.id,
-        provider: emailIntegration.provider as any,
-        apiKey: emailIntegration.apiKey ? safeDecrypt(emailIntegration.apiKey) : null,
-        apiSecret: emailIntegration.apiSecret ? safeDecrypt(emailIntegration.apiSecret) : null,
-        smtpHost: emailIntegration.smtpHost,
-        smtpPort: emailIntegration.smtpPort,
-        smtpUser: emailIntegration.smtpUser,
-        smtpPass: emailIntegration.smtpPass ? safeDecrypt(emailIntegration.smtpPass) : null,
-        fromEmail: emailIntegration.fromEmail,
-        fromName: emailIntegration.fromName,
-        replyTo: emailIntegration.replyTo,
-        trackOpens: emailIntegration.trackOpens,
-        trackClicks: emailIntegration.trackClicks,
+      // Get active email integration
+      const emailIntegration = await prisma.emailIntegration.findFirst({
+        where: { isActive: true, isPrimary: true }
+      })
+
+      if (!emailIntegration) {
+        throw new Error('No active email integration found')
       }
 
-      // Send with custom template
-      await sendEmailDirect(
+      // Send with direct sendEmail (2 arguments: data, integration)
+      // Note: sendEmail will handle decryption internally, so pass encrypted values
+      const emailResult = await sendEmailDirect(
         {
           to: guest.email,
-          subject: emailSubject,
-          html: emailHtml,
+          from: emailIntegration.fromEmail || 'noreply@example.com',
+          fromName: emailIntegration.fromName || 'Weevup',
+          subject: renderedSubject,
+          html: renderedHtml,
         },
-        integrationData
+        {
+          id: emailIntegration.id,
+          provider: emailIntegration.provider,
+          apiKey: emailIntegration.apiKey,
+          apiSecret: emailIntegration.apiSecret,
+          smtpHost: emailIntegration.smtpHost,
+          smtpPort: emailIntegration.smtpPort,
+          smtpUser: emailIntegration.smtpUser,
+          smtpPass: emailIntegration.smtpPass,
+          fromEmail: emailIntegration.fromEmail,
+          fromName: emailIntegration.fromName,
+          replyTo: emailIntegration.replyTo,
+          trackOpens: emailIntegration.trackOpens,
+          trackClicks: emailIntegration.trackClicks,
+        }
       )
 
-      // Log email
-      await prisma.emailLog.create({
-        data: {
-          eventId: guest.eventId,
-          guestId: guest.id,
-          type: 'CONFIRMATION',
-          subject: emailSubject,
-          status: 'SENT',
-          sentAt: new Date(),
-        },
-      })
+      // Log email send (manually since we're not using sendEmailLegacy)
+      if (emailResult.success) {
+        await prisma.emailLog.create({
+          data: {
+            eventId: guest.eventId,
+            guestId: guest.id,
+            type: 'CONFIRMATION',
+            status: 'SENT',
+            subject: renderedSubject,
+            providerId: emailResult.messageId,
+            sentAt: new Date(),
+          }
+        })
+      }
     } else {
       // Fallback to default template
       const emailHtml = getConfirmationEmailTemplate({
