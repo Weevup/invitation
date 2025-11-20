@@ -229,7 +229,8 @@ async function sendViaSendGrid(
   fromName?: string | null,
   replyTo?: string | null
 ): Promise<EmailResult> {
-  const apiKey = integration.apiKey || ''
+  // Decrypt API key before using it
+  const apiKey = integration.apiKey ? safeDecrypt(integration.apiKey) : ''
 
   const payload = {
     personalizations: [{
@@ -272,7 +273,8 @@ async function sendViaResend(
   fromName?: string | null,
   replyTo?: string | null
 ): Promise<EmailResult> {
-  const apiKey = integration.apiKey || ''
+  // Decrypt API key before using it
+  const apiKey = integration.apiKey ? safeDecrypt(integration.apiKey) : ''
 
   const payload = {
     from: fromName ? `${fromName} <${from}>` : from,
@@ -308,7 +310,8 @@ async function sendViaMailgun(
   fromName?: string | null,
   replyTo?: string | null
 ): Promise<EmailResult> {
-  const apiKey = integration.apiKey || ''
+  // Decrypt API key before using it
+  const apiKey = integration.apiKey ? safeDecrypt(integration.apiKey) : ''
   const domain = integration.apiSecret
 
   const formData = new FormData()
@@ -345,7 +348,8 @@ async function sendViaSMTP(
   fromName?: string | null,
   replyTo?: string | null
 ): Promise<EmailResult> {
-  const smtpPass = integration.smtpPass || ''
+  // Decrypt SMTP password before using it
+  const smtpPass = integration.smtpPass ? safeDecrypt(integration.smtpPass) : ''
 
   const transporter = nodemailer.createTransport({
     host: integration.smtpHost || undefined,
