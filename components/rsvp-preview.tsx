@@ -41,8 +41,45 @@ export function RsvpPreview({ steps, eventName, theme = {} }: RsvpPreviewProps) 
   // Merge theme with defaults
   const appliedTheme = { ...DEFAULT_THEME, ...theme }
 
-  // Get only enabled steps
-  const enabledSteps = steps.filter(s => s.enabled).sort((a, b) => a.order - b.order)
+  // Function to evaluate conditional logic
+  const evaluateCondition = (step: RsvpStep): boolean => {
+    if (!step.conditional?.enabled) return true
+
+    const { field, operator, value } = step.conditional
+
+    let fieldValue: any
+    switch (field) {
+      case 'attending':
+        fieldValue = attending
+        break
+      case 'plusOnes':
+        fieldValue = plusOnes
+        break
+      case 'mealChoice':
+        fieldValue = mealChoice
+        break
+      default:
+        return true
+    }
+
+    switch (operator) {
+      case 'equals':
+        return fieldValue === value
+      case 'notEquals':
+        return fieldValue !== value
+      case 'greaterThan':
+        return fieldValue > value
+      case 'lessThan':
+        return fieldValue < value
+      default:
+        return true
+    }
+  }
+
+  // Get only enabled steps that meet their conditions
+  const enabledSteps = steps
+    .filter(s => s.enabled && evaluateCondition(s))
+    .sort((a, b) => a.order - b.order)
   const currentStep = enabledSteps[currentStepIndex]
   const progress = enabledSteps.length > 0 ? ((currentStepIndex + 1) / enabledSteps.length) * 100 : 0
 
@@ -65,7 +102,14 @@ export function RsvpPreview({ steps, eventName, theme = {} }: RsvpPreviewProps) 
     }
   }
 
-  // Reset to first step when steps change
+  // Reset to first step when steps change or conditions change
+  useEffect(() => {
+    if (enabledSteps.length > 0 && currentStepIndex >= enabledSteps.length) {
+      setCurrentStepIndex(Math.max(0, enabledSteps.length - 1))
+    }
+  }, [enabledSteps.length, currentStepIndex])
+
+  // Reset to first step when major changes occur
   useEffect(() => {
     if (enabledSteps.length > 0) {
       setCurrentStepIndex(0)

@@ -22,6 +22,12 @@ export interface RsvpStep {
     placeholder: string
     required: boolean
   }
+  conditional?: {
+    enabled: boolean
+    field: string // Field name to check (e.g., 'attending', 'plusOnes')
+    operator: 'equals' | 'notEquals' | 'greaterThan' | 'lessThan' | 'contains'
+    value: any // Value to compare against
+  }
   texts?: {
     // For 'response' type
     responseQuestion?: string

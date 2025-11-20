@@ -676,6 +676,128 @@ export function RsvpStepsEditor({ steps, onChange }: RsvpStepsEditorProps) {
                 </div>
               )}
 
+              {/* Conditional Logic */}
+              {editingStep.type !== 'response' && editingStep.type !== 'summary' && (
+                <div className="space-y-3 border-t pt-4">
+                  <h4 className="font-semibold text-sm text-[#004645]">Logique conditionnelle</h4>
+                  <div className="flex items-center space-x-2">
+                    <Switch
+                      id="conditional-enabled"
+                      checked={editingStep.conditional?.enabled || false}
+                      onCheckedChange={(checked) => setEditingStep({
+                        ...editingStep,
+                        conditional: {
+                          enabled: checked,
+                          field: editingStep.conditional?.field || 'attending',
+                          operator: editingStep.conditional?.operator || 'equals',
+                          value: editingStep.conditional?.value ?? true
+                        }
+                      })}
+                    />
+                    <Label htmlFor="conditional-enabled">Afficher seulement si une condition est remplie</Label>
+                  </div>
+
+                  {editingStep.conditional?.enabled && (
+                    <div className="space-y-3 pl-4 border-l-2 border-[#9CD9F6]">
+                      <div className="grid grid-cols-3 gap-2">
+                        <div>
+                          <Label className="text-xs">Champ</Label>
+                          <Select
+                            value={editingStep.conditional.field}
+                            onValueChange={(value) => setEditingStep({
+                              ...editingStep,
+                              conditional: {
+                                ...editingStep.conditional!,
+                                field: value
+                              }
+                            })}
+                          >
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="attending">Participation (Oui/Non)</SelectItem>
+                              <SelectItem value="plusOnes">Nombre d&apos;accompagnants</SelectItem>
+                              <SelectItem value="mealChoice">Choix de repas</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div>
+                          <Label className="text-xs">Opérateur</Label>
+                          <Select
+                            value={editingStep.conditional.operator}
+                            onValueChange={(value) => setEditingStep({
+                              ...editingStep,
+                              conditional: {
+                                ...editingStep.conditional!,
+                                operator: value as any
+                              }
+                            })}
+                          >
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="equals">Est égal à</SelectItem>
+                              <SelectItem value="notEquals">Est différent de</SelectItem>
+                              <SelectItem value="greaterThan">Est supérieur à</SelectItem>
+                              <SelectItem value="lessThan">Est inférieur à</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div>
+                          <Label className="text-xs">Valeur</Label>
+                          {editingStep.conditional.field === 'attending' ? (
+                            <Select
+                              value={String(editingStep.conditional.value)}
+                              onValueChange={(value) => setEditingStep({
+                                ...editingStep,
+                                conditional: {
+                                  ...editingStep.conditional!,
+                                  value: value === 'true'
+                                }
+                              })}
+                            >
+                              <SelectTrigger>
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="true">Oui</SelectItem>
+                                <SelectItem value="false">Non</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          ) : (
+                            <Input
+                              type={editingStep.conditional.field === 'plusOnes' ? 'number' : 'text'}
+                              value={editingStep.conditional.value}
+                              onChange={(e) => setEditingStep({
+                                ...editingStep,
+                                conditional: {
+                                  ...editingStep.conditional!,
+                                  value: editingStep.conditional.field === 'plusOnes'
+                                    ? parseInt(e.target.value) || 0
+                                    : e.target.value
+                                }
+                              })}
+                              placeholder="Valeur..."
+                            />
+                          )}
+                        </div>
+                      </div>
+
+                      <p className="text-xs text-[#004645]/70 italic">
+                        {editingStep.conditional.field === 'attending' &&
+                          `Cette étape sera affichée seulement si l'invité ${editingStep.conditional.value ? 'accepte' : 'refuse'} l'invitation.`}
+                        {editingStep.conditional.field === 'plusOnes' &&
+                          `Cette étape sera affichée seulement si le nombre d'accompagnants ${editingStep.conditional.operator === 'greaterThan' ? 'est supérieur à' : editingStep.conditional.operator === 'equals' ? 'est égal à' : 'est inférieur à'} ${editingStep.conditional.value}.`}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
+
               {/* Boutons communs pour toutes les étapes sauf message */}
               {editingStep.type !== 'message' && editingStep.type !== 'summary' && (
                 <div className="space-y-3 border-t pt-4">
