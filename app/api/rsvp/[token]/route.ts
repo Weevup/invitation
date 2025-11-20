@@ -173,10 +173,13 @@ export async function POST(
     // Try to use custom template if available
     const customTemplate = await prisma.emailTemplate.findFirst({
       where: {
-        eventId: guest.eventId,
         type: 'CONFIRMATION',
         isActive: true,
       },
+      orderBy: [
+        { isDefault: 'desc' }, // Prefer default template
+        { updatedAt: 'desc' }  // Or most recent
+      ]
     })
 
     // Get email integration
