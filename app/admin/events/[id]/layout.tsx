@@ -32,6 +32,7 @@ import {
   CreditCard,
   MessageSquare,
   LineChart,
+  FileText,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useEventModules } from '@/lib/modules/use-event-modules'
@@ -193,6 +194,11 @@ export default function EventLayout({
           label: 'Templates',
           href: `/admin/events/${eventId}/templates`,
           icon: Wand2,
+        },
+        {
+          label: 'Mes Templates WYSIWYG',
+          href: `/admin/events/${eventId}/my-templates`,
+          icon: FileText,
         },
         {
           label: 'Campagnes',
