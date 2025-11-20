@@ -75,7 +75,7 @@ export default function EmailDebugPage() {
             Diagnostic Email
           </h1>
           <p className="text-[#004645]/70 mt-1">
-            Vérifiez la configuration et l'état du système d'envoi d'emails
+            Vérifiez la configuration et l&apos;état du système d&apos;envoi d&apos;emails
           </p>
         </div>
         <Button
@@ -93,7 +93,7 @@ export default function EmailDebugPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <StatusIcon className={`h-6 w-6 ${data.integrations.active ? 'text-green-600' : 'text-orange-600'}`} />
-            État du système d'email
+            État du système d&apos;email
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -113,7 +113,7 @@ export default function EmailDebugPage() {
             <div className="space-y-2">
               <p className="text-orange-800 font-semibold">⚠️ Aucune intégration email configurée</p>
               <p className="text-orange-700">
-                Le système utilise actuellement <strong>SMTP Ethereal</strong> (serveur de test) qui n'envoie pas réellement les emails.
+                Le système utilise actuellement <strong>SMTP Ethereal</strong> (serveur de test) qui n&apos;envoie pas réellement les emails.
               </p>
               <div className="flex gap-2 mt-4">
                 <Link href="/admin/settings/integrations">
@@ -266,10 +266,10 @@ export default function EmailDebugPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Settings className="h-5 w-5" />
-            Variables d'environnement (Fallback SMTP)
+            Variables d&apos;environnement (Fallback SMTP)
           </CardTitle>
           <CardDescription>
-            Utilisées uniquement si aucune intégration n'est configurée
+            Utilisées uniquement si aucune intégration n&apos;est configurée
           </CardDescription>
         </CardHeader>
         <CardContent>
