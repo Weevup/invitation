@@ -6,8 +6,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import {
   Mail,
   Calendar,
@@ -26,7 +28,8 @@ import {
   MousePointerClick,
   Sparkles,
   Filter,
-  X
+  X,
+  TestTube
 } from 'lucide-react'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import { toast } from 'sonner'
@@ -65,6 +68,10 @@ export default function EmailsHubPage() {
   const [dateRange, setDateRange] = useState<'7' | '30' | '90' | 'all'>('30')
   const [previewTemplate, setPreviewTemplate] = useState<any>(null)
   const [showPreview, setShowPreview] = useState(false)
+  const [showTestDialog, setShowTestDialog] = useState(false)
+  const [testEmailAddress, setTestEmailAddress] = useState('')
+  const [testEmailType, setTestEmailType] = useState('')
+  const [sendingTest, setSendingTest] = useState(false)
   const [insights, setInsights] = useState({
     bestPerformingType: '',
     worstPerformingType: '',
@@ -177,7 +184,7 @@ export default function EmailsHubPage() {
       }
 
     } catch (error) {
-      logger.error({ error }, 'Error loading email status')
+      logger.error({ error: error instanceof Error ? error.message : String(error) }, 'Error loading email status')
       toast.error('Erreur lors du chargement des emails')
     } finally {
       setLoading(false)
@@ -207,6 +214,44 @@ export default function EmailsHubPage() {
       }
     } catch (error) {
       toast.error('Erreur lors du chargement du template')
+    }
+  }
+
+  const handleOpenTestDialog = (type: string) => {
+    setTestEmailType(type)
+    setShowTestDialog(true)
+  }
+
+  const handleSendTestEmail = async () => {
+    if (!testEmailAddress || !testEmailType) {
+      toast.error('Veuillez saisir une adresse email')
+      return
+    }
+
+    setSendingTest(true)
+    try {
+      const res = await fetch(`/api/admin/events/${eventId}/test-email`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          testEmail: testEmailAddress,
+          templateType: testEmailType
+        })
+      })
+
+      const data = await res.json()
+
+      if (res.ok) {
+        toast.success(`Email de test envoyé à ${testEmailAddress} !`)
+        setShowTestDialog(false)
+        setTestEmailAddress('')
+      } else {
+        toast.error(data.error || 'Erreur lors de l\'envoi')
+      }
+    } catch (error) {
+      toast.error('Erreur lors de l\'envoi du test')
+    } finally {
+      setSendingTest(false)
     }
   }
 
@@ -425,6 +470,7 @@ export default function EmailsHubPage() {
                 emailType={emailType}
                 onEdit={() => navigateToEditor(emailType.type)}
                 onPreview={() => handlePreviewTemplate(emailType.type)}
+                onTest={() => handleOpenTestDialog(emailType.type)}
                 statusBadge={getStatusBadge(emailType)}
               />
             ))}
@@ -439,6 +485,7 @@ export default function EmailsHubPage() {
                 emailType={emailType}
                 onEdit={() => navigateToEditor(emailType.type)}
                 onPreview={() => handlePreviewTemplate(emailType.type)}
+                onTest={() => handleOpenTestDialog(emailType.type)}
                 statusBadge={getStatusBadge(emailType)}
               />
             ))}
@@ -453,6 +500,7 @@ export default function EmailsHubPage() {
                 emailType={emailType}
                 onEdit={() => navigateToEditor(emailType.type)}
                 onPreview={() => handlePreviewTemplate(emailType.type)}
+                onTest={() => handleOpenTestDialog(emailType.type)}
                 statusBadge={getStatusBadge(emailType)}
               />
             ))}
@@ -467,6 +515,7 @@ export default function EmailsHubPage() {
                 emailType={emailType}
                 onEdit={() => navigateToEditor(emailType.type)}
                 onPreview={() => handlePreviewTemplate(emailType.type)}
+                onTest={() => handleOpenTestDialog(emailType.type)}
                 statusBadge={getStatusBadge(emailType)}
               />
             ))}
@@ -548,6 +597,68 @@ export default function EmailsHubPage() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Test Email Dialog */}
+      <Dialog open={showTestDialog} onOpenChange={setShowTestDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <TestTube className="h-5 w-5" />
+              Envoyer un Email de Test
+            </DialogTitle>
+            <DialogDescription>
+              Type: {testEmailType}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="testEmail">Adresse email</Label>
+              <Input
+                id="testEmail"
+                type="email"
+                placeholder="test@example.com"
+                value={testEmailAddress}
+                onChange={(e) => setTestEmailAddress(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && testEmailAddress) {
+                    handleSendTestEmail()
+                  }
+                }}
+              />
+              <p className="text-xs text-muted-foreground mt-2">
+                L'email contiendra des données de test pour prévisualiser le rendu
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowTestDialog(false)
+                setTestEmailAddress('')
+              }}
+            >
+              Annuler
+            </Button>
+            <Button
+              onClick={handleSendTestEmail}
+              disabled={sendingTest || !testEmailAddress}
+            >
+              {sendingTest ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Envoi...
+                </>
+              ) : (
+                <>
+                  <Send className="h-4 w-4 mr-2" />
+                  Envoyer
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
@@ -556,11 +667,13 @@ function EmailTypeCard({
   emailType,
   onEdit,
   onPreview,
+  onTest,
   statusBadge
 }: {
   emailType: EmailTypeStatus
   onEdit: () => void
   onPreview?: () => void
+  onTest?: () => void
   statusBadge: React.ReactNode
 }) {
   const Icon = emailType.icon
@@ -642,8 +755,19 @@ function EmailTypeCard({
               onClick={onPreview}
               variant="outline"
               size="sm"
+              title="Prévisualiser"
             >
               <Eye className="h-4 w-4" />
+            </Button>
+          )}
+          {emailType.hasTemplate && onTest && (
+            <Button
+              onClick={onTest}
+              variant="outline"
+              size="sm"
+              title="Envoyer un test"
+            >
+              <TestTube className="h-4 w-4" />
             </Button>
           )}
         </div>
