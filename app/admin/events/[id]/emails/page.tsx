@@ -6,6 +6,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import {
   Mail,
   Calendar,
@@ -21,8 +23,12 @@ import {
   AlertCircle,
   TrendingUp,
   Users,
-  MousePointerClick
+  MousePointerClick,
+  Sparkles,
+  Filter,
+  X
 } from 'lucide-react'
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import { toast } from 'sonner'
 import { createClientLogger } from '@/lib/client-logger'
 
@@ -54,6 +60,16 @@ export default function EmailsHubPage() {
     totalClicked: 0,
     avgOpenRate: 0,
     avgClickRate: 0
+  })
+  const [timelineData, setTimelineData] = useState<any[]>([])
+  const [dateRange, setDateRange] = useState<'7' | '30' | '90' | 'all'>('30')
+  const [previewTemplate, setPreviewTemplate] = useState<any>(null)
+  const [showPreview, setShowPreview] = useState(false)
+  const [insights, setInsights] = useState({
+    bestPerformingType: '',
+    worstPerformingType: '',
+    avgHoursToOpen: 0,
+    trendDirection: 'stable' as 'up' | 'down' | 'stable'
   })
 
   useEffect(() => {
@@ -137,11 +153,60 @@ export default function EmailsHubPage() {
         })
       }
 
+      // Set timeline data
+      if (analyticsData?.timeline) {
+        setTimelineData(analyticsData.timeline)
+      }
+
+      // Calculate insights
+      if (analyticsData?.statsByType && analyticsData?.overview) {
+        const typesWithData = Object.entries(analyticsData.statsByType)
+          .filter(([_, stats]: [string, any]) => stats.sent > 0)
+          .map(([type, stats]: [string, any]) => ({
+            type,
+            openRate: parseFloat(stats.openRate || '0')
+          }))
+          .sort((a, b) => b.openRate - a.openRate)
+
+        setInsights({
+          bestPerformingType: typesWithData[0]?.type || '',
+          worstPerformingType: typesWithData[typesWithData.length - 1]?.type || '',
+          avgHoursToOpen: parseFloat(analyticsData.overview.avgHoursToOpen || '0'),
+          trendDirection: calculateTrend(analyticsData.timeline)
+        })
+      }
+
     } catch (error) {
       logger.error({ error }, 'Error loading email status')
       toast.error('Erreur lors du chargement des emails')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const calculateTrend = (timeline: any[]) => {
+    if (!timeline || timeline.length < 2) return 'stable'
+    const recent = timeline.slice(-7) // Last 7 days
+    const older = timeline.slice(-14, -7) // Previous 7 days
+    const recentAvg = recent.reduce((sum, d) => sum + d.sent, 0) / recent.length
+    const olderAvg = older.reduce((sum, d) => sum + d.sent, 0) / older.length
+    if (recentAvg > olderAvg * 1.1) return 'up'
+    if (recentAvg < olderAvg * 0.9) return 'down'
+    return 'stable'
+  }
+
+  const handlePreviewTemplate = async (type: string) => {
+    try {
+      const res = await fetch(`/api/admin/templates?eventId=${eventId}&type=${type}`)
+      const templates = await res.json()
+      if (templates.length > 0) {
+        setPreviewTemplate(templates[0])
+        setShowPreview(true)
+      } else {
+        toast.info('Aucun template à prévisualiser')
+      }
+    } catch (error) {
+      toast.error('Erreur lors du chargement du template')
     }
   }
 
@@ -176,12 +241,104 @@ export default function EmailsHubPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold">Gestion des Emails</h1>
-        <p className="text-muted-foreground mt-2">
-          Configurez et gérez tous vos emails événementiels depuis un seul endroit
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">Gestion des Emails</h1>
+          <p className="text-muted-foreground mt-2">
+            Configurez et gérez tous vos emails événementiels depuis un seul endroit
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Select value={dateRange} onValueChange={(v: any) => setDateRange(v)}>
+            <SelectTrigger className="w-[180px]">
+              <Filter className="h-4 w-4 mr-2" />
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="7">7 derniers jours</SelectItem>
+              <SelectItem value="30">30 derniers jours</SelectItem>
+              <SelectItem value="90">90 derniers jours</SelectItem>
+              <SelectItem value="all">Tout l'historique</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
+
+      {/* Performance Insights */}
+      {(insights.bestPerformingType || insights.avgHoursToOpen > 0) && (
+        <div className="grid gap-4 md:grid-cols-3">
+          <Card>
+            <CardHeader className="pb-2">
+              <CardDescription>Meilleure performance</CardDescription>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Sparkles className="h-5 w-5 text-yellow-500" />
+                {insights.bestPerformingType || 'N/A'}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-xs text-muted-foreground">Type d'email avec le meilleur taux d'ouverture</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardDescription>Temps d'ouverture moyen</CardDescription>
+              <CardTitle className="text-lg">{insights.avgHoursToOpen.toFixed(1)}h</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-xs text-muted-foreground">Délai moyen entre envoi et ouverture</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardDescription>Tendance</CardDescription>
+              <CardTitle className="text-lg flex items-center gap-2">
+                {insights.trendDirection === 'up' && <TrendingUp className="h-5 w-5 text-green-500" />}
+                {insights.trendDirection === 'down' && <TrendingUp className="h-5 w-5 text-red-500 rotate-180" />}
+                {insights.trendDirection === 'stable' && <span className="text-orange-500">→</span>}
+                {insights.trendDirection === 'up' ? 'En hausse' : insights.trendDirection === 'down' ? 'En baisse' : 'Stable'}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-xs text-muted-foreground">Évolution des envois (7 derniers jours)</p>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Timeline Chart */}
+      {timelineData.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Évolution des Emails</CardTitle>
+            <CardDescription>Envois, ouvertures et clics au fil du temps</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={timelineData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis
+                  dataKey="date"
+                  tickFormatter={(date) => new Date(date).toLocaleDateString('fr-FR', { month: 'short', day: 'numeric' })}
+                />
+                <YAxis />
+                <Tooltip
+                  labelFormatter={(date) => new Date(date).toLocaleDateString('fr-FR', {
+                    day: 'numeric',
+                    month: 'long',
+                    year: 'numeric'
+                  })}
+                />
+                <Legend />
+                <Line type="monotone" dataKey="sent" stroke="#8884d8" name="Envoyés" strokeWidth={2} />
+                <Line type="monotone" dataKey="opened" stroke="#82ca9d" name="Ouverts" strokeWidth={2} />
+                <Line type="monotone" dataKey="clicked" stroke="#ffc658" name="Cliqués" strokeWidth={2} />
+              </LineChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Global Analytics */}
       <div className="grid gap-4 md:grid-cols-5">
@@ -267,6 +424,7 @@ export default function EmailsHubPage() {
                 key={emailType.type}
                 emailType={emailType}
                 onEdit={() => navigateToEditor(emailType.type)}
+                onPreview={() => handlePreviewTemplate(emailType.type)}
                 statusBadge={getStatusBadge(emailType)}
               />
             ))}
@@ -280,6 +438,7 @@ export default function EmailsHubPage() {
                 key={emailType.type}
                 emailType={emailType}
                 onEdit={() => navigateToEditor(emailType.type)}
+                onPreview={() => handlePreviewTemplate(emailType.type)}
                 statusBadge={getStatusBadge(emailType)}
               />
             ))}
@@ -293,6 +452,7 @@ export default function EmailsHubPage() {
                 key={emailType.type}
                 emailType={emailType}
                 onEdit={() => navigateToEditor(emailType.type)}
+                onPreview={() => handlePreviewTemplate(emailType.type)}
                 statusBadge={getStatusBadge(emailType)}
               />
             ))}
@@ -306,6 +466,7 @@ export default function EmailsHubPage() {
                 key={emailType.type}
                 emailType={emailType}
                 onEdit={() => navigateToEditor(emailType.type)}
+                onPreview={() => handlePreviewTemplate(emailType.type)}
                 statusBadge={getStatusBadge(emailType)}
               />
             ))}
@@ -348,6 +509,45 @@ export default function EmailsHubPage() {
           </Button>
         </CardContent>
       </Card>
+
+      {/* Preview Modal */}
+      <Dialog open={showPreview} onOpenChange={setShowPreview}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Eye className="h-5 w-5" />
+              Prévisualisation du Template
+            </DialogTitle>
+            <DialogDescription>
+              {previewTemplate?.name || 'Template Email'}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            {previewTemplate && (
+              <>
+                <div className="border rounded-lg p-4 bg-muted/50">
+                  <p className="text-sm font-semibold mb-2">Sujet :</p>
+                  <p className="text-sm">{previewTemplate.subject}</p>
+                </div>
+                <div className="border rounded-lg overflow-hidden">
+                  <div
+                    className="p-6"
+                    dangerouslySetInnerHTML={{ __html: previewTemplate.htmlContent || '' }}
+                    style={{
+                      fontFamily: previewTemplate.fontFamily || 'Arial, sans-serif',
+                      backgroundColor: '#ffffff'
+                    }}
+                  />
+                </div>
+                <div className="flex justify-between items-center text-sm text-muted-foreground">
+                  <span>Type: {previewTemplate.type}</span>
+                  <span>Dernière modification: {new Date(previewTemplate.updatedAt).toLocaleDateString('fr-FR')}</span>
+                </div>
+              </>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
@@ -355,10 +555,12 @@ export default function EmailsHubPage() {
 function EmailTypeCard({
   emailType,
   onEdit,
+  onPreview,
   statusBadge
 }: {
   emailType: EmailTypeStatus
   onEdit: () => void
+  onPreview?: () => void
   statusBadge: React.ReactNode
 }) {
   const Icon = emailType.icon
@@ -435,6 +637,15 @@ function EmailTypeCard({
               </>
             )}
           </Button>
+          {emailType.hasTemplate && onPreview && (
+            <Button
+              onClick={onPreview}
+              variant="outline"
+              size="sm"
+            >
+              <Eye className="h-4 w-4" />
+            </Button>
+          )}
         </div>
       </CardContent>
     </Card>
