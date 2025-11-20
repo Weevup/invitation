@@ -1,21 +1,20 @@
 /**
  * API Route: Generic Image Upload
  *
- * POST /api/admin/upload-image - Upload image to Vercel Blob
+ * POST /api/admin/upload-image - Convert image to base64 data URL
  */
 
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAdmin, handleAuthError } from '@/lib/auth-utils'
-import { put } from '@vercel/blob'
 import { createLogger } from '@/lib/logger'
 
 const logger = createLogger({ module: 'api', type: 'upload-image' })
 
-const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB
+const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB (reduced for base64 storage)
 const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif']
 
 /**
- * POST - Upload generic image
+ * POST - Upload generic image (converts to base64)
  */
 export async function POST(request: NextRequest) {
   try {
@@ -46,48 +45,23 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Check if Vercel Blob token is configured
-    if (!process.env.BLOB_READ_WRITE_TOKEN) {
-      logger.warn('BLOB_READ_WRITE_TOKEN not configured')
-      return NextResponse.json(
-        {
-          error: 'BLOB_TOKEN_NOT_CONFIGURED',
-          message: 'Le stockage d\'images n\'est pas configuré. Veuillez ajouter BLOB_READ_WRITE_TOKEN dans les variables d\'environnement Vercel.'
-        },
-        { status: 503 }
-      )
-    }
+    // Convert file to base64
+    const bytes = await file.arrayBuffer()
+    const buffer = Buffer.from(bytes)
+    const base64 = buffer.toString('base64')
+    const dataUrl = `data:${file.type};base64,${base64}`
 
-    // Upload to Vercel Blob
-    const fileExtension = file.type.split('/')[1]
-    const fileName = `event-images/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExtension}`
+    logger.info({
+      fileType: file.type,
+      fileSize: file.size,
+      base64Length: dataUrl.length
+    }, 'Converted image to base64')
 
-    try {
-      const blob = await put(fileName, file, {
-        access: 'public',
-        addRandomSuffix: false,
-      })
-
-      logger.info({ url: blob.url, fileName }, 'Uploaded image to Blob')
-
-      return NextResponse.json({
-        success: true,
-        url: blob.url,
-        fileName: fileName,
-      })
-    } catch (blobError) {
-      logger.error({ error: blobError, fileName }, 'Failed to upload to Vercel Blob')
-
-      // More specific error for Blob issues
-      return NextResponse.json(
-        {
-          error: 'BLOB_UPLOAD_FAILED',
-          message: 'Échec du téléchargement vers le stockage. Vérifiez la configuration Vercel Blob.',
-          details: blobError instanceof Error ? blobError.message : 'Unknown error'
-        },
-        { status: 500 }
-      )
-    }
+    return NextResponse.json({
+      success: true,
+      url: dataUrl,
+      fileName: file.name,
+    })
   } catch (error) {
     logger.error({ error, action: 'uploadImage' }, 'Error uploading image')
     return handleAuthError(error)
