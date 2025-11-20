@@ -5,7 +5,10 @@ import { useParams } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { RsvpStepsEditor } from '@/components/rsvp-steps-editor'
-import { Loader2, Save, Eye } from 'lucide-react'
+import { RsvpPreview } from '@/components/rsvp-preview'
+import { RsvpThemeEditor, type RsvpTheme } from '@/components/rsvp-theme-editor'
+import { RsvpTemplates } from '@/components/rsvp-templates'
+import { Loader2, Save, Eye, Monitor, Layout } from 'lucide-react'
 import { toast } from 'sonner'
 
 export interface RsvpStep {
@@ -20,6 +23,42 @@ export interface RsvpStep {
     placeholder: string
     required: boolean
   }
+  conditional?: {
+    enabled: boolean
+    field: string // Field name to check (e.g., 'attending', 'plusOnes')
+    operator: 'equals' | 'notEquals' | 'greaterThan' | 'lessThan' | 'contains'
+    value: any // Value to compare against
+  }
+  texts?: {
+    // For 'response' type
+    responseQuestion?: string
+    responseYes?: string
+    responseNo?: string
+    // For 'plus-ones' type
+    plusOnesLabel?: string
+    plusOnesNone?: string
+    // For 'meal' type
+    mealLabel?: string
+    allergiesLabel?: string
+    allergiesPlaceholder?: string
+    // For 'practical' type
+    practicalTitle?: string
+    accessibilityLabel?: string
+    accessibilityPlaceholder?: string
+    transportLabel?: string
+    transportPlaceholder?: string
+    lodgingLabel?: string
+    lodgingPlaceholder?: string
+    // For 'consent' type
+    consentLabel?: string
+    // For 'summary' type
+    summaryTitle?: string
+    summaryIntro?: string
+    // Common
+    continueButton?: string
+    backButton?: string
+    submitButton?: string
+  }
 }
 
 export default function RsvpStepsPage() {
@@ -30,6 +69,8 @@ export default function RsvpStepsPage() {
   const [saving, setSaving] = useState(false)
   const [steps, setSteps] = useState<RsvpStep[]>([])
   const [eventName, setEventName] = useState('')
+  const [splitScreenEnabled, setSplitScreenEnabled] = useState(true)
+  const [theme, setTheme] = useState<RsvpTheme>({})
 
   useEffect(() => {
     fetchSteps()
@@ -49,6 +90,11 @@ export default function RsvpStepsPage() {
       } else {
         // Initialize with default steps
         setSteps(getDefaultSteps(event))
+      }
+
+      // Load theme from rsvpConfig
+      if (event.rsvpConfig?.theme) {
+        setTheme(event.rsvpConfig.theme)
       }
     } catch (error) {
       console.error('Error fetching steps:', error)
@@ -121,7 +167,7 @@ export default function RsvpStepsPage() {
       const response = await fetch(`/api/admin/events/${eventId}/rsvp-config`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ customSteps: steps })
+        body: JSON.stringify({ customSteps: steps, theme })
       })
 
       if (!response.ok) throw new Error('Failed to save steps')
@@ -135,9 +181,32 @@ export default function RsvpStepsPage() {
     }
   }
 
-  const handlePreview = () => {
-    // Open preview in new tab
-    window.open(`/guest/preview?eventId=${eventId}`, '_blank')
+  const handleLoadTemplate = (templateSteps: RsvpStep[]) => {
+    setSteps(templateSteps)
+    toast.success('Modèle chargé avec succès ! Vous pouvez maintenant le personnaliser.')
+  }
+
+  const handlePreview = async () => {
+    try {
+      // Fetch first guest to get a token for preview
+      const response = await fetch(`/api/admin/events/${eventId}/guests`)
+      if (!response.ok) throw new Error('Failed to fetch guests')
+
+      const guests = await response.json()
+
+      if (guests.length === 0) {
+        toast.error('Aucun invité disponible. Créez d\'abord un invité pour prévisualiser le formulaire RSVP.')
+        return
+      }
+
+      // Use first guest's token for preview
+      const firstGuest = guests[0]
+      window.open(`/guest/${firstGuest.token}`, '_blank')
+      toast.success('Prévisualisation ouverte avec le profil de ' + firstGuest.firstName)
+    } catch (error) {
+      console.error('Error opening preview:', error)
+      toast.error('Erreur lors de l\'ouverture de la prévisualisation')
+    }
   }
 
   if (loading) {
@@ -162,13 +231,22 @@ export default function RsvpStepsPage() {
             </p>
           </div>
           <div className="flex gap-2">
+            <RsvpTemplates onSelectTemplate={handleLoadTemplate} />
+            <Button
+              variant="outline"
+              onClick={() => setSplitScreenEnabled(!splitScreenEnabled)}
+              className="border-[#009197] text-[#009197] hover:bg-[#009197] hover:text-white"
+            >
+              <Layout className="h-4 w-4 mr-2" />
+              {splitScreenEnabled ? 'Mode simple' : 'Aperçu temps réel'}
+            </Button>
             <Button
               variant="outline"
               onClick={handlePreview}
               className="border-[#009197] text-[#009197] hover:bg-[#009197] hover:text-white"
             >
               <Eye className="h-4 w-4 mr-2" />
-              Prévisualiser
+              Ouvrir dans un onglet
             </Button>
             <Button
               onClick={handleSave}
@@ -192,21 +270,60 @@ export default function RsvpStepsPage() {
       </div>
 
       {/* Info Card */}
-      <Card className="mb-6 border-[#9CD9F6]/30 bg-white/80 backdrop-blur">
-        <CardHeader>
-          <CardTitle className="text-[#004645] text-lg">💡 Comment ça marche ?</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2 text-sm text-[#004645]/70">
-          <p>• <strong>Glissez-déposez</strong> les étapes pour les réorganiser</p>
-          <p>• <strong>Activez/désactivez</strong> les étapes selon vos besoins</p>
-          <p>• <strong>Ajoutez des messages</strong> pour guider vos invités</p>
-          <p>• <strong>Créez des questions personnalisées</strong> pour collecter des informations spécifiques</p>
-          <p>• Les étapes &quot;Réponse&quot; et &quot;Récapitulatif&quot; sont obligatoires</p>
-        </CardContent>
-      </Card>
+      {splitScreenEnabled && (
+        <Card className="mb-6 border-[#9CD9F6]/30 bg-white/80 backdrop-blur">
+          <CardHeader>
+            <CardTitle className="text-[#004645] text-lg">💡 Aperçu en temps réel</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2 text-sm text-[#004645]/70">
+            <p>• Modifiez les étapes à gauche et voyez le résultat instantanément à droite</p>
+            <p>• Les changements de texte, d&apos;ordre et d&apos;activation sont visibles en temps réel</p>
+            <p>• Testez votre parcours sans avoir à le sauvegarder</p>
+          </CardContent>
+        </Card>
+      )}
 
-      {/* Steps Editor */}
-      <RsvpStepsEditor steps={steps} onChange={setSteps} />
+      {!splitScreenEnabled && (
+        <Card className="mb-6 border-[#9CD9F6]/30 bg-white/80 backdrop-blur">
+          <CardHeader>
+            <CardTitle className="text-[#004645] text-lg">💡 Comment ça marche ?</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2 text-sm text-[#004645]/70">
+            <p>• <strong>Glissez-déposez</strong> les étapes pour les réorganiser</p>
+            <p>• <strong>Activez/désactivez</strong> les étapes selon vos besoins</p>
+            <p>• <strong>Ajoutez des messages</strong> pour guider vos invités</p>
+            <p>• <strong>Créez des questions personnalisées</strong> pour collecter des informations spécifiques</p>
+            <p>• Les étapes &quot;Réponse&quot; et &quot;Récapitulatif&quot; sont obligatoires</p>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Theme Editor */}
+      <div className="mb-6">
+        <RsvpThemeEditor theme={theme} onChange={setTheme} />
+      </div>
+
+      {/* Split Screen Layout */}
+      {splitScreenEnabled ? (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold text-[#004645] flex items-center gap-2">
+              <Layout className="h-5 w-5" />
+              Éditeur
+            </h3>
+            <RsvpStepsEditor steps={steps} onChange={setSteps} />
+          </div>
+          <div className="space-y-4 lg:sticky lg:top-6 lg:self-start">
+            <h3 className="text-lg font-semibold text-[#004645] flex items-center gap-2">
+              <Monitor className="h-5 w-5" />
+              Prévisualisation
+            </h3>
+            <RsvpPreview steps={steps} eventName={eventName} theme={theme} />
+          </div>
+        </div>
+      ) : (
+        <RsvpStepsEditor steps={steps} onChange={setSteps} />
+      )}
     </div>
   )
 }
