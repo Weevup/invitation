@@ -12,18 +12,34 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Progress } from '@/components/ui/progress'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import type { RsvpStep } from '@/app/admin/events/[id]/rsvp-steps/page'
+import type { RsvpTheme } from './rsvp-theme-editor'
 
 interface RsvpPreviewProps {
   steps: RsvpStep[]
   eventName: string
+  theme?: RsvpTheme
 }
 
-export function RsvpPreview({ steps, eventName }: RsvpPreviewProps) {
+const DEFAULT_THEME: RsvpTheme = {
+  primaryColor: '#004645',
+  secondaryColor: '#009197',
+  backgroundColor: '#ffffff',
+  textColor: '#333333',
+  buttonRadius: '0.5rem',
+  fontFamily: 'Inter',
+  borderWidth: '1px',
+  accentColor: '#9CD9F6'
+}
+
+export function RsvpPreview({ steps, eventName, theme = {} }: RsvpPreviewProps) {
   const [currentStepIndex, setCurrentStepIndex] = useState(0)
   const [attending, setAttending] = useState<boolean | null>(null)
   const [plusOnes, setPlusOnes] = useState(0)
   const [mealChoice, setMealChoice] = useState("")
   const [photoConsent, setPhotoConsent] = useState(false)
+
+  // Merge theme with defaults
+  const appliedTheme = { ...DEFAULT_THEME, ...theme }
 
   // Get only enabled steps
   const enabledSteps = steps.filter(s => s.enabled).sort((a, b) => a.order - b.order)
@@ -68,24 +84,46 @@ export function RsvpPreview({ steps, eventName }: RsvpPreviewProps) {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4" style={{ fontFamily: appliedTheme.fontFamily }}>
       {/* Progress Bar */}
-      <Card className="border-[#9CD9F6]/30 bg-white/80 backdrop-blur">
+      <Card
+        className="backdrop-blur"
+        style={{
+          backgroundColor: appliedTheme.backgroundColor,
+          borderColor: appliedTheme.accentColor,
+          borderWidth: appliedTheme.borderWidth,
+          color: appliedTheme.textColor
+        }}
+      >
         <CardContent className="p-4">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-[#004645]">
+            <span className="text-sm font-medium" style={{ color: appliedTheme.primaryColor }}>
               Étape {currentStepIndex + 1} sur {enabledSteps.length}
             </span>
-            <span className="text-xs text-[#004645]/70">{currentStep.label}</span>
+            <span className="text-xs opacity-70">{currentStep.label}</span>
           </div>
           <Progress value={progress} className="h-2" />
         </CardContent>
       </Card>
 
       {/* Step Content */}
-      <Card className="border-[#9CD9F6]/30 bg-white/80 backdrop-blur">
+      <Card
+        className="backdrop-blur"
+        style={{
+          backgroundColor: appliedTheme.backgroundColor,
+          borderColor: appliedTheme.accentColor,
+          borderWidth: appliedTheme.borderWidth,
+          color: appliedTheme.textColor
+        }}
+      >
         <CardHeader>
-          <CardTitle className="text-2xl text-[#004645]" style={{ fontFamily: "var(--font-abril)" }}>
+          <CardTitle
+            className="text-2xl"
+            style={{
+              color: appliedTheme.primaryColor,
+              fontFamily: appliedTheme.fontFamily
+            }}
+          >
             {currentStep.label}
           </CardTitle>
         </CardHeader>
@@ -266,12 +304,16 @@ export function RsvpPreview({ steps, eventName }: RsvpPreviewProps) {
           )}
 
           {/* Navigation Buttons */}
-          <div className="flex justify-between pt-6 border-t">
+          <div className="flex justify-between pt-6 border-t" style={{ borderColor: appliedTheme.accentColor }}>
             <Button
               variant="outline"
               onClick={prevStep}
               disabled={currentStepIndex === 0}
-              className="border-[#009197] text-[#009197]"
+              style={{
+                borderColor: appliedTheme.secondaryColor,
+                color: appliedTheme.secondaryColor,
+                borderRadius: appliedTheme.buttonRadius
+              }}
             >
               <ChevronLeft className="h-4 w-4 mr-2" />
               {getStepText(currentStep.type, 'backButton', "Retour")}
@@ -280,14 +322,22 @@ export function RsvpPreview({ steps, eventName }: RsvpPreviewProps) {
             {currentStepIndex < enabledSteps.length - 1 ? (
               <Button
                 onClick={nextStep}
-                className="bg-gradient-to-r from-[#004645] to-[#009197] hover:from-[#006C51] hover:to-[#009197] text-white"
+                className="text-white transition-all hover:opacity-90"
+                style={{
+                  background: `linear-gradient(to right, ${appliedTheme.primaryColor}, ${appliedTheme.secondaryColor})`,
+                  borderRadius: appliedTheme.buttonRadius
+                }}
               >
                 {getStepText(currentStep.type, 'continueButton', "Continuer")}
                 <ChevronRight className="h-4 w-4 ml-2" />
               </Button>
             ) : (
               <Button
-                className="bg-gradient-to-r from-[#004645] to-[#009197] hover:from-[#006C51] hover:to-[#009197] text-white"
+                className="text-white transition-all hover:opacity-90"
+                style={{
+                  background: `linear-gradient(to right, ${appliedTheme.primaryColor}, ${appliedTheme.secondaryColor})`,
+                  borderRadius: appliedTheme.buttonRadius
+                }}
               >
                 {getStepText('summary', 'submitButton', "Valider ma réponse")}
               </Button>

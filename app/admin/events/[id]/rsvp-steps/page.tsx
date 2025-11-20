@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { RsvpStepsEditor } from '@/components/rsvp-steps-editor'
 import { RsvpPreview } from '@/components/rsvp-preview'
+import { RsvpThemeEditor, type RsvpTheme } from '@/components/rsvp-theme-editor'
 import { Loader2, Save, Eye, Monitor, Layout } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -62,6 +63,7 @@ export default function RsvpStepsPage() {
   const [steps, setSteps] = useState<RsvpStep[]>([])
   const [eventName, setEventName] = useState('')
   const [splitScreenEnabled, setSplitScreenEnabled] = useState(true)
+  const [theme, setTheme] = useState<RsvpTheme>({})
 
   useEffect(() => {
     fetchSteps()
@@ -81,6 +83,11 @@ export default function RsvpStepsPage() {
       } else {
         // Initialize with default steps
         setSteps(getDefaultSteps(event))
+      }
+
+      // Load theme from rsvpConfig
+      if (event.rsvpConfig?.theme) {
+        setTheme(event.rsvpConfig.theme)
       }
     } catch (error) {
       console.error('Error fetching steps:', error)
@@ -153,7 +160,7 @@ export default function RsvpStepsPage() {
       const response = await fetch(`/api/admin/events/${eventId}/rsvp-config`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ customSteps: steps })
+        body: JSON.stringify({ customSteps: steps, theme })
       })
 
       if (!response.ok) throw new Error('Failed to save steps')
@@ -278,6 +285,11 @@ export default function RsvpStepsPage() {
         </Card>
       )}
 
+      {/* Theme Editor */}
+      <div className="mb-6">
+        <RsvpThemeEditor theme={theme} onChange={setTheme} />
+      </div>
+
       {/* Split Screen Layout */}
       {splitScreenEnabled ? (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -293,7 +305,7 @@ export default function RsvpStepsPage() {
               <Monitor className="h-5 w-5" />
               Prévisualisation
             </h3>
-            <RsvpPreview steps={steps} eventName={eventName} />
+            <RsvpPreview steps={steps} eventName={eventName} theme={theme} />
           </div>
         </div>
       ) : (
