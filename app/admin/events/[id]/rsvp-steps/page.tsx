@@ -135,9 +135,27 @@ export default function RsvpStepsPage() {
     }
   }
 
-  const handlePreview = () => {
-    // Open preview in new tab
-    window.open(`/guest/preview?eventId=${eventId}`, '_blank')
+  const handlePreview = async () => {
+    try {
+      // Fetch first guest to get a token for preview
+      const response = await fetch(`/api/admin/events/${eventId}/guests`)
+      if (!response.ok) throw new Error('Failed to fetch guests')
+
+      const guests = await response.json()
+
+      if (guests.length === 0) {
+        toast.error('Aucun invité disponible. Créez d\'abord un invité pour prévisualiser le formulaire RSVP.')
+        return
+      }
+
+      // Use first guest's token for preview
+      const firstGuest = guests[0]
+      window.open(`/guest/${firstGuest.token}`, '_blank')
+      toast.success('Prévisualisation ouverte avec le profil de ' + firstGuest.firstName)
+    } catch (error) {
+      console.error('Error opening preview:', error)
+      toast.error('Erreur lors de l\'ouverture de la prévisualisation')
+    }
   }
 
   if (loading) {
