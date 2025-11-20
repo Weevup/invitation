@@ -207,6 +207,11 @@ export default function EventLayout({
           icon: FileText,
         },
         {
+          label: 'Email de Confirmation',
+          href: `/admin/events/${eventId}/confirmation-email`,
+          icon: Mail,
+        },
+        {
           label: 'Campagnes',
           href: `/admin/events/${eventId}/communications`,
           icon: Settings,

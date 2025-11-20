@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { validateGuestToken } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { sendEmailLegacy as sendEmail } from '@/lib/email-service'
+import { sendEmailLegacy as sendEmail, sendEmail as sendEmailDirect, renderTemplate, TemplateVariables } from '@/lib/email-service'
 import { getConfirmationEmailTemplate } from '@/lib/email-templates'
 import { generateQRCode, getCheckinUrl } from '@/lib/qrcode'
 import { formatDateTime } from '@/lib/utils'
 import { rsvpRateLimit, getRateLimitIdentifier, getRateLimitHeaders, normalizeRateLimitResult } from '@/lib/rate-limit'
 import { rsvpSubmissionSchema, validateSchema } from '@/lib/validations'
 import { createLogger } from '@/lib/logger'
+import { safeDecrypt } from '@/lib/encryption'
 
 const rsvpLogger = createLogger({ module: 'rsvp' })
 
@@ -169,27 +170,104 @@ export async function POST(
       eventVenue += `, ${guest.event.city}`
     }
 
-    const emailHtml = getConfirmationEmailTemplate({
-      guestName: guest.firstName,
-      eventName: guest.event.name,
-      eventDate: formatDateTime(guest.event.startsAt),
-      eventVenue,
-      attending: attending || false,
-      // Don't send QR code in email (base64 images are blocked by email clients)
-      // QR code is shown on the confirmation page instead
-      qrCodeUrl: undefined,
+    // Try to use custom template if available
+    const customTemplate = await prisma.emailTemplate.findFirst({
+      where: {
+        eventId: guest.eventId,
+        type: 'CONFIRMATION',
+        isActive: true,
+      },
     })
 
-    await sendEmail({
-      to: guest.email,
-      subject: attending
-        ? `Confirmation : ${guest.event.name}`
-        : `Réponse enregistrée : ${guest.event.name}`,
-      html: emailHtml,
-      eventId: guest.eventId,
-      guestId: guest.id,
-      type: 'CONFIRMATION',
+    // Get email integration
+    const emailIntegration = await prisma.emailIntegration.findFirst({
+      where: {
+        isPrimary: true,
+        isActive: true
+      }
     })
+
+    if (customTemplate && emailIntegration) {
+      // Use custom template with template variables
+      const variables: TemplateVariables = {
+        'guest.firstName': guest.firstName,
+        'guest.lastName': guest.lastName || '',
+        'guest.email': guest.email,
+        'event.name': guest.event.name,
+        'event.date': formatDateTime(guest.event.startsAt),
+        'event.time': new Date(guest.event.startsAt).toLocaleTimeString('fr-FR', {
+          hour: '2-digit',
+          minute: '2-digit'
+        }),
+        'event.location': eventVenue,
+        'event.address': guest.event.address || '',
+      }
+
+      const emailHtml = renderTemplate(customTemplate.htmlContent, variables)
+      const emailSubject = renderTemplate(customTemplate.subject, variables)
+
+      // Decrypt integration credentials
+      const integrationData = {
+        id: emailIntegration.id,
+        provider: emailIntegration.provider as any,
+        apiKey: emailIntegration.apiKey ? safeDecrypt(emailIntegration.apiKey) : null,
+        apiSecret: emailIntegration.apiSecret ? safeDecrypt(emailIntegration.apiSecret) : null,
+        smtpHost: emailIntegration.smtpHost,
+        smtpPort: emailIntegration.smtpPort,
+        smtpUser: emailIntegration.smtpUser,
+        smtpPass: emailIntegration.smtpPass ? safeDecrypt(emailIntegration.smtpPass) : null,
+        fromEmail: emailIntegration.fromEmail,
+        fromName: emailIntegration.fromName,
+        replyTo: emailIntegration.replyTo,
+        trackOpens: emailIntegration.trackOpens,
+        trackClicks: emailIntegration.trackClicks,
+      }
+
+      // Send with custom template
+      await sendEmailDirect(
+        {
+          to: guest.email,
+          subject: emailSubject,
+          html: emailHtml,
+        },
+        integrationData
+      )
+
+      // Log email
+      await prisma.emailLog.create({
+        data: {
+          eventId: guest.eventId,
+          guestId: guest.id,
+          type: 'CONFIRMATION',
+          subject: emailSubject,
+          status: 'SENT',
+          sentAt: new Date(),
+        },
+      })
+    } else {
+      // Fallback to default template
+      const emailHtml = getConfirmationEmailTemplate({
+        guestName: guest.firstName,
+        eventName: guest.event.name,
+        eventDate: formatDateTime(guest.event.startsAt),
+        eventVenue,
+        attending: attending || false,
+        // Don't send QR code in email (base64 images are blocked by email clients)
+        // QR code is shown on the confirmation page instead
+        qrCodeUrl: undefined,
+      })
+
+      await sendEmail({
+        to: guest.email,
+        subject: attending
+          ? `Confirmation : ${guest.event.name}`
+          : `Réponse enregistrée : ${guest.event.name}`,
+        html: emailHtml,
+        eventId: guest.eventId,
+        guestId: guest.id,
+        type: 'CONFIRMATION',
+      })
+    }
 
     return NextResponse.json({
       success: true,
