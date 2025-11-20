@@ -197,9 +197,9 @@ export default function EventLayout({
       title: "📧 EMAIL & COMMUNICATIONS",
       items: [
         {
-          label: 'Templates classiques',
-          href: `/admin/events/${eventId}/templates`,
-          icon: Wand2,
+          label: 'Hub des Emails',
+          href: `/admin/events/${eventId}/emails`,
+          icon: MailOpen,
         },
         {
           label: 'Éditeur visuel',
@@ -207,19 +207,9 @@ export default function EventLayout({
           icon: FileText,
         },
         {
-          label: 'Confirmation RSVP',
-          href: `/admin/events/${eventId}/confirmation-email`,
-          icon: Mail,
-        },
-        {
           label: 'Envoi de campagnes',
           href: `/admin/events/${eventId}/communications`,
           icon: Settings,
-        },
-        {
-          label: 'Analytics',
-          href: `/admin/events/${eventId}/email-analytics`,
-          icon: MailOpen,
         },
         {
           label: 'Configuration RSVP',
