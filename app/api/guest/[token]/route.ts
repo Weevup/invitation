@@ -53,6 +53,7 @@ export async function GET(
         enableLodging: guest.event.enableLodging,
         enableAccessibility: guest.event.enableAccessibility,
         enablePhotoConsent: guest.event.enablePhotoConsent,
+        rsvpConfig: guest.event.rsvpConfig,
       },
       rsvp: guest.rsvp,
     })
