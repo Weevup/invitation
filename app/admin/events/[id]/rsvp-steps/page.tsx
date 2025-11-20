@@ -5,7 +5,8 @@ import { useParams } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { RsvpStepsEditor } from '@/components/rsvp-steps-editor'
-import { Loader2, Save, Eye } from 'lucide-react'
+import { RsvpPreview } from '@/components/rsvp-preview'
+import { Loader2, Save, Eye, Monitor, Layout } from 'lucide-react'
 import { toast } from 'sonner'
 
 export interface RsvpStep {
@@ -60,6 +61,7 @@ export default function RsvpStepsPage() {
   const [saving, setSaving] = useState(false)
   const [steps, setSteps] = useState<RsvpStep[]>([])
   const [eventName, setEventName] = useState('')
+  const [splitScreenEnabled, setSplitScreenEnabled] = useState(true)
 
   useEffect(() => {
     fetchSteps()
@@ -212,11 +214,19 @@ export default function RsvpStepsPage() {
           <div className="flex gap-2">
             <Button
               variant="outline"
+              onClick={() => setSplitScreenEnabled(!splitScreenEnabled)}
+              className="border-[#009197] text-[#009197] hover:bg-[#009197] hover:text-white"
+            >
+              <Layout className="h-4 w-4 mr-2" />
+              {splitScreenEnabled ? 'Mode simple' : 'Aperçu temps réel'}
+            </Button>
+            <Button
+              variant="outline"
               onClick={handlePreview}
               className="border-[#009197] text-[#009197] hover:bg-[#009197] hover:text-white"
             >
               <Eye className="h-4 w-4 mr-2" />
-              Prévisualiser
+              Ouvrir dans un onglet
             </Button>
             <Button
               onClick={handleSave}
@@ -240,21 +250,55 @@ export default function RsvpStepsPage() {
       </div>
 
       {/* Info Card */}
-      <Card className="mb-6 border-[#9CD9F6]/30 bg-white/80 backdrop-blur">
-        <CardHeader>
-          <CardTitle className="text-[#004645] text-lg">💡 Comment ça marche ?</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2 text-sm text-[#004645]/70">
-          <p>• <strong>Glissez-déposez</strong> les étapes pour les réorganiser</p>
-          <p>• <strong>Activez/désactivez</strong> les étapes selon vos besoins</p>
-          <p>• <strong>Ajoutez des messages</strong> pour guider vos invités</p>
-          <p>• <strong>Créez des questions personnalisées</strong> pour collecter des informations spécifiques</p>
-          <p>• Les étapes &quot;Réponse&quot; et &quot;Récapitulatif&quot; sont obligatoires</p>
-        </CardContent>
-      </Card>
+      {splitScreenEnabled && (
+        <Card className="mb-6 border-[#9CD9F6]/30 bg-white/80 backdrop-blur">
+          <CardHeader>
+            <CardTitle className="text-[#004645] text-lg">💡 Aperçu en temps réel</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2 text-sm text-[#004645]/70">
+            <p>• Modifiez les étapes à gauche et voyez le résultat instantanément à droite</p>
+            <p>• Les changements de texte, d&apos;ordre et d&apos;activation sont visibles en temps réel</p>
+            <p>• Testez votre parcours sans avoir à le sauvegarder</p>
+          </CardContent>
+        </Card>
+      )}
 
-      {/* Steps Editor */}
-      <RsvpStepsEditor steps={steps} onChange={setSteps} />
+      {!splitScreenEnabled && (
+        <Card className="mb-6 border-[#9CD9F6]/30 bg-white/80 backdrop-blur">
+          <CardHeader>
+            <CardTitle className="text-[#004645] text-lg">💡 Comment ça marche ?</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2 text-sm text-[#004645]/70">
+            <p>• <strong>Glissez-déposez</strong> les étapes pour les réorganiser</p>
+            <p>• <strong>Activez/désactivez</strong> les étapes selon vos besoins</p>
+            <p>• <strong>Ajoutez des messages</strong> pour guider vos invités</p>
+            <p>• <strong>Créez des questions personnalisées</strong> pour collecter des informations spécifiques</p>
+            <p>• Les étapes &quot;Réponse&quot; et &quot;Récapitulatif&quot; sont obligatoires</p>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Split Screen Layout */}
+      {splitScreenEnabled ? (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold text-[#004645] flex items-center gap-2">
+              <Layout className="h-5 w-5" />
+              Éditeur
+            </h3>
+            <RsvpStepsEditor steps={steps} onChange={setSteps} />
+          </div>
+          <div className="space-y-4 lg:sticky lg:top-6 lg:self-start">
+            <h3 className="text-lg font-semibold text-[#004645] flex items-center gap-2">
+              <Monitor className="h-5 w-5" />
+              Prévisualisation
+            </h3>
+            <RsvpPreview steps={steps} eventName={eventName} />
+          </div>
+        </div>
+      ) : (
+        <RsvpStepsEditor steps={steps} onChange={setSteps} />
+      )}
     </div>
   )
 }
