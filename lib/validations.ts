@@ -54,9 +54,7 @@ export const createGuestSchema = z.object({
   // Professional information
   jobTitle: z.string().max(100, 'Fonction trop longue').optional(),
   department: z.string().max(100, 'Département trop long').optional(),
-  companySize: z.enum(['TPE', 'PME', 'ETI', 'GE'], {
-    errorMap: () => ({ message: 'Taille d\'entreprise invalide' })
-  }).optional(),
+  companySize: z.enum(['TPE', 'PME', 'ETI', 'GE']).optional().or(z.literal('')),
   industry: z.string().max(100, 'Secteur trop long').optional(),
   linkedinUrl: z.string().url('URL LinkedIn invalide').max(500, 'URL trop longue').optional().or(z.literal('')),
   phoneNumber: z.string().max(20, 'Numéro trop long').optional(),
