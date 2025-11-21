@@ -197,6 +197,7 @@ model Event {
   saveTheDateConfig  Json? // Save the Date email configuration
   invitationConfig   Json? // Invitation email configuration
   rsvpConfig         Json? // RSVP form configuration - customSteps: [{id, type, label, content, enabled, order}]
+  emailCampaignsConfig Json? // Email campaigns configuration - phases: [{id, phase, enabled, templateSlug, scheduledDate}]
 
   // Features enabled
   enableTransport   Boolean @default(false)
