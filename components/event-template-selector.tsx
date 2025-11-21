@@ -49,7 +49,7 @@ export function EventTemplateSelector({
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl text-[#004645]">
-            Choisissez un type d'événement
+            Choisissez un type d&apos;événement
           </DialogTitle>
           <DialogDescription>
             Chaque modèle configure automatiquement les options RSVP, les textes et le thème visuel adaptés à votre événement
@@ -251,13 +251,13 @@ export function EventTemplateSelector({
                     </h4>
                     <div className="space-y-2 text-sm bg-gray-50 p-3 rounded-lg">
                       <p className="italic text-[#004645]">
-                        "{previewTemplate.customTexts.welcomeGreeting}"
+                        &quot;{previewTemplate.customTexts.welcomeGreeting}&quot;
                       </p>
                       <p className="italic text-[#004645]/70">
-                        "{previewTemplate.customTexts.responseQuestion}"
+                        &quot;{previewTemplate.customTexts.responseQuestion}&quot;
                       </p>
                       <p className="italic text-green-700">
-                        "{previewTemplate.customTexts.responseYes}"
+                        &quot;{previewTemplate.customTexts.responseYes}&quot;
                       </p>
                     </div>
                   </div>

@@ -221,7 +221,7 @@ export function VariableHelper({ title, description }: VariableHelperProps) {
 
         {filteredVariables.length === 0 && (
           <div className="text-center py-8 text-gray-400">
-            Aucune variable trouvée pour "{search}"
+            Aucune variable trouvée pour &quot;{search}&quot;
           </div>
         )}
 
@@ -230,10 +230,10 @@ export function VariableHelper({ title, description }: VariableHelperProps) {
           <h5 className="text-sm font-semibold text-[#004645] mb-2">💡 Comment utiliser</h5>
           <div className="text-xs text-[#004645]/70 space-y-1">
             <p>• Cliquez sur une variable pour la copier dans le presse-papiers</p>
-            <p>• Collez-la dans n'importe quel champ de texte (emails, RSVP, etc.)</p>
+            <p>• Collez-la dans n&apos;importe quel champ de texte (emails, RSVP, etc.)</p>
             <p>• Elle sera automatiquement remplacée par la valeur réelle</p>
             <p className="mt-2 italic">
-              Exemple : "Bonjour {`{{guest.firstName}}`}, rendez-vous le {`{{event.date}}`} !"
+              Exemple : &quot;Bonjour {`{{guest.firstName}}`}, rendez-vous le {`{{event.date}}`} !&quot;
             </p>
           </div>
         </div>

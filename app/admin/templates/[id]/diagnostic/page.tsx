@@ -200,7 +200,7 @@ export default function TemplateDiagnosticPage() {
           <div className="grid grid-cols-3 gap-4">
             <div className="text-center p-4 bg-gray-50 rounded-lg">
               <div className="text-2xl font-bold text-[#004645]">{data.imageBlocksCount}</div>
-              <div className="text-sm text-[#004645]/60">Blocks d'images</div>
+              <div className="text-sm text-[#004645]/60">Blocks d&apos;images</div>
             </div>
             <div className="text-center p-4 bg-gray-50 rounded-lg">
               <div className="text-2xl font-bold text-[#004645]">{data.htmlImagesCount}</div>
@@ -208,7 +208,7 @@ export default function TemplateDiagnosticPage() {
             </div>
             <div className="text-center p-4 bg-gray-50 rounded-lg">
               <div className="text-2xl font-bold text-[#004645]">{data.imageStats.length}</div>
-              <div className="text-sm text-[#004645]/60">Total URLs d'images</div>
+              <div className="text-sm text-[#004645]/60">Total URLs d&apos;images</div>
             </div>
           </div>
 
@@ -266,7 +266,7 @@ export default function TemplateDiagnosticPage() {
             <Alert>
               <Info className="h-4 w-4" />
               <AlertDescription>
-                Aucune image détectée dans ce template. Si vous avez ajouté des images, assurez-vous d'avoir sauvegardé le template.
+                Aucune image détectée dans ce template. Si vous avez ajouté des images, assurez-vous d&apos;avoir sauvegardé le template.
               </AlertDescription>
             </Alert>
           )}
@@ -297,8 +297,8 @@ export default function TemplateDiagnosticPage() {
             <div className="flex items-start gap-3">
               <CheckCircle2 className="h-5 w-5 text-[#009197] mt-0.5" />
               <div>
-                <p className="font-medium text-[#004645]">Testez avant d'envoyer</p>
-                <p className="text-sm text-[#004645]/60">Utilisez la fonction "Email de test" pour vérifier que les images s'affichent correctement</p>
+                <p className="font-medium text-[#004645]">Testez avant d&apos;envoyer</p>
+                <p className="text-sm text-[#004645]/60">Utilisez la fonction &quot;Email de test&quot; pour vérifier que les images s&apos;affichent correctement</p>
               </div>
             </div>
           </CardContent>

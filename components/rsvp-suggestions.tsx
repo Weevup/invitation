@@ -167,7 +167,7 @@ export function RsvpSuggestions() {
                     ) : (
                       <Copy className="h-3 w-3 mr-1" />
                     )}
-                    {suggestion.label}: "{suggestion.text}"
+                    {suggestion.label}: &quot;{suggestion.text}&quot;
                   </Button>
                 ))}
               </div>
@@ -178,7 +178,7 @@ export function RsvpSuggestions() {
         <div className="mt-6 p-4 bg-[#004645]/5 rounded-lg">
           <p className="text-xs text-[#004645]/70">
             💡 <strong>Astuce</strong> : Personnalisez ces suggestions selon le ton de votre événement.
-            Un mariage aura un ton plus chaleureux qu'un événement corporate !
+            Un mariage aura un ton plus chaleureux qu&apos;un événement corporate !
           </p>
         </div>
       </CardContent>

@@ -252,7 +252,7 @@ export default function RsvpHelpPage() {
         <CardContent className="p-6">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-xl font-bold mb-2">Besoin d'aide supplémentaire ?</h3>
+              <h3 className="text-xl font-bold mb-2">Besoin d&apos;aide supplémentaire ?</h3>
               <p className="text-white/90 text-sm">
                 Consultez la documentation complète ou contactez le support
               </p>

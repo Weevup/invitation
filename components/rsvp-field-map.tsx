@@ -89,7 +89,7 @@ export function RsvpFieldMap({ onNavigateToField }: RsvpFieldMapProps) {
           <div>
             <CardTitle className="text-[#004645]">Carte des champs RSVP</CardTitle>
             <CardDescription>
-              Vue d'ensemble de tous les champs personnalisables et où les modifier
+              Vue d&apos;ensemble de tous les champs personnalisables et où les modifier
             </CardDescription>
           </div>
           <Button
@@ -180,7 +180,7 @@ export function RsvpFieldMap({ onNavigateToField }: RsvpFieldMapProps) {
               onClick={() => window.location.href = '/admin/events'}
             >
               <Calendar className="h-4 w-4 mr-2" />
-              Éditer l'événement
+              Éditer l&apos;événement
             </Button>
             <Button
               variant="outline"
