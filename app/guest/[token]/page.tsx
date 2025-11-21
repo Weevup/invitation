@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -150,10 +150,89 @@ export default function GuestPage() {
     return (step.texts as any)[textKey] || defaultValue;
   };
 
-  // Helper to get custom RSVP text
-  const getCustomText = (textKey: keyof NonNullable<NonNullable<typeof data>['event']['rsvpConfig']>['customTexts'], defaultValue: string): string => {
-    return data?.event.rsvpConfig?.customTexts?.[textKey] || defaultValue;
-  };
+  // Memoized custom texts for better performance
+  const customTexts = useMemo(() => ({
+    welcomeGreeting: data?.event.rsvpConfig?.customTexts?.welcomeGreeting || `Bonjour ${data?.guest.firstName || ''} 👋`,
+    welcomeSubtitle: data?.event.rsvpConfig?.customTexts?.welcomeSubtitle || "Vous êtes invité(e) à",
+    formTitle: data?.event.rsvpConfig?.customTexts?.formTitle || "Votre réponse",
+    formSubtitle: data?.event.rsvpConfig?.customTexts?.formSubtitle || "Merci de confirmer votre participation avant le",
+    responseQuestion: data?.event.rsvpConfig?.customTexts?.responseQuestion || "Participez-vous à l'événement ?",
+    responseYes: data?.event.rsvpConfig?.customTexts?.responseYes || "✓ J'accepte avec plaisir",
+    responseNo: data?.event.rsvpConfig?.customTexts?.responseNo || "✗ Je ne peux malheureusement pas venir",
+    continueButton: data?.event.rsvpConfig?.customTexts?.continueButton || "Continuer",
+    previousButton: data?.event.rsvpConfig?.customTexts?.previousButton || "Précédent",
+    submitButton: data?.event.rsvpConfig?.customTexts?.submitButton || "Envoyer ma réponse",
+    successTitle: data?.event.rsvpConfig?.customTexts?.successTitle || "Merci pour votre réponse !",
+    successMessage: data?.event.rsvpConfig?.customTexts?.successMessage || "Votre participation a été enregistrée",
+  }), [data?.event.rsvpConfig?.customTexts, data?.guest.firstName]);
+
+  // localStorage autosave: Load draft on mount
+  useEffect(() => {
+    if (!data?.event || !data?.guest) return;
+
+    const draftKey = `rsvp-draft-${data.event.id}-${data.guest.id}`;
+    const draft = localStorage.getItem(draftKey);
+
+    if (draft && !data.rsvp) {
+      try {
+        const saved = JSON.parse(draft);
+        setAttending(saved.attending ?? null);
+        setPlusOnes(saved.plusOnes || 0);
+        setMealChoice(saved.mealChoice || "");
+        setAllergies(saved.allergies || "");
+        setAccessibilityNotes(saved.accessibilityNotes || "");
+        setTransportNeeds(saved.transportNeeds || "");
+        setLodgingNeeds(saved.lodgingNeeds || "");
+        setConsentPhotos(saved.consentPhotos || false);
+        setCustomAnswers(saved.customAnswers || {});
+
+        toast({
+          title: "📝 Brouillon restauré",
+          description: "Vos réponses précédentes ont été récupérées",
+          duration: 4000,
+        });
+      } catch (error) {
+        // Invalid draft, ignore
+        localStorage.removeItem(draftKey);
+      }
+    }
+  }, [data?.event, data?.rsvp, data?.guest, toast]);
+
+  // localStorage autosave: Save on field changes (debounced)
+  useEffect(() => {
+    if (!data?.event || !data?.guest || data?.rsvp) return; // Don't autosave if already submitted
+
+    const timeout = setTimeout(() => {
+      const draftKey = `rsvp-draft-${data.event.id}-${data.guest.id}`;
+      const formData = {
+        attending,
+        plusOnes,
+        mealChoice,
+        allergies,
+        accessibilityNotes,
+        transportNeeds,
+        lodgingNeeds,
+        consentPhotos,
+        customAnswers,
+      };
+
+      localStorage.setItem(draftKey, JSON.stringify(formData));
+    }, 1000); // 1 second debounce
+
+    return () => clearTimeout(timeout);
+  }, [attending, plusOnes, mealChoice, allergies, accessibilityNotes, transportNeeds, lodgingNeeds, consentPhotos, customAnswers, data?.event, data?.rsvp, data?.guest]);
+
+  // Focus management: Focus first input when step changes
+  useEffect(() => {
+    if (currentStepId && currentStepId !== 'success') {
+      const timer = setTimeout(() => {
+        const firstInteractive = document.querySelector(`input:not([type="hidden"]), button, textarea, select`) as HTMLElement;
+        firstInteractive?.focus();
+      }, 100); // Small delay to ensure DOM is updated
+
+      return () => clearTimeout(timer);
+    }
+  }, [currentStepId]);
 
   // Rebuild steps when event data or attending status changes
   useEffect(() => {
@@ -241,6 +320,12 @@ export default function GuestPage() {
         setQrCode(result.qrCode);
       }
 
+      // Clear localStorage draft on successful submission
+      if (data?.event && data?.guest) {
+        const draftKey = `rsvp-draft-${data.event.id}-${data.guest.id}`;
+        localStorage.removeItem(draftKey);
+      }
+
       toast({
         title: "✓ Réponse enregistrée",
         description: attending
@@ -326,9 +411,9 @@ export default function GuestPage() {
               className="text-center mb-8"
             >
               <h1 className="text-4xl font-bold mb-2 text-[#004645]" style={{ fontFamily: "var(--font-abril)" }}>
-                {getCustomText('welcomeGreeting', `Bonjour ${guest.firstName} 👋`).replace('{guest.firstName}', guest.firstName)}
+                {customTexts.welcomeGreeting.replace('{guest.firstName}', guest.firstName)}
               </h1>
-              <p className="text-[#004645]/70">{getCustomText('welcomeSubtitle', "Vous êtes invité(e) à")}</p>
+              <p className="text-[#004645]/70">{customTexts.welcomeSubtitle}</p>
             </motion.div>
 
             {/* Progress Bar */}
@@ -385,10 +470,10 @@ export default function GuestPage() {
             <Card className="border-[#9CD9F6]/30 bg-white/80 backdrop-blur">
               <CardHeader>
                 <CardTitle className="text-[#004645]" style={{ fontFamily: "var(--font-abril)" }}>
-                  {getCustomText('formTitle', "Votre réponse")}
+                  {customTexts.formTitle}
                 </CardTitle>
                 <CardDescription className="text-[#004645]/70">
-                  {getCustomText('formSubtitle', "Merci de confirmer votre participation avant le")}{" "}
+                  {customTexts.formSubtitle}{" "}
                   {event.rsvpDeadline &&
                     new Date(event.rsvpDeadline).toLocaleDateString("fr-FR")}
                 </CardDescription>
