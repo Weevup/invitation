@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Heart, Briefcase, PartyPopper, GraduationCap, Sparkles } from 'lucide-react'
-import type { RsvpStep } from '@/app/admin/events/[id]/rsvp-steps/page'
+import type { RsvpStep } from '@/app/admin/events/[id]/settings/tabs/rsvp-subtabs/RsvpStepsContent'
 
 interface RsvpTemplatesProps {
   onSelectTemplate: (steps: RsvpStep[]) => void

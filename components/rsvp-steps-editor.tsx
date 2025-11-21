@@ -37,7 +37,7 @@ import {
   Edit,
   HelpCircle
 } from 'lucide-react'
-import type { RsvpStep } from '@/app/admin/events/[id]/rsvp-steps/page'
+import type { RsvpStep } from '@/app/admin/events/[id]/settings/tabs/rsvp-subtabs/RsvpStepsContent'
 
 interface RsvpStepsEditorProps {
   steps: RsvpStep[]

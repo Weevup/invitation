@@ -1,52 +1,95 @@
 "use client"
 
+import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { FileText } from 'lucide-react'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Settings, List, FileText, Eye } from 'lucide-react'
+import { RsvpConfigurationSubTab } from './rsvp-subtabs/RsvpConfigurationSubTab'
+import { RsvpStepsSubTab } from './rsvp-subtabs/RsvpStepsSubTab'
+import { RsvpTextsSubTab } from './rsvp-subtabs/RsvpTextsSubTab'
+import { RsvpPreviewSubTab } from './rsvp-subtabs/RsvpPreviewSubTab'
 
 interface RsvpTabProps {
   event: any
   onUpdate: () => void
+  initialSubTab?: string
 }
 
-export function RsvpTab({ event, onUpdate }: RsvpTabProps) {
+export function RsvpTab({ event, onUpdate, initialSubTab }: RsvpTabProps) {
+  const [activeSubTab, setActiveSubTab] = useState(initialSubTab || 'configuration')
+
+  // Update activeSubTab when initialSubTab changes (from URL)
+  useEffect(() => {
+    if (initialSubTab) {
+      setActiveSubTab(initialSubTab)
+    }
+  }, [initialSubTab])
+
   return (
-    <Card className="border-[#9CD9F6]/30">
-      <CardHeader>
-        <div className="flex items-center gap-2">
-          <FileText className="h-5 w-5 text-[#009197]" />
+    <div className="space-y-6">
+      {/* Header */}
+      <Card className="border-[#009197]/30 bg-gradient-to-r from-[#009197]/5 to-white">
+        <CardHeader>
           <CardTitle className="text-[#004645]">Formulaire RSVP</CardTitle>
-        </div>
-        <CardDescription>
-          Configuration unifiée : champs, étapes et textes en un seul endroit
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          <p className="text-sm text-[#004645]/70">
-            Cette section sera implémentée dans la Phase 1 - étape 3 (après l&apos;onglet Emails).
-          </p>
-          <p className="text-sm text-[#004645]/70">
-            Pour l&apos;instant, utilisez les pages existantes :
-          </p>
-          <ul className="list-disc list-inside space-y-1 text-sm text-[#004645]/70">
-            <li>
-              <a href={`/admin/events/${event.id}/rsvp-config`} className="text-[#009197] underline">
-                Configuration des champs
-              </a>
-            </li>
-            <li>
-              <a href={`/admin/events/${event.id}/rsvp-steps`} className="text-[#009197] underline">
-                Organisation des étapes
-              </a>
-            </li>
-            <li>
-              <a href={`/admin/events/${event.id}/rsvp-texts`} className="text-[#009197] underline">
-                Personnalisation des textes
-              </a>
-            </li>
-          </ul>
-        </div>
-      </CardContent>
-    </Card>
+          <CardDescription>
+            Configuration complète : champs, étapes, textes et aperçu en un seul endroit
+          </CardDescription>
+        </CardHeader>
+      </Card>
+
+      {/* Sub-tabs */}
+      <Tabs value={activeSubTab} onValueChange={setActiveSubTab} className="space-y-6">
+        <TabsList className="grid w-full grid-cols-4 bg-[#9CD9F6]/10 p-1">
+          <TabsTrigger
+            value="configuration"
+            className="data-[state=active]:bg-white data-[state=active]:text-[#004645] data-[state=active]:shadow-sm"
+          >
+            <Settings className="h-4 w-4 mr-2" />
+            Configuration
+          </TabsTrigger>
+          <TabsTrigger
+            value="steps"
+            className="data-[state=active]:bg-white data-[state=active]:text-[#004645] data-[state=active]:shadow-sm"
+          >
+            <List className="h-4 w-4 mr-2" />
+            Étapes
+          </TabsTrigger>
+          <TabsTrigger
+            value="texts"
+            className="data-[state=active]:bg-white data-[state=active]:text-[#004645] data-[state=active]:shadow-sm"
+          >
+            <FileText className="h-4 w-4 mr-2" />
+            Textes
+          </TabsTrigger>
+          <TabsTrigger
+            value="preview"
+            className="data-[state=active]:bg-white data-[state=active]:text-[#004645] data-[state=active]:shadow-sm"
+          >
+            <Eye className="h-4 w-4 mr-2" />
+            Aperçu
+          </TabsTrigger>
+        </TabsList>
+
+        {/* Configuration Sub-tab */}
+        <TabsContent value="configuration" className="space-y-6">
+          <RsvpConfigurationSubTab event={event} onUpdate={onUpdate} />
+        </TabsContent>
+
+        {/* Steps Sub-tab */}
+        <TabsContent value="steps" className="space-y-6">
+          <RsvpStepsSubTab event={event} onUpdate={onUpdate} />
+        </TabsContent>
+
+        {/* Texts Sub-tab */}
+        <TabsContent value="texts" className="space-y-6">
+          <RsvpTextsSubTab event={event} onUpdate={onUpdate} />
+        </TabsContent>
+
+        {/* Preview Sub-tab */}
+        <TabsContent value="preview" className="space-y-6">
+          <RsvpPreviewSubTab event={event} />
+        </TabsContent>
+      </Tabs>
+    </div>
   )
 }

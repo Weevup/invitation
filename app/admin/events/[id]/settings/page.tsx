@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from 'react'
-import { useParams, useRouter } from 'next/navigation'
+import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -18,15 +18,30 @@ const logger = createClientLogger({ component: 'SettingsPage' })
 export default function SettingsPage() {
   const params = useParams()
   const router = useRouter()
+  const searchParams = useSearchParams()
   const eventId = params.id as string
 
   const [loading, setLoading] = useState(true)
   const [event, setEvent] = useState<any>(null)
-  const [activeTab, setActiveTab] = useState('emails')
+
+  // Read initial tab from URL, default to 'emails'
+  const initialTab = searchParams.get('tab') || 'emails'
+  const [activeTab, setActiveTab] = useState(initialTab)
+
+  // Read subtab from URL (for RSVP tab)
+  const subtab = searchParams.get('subtab') || undefined
 
   useEffect(() => {
     loadEvent()
   }, [eventId])
+
+  // Update activeTab when URL changes
+  useEffect(() => {
+    const urlTab = searchParams.get('tab')
+    if (urlTab && urlTab !== activeTab) {
+      setActiveTab(urlTab)
+    }
+  }, [searchParams])
 
   const loadEvent = async () => {
     try {
@@ -130,7 +145,7 @@ export default function SettingsPage() {
 
         {/* RSVP Tab */}
         <TabsContent value="rsvp" className="space-y-6">
-          <RsvpTab event={event} onUpdate={loadEvent} />
+          <RsvpTab event={event} onUpdate={loadEvent} initialSubTab={subtab} />
         </TabsContent>
 
         {/* Appearance Tab */}

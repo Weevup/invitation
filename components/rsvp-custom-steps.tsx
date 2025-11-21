@@ -2,7 +2,7 @@
 
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import type { RsvpStep } from '@/app/admin/events/[id]/rsvp-steps/page'
+import type { RsvpStep } from '@/app/admin/events/[id]/settings/tabs/rsvp-subtabs/RsvpStepsContent'
 
 interface RsvpCustomStepProps {
   step: RsvpStep

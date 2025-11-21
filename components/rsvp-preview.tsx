@@ -12,7 +12,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Progress } from '@/components/ui/progress'
 import { ChevronLeft, ChevronRight, Smartphone } from 'lucide-react'
 import { motion, useMotionValue, useTransform, PanInfo } from 'framer-motion'
-import type { RsvpStep } from '@/app/admin/events/[id]/rsvp-steps/page'
+import type { RsvpStep } from '@/app/admin/events/[id]/settings/tabs/rsvp-subtabs/RsvpStepsContent'
 import type { RsvpTheme } from './rsvp-theme-editor'
 
 interface RsvpPreviewProps {
