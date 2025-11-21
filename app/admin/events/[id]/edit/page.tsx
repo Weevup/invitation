@@ -104,7 +104,7 @@ export default function EditEventPage() {
         });
       }
     } catch (error) {
-      logger.error('Error fetching event', { error });
+      logger.error(error, { action: 'fetchEvent' });
       toast({
         title: "Erreur",
         description: "Erreur lors du chargement de l'événement",
@@ -161,7 +161,7 @@ export default function EditEventPage() {
         });
       }
     } catch (error) {
-      logger.error('Error updating event', { error });
+      logger.error(error, { action: 'updateEvent' });
       toast({
         title: "Erreur",
         description: "Erreur lors de la mise à jour de l'événement",
@@ -199,7 +199,7 @@ export default function EditEventPage() {
         });
       }
     } catch (error) {
-      logger.error('Error deleting event', { error });
+      logger.error(error, { action: 'deleteEvent' });
       toast({
         title: "Erreur",
         description: "Erreur lors de la suppression de l'événement",

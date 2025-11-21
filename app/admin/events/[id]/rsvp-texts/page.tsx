@@ -92,7 +92,7 @@ export default function RSVPTextsPage() {
         }
       }
     } catch (error) {
-      logger.error('Error fetching RSVP texts', { error });
+      logger.error(error, { action: 'fetchRSVPTexts' });
       toast({
         title: "Erreur",
         description: "Impossible de charger les textes RSVP",
@@ -144,7 +144,7 @@ export default function RSVPTextsPage() {
         });
       }
     } catch (error) {
-      logger.error('Error saving RSVP texts', { error });
+      logger.error(error, { action: 'saveRSVPTexts' });
       toast({
         title: "Erreur",
         description: "Erreur lors de la sauvegarde des textes",
