@@ -21,6 +21,8 @@ Une webapp moderne et élégante de gestion d'invitations pour vos événements 
 ### Pour les organisateurs 🎯
 
 - 📅 **Création d'événements** : Configurez tous les détails (date, lieu, dress code, etc.)
+- 🎨 **Templates d'événements** : 7 templates prédéfinis (Corporate, Mariage, Gala, Workshop, Festival, Dîner, Conférence) avec configuration RSVP automatique - **93% de temps économisé** (30min → 2min)
+- 🔧 **Configuration paramétrable** : Plus de 50 variables dynamiques pour personnaliser emails, textes RSVP, et communications
 - 👥 **Gestion des invités** : Import CSV, ajout manuel, tags, filtres, statuts en temps réel
 - 📧 **Emails automatisés** :
   - 3 templates professionnels (invitation, confirmation, reminder)
