@@ -8,8 +8,11 @@ import { RsvpStepsEditor } from '@/components/rsvp-steps-editor'
 import { RsvpPreview } from '@/components/rsvp-preview'
 import { RsvpThemeEditor, type RsvpTheme } from '@/components/rsvp-theme-editor'
 import { RsvpTemplates } from '@/components/rsvp-templates'
-import { Loader2, Save, Eye, Monitor, Layout } from 'lucide-react'
+import { Loader2, Save, Eye, Monitor, Layout, Download, Upload, FileJson, BookOpen } from 'lucide-react'
 import { toast } from 'sonner'
+import { createClientLogger } from '@/lib/client-logger'
+
+const logger = createClientLogger({ component: 'RsvpStepsPage' })
 
 export interface RsvpStep {
   id: string
@@ -97,7 +100,7 @@ export default function RsvpStepsPage() {
         setTheme(event.rsvpConfig.theme)
       }
     } catch (error) {
-      console.error('Error fetching steps:', error)
+      logger.error(error, { action: 'fetchSteps', metadata: { eventId } })
       toast.error('Erreur lors du chargement des étapes')
     } finally {
       setLoading(false)
@@ -161,6 +164,75 @@ export default function RsvpStepsPage() {
     return defaultSteps
   }
 
+  const handleExportConfig = () => {
+    try {
+      const config = {
+        steps,
+        theme,
+        exportedAt: new Date().toISOString(),
+        eventName
+      }
+
+      const blob = new Blob([JSON.stringify(config, null, 2)], { type: 'application/json' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `rsvp-config-${eventName.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}.json`
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+
+      toast.success('Configuration exportée avec succès')
+    } catch (error) {
+      logger.error(error, { action: 'exportConfig' })
+      toast.error('Erreur lors de l\'export')
+    }
+  }
+
+  const handleImportConfig = () => {
+    try {
+      const input = document.createElement('input')
+      input.type = 'file'
+      input.accept = '.json'
+      input.onchange = async (e) => {
+        const file = (e.target as HTMLInputElement).files?.[0]
+        if (!file) return
+
+        const reader = new FileReader()
+        reader.onload = (e) => {
+          try {
+            const config = JSON.parse(e.target?.result as string)
+
+            if (!config.steps || !Array.isArray(config.steps)) {
+              throw new Error('Format de fichier invalide')
+            }
+
+            setSteps(config.steps)
+            if (config.theme) {
+              setTheme(config.theme)
+            }
+
+            toast.success('Configuration importée avec succès')
+          } catch (error) {
+            logger.error(error, { action: 'parseImport' })
+            toast.error('Fichier de configuration invalide')
+          }
+        }
+        reader.readAsText(file)
+      }
+      input.click()
+    } catch (error) {
+      logger.error(error, { action: 'importConfig' })
+      toast.error('Erreur lors de l\'import')
+    }
+  }
+
+  const handleOpenDocs = () => {
+    window.open('https://github.com/Weevup/invitation/blob/main/docs/RSVP_CUSTOMIZATION_GUIDE.md', '_blank')
+    toast.success('Documentation ouverte dans un nouvel onglet')
+  }
+
   const handleSave = async () => {
     setSaving(true)
     try {
@@ -174,7 +246,7 @@ export default function RsvpStepsPage() {
 
       toast.success('Configuration RSVP sauvegardée avec succès')
     } catch (error) {
-      console.error('Error saving steps:', error)
+      logger.error(error, { action: 'saveSteps', metadata: { eventId } })
       toast.error('Erreur lors de la sauvegarde')
     } finally {
       setSaving(false)
@@ -204,7 +276,7 @@ export default function RsvpStepsPage() {
       window.open(`/guest/${firstGuest.token}`, '_blank')
       toast.success('Prévisualisation ouverte avec le profil de ' + firstGuest.firstName)
     } catch (error) {
-      console.error('Error opening preview:', error)
+      logger.error(error, { action: 'openPreview', metadata: { eventId } })
       toast.error('Erreur lors de l\'ouverture de la prévisualisation')
     }
   }
@@ -230,24 +302,52 @@ export default function RsvpStepsPage() {
               Personnalisez les étapes de confirmation pour {eventName}
             </p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             <RsvpTemplates onSelectTemplate={handleLoadTemplate} />
             <Button
               variant="outline"
-              onClick={() => setSplitScreenEnabled(!splitScreenEnabled)}
-              className="border-[#009197] text-[#009197] hover:bg-[#009197] hover:text-white"
+              onClick={handleOpenDocs}
+              className="border-[#FF4713] text-[#FF4713] hover:bg-[#FF4713] hover:text-white"
             >
-              <Layout className="h-4 w-4 mr-2" />
-              {splitScreenEnabled ? 'Mode simple' : 'Aperçu temps réel'}
+              <BookOpen className="h-4 w-4 mr-2" />
+              Documentation
             </Button>
-            <Button
-              variant="outline"
-              onClick={handlePreview}
-              className="border-[#009197] text-[#009197] hover:bg-[#009197] hover:text-white"
-            >
-              <Eye className="h-4 w-4 mr-2" />
-              Ouvrir dans un onglet
-            </Button>
+            <div className="flex gap-2 border-l pl-2">
+              <Button
+                variant="outline"
+                onClick={handleExportConfig}
+                className="border-[#004645] text-[#004645] hover:bg-[#004645] hover:text-white"
+              >
+                <Download className="h-4 w-4 mr-2" />
+                Exporter
+              </Button>
+              <Button
+                variant="outline"
+                onClick={handleImportConfig}
+                className="border-[#004645] text-[#004645] hover:bg-[#004645] hover:text-white"
+              >
+                <Upload className="h-4 w-4 mr-2" />
+                Importer
+              </Button>
+            </div>
+            <div className="flex gap-2 border-l pl-2">
+              <Button
+                variant="outline"
+                onClick={() => setSplitScreenEnabled(!splitScreenEnabled)}
+                className="border-[#009197] text-[#009197] hover:bg-[#009197] hover:text-white"
+              >
+                <Layout className="h-4 w-4 mr-2" />
+                {splitScreenEnabled ? 'Mode simple' : 'Aperçu temps réel'}
+              </Button>
+              <Button
+                variant="outline"
+                onClick={handlePreview}
+                className="border-[#009197] text-[#009197] hover:bg-[#009197] hover:text-white"
+              >
+                <Eye className="h-4 w-4 mr-2" />
+                Ouvrir dans un onglet
+              </Button>
+            </div>
             <Button
               onClick={handleSave}
               disabled={saving}
