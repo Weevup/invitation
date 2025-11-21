@@ -184,7 +184,8 @@ export default function EmailsHubPage() {
       }
 
     } catch (error) {
-      logger.error('Error loading email status', { error: error instanceof Error ? error.message : String(error) })
+      logger.error('Error loading email status')
+      console.error('Email status error:', error)
       toast.error('Erreur lors du chargement des emails')
     } finally {
       setLoading(false)
