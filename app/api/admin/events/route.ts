@@ -58,7 +58,16 @@ export async function POST(request: NextRequest) {
         venueName: body.location || body.venueName,
         address: body.address,
         city: body.city,
-        adminId: session.user.id, // Utiliser l'ID de l'utilisateur connecté
+        adminId: session.user.id,
+        // RSVP Configuration (from template)
+        allowPlusOnes: body.allowPlusOnes ?? false,
+        maxPlusOnes: body.maxPlusOnes ?? 0,
+        requireMeal: body.requireMeal ?? false,
+        mealOptions: body.mealOptions ?? [],
+        enableTransport: body.enableTransport ?? false,
+        enableLodging: body.enableLodging ?? false,
+        enableAccessibility: body.enableAccessibility ?? true,
+        enablePhotoConsent: body.enablePhotoConsent ?? true,
       },
     })
 
