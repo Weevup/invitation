@@ -23,6 +23,8 @@ interface RSVPTexts {
   // Formulaire RSVP
   formTitle?: string;
   formSubtitle?: string;
+  formBadge?: string;
+  formFeatures?: string;
 
   // Étape de réponse
   responseQuestion?: string;
@@ -30,9 +32,53 @@ interface RSVPTexts {
   responseNo?: string;
   continueButton?: string;
 
+  // Étape accompagnants
+  plusOnesLabel?: string;
+  plusOnesNone?: string;
+
+  // Étape repas
+  mealLabel?: string;
+  mealPlaceholder?: string;
+  allergiesLabel?: string;
+  allergiesPlaceholder?: string;
+
+  // Étape informations pratiques
+  practicalTitle?: string;
+  accessibilityLabel?: string;
+  accessibilityPlaceholder?: string;
+  transportLabel?: string;
+  transportPlaceholder?: string;
+  lodgingLabel?: string;
+  lodgingPlaceholder?: string;
+
+  // Étape consentements
+  consentTitle?: string;
+  consentLabel?: string;
+
+  // Étape récapitulatif
+  summaryTitle?: string;
+  summaryIntro?: string;
+  summaryParticipation?: string;
+  summaryYes?: string;
+  summaryNo?: string;
+  summaryPlusOnes?: string;
+  summaryMeal?: string;
+  summaryAllergies?: string;
+  summaryModifyUntil?: string;
+
+  // Affichage de la date d'événement
+  eventDateLabel?: string; // Pour personnaliser l'affichage de la date
+  eventLocationLabel?: string; // Pour personnaliser l'affichage du lieu
+
+  // Indicateurs visuels
+  autosaveIndicator?: string;
+  loadingMessage?: string;
+  savingMessage?: string;
+
   // Boutons de navigation
   previousButton?: string;
   submitButton?: string;
+  backButton?: string;
 
   // Message de succès
   successTitle?: string;
@@ -47,6 +93,8 @@ const DEFAULT_TEXTS: RSVPTexts = {
   // Formulaire RSVP
   formTitle: "Votre réponse",
   formSubtitle: "Merci de confirmer votre participation avant le",
+  formBadge: "✨ Optimisé",
+  formFeatures: "💾 Sauvegarde automatique • ⚡ Performance améliorée",
 
   // Étape de réponse
   responseQuestion: "Participez-vous à l'événement ?",
@@ -54,9 +102,53 @@ const DEFAULT_TEXTS: RSVPTexts = {
   responseNo: "✗ Je ne peux malheureusement pas venir",
   continueButton: "Continuer",
 
+  // Étape accompagnants
+  plusOnesLabel: "Nombre d'accompagnants (max {maxPlusOnes})",
+  plusOnesNone: "Aucun",
+
+  // Étape repas
+  mealLabel: "Choix de repas",
+  mealPlaceholder: "Sélectionnez votre choix",
+  allergiesLabel: "Allergies ou régimes spécifiques",
+  allergiesPlaceholder: "Précisez vos éventuelles allergies...",
+
+  // Étape informations pratiques
+  practicalTitle: "Informations pratiques",
+  accessibilityLabel: "Besoins d'accessibilité",
+  accessibilityPlaceholder: "PMR, assistance particulière...",
+  transportLabel: "Besoins de transport",
+  transportPlaceholder: "Navette, parking...",
+  lodgingLabel: "Besoins d'hébergement",
+  lodgingPlaceholder: "Hôtel, nuitée...",
+
+  // Étape consentements
+  consentTitle: "Consentements",
+  consentLabel: "J'autorise la prise et l'utilisation de photographies durant l'événement à des fins de communication",
+
+  // Étape récapitulatif
+  summaryTitle: "Récapitulatif",
+  summaryIntro: "",
+  summaryParticipation: "Participation :",
+  summaryYes: "Oui ✓",
+  summaryNo: "Non",
+  summaryPlusOnes: "Accompagnants :",
+  summaryMeal: "Repas :",
+  summaryAllergies: "Allergies :",
+  summaryModifyUntil: "Vous pourrez modifier votre réponse jusqu'au",
+
+  // Affichage de la date d'événement
+  eventDateLabel: "", // Vide = utilise le format par défaut
+  eventLocationLabel: "", // Vide = utilise le format par défaut
+
+  // Indicateurs visuels
+  autosaveIndicator: "Enregistré automatiquement",
+  loadingMessage: "Chargement...",
+  savingMessage: "Enregistrement...",
+
   // Boutons de navigation
   previousButton: "Précédent",
   submitButton: "Envoyer ma réponse",
+  backButton: "Retour",
 
   // Message de succès
   successTitle: "Merci pour votre réponse !",
@@ -324,6 +416,388 @@ export default function RSVPTextsPage() {
                 placeholder="Continuer"
                 className="border-[#9CD9F6]/50 focus:border-[#009197]"
               />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Section Accompagnants */}
+        <Card className="border-[#9CD9F6]/30">
+          <CardHeader>
+            <CardTitle className="text-[#004645]">Étape accompagnants</CardTitle>
+            <CardDescription>Textes pour le choix du nombre d&apos;accompagnants</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <Label htmlFor="plusOnesLabel">Label du champ</Label>
+              <Input
+                id="plusOnesLabel"
+                value={texts.plusOnesLabel || ""}
+                onChange={(e) => setTexts({ ...texts, plusOnesLabel: e.target.value })}
+                placeholder="Nombre d'accompagnants (max {maxPlusOnes})"
+                className="border-[#9CD9F6]/50 focus:border-[#009197]"
+              />
+              <p className="text-xs text-[#004645]/60 mt-1">
+                Utilisez {`{maxPlusOnes}`} pour afficher le maximum
+              </p>
+            </div>
+
+            <div>
+              <Label htmlFor="plusOnesNone">Option "Aucun"</Label>
+              <Input
+                id="plusOnesNone"
+                value={texts.plusOnesNone || ""}
+                onChange={(e) => setTexts({ ...texts, plusOnesNone: e.target.value })}
+                placeholder="Aucun"
+                className="border-[#9CD9F6]/50 focus:border-[#009197]"
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Section Repas */}
+        <Card className="border-[#9CD9F6]/30">
+          <CardHeader>
+            <CardTitle className="text-[#004645]">Étape choix de repas</CardTitle>
+            <CardDescription>Textes pour le choix de repas et allergies</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <Label htmlFor="mealLabel">Label du champ repas</Label>
+              <Input
+                id="mealLabel"
+                value={texts.mealLabel || ""}
+                onChange={(e) => setTexts({ ...texts, mealLabel: e.target.value })}
+                placeholder="Choix de repas"
+                className="border-[#9CD9F6]/50 focus:border-[#009197]"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="mealPlaceholder">Placeholder du sélecteur</Label>
+              <Input
+                id="mealPlaceholder"
+                value={texts.mealPlaceholder || ""}
+                onChange={(e) => setTexts({ ...texts, mealPlaceholder: e.target.value })}
+                placeholder="Sélectionnez votre choix"
+                className="border-[#9CD9F6]/50 focus:border-[#009197]"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="allergiesLabel">Label des allergies</Label>
+              <Input
+                id="allergiesLabel"
+                value={texts.allergiesLabel || ""}
+                onChange={(e) => setTexts({ ...texts, allergiesLabel: e.target.value })}
+                placeholder="Allergies ou régimes spécifiques"
+                className="border-[#9CD9F6]/50 focus:border-[#009197]"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="allergiesPlaceholder">Placeholder des allergies</Label>
+              <Input
+                id="allergiesPlaceholder"
+                value={texts.allergiesPlaceholder || ""}
+                onChange={(e) => setTexts({ ...texts, allergiesPlaceholder: e.target.value })}
+                placeholder="Précisez vos éventuelles allergies..."
+                className="border-[#9CD9F6]/50 focus:border-[#009197]"
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Section Informations pratiques */}
+        <Card className="border-[#9CD9F6]/30">
+          <CardHeader>
+            <CardTitle className="text-[#004645]">Étape informations pratiques</CardTitle>
+            <CardDescription>Textes pour transport, hébergement, accessibilité</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <Label htmlFor="practicalTitle">Titre de la section</Label>
+              <Input
+                id="practicalTitle"
+                value={texts.practicalTitle || ""}
+                onChange={(e) => setTexts({ ...texts, practicalTitle: e.target.value })}
+                placeholder="Informations pratiques"
+                className="border-[#9CD9F6]/50 focus:border-[#009197]"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="accessibilityLabel">Label accessibilité</Label>
+              <Input
+                id="accessibilityLabel"
+                value={texts.accessibilityLabel || ""}
+                onChange={(e) => setTexts({ ...texts, accessibilityLabel: e.target.value })}
+                placeholder="Besoins d'accessibilité"
+                className="border-[#9CD9F6]/50 focus:border-[#009197]"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="accessibilityPlaceholder">Placeholder accessibilité</Label>
+              <Input
+                id="accessibilityPlaceholder"
+                value={texts.accessibilityPlaceholder || ""}
+                onChange={(e) => setTexts({ ...texts, accessibilityPlaceholder: e.target.value })}
+                placeholder="PMR, assistance particulière..."
+                className="border-[#9CD9F6]/50 focus:border-[#009197]"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="transportLabel">Label transport</Label>
+              <Input
+                id="transportLabel"
+                value={texts.transportLabel || ""}
+                onChange={(e) => setTexts({ ...texts, transportLabel: e.target.value })}
+                placeholder="Besoins de transport"
+                className="border-[#9CD9F6]/50 focus:border-[#009197]"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="transportPlaceholder">Placeholder transport</Label>
+              <Input
+                id="transportPlaceholder"
+                value={texts.transportPlaceholder || ""}
+                onChange={(e) => setTexts({ ...texts, transportPlaceholder: e.target.value })}
+                placeholder="Navette, parking..."
+                className="border-[#9CD9F6]/50 focus:border-[#009197]"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="lodgingLabel">Label hébergement</Label>
+              <Input
+                id="lodgingLabel"
+                value={texts.lodgingLabel || ""}
+                onChange={(e) => setTexts({ ...texts, lodgingLabel: e.target.value })}
+                placeholder="Besoins d'hébergement"
+                className="border-[#9CD9F6]/50 focus:border-[#009197]"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="lodgingPlaceholder">Placeholder hébergement</Label>
+              <Input
+                id="lodgingPlaceholder"
+                value={texts.lodgingPlaceholder || ""}
+                onChange={(e) => setTexts({ ...texts, lodgingPlaceholder: e.target.value })}
+                placeholder="Hôtel, nuitée..."
+                className="border-[#9CD9F6]/50 focus:border-[#009197]"
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Section Consentements */}
+        <Card className="border-[#9CD9F6]/30">
+          <CardHeader>
+            <CardTitle className="text-[#004645]">Étape consentements</CardTitle>
+            <CardDescription>Textes pour les autorisations photos/vidéos</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <Label htmlFor="consentTitle">Titre de la section</Label>
+              <Input
+                id="consentTitle"
+                value={texts.consentTitle || ""}
+                onChange={(e) => setTexts({ ...texts, consentTitle: e.target.value })}
+                placeholder="Consentements"
+                className="border-[#9CD9F6]/50 focus:border-[#009197]"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="consentLabel">Label du consentement photos</Label>
+              <Textarea
+                id="consentLabel"
+                value={texts.consentLabel || ""}
+                onChange={(e) => setTexts({ ...texts, consentLabel: e.target.value })}
+                placeholder="J'autorise la prise et l'utilisation de photographies durant l'événement à des fins de communication"
+                className="border-[#9CD9F6]/50 focus:border-[#009197]"
+                rows={3}
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Section Récapitulatif */}
+        <Card className="border-[#9CD9F6]/30">
+          <CardHeader>
+            <CardTitle className="text-[#004645]">Étape récapitulatif</CardTitle>
+            <CardDescription>Textes pour la page de synthèse avant validation</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <Label htmlFor="summaryTitle">Titre du récapitulatif</Label>
+              <Input
+                id="summaryTitle"
+                value={texts.summaryTitle || ""}
+                onChange={(e) => setTexts({ ...texts, summaryTitle: e.target.value })}
+                placeholder="Récapitulatif"
+                className="border-[#9CD9F6]/50 focus:border-[#009197]"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="summaryIntro">Introduction du récapitulatif</Label>
+              <Textarea
+                id="summaryIntro"
+                value={texts.summaryIntro || ""}
+                onChange={(e) => setTexts({ ...texts, summaryIntro: e.target.value })}
+                placeholder="Texte d'introduction optionnel (laissez vide pour utiliser le texte par défaut)"
+                className="border-[#9CD9F6]/50 focus:border-[#009197]"
+                rows={2}
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="summaryParticipation">Label "Participation"</Label>
+              <Input
+                id="summaryParticipation"
+                value={texts.summaryParticipation || ""}
+                onChange={(e) => setTexts({ ...texts, summaryParticipation: e.target.value })}
+                placeholder="Participation :"
+                className="border-[#9CD9F6]/50 focus:border-[#009197]"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="summaryYes">Réponse "Oui"</Label>
+                <Input
+                  id="summaryYes"
+                  value={texts.summaryYes || ""}
+                  onChange={(e) => setTexts({ ...texts, summaryYes: e.target.value })}
+                  placeholder="Oui ✓"
+                  className="border-[#9CD9F6]/50 focus:border-[#009197]"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="summaryNo">Réponse "Non"</Label>
+                <Input
+                  id="summaryNo"
+                  value={texts.summaryNo || ""}
+                  onChange={(e) => setTexts({ ...texts, summaryNo: e.target.value })}
+                  placeholder="Non"
+                  className="border-[#9CD9F6]/50 focus:border-[#009197]"
+                />
+              </div>
+            </div>
+
+            <div>
+              <Label htmlFor="summaryPlusOnes">Label "Accompagnants"</Label>
+              <Input
+                id="summaryPlusOnes"
+                value={texts.summaryPlusOnes || ""}
+                onChange={(e) => setTexts({ ...texts, summaryPlusOnes: e.target.value })}
+                placeholder="Accompagnants :"
+                className="border-[#9CD9F6]/50 focus:border-[#009197]"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="summaryMeal">Label "Repas"</Label>
+              <Input
+                id="summaryMeal"
+                value={texts.summaryMeal || ""}
+                onChange={(e) => setTexts({ ...texts, summaryMeal: e.target.value })}
+                placeholder="Repas :"
+                className="border-[#9CD9F6]/50 focus:border-[#009197]"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="summaryAllergies">Label "Allergies"</Label>
+              <Input
+                id="summaryAllergies"
+                value={texts.summaryAllergies || ""}
+                onChange={(e) => setTexts({ ...texts, summaryAllergies: e.target.value })}
+                placeholder="Allergies :"
+                className="border-[#9CD9F6]/50 focus:border-[#009197]"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="summaryModifyUntil">Texte "Modifier jusqu'au"</Label>
+              <Input
+                id="summaryModifyUntil"
+                value={texts.summaryModifyUntil || ""}
+                onChange={(e) => setTexts({ ...texts, summaryModifyUntil: e.target.value })}
+                placeholder="Vous pourrez modifier votre réponse jusqu'au"
+                className="border-[#9CD9F6]/50 focus:border-[#009197]"
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Section Indicateurs visuels */}
+        <Card className="border-[#9CD9F6]/30">
+          <CardHeader>
+            <CardTitle className="text-[#004645]">Indicateurs visuels</CardTitle>
+            <CardDescription>Badges, messages de chargement et sauvegarde</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <Label htmlFor="formBadge">Badge "Optimisé"</Label>
+              <Input
+                id="formBadge"
+                value={texts.formBadge || ""}
+                onChange={(e) => setTexts({ ...texts, formBadge: e.target.value })}
+                placeholder="✨ Optimisé"
+                className="border-[#9CD9F6]/50 focus:border-[#009197]"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="formFeatures">Description des fonctionnalités</Label>
+              <Input
+                id="formFeatures"
+                value={texts.formFeatures || ""}
+                onChange={(e) => setTexts({ ...texts, formFeatures: e.target.value })}
+                placeholder="💾 Sauvegarde automatique • ⚡ Performance améliorée"
+                className="border-[#9CD9F6]/50 focus:border-[#009197]"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="autosaveIndicator">Indicateur d&apos;autosave</Label>
+              <Input
+                id="autosaveIndicator"
+                value={texts.autosaveIndicator || ""}
+                onChange={(e) => setTexts({ ...texts, autosaveIndicator: e.target.value })}
+                placeholder="Enregistré automatiquement"
+                className="border-[#9CD9F6]/50 focus:border-[#009197]"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="loadingMessage">Message de chargement</Label>
+                <Input
+                  id="loadingMessage"
+                  value={texts.loadingMessage || ""}
+                  onChange={(e) => setTexts({ ...texts, loadingMessage: e.target.value })}
+                  placeholder="Chargement..."
+                  className="border-[#9CD9F6]/50 focus:border-[#009197]"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="savingMessage">Message de sauvegarde</Label>
+                <Input
+                  id="savingMessage"
+                  value={texts.savingMessage || ""}
+                  onChange={(e) => setTexts({ ...texts, savingMessage: e.target.value })}
+                  placeholder="Enregistrement..."
+                  className="border-[#9CD9F6]/50 focus:border-[#009197]"
+                />
+              </div>
             </div>
           </CardContent>
         </Card>
