@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import {
-  Mail, Users, Clock, Send, CheckCircle, Sparkles, Bell, Megaphone, BarChart3, ArrowRight, QrCode, UserCheck, UtensilsCrossed, XCircle, TestTube, Eye, TrendingUp
+  Mail, Users, Clock, Send, CheckCircle, Sparkles, Bell, Megaphone, BarChart3, ArrowRight, QrCode, UserCheck, UtensilsCrossed, XCircle, TestTube, Eye, TrendingUp, Calendar, PlayCircle, AlertCircle, CheckCheck, Settings2, Repeat
 } from 'lucide-react'
 import Link from 'next/link'
 import { AddGuestDialog } from '@/components/add-guest-dialog'
@@ -103,6 +103,256 @@ export default function EventOverviewPage() {
         totalGuests={totalGuests}
         onOpenWizard={() => setShowWizard(true)}
       />
+
+      {/* Gestion du Workflow - Contrôle des Campagnes */}
+      <Card className="border-[#004645]/30 bg-gradient-to-br from-white via-[#009197]/5 to-white backdrop-blur">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-3 rounded-lg bg-gradient-to-br from-[#004645] to-[#009197]">
+                <Settings2 className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <CardTitle className="text-[#004645]" style={{ fontFamily: "var(--font-abril)" }}>
+                  Gestion du Workflow
+                </CardTitle>
+                <CardDescription className="text-[#004645]/70">
+                  Contrôlez le timing et les relances de votre événement
+                </CardDescription>
+              </div>
+            </div>
+            <Badge variant="outline" className="text-[#004645] border-[#004645]">
+              {totalGuests} invités
+            </Badge>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Phase 1: Save the Date */}
+          <div className="p-4 rounded-lg border border-[#FF4713]/30 bg-gradient-to-r from-[#FF4713]/5 to-transparent">
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex items-start gap-3 flex-1">
+                <div className="w-10 h-10 rounded-full bg-[#FF4713] flex items-center justify-center flex-shrink-0">
+                  <Bell className="h-5 w-5 text-white" />
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <h3 className="font-bold text-[#004645]">Phase 1 : Save the Date</h3>
+                    <Badge variant="secondary" className="text-xs">Optionnel</Badge>
+                  </div>
+                  <p className="text-sm text-[#004645]/70 mb-2">
+                    Pré-invitation pour bloquer la date (J-90 à J-60)
+                  </p>
+                  <div className="flex items-center gap-2 text-xs text-[#004645]/60">
+                    <Calendar className="h-3 w-3" />
+                    <span>Recommandé 60-90 jours avant l&apos;événement</span>
+                  </div>
+                </div>
+              </div>
+              <div className="flex flex-col gap-2">
+                <Link href={`/admin/events/${eventId}/save-the-date`}>
+                  <Button size="sm" variant="outline" className="border-[#FF4713] text-[#FF4713] hover:bg-[#FF4713] hover:text-white">
+                    <Settings2 className="h-3 w-3 mr-2" />
+                    Configurer
+                  </Button>
+                </Link>
+                <Link href={`/admin/events/${eventId}/communications`}>
+                  <Button size="sm" className="bg-[#FF4713] hover:bg-[#FF4713]/90 text-white">
+                    <Send className="h-3 w-3 mr-2" />
+                    Envoyer
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          </div>
+
+          {/* Phase 2: Invitation Officielle */}
+          <div className="p-4 rounded-lg border border-[#009197]/30 bg-gradient-to-r from-[#009197]/5 to-transparent">
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex items-start gap-3 flex-1">
+                <div className="w-10 h-10 rounded-full bg-[#009197] flex items-center justify-center flex-shrink-0">
+                  <Sparkles className="h-5 w-5 text-white" />
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <h3 className="font-bold text-[#004645]">Phase 2 : Invitation Officielle</h3>
+                    <Badge variant="default" className="text-xs bg-[#009197]">Critique</Badge>
+                  </div>
+                  <p className="text-sm text-[#004645]/70 mb-2">
+                    Envoi des invitations avec lien RSVP unique (J-60 à J-30)
+                  </p>
+                  <div className="flex items-center gap-2 text-xs text-[#004645]/60">
+                    <Calendar className="h-3 w-3" />
+                    <span>Recommandé 30-60 jours avant l&apos;événement</span>
+                  </div>
+                </div>
+              </div>
+              <div className="flex flex-col gap-2">
+                <Link href={`/admin/events/${eventId}/emails`}>
+                  <Button size="sm" variant="outline" className="border-[#009197] text-[#009197] hover:bg-[#009197] hover:text-white">
+                    <TestTube className="h-3 w-3 mr-2" />
+                    Tester
+                  </Button>
+                </Link>
+                <SendInvitationsDialog
+                  eventId={eventId}
+                  totalGuests={totalGuests}
+                  pendingGuests={totalGuests - respondedGuests}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Phase 3: Relances RSVP */}
+          <div className="p-4 rounded-lg border border-orange-500/30 bg-gradient-to-r from-orange-50/50 to-transparent">
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex items-start gap-3 flex-1">
+                <div className="w-10 h-10 rounded-full bg-orange-500 flex items-center justify-center flex-shrink-0">
+                  <Repeat className="h-5 w-5 text-white" />
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <h3 className="font-bold text-[#004645]">Phase 3 : Relances RSVP</h3>
+                    <Badge variant="secondary" className="text-xs bg-orange-100 text-orange-800">Important</Badge>
+                  </div>
+                  <p className="text-sm text-[#004645]/70 mb-2">
+                    Rappels aux invités sans réponse (J-30 à J-14)
+                  </p>
+                  <div className="flex items-center gap-4 text-xs">
+                    <div className="flex items-center gap-1 text-[#004645]/60">
+                      <Users className="h-3 w-3" />
+                      <span>{totalGuests - respondedGuests} sans réponse</span>
+                    </div>
+                    <div className="flex items-center gap-1 text-orange-600">
+                      <AlertCircle className="h-3 w-3" />
+                      <span>Relance recommandée</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="flex flex-col gap-2">
+                <Link href={`/admin/events/${eventId}/guests?filter=pending`}>
+                  <Button size="sm" variant="outline" className="border-orange-500 text-orange-600 hover:bg-orange-500 hover:text-white">
+                    <Eye className="h-3 w-3 mr-2" />
+                    Voir liste
+                  </Button>
+                </Link>
+                <Link href={`/admin/events/${eventId}/communications?type=reminder`}>
+                  <Button size="sm" className="bg-orange-500 hover:bg-orange-600 text-white">
+                    <Send className="h-3 w-3 mr-2" />
+                    Relancer
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          </div>
+
+          {/* Phase 4: Confirmation Automatique */}
+          <div className="p-4 rounded-lg border border-green-500/30 bg-gradient-to-r from-green-50/50 to-transparent">
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex items-start gap-3 flex-1">
+                <div className="w-10 h-10 rounded-full bg-green-600 flex items-center justify-center flex-shrink-0">
+                  <CheckCheck className="h-5 w-5 text-white" />
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <h3 className="font-bold text-[#004645]">Phase 4 : Confirmation</h3>
+                    <Badge variant="secondary" className="text-xs bg-green-100 text-green-800">Automatique</Badge>
+                  </div>
+                  <p className="text-sm text-[#004645]/70 mb-2">
+                    Emails conditionnels envoyés automatiquement après RSVP
+                  </p>
+                  <div className="flex items-center gap-4 text-xs">
+                    <div className="flex items-center gap-1 text-green-600">
+                      <CheckCircle className="h-3 w-3" />
+                      <span>{attendingGuests} confirmés</span>
+                    </div>
+                    <div className="flex items-center gap-1 text-red-600">
+                      <XCircle className="h-3 w-3" />
+                      <span>{decliningGuests} déclinés</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="flex flex-col gap-2">
+                <Link href={`/admin/events/${eventId}/emails`}>
+                  <Button size="sm" variant="outline" className="border-green-600 text-green-600 hover:bg-green-600 hover:text-white">
+                    <Settings2 className="h-3 w-3 mr-2" />
+                    Templates
+                  </Button>
+                </Link>
+                <Link href={`/admin/events/${eventId}/emails?tab=analytics`}>
+                  <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white">
+                    <BarChart3 className="h-3 w-3 mr-2" />
+                    Analytics
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          </div>
+
+          {/* Phase 5: Rappel Jour J */}
+          <div className="p-4 rounded-lg border border-[#004645]/30 bg-gradient-to-r from-[#004645]/5 to-transparent">
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex items-start gap-3 flex-1">
+                <div className="w-10 h-10 rounded-full bg-[#004645] flex items-center justify-center flex-shrink-0">
+                  <Clock className="h-5 w-5 text-white" />
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <h3 className="font-bold text-[#004645]">Phase 5 : Rappel Final</h3>
+                    <Badge variant="secondary" className="text-xs">Optionnel</Badge>
+                  </div>
+                  <p className="text-sm text-[#004645]/70 mb-2">
+                    Informations pratiques avant le jour J (J-3 à J-1)
+                  </p>
+                  <div className="flex items-center gap-2 text-xs text-[#004645]/60">
+                    <Calendar className="h-3 w-3" />
+                    <span>Envoi recommandé 2-3 jours avant l&apos;événement</span>
+                  </div>
+                </div>
+              </div>
+              <div className="flex flex-col gap-2">
+                <Link href={`/admin/events/${eventId}/emails`}>
+                  <Button size="sm" variant="outline" className="border-[#004645] text-[#004645] hover:bg-[#004645] hover:text-white">
+                    <Settings2 className="h-3 w-3 mr-2" />
+                    Préparer
+                  </Button>
+                </Link>
+                <Link href={`/admin/events/${eventId}/communications?type=info`}>
+                  <Button size="sm" className="bg-[#004645] hover:bg-[#006C51] text-white">
+                    <Send className="h-3 w-3 mr-2" />
+                    Envoyer
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          </div>
+
+          {/* Actions Rapides */}
+          <div className="pt-4 border-t border-[#004645]/10">
+            <div className="grid md:grid-cols-3 gap-3">
+              <Link href={`/admin/events/${eventId}/communications`}>
+                <Button variant="outline" className="w-full">
+                  <Megaphone className="h-4 w-4 mr-2" />
+                  Toutes les campagnes
+                </Button>
+              </Link>
+              <Link href={`/admin/events/${eventId}/emails`}>
+                <Button variant="outline" className="w-full">
+                  <Mail className="h-4 w-4 mr-2" />
+                  Hub Email
+                </Button>
+              </Link>
+              <Link href={`/admin/events/${eventId}/guests`}>
+                <Button variant="outline" className="w-full">
+                  <Users className="h-4 w-4 mr-2" />
+                  Liste invités
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Timeline du cycle de l'événement */}
       <Card className="border-[#FF4713]/30 bg-gradient-to-r from-[#FF4713]/5 via-[#009197]/5 to-[#004645]/5 backdrop-blur">
