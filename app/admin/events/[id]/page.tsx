@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import {
-  Mail, Users, Clock, Send, CheckCircle, Sparkles, Bell, Megaphone, BarChart3, ArrowRight, QrCode, UserCheck, UtensilsCrossed, XCircle, TestTube, Eye, TrendingUp, Calendar, PlayCircle, AlertCircle, CheckCheck, Settings2, Repeat
+  Mail, Users, Clock, Send, CheckCircle, Sparkles, Bell, Megaphone, BarChart3, ArrowRight, QrCode, UserCheck, UtensilsCrossed, XCircle, TestTube, Eye, TrendingUp, Calendar, PlayCircle, AlertCircle, CheckCheck, Settings2, Repeat, Edit
 } from 'lucide-react'
 import Link from 'next/link'
 import { AddGuestDialog } from '@/components/add-guest-dialog'
@@ -121,9 +121,17 @@ export default function EventOverviewPage() {
                 </CardDescription>
               </div>
             </div>
-            <Badge variant="outline" className="text-[#004645] border-[#004645]">
-              {totalGuests} invités
-            </Badge>
+            <div className="flex items-center gap-2">
+              <Badge variant="outline" className="text-[#004645] border-[#004645]">
+                {totalGuests} invités
+              </Badge>
+              <Link href={`/admin/events/${eventId}/edit`}>
+                <Button variant="outline" size="sm" className="border-[#004645] text-[#004645] hover:bg-[#004645] hover:text-white">
+                  <Edit className="h-4 w-4 mr-2" />
+                  Modifier l&apos;événement
+                </Button>
+              </Link>
+            </div>
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
