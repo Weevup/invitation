@@ -12,13 +12,14 @@ const logger = createLogger({ module: 'api', type: 'template-debug' })
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await requireAdmin()
+    const { id } = await params
 
     const template = await prisma.emailTemplate.findUnique({
-      where: { id: params.id }
+      where: { id }
     })
 
     if (!template) {
