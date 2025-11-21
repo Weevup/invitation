@@ -19,6 +19,9 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
+import { createClientLogger } from '@/lib/client-logger'
+
+const logger = createClientLogger({ component: 'EventLaunchChecklist' })
 
 interface ChecklistItem {
   id: string
@@ -139,7 +142,7 @@ export function EventLaunchChecklist({ eventId, totalGuests, onOpenWizard }: Eve
 
         setChecklist(items)
       } catch (error) {
-        console.error('Error checking event status:', error)
+        logger.error(error, { action: 'checkEventStatus', metadata: { eventId } })
       } finally {
         setLoading(false)
       }

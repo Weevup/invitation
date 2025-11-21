@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Upload, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
+import { createClientLogger } from '@/lib/client-logger'
 import {
   EmailBlock,
   HeaderBlock,
@@ -20,6 +21,8 @@ import {
   InfoBoxBlock,
   EmailTemplate
 } from './block-types'
+
+const logger = createClientLogger({ component: 'BlockEditor' })
 
 interface BlockEditorProps {
   block: EmailBlock
@@ -103,7 +106,7 @@ function HeaderBlockEditor({
       updateContent('logoUrl', data.url)
       toast.success('Logo téléchargé avec succès')
     } catch (error) {
-      console.error('Error uploading logo:', error)
+      logger.error(error, { action: 'uploadLogo' })
       toast.error(error instanceof Error ? error.message : 'Erreur lors de l\'upload')
     } finally {
       setUploadingLogo(false)
@@ -144,7 +147,7 @@ function HeaderBlockEditor({
       updateContent('backgroundImage', data.url)
       toast.success('Image de fond téléchargée avec succès')
     } catch (error) {
-      console.error('Error uploading background:', error)
+      logger.error(error, { action: 'uploadBackground' })
       toast.error(error instanceof Error ? error.message : 'Erreur lors de l\'upload')
     } finally {
       setUploadingBg(false)
@@ -520,7 +523,7 @@ function ImageBlockEditor({
       updateContent('url', data.url)
       toast.success('Image téléchargée avec succès')
     } catch (error) {
-      console.error('Error uploading image:', error)
+      logger.error(error, { action: 'uploadImage' })
       toast.error(error instanceof Error ? error.message : 'Erreur lors de l\'upload')
     } finally {
       setUploading(false)

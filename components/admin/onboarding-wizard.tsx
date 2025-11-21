@@ -26,6 +26,9 @@ import {
   Upload
 } from 'lucide-react'
 import { toast } from 'sonner'
+import { createClientLogger } from '@/lib/client-logger'
+
+const logger = createClientLogger({ component: 'OnboardingWizard' })
 
 interface OnboardingWizardProps {
   eventId: string
@@ -83,7 +86,7 @@ export function OnboardingWizard({ eventId, open, onClose, onComplete }: Onboard
         hasInviteTemplate,
       })
     } catch (error) {
-      console.error('Error checking setup status:', error)
+      logger.error(error, { action: 'checkSetupStatus', metadata: { eventId } })
     } finally {
       setLoading(false)
     }
