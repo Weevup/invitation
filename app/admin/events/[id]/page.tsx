@@ -131,6 +131,12 @@ export default function EventOverviewPage() {
                   Modifier l&apos;événement
                 </Button>
               </Link>
+              <Link href={`/admin/events/${eventId}/rsvp-texts`}>
+                <Button variant="outline" size="sm" className="border-[#009197] text-[#009197] hover:bg-[#009197] hover:text-white">
+                  <Sparkles className="h-4 w-4 mr-2" />
+                  Textes RSVP
+                </Button>
+              </Link>
             </div>
           </div>
         </CardHeader>

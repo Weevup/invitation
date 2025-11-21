@@ -48,6 +48,20 @@ interface GuestData {
     enablePhotoConsent: boolean;
     rsvpConfig?: {
       customSteps?: RsvpStep[];
+      customTexts?: {
+        welcomeGreeting?: string;
+        welcomeSubtitle?: string;
+        formTitle?: string;
+        formSubtitle?: string;
+        responseQuestion?: string;
+        responseYes?: string;
+        responseNo?: string;
+        continueButton?: string;
+        previousButton?: string;
+        submitButton?: string;
+        successTitle?: string;
+        successMessage?: string;
+      };
     };
   };
   rsvp?: {
@@ -134,6 +148,11 @@ export default function GuestPage() {
     if (!step?.texts) return defaultValue;
 
     return (step.texts as any)[textKey] || defaultValue;
+  };
+
+  // Helper to get custom RSVP text
+  const getCustomText = (textKey: keyof NonNullable<NonNullable<typeof data>['event']['rsvpConfig']>['customTexts'], defaultValue: string): string => {
+    return data?.event.rsvpConfig?.customTexts?.[textKey] || defaultValue;
   };
 
   // Rebuild steps when event data or attending status changes
@@ -307,9 +326,9 @@ export default function GuestPage() {
               className="text-center mb-8"
             >
               <h1 className="text-4xl font-bold mb-2 text-[#004645]" style={{ fontFamily: "var(--font-abril)" }}>
-                Bonjour {guest.firstName} 👋
+                {getCustomText('welcomeGreeting', `Bonjour ${guest.firstName} 👋`).replace('{guest.firstName}', guest.firstName)}
               </h1>
-              <p className="text-[#004645]/70">Vous êtes invité(e) à</p>
+              <p className="text-[#004645]/70">{getCustomText('welcomeSubtitle', "Vous êtes invité(e) à")}</p>
             </motion.div>
 
             {/* Progress Bar */}
@@ -366,10 +385,10 @@ export default function GuestPage() {
             <Card className="border-[#9CD9F6]/30 bg-white/80 backdrop-blur">
               <CardHeader>
                 <CardTitle className="text-[#004645]" style={{ fontFamily: "var(--font-abril)" }}>
-                  Votre réponse
+                  {getCustomText('formTitle', "Votre réponse")}
                 </CardTitle>
                 <CardDescription className="text-[#004645]/70">
-                  Merci de confirmer votre participation avant le{" "}
+                  {getCustomText('formSubtitle', "Merci de confirmer votre participation avant le")}{" "}
                   {event.rsvpDeadline &&
                     new Date(event.rsvpDeadline).toLocaleDateString("fr-FR")}
                 </CardDescription>
