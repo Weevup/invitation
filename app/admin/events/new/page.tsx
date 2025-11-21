@@ -4,10 +4,13 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Info } from "lucide-react";
 import Link from "next/link";
 import { WeevupLogo } from "@/components/weevup-logo";
 import { createClientLogger } from '@/lib/client-logger'
+import { EventTemplateQuickSelector } from '@/components/event-template-selector'
+import { type EventTemplateConfig } from '@/lib/event-templates'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 
 const logger = createClientLogger({ component: 'NewPage' })
 
@@ -16,13 +19,40 @@ export default function NewEventPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [selectedTemplate, setSelectedTemplate] = useState<EventTemplateConfig | null>(null);
   const [formData, setFormData] = useState({
     name: "",
     description: "",
     date: "",
     location: "",
     capacity: "",
+    // RSVP Configuration
+    allowPlusOnes: false,
+    maxPlusOnes: 0,
+    requireMeal: false,
+    mealOptions: [] as string[],
+    enableTransport: false,
+    enableLodging: false,
+    enableAccessibility: true,
+    enablePhotoConsent: true,
   });
+
+  const handleSelectTemplate = (template: EventTemplateConfig) => {
+    setSelectedTemplate(template);
+    // Apply template configuration to form
+    setFormData(prev => ({
+      ...prev,
+      allowPlusOnes: template.rsvpConfig.allowPlusOnes,
+      maxPlusOnes: template.rsvpConfig.maxPlusOnes,
+      requireMeal: template.rsvpConfig.requireMeal,
+      mealOptions: template.rsvpConfig.mealOptions,
+      enableTransport: template.rsvpConfig.enableTransport,
+      enableLodging: template.rsvpConfig.enableLodging,
+      enableAccessibility: template.rsvpConfig.enableAccessibility,
+      enablePhotoConsent: template.rsvpConfig.enablePhotoConsent,
+    }));
+    logger.info('Template selected', { templateId: template.id, templateName: template.name });
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -107,6 +137,27 @@ export default function NewEventPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
+            {/* Event Template Selector */}
+            <div className="mb-6 space-y-3">
+              <div className="flex items-center gap-2">
+                <label className="block text-sm font-medium text-[#004645]">
+                  Type d&apos;événement
+                </label>
+                <Info className="h-4 w-4 text-[#004645]/50" />
+              </div>
+              <EventTemplateQuickSelector
+                onSelectTemplate={handleSelectTemplate}
+                selectedTemplateId={selectedTemplate?.id}
+              />
+              {selectedTemplate && (
+                <Alert className="bg-[#9CD9F6]/10 border-[#009197]">
+                  <AlertDescription className="text-sm text-[#004645]">
+                    ✨ <strong>{selectedTemplate.name}</strong> sélectionné - Configuration RSVP pré-remplie automatiquement
+                  </AlertDescription>
+                </Alert>
+              )}
+            </div>
+
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label htmlFor="name" className="block text-sm font-medium mb-2 text-[#004645]">

@@ -1,5 +1,9 @@
 import { Event, Guest, EmailTemplate, EmailType } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
+import { processEmailImages, validateEmailImages } from './image-utils'
+import { createLogger } from '@/lib/logger'
+
+const logger = createLogger({ module: 'email', type: 'templates' })
 
 /**
  * Replace template variables with actual values
@@ -27,41 +31,97 @@ export function getTemplateVariables(
   guest: Guest,
   extraData?: Record<string, any>
 ) {
-  const rsvpLink = `${process.env.NEXT_PUBLIC_APP_URL}/rsvp/${guest.token}`
-  const showcaseLink = `${process.env.NEXT_PUBLIC_APP_URL}/events/${event.slug}`
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+  const rsvpLink = `${baseUrl}/guest/${guest.token}`
+  const showcaseLink = `${baseUrl}/events/${event.slug}`
+  const calendarLink = `${baseUrl}/calendar/${event.slug}/${guest.token}`
+
+  // Support for maps/directions links
+  const directionsLink = event.address && event.city
+    ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${event.address}, ${event.city}`)}`
+    : ''
 
   const eventDate = new Date(event.startsAt)
+  const eventEndDate = event.endsAt ? new Date(event.endsAt) : null
+
+  // Multiple date formats
   const formattedDate = eventDate.toLocaleDateString('fr-FR', {
     day: 'numeric',
     month: 'long',
     year: 'numeric'
   })
+  const formattedDateShort = eventDate.toLocaleDateString('fr-FR', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric'
+  })
+  const formattedDateISO = eventDate.toISOString().split('T')[0]
+  const dayOfWeek = eventDate.toLocaleDateString('fr-FR', { weekday: 'long' })
+
   const formattedTime = eventDate.toLocaleTimeString('fr-FR', {
     hour: '2-digit',
     minute: '2-digit'
   })
 
+  // RSVP deadline formatted
+  const rsvpDeadlineFormatted = event.rsvpDeadline
+    ? new Date(event.rsvpDeadline).toLocaleDateString('fr-FR', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+      })
+    : ''
+
   return {
-    // Event data
+    // Event data - basic
     'event.name': event.name,
-    'event.date': formattedDate,
-    'event.time': formattedTime,
-    'event.location': event.venueName,
-    'event.address': `${event.address}, ${event.city}${event.country ? ', ' + event.country : ''}`,
-    'event.city': event.city,
+    'event.slug': event.slug,
     'event.description': event.description || '',
+    'event.program': event.program || '',
+    'event.dressCode': event.dressCode || '',
+
+    // Event data - dates (multiple formats)
+    'event.date': formattedDate,
+    'event.date.short': formattedDateShort,
+    'event.date.iso': formattedDateISO,
+    'event.date.long': `${dayOfWeek} ${formattedDate}`,
+    'event.dayOfWeek': dayOfWeek,
+    'event.time': formattedTime,
+    'event.startsAt': eventDate.toISOString(),
+    'event.endsAt': eventEndDate ? eventEndDate.toISOString() : '',
+
+    // Event data - location
+    'event.location': event.venueName || '',
+    'event.venueName': event.venueName || '',
+    'event.address': event.address || '',
+    'event.city': event.city || '',
+    'event.country': event.country || '',
+    'event.fullAddress': [event.address, event.city, event.country].filter(Boolean).join(', '),
+
+    // Event data - RSVP
+    'event.rsvpDeadline': rsvpDeadlineFormatted,
+    'event.maxPlusOnes': event.maxPlusOnes?.toString() || '0',
+    'event.capacity': (event as any).capacity?.toString() || '',
+
+    // Event data - additional
+    'event.hashtag': (event as any).hashtag || '',
     'event.organizerName': 'Weevup',
 
-    // Guest data
+    // Guest data - basic
     'guest.firstName': guest.firstName,
     'guest.lastName': guest.lastName || '',
     'guest.email': guest.email,
     'guest.fullName': guest.lastName ? `${guest.firstName} ${guest.lastName}` : guest.firstName,
+    'guest.company': (guest as any).company || '',
+    'guest.jobTitle': (guest as any).jobTitle || '',
+    'guest.phone': (guest as any).phone || '',
 
     // Links
     'rsvpLink': rsvpLink,
     'showcaseLink': showcaseLink,
-    'unsubscribeLink': `${process.env.NEXT_PUBLIC_APP_URL}/unsubscribe/${guest.token}`,
+    'unsubscribeLink': `${baseUrl}/unsubscribe/${guest.token}`,
+    'calendarLink': calendarLink,
+    'directionsLink': directionsLink,
 
     // Colors (from template or defaults)
     'primaryColor': extraData?.primaryColor || '#004645',
@@ -104,11 +164,26 @@ export async function getRenderedTemplate(
     fontFamily: template.fontFamily
   })
 
-  const html = renderTemplate(template.htmlContent, variables)
+  let html = renderTemplate(template.htmlContent, variables)
   const subject = renderTemplate(template.subject, variables)
   const text = template.textContent
     ? renderTemplate(template.textContent, variables)
     : undefined
+
+  // Process images to ensure email compatibility
+  html = processEmailImages(html)
+
+  // Validate images and log any issues
+  const validation = validateEmailImages(html)
+  if (!validation.valid || validation.warnings.length > 0) {
+    logger.warn({
+      templateId: template.id,
+      templateName: template.name,
+      totalImages: validation.totalImages,
+      issues: validation.issues,
+      warnings: validation.warnings
+    }, 'Email template has image issues')
+  }
 
   // Update template usage
   await prisma.emailTemplate.update({
