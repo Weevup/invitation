@@ -1,5 +1,9 @@
 import { Event, Guest, EmailTemplate, EmailType } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
+import { processEmailImages, validateEmailImages } from './image-utils'
+import { createLogger } from '@/lib/logger'
+
+const logger = createLogger({ module: 'email', type: 'templates' })
 
 /**
  * Replace template variables with actual values
@@ -104,11 +108,26 @@ export async function getRenderedTemplate(
     fontFamily: template.fontFamily
   })
 
-  const html = renderTemplate(template.htmlContent, variables)
+  let html = renderTemplate(template.htmlContent, variables)
   const subject = renderTemplate(template.subject, variables)
   const text = template.textContent
     ? renderTemplate(template.textContent, variables)
     : undefined
+
+  // Process images to ensure email compatibility
+  html = processEmailImages(html)
+
+  // Validate images and log any issues
+  const validation = validateEmailImages(html)
+  if (!validation.valid || validation.warnings.length > 0) {
+    logger.warn({
+      templateId: template.id,
+      templateName: template.name,
+      totalImages: validation.totalImages,
+      issues: validation.issues,
+      warnings: validation.warnings
+    }, 'Email template has image issues')
+  }
 
   // Update template usage
   await prisma.emailTemplate.update({
