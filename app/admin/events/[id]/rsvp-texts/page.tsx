@@ -285,6 +285,18 @@ export default function RSVPTextsPage() {
         </Link>
       </div>
 
+      {/* New Interface Alert */}
+      <Alert className="border-[#009197] bg-[#009197]/5">
+        <Sparkles className="h-4 w-4 text-[#009197]" />
+        <AlertDescription>
+          <strong>Nouvelle Interface Disponible ! 🎉</strong> Cette fonctionnalité est maintenant disponible dans la{' '}
+          <Link href={`/admin/events/${eventId}/settings?tab=rsvp&subtab=texts`} className="underline font-semibold text-[#009197] hover:text-[#004645]">
+            page de configuration unifiée
+          </Link>
+          . Découvrez une interface centralisée pour gérer tous vos paramètres RSVP au même endroit.
+        </AlertDescription>
+      </Alert>
+
       <Alert className="bg-[#9CD9F6]/10 border-[#009197]">
         <Sparkles className="h-4 w-4" />
         <AlertDescription>

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { RsvpStepsEditor } from '@/components/rsvp-steps-editor'
 import { RsvpPreview } from '@/components/rsvp-preview'
 import { RsvpThemeEditor, type RsvpTheme } from '@/components/rsvp-theme-editor'
@@ -378,6 +379,19 @@ export default function RsvpStepsPage() {
           </div>
         </div>
       </div>
+
+      {/* New Interface Alert */}
+      <Alert className="mb-6 border-[#009197] bg-[#009197]/5">
+        <Sparkles className="h-4 w-4 text-[#009197]" />
+        <AlertTitle>Nouvelle Interface Disponible ! 🎉</AlertTitle>
+        <AlertDescription>
+          Cette fonctionnalité est maintenant disponible dans la{' '}
+          <Link href={`/admin/events/${eventId}/settings?tab=rsvp&subtab=steps`} className="underline font-semibold text-[#009197] hover:text-[#004645]">
+            page de configuration unifiée
+          </Link>
+          . Découvrez une interface centralisée pour gérer tous vos paramètres RSVP au même endroit.
+        </AlertDescription>
+      </Alert>
 
       {/* Info Card */}
       {splitScreenEnabled && (

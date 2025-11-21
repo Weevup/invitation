@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Settings, List, FileText, Eye } from 'lucide-react'
@@ -12,10 +12,18 @@ import { RsvpPreviewSubTab } from './rsvp-subtabs/RsvpPreviewSubTab'
 interface RsvpTabProps {
   event: any
   onUpdate: () => void
+  initialSubTab?: string
 }
 
-export function RsvpTab({ event, onUpdate }: RsvpTabProps) {
-  const [activeSubTab, setActiveSubTab] = useState('configuration')
+export function RsvpTab({ event, onUpdate, initialSubTab }: RsvpTabProps) {
+  const [activeSubTab, setActiveSubTab] = useState(initialSubTab || 'configuration')
+
+  // Update activeSubTab when initialSubTab changes (from URL)
+  useEffect(() => {
+    if (initialSubTab) {
+      setActiveSubTab(initialSubTab)
+    }
+  }, [initialSubTab])
 
   return (
     <div className="space-y-6">
