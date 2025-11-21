@@ -8,9 +8,10 @@ import { RsvpStepsEditor } from '@/components/rsvp-steps-editor'
 import { RsvpPreview } from '@/components/rsvp-preview'
 import { RsvpThemeEditor, type RsvpTheme } from '@/components/rsvp-theme-editor'
 import { RsvpTemplates } from '@/components/rsvp-templates'
-import { Loader2, Save, Eye, Monitor, Layout, Download, Upload, FileJson, BookOpen } from 'lucide-react'
+import { Loader2, Save, Eye, Monitor, Layout, Download, Upload, FileJson, BookOpen, Sparkles } from 'lucide-react'
 import { toast } from 'sonner'
 import { createClientLogger } from '@/lib/client-logger'
+import Link from 'next/link'
 
 const logger = createClientLogger({ component: 'RsvpStepsPage' })
 
@@ -312,6 +313,15 @@ export default function RsvpStepsPage() {
               <BookOpen className="h-4 w-4 mr-2" />
               Documentation
             </Button>
+            <Link href={`/admin/events/${eventId}/rsvp-texts`}>
+              <Button
+                variant="outline"
+                className="border-[#009197] text-[#009197] hover:bg-[#009197] hover:text-white"
+              >
+                <Sparkles className="h-4 w-4 mr-2" />
+                Textes RSVP
+              </Button>
+            </Link>
             <div className="flex gap-2 border-l pl-2">
               <Button
                 variant="outline"
