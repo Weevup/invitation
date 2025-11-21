@@ -411,6 +411,7 @@ export default function ConfirmationEmailEditorPage() {
             <p><code className="bg-white px-2 py-1 rounded">{'{{event.name}}'}</code> - Nom de l&apos;événement</p>
             <p><code className="bg-white px-2 py-1 rounded">{'{{event.date}}'}</code> - Date formatée de l&apos;événement</p>
             <p><code className="bg-white px-2 py-1 rounded">{'{{event.location}}'}</code> - Lieu de l&apos;événement</p>
+            <p><code className="bg-white px-2 py-1 rounded">{'{{badge.downloadUrl}}'}</code> - Lien vers le badge avec QR code (si activé)</p>
             <p className="text-xs mt-4 italic">
               Ces variables seront automatiquement remplacées lors de l&apos;envoi de l&apos;email
             </p>

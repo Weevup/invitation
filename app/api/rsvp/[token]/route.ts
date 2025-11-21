@@ -194,9 +194,20 @@ export async function POST(
 
     // Generate QR code if attending
     let qrCodeData = null
+    let badgeDownloadUrl = null
     if (attending) {
       const checkinUrl = getCheckinUrl(rsvp.qrCodeId)
       qrCodeData = await generateQRCode(checkinUrl)
+
+      // Check if event has badge design with QR code enabled
+      const badgeDesign = await prisma.badgeDesign.findUnique({
+        where: { eventId: guest.eventId }
+      })
+
+      if (badgeDesign?.includeQRCode) {
+        // Generate badge download URL for templates
+        badgeDownloadUrl = `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/guest/${guest.token}/badge`
+      }
     }
 
     // Build venue string (avoid "null" in output)
@@ -240,6 +251,7 @@ export async function POST(
         'event.time': new Date(guest.event.startsAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
         'event.location': eventVenue,
         'event.address': guest.event.address || '',
+        'badge.downloadUrl': badgeDownloadUrl || '', // Badge with QR code download link
       }
 
       const renderedHtml = renderTemplate(customTemplate.htmlContent, variables)

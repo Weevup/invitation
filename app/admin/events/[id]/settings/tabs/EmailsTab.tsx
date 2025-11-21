@@ -92,7 +92,7 @@ export function EmailsTab({ event, onUpdate }: EmailsTabProps) {
         id: 'confirmation',
         phase: 4,
         title: 'Confirmation Automatique',
-        description: '⚠️ CRITIQUE : 2 templates requis (Accepté & Refusé) - Envoi automatique après chaque RSVP',
+        description: '⚠️ CRITIQUE : 2 templates requis (Accepté & Refusé) - Envoi automatique après chaque RSVP. Si badge/QR code activé, le lien de téléchargement est inclus.',
         icon: CheckCheck,
         color: '#4caf50',
         bgColor: 'from-green-50/50 to-transparent',
@@ -104,8 +104,21 @@ export function EmailsTab({ event, onUpdate }: EmailsTabProps) {
         templateName: 'Non configuré'
       },
       {
-        id: 'day-before',
+        id: 'practical-info',
         phase: 5,
+        title: 'Infos Pratiques & Badge',
+        description: 'Envoi des infos pratiques et du badge avec QR code aux participants confirmés (J-7 à J-3). Activez si le badge n\'est pas envoyé dans la confirmation.',
+        icon: Users,
+        color: '#673ab7',
+        bgColor: 'from-purple-50/50 to-transparent',
+        borderColor: 'border-purple-500/30',
+        status: 'not_configured',
+        enabled: false, // Optional - disabled by default
+        isMandatory: false
+      },
+      {
+        id: 'day-before',
+        phase: 6,
         title: 'Rappel Jour J',
         description: 'Rappel aux participants confirmés (J-1)',
         icon: Clock,
@@ -420,7 +433,7 @@ export function EmailsTab({ event, onUpdate }: EmailsTabProps) {
                             className="w-full bg-green-600 hover:bg-green-700 text-white"
                           >
                             <Edit className="h-3 w-3 mr-2" />
-                            Email "Accepté"
+                            Email &quot;Accepté&quot;
                           </Button>
                         </Link>
                         <Link href={`/admin/events/${event.id}/confirmation-email?type=declined`}>
@@ -429,7 +442,7 @@ export function EmailsTab({ event, onUpdate }: EmailsTabProps) {
                             className="w-full bg-red-600 hover:bg-red-700 text-white"
                           >
                             <Edit className="h-3 w-3 mr-2" />
-                            Email "Refusé"
+                            Email &quot;Refusé&quot;
                           </Button>
                         </Link>
                         <Button
