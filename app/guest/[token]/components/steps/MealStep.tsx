@@ -14,6 +14,7 @@ interface MealStepProps {
   onBack: () => void;
   onContinue: () => void;
   texts: {
+    mealPlaceholder?: string;
     continueButton: string;
     previousButton: string;
   };
@@ -42,7 +43,7 @@ export const MealStep = React.memo(({
       </Label>
       <Select value={mealChoice} onValueChange={onMealChoiceChange}>
         <SelectTrigger>
-          <SelectValue placeholder="Sélectionnez votre choix" />
+          <SelectValue placeholder={getStepText('meal', 'mealPlaceholder', texts.mealPlaceholder || "Sélectionnez votre choix")} />
         </SelectTrigger>
         <SelectContent>
           {mealOptions.map((option) => (

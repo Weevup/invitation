@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
-import { Calendar, MapPin, Clock, Users, Loader2 } from "lucide-react";
+import { Calendar, MapPin, Clock, Users, Loader2, CheckCircle2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { RSVPProgress } from "@/components/rsvp-progress";
 import { RSVPConfirmation } from "@/components/rsvp-confirmation";
@@ -55,16 +55,67 @@ interface GuestData {
     rsvpConfig?: {
       customSteps?: RsvpStep[];
       customTexts?: {
+        // Accueil
         welcomeGreeting?: string;
         welcomeSubtitle?: string;
+
+        // Formulaire RSVP
         formTitle?: string;
         formSubtitle?: string;
+        formBadge?: string;
+        formFeatures?: string;
+
+        // Étape de réponse
         responseQuestion?: string;
         responseYes?: string;
         responseNo?: string;
         continueButton?: string;
+
+        // Étape accompagnants
+        plusOnesLabel?: string;
+        plusOnesNone?: string;
+
+        // Étape repas
+        mealLabel?: string;
+        mealPlaceholder?: string;
+        allergiesLabel?: string;
+        allergiesPlaceholder?: string;
+
+        // Étape informations pratiques
+        practicalTitle?: string;
+        accessibilityLabel?: string;
+        accessibilityPlaceholder?: string;
+        transportLabel?: string;
+        transportPlaceholder?: string;
+        lodgingLabel?: string;
+        lodgingPlaceholder?: string;
+
+        // Étape consentements
+        consentTitle?: string;
+        consentLabel?: string;
+
+        // Étape récapitulatif
+        summaryTitle?: string;
+        summaryIntro?: string;
+        summaryParticipation?: string;
+        summaryYes?: string;
+        summaryNo?: string;
+        summaryPlusOnes?: string;
+        summaryMeal?: string;
+        summaryAllergies?: string;
+        summaryModifyUntil?: string;
+
+        // Indicateurs visuels
+        autosaveIndicator?: string;
+        loadingMessage?: string;
+        savingMessage?: string;
+
+        // Boutons de navigation
         previousButton?: string;
         submitButton?: string;
+        backButton?: string;
+
+        // Message de succès
         successTitle?: string;
         successMessage?: string;
       };
@@ -93,6 +144,7 @@ export default function GuestPage() {
   const [data, setData] = useState<GuestData | null>(null);
   const [currentStepId, setCurrentStepId] = useState('response');
   const [steps, setSteps] = useState<StepConfig[]>([]);
+  const [showAutosaved, setShowAutosaved] = useState(false);
 
   // Form state
   const [attending, setAttending] = useState<boolean | null>(null);
@@ -158,16 +210,67 @@ export default function GuestPage() {
 
   // Memoized custom texts for better performance
   const customTexts = useMemo(() => ({
+    // Accueil
     welcomeGreeting: data?.event.rsvpConfig?.customTexts?.welcomeGreeting || `Bonjour ${data?.guest.firstName || ''} 👋`,
     welcomeSubtitle: data?.event.rsvpConfig?.customTexts?.welcomeSubtitle || "Vous êtes invité(e) à",
+
+    // Formulaire RSVP
     formTitle: data?.event.rsvpConfig?.customTexts?.formTitle || "Votre réponse",
     formSubtitle: data?.event.rsvpConfig?.customTexts?.formSubtitle || "Merci de confirmer votre participation avant le",
+    formBadge: data?.event.rsvpConfig?.customTexts?.formBadge || "✨ Optimisé",
+    formFeatures: data?.event.rsvpConfig?.customTexts?.formFeatures || "💾 Sauvegarde automatique • ⚡ Performance améliorée",
+
+    // Étape de réponse
     responseQuestion: data?.event.rsvpConfig?.customTexts?.responseQuestion || "Participez-vous à l'événement ?",
     responseYes: data?.event.rsvpConfig?.customTexts?.responseYes || "✓ J'accepte avec plaisir",
     responseNo: data?.event.rsvpConfig?.customTexts?.responseNo || "✗ Je ne peux malheureusement pas venir",
     continueButton: data?.event.rsvpConfig?.customTexts?.continueButton || "Continuer",
+
+    // Étape accompagnants
+    plusOnesLabel: data?.event.rsvpConfig?.customTexts?.plusOnesLabel || "Nombre d'accompagnants (max {maxPlusOnes})",
+    plusOnesNone: data?.event.rsvpConfig?.customTexts?.plusOnesNone || "Aucun",
+
+    // Étape repas
+    mealLabel: data?.event.rsvpConfig?.customTexts?.mealLabel || "Choix de repas",
+    mealPlaceholder: data?.event.rsvpConfig?.customTexts?.mealPlaceholder || "Sélectionnez votre choix",
+    allergiesLabel: data?.event.rsvpConfig?.customTexts?.allergiesLabel || "Allergies ou régimes spécifiques",
+    allergiesPlaceholder: data?.event.rsvpConfig?.customTexts?.allergiesPlaceholder || "Précisez vos éventuelles allergies...",
+
+    // Étape informations pratiques
+    practicalTitle: data?.event.rsvpConfig?.customTexts?.practicalTitle || "Informations pratiques",
+    accessibilityLabel: data?.event.rsvpConfig?.customTexts?.accessibilityLabel || "Besoins d'accessibilité",
+    accessibilityPlaceholder: data?.event.rsvpConfig?.customTexts?.accessibilityPlaceholder || "PMR, assistance particulière...",
+    transportLabel: data?.event.rsvpConfig?.customTexts?.transportLabel || "Besoins de transport",
+    transportPlaceholder: data?.event.rsvpConfig?.customTexts?.transportPlaceholder || "Navette, parking...",
+    lodgingLabel: data?.event.rsvpConfig?.customTexts?.lodgingLabel || "Besoins d'hébergement",
+    lodgingPlaceholder: data?.event.rsvpConfig?.customTexts?.lodgingPlaceholder || "Hôtel, nuitée...",
+
+    // Étape consentements
+    consentTitle: data?.event.rsvpConfig?.customTexts?.consentTitle || "Consentements",
+    consentLabel: data?.event.rsvpConfig?.customTexts?.consentLabel || "J'autorise la prise et l'utilisation de photographies durant l'événement à des fins de communication",
+
+    // Étape récapitulatif
+    summaryTitle: data?.event.rsvpConfig?.customTexts?.summaryTitle || "Récapitulatif",
+    summaryIntro: data?.event.rsvpConfig?.customTexts?.summaryIntro || "",
+    summaryParticipation: data?.event.rsvpConfig?.customTexts?.summaryParticipation || "Participation :",
+    summaryYes: data?.event.rsvpConfig?.customTexts?.summaryYes || "Oui ✓",
+    summaryNo: data?.event.rsvpConfig?.customTexts?.summaryNo || "Non",
+    summaryPlusOnes: data?.event.rsvpConfig?.customTexts?.summaryPlusOnes || "Accompagnants :",
+    summaryMeal: data?.event.rsvpConfig?.customTexts?.summaryMeal || "Repas :",
+    summaryAllergies: data?.event.rsvpConfig?.customTexts?.summaryAllergies || "Allergies :",
+    summaryModifyUntil: data?.event.rsvpConfig?.customTexts?.summaryModifyUntil || "Vous pourrez modifier votre réponse jusqu'au",
+
+    // Indicateurs visuels
+    autosaveIndicator: data?.event.rsvpConfig?.customTexts?.autosaveIndicator || "Enregistré automatiquement",
+    loadingMessage: data?.event.rsvpConfig?.customTexts?.loadingMessage || "Chargement...",
+    savingMessage: data?.event.rsvpConfig?.customTexts?.savingMessage || "Enregistrement...",
+
+    // Boutons de navigation
     previousButton: data?.event.rsvpConfig?.customTexts?.previousButton || "Précédent",
     submitButton: data?.event.rsvpConfig?.customTexts?.submitButton || "Envoyer ma réponse",
+    backButton: data?.event.rsvpConfig?.customTexts?.backButton || "Retour",
+
+    // Message de succès
     successTitle: data?.event.rsvpConfig?.customTexts?.successTitle || "Merci pour votre réponse !",
     successMessage: data?.event.rsvpConfig?.customTexts?.successMessage || "Votre participation a été enregistrée",
   }), [data?.event.rsvpConfig?.customTexts, data?.guest.firstName]);
@@ -223,6 +326,10 @@ export default function GuestPage() {
       };
 
       localStorage.setItem(draftKey, JSON.stringify(formData));
+
+      // Show autosave indicator
+      setShowAutosaved(true);
+      setTimeout(() => setShowAutosaved(false), 2000); // Hide after 2 seconds
     }, 1000); // 1 second debounce
 
     return () => clearTimeout(timeout);
@@ -475,13 +582,21 @@ export default function GuestPage() {
             {/* RSVP Form */}
             <Card className="border-[#9CD9F6]/30 bg-white/80 backdrop-blur">
               <CardHeader>
-                <CardTitle className="text-[#004645]" style={{ fontFamily: "var(--font-abril)" }}>
-                  {customTexts.formTitle}
-                </CardTitle>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-[#004645]" style={{ fontFamily: "var(--font-abril)" }}>
+                    {customTexts.formTitle}
+                  </CardTitle>
+                  <span className="text-xs bg-gradient-to-r from-[#009197] to-[#004645] text-white px-3 py-1 rounded-full font-medium flex items-center gap-1">
+                    {customTexts.formBadge}
+                  </span>
+                </div>
                 <CardDescription className="text-[#004645]/70">
                   {customTexts.formSubtitle}{" "}
                   {event.rsvpDeadline &&
                     new Date(event.rsvpDeadline).toLocaleDateString("fr-FR")}
+                  <span className="block text-xs mt-1 text-[#009197]">
+                    {customTexts.formFeatures}
+                  </span>
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -684,6 +799,21 @@ export default function GuestPage() {
                 Retour à l&apos;accueil
               </Button>
             </div>
+          </motion.div>
+        )}
+
+        {/* Autosave indicator */}
+        {showAutosaved && currentStepId !== 'success' && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            className="fixed bottom-8 right-8 bg-white border border-[#009197]/20 shadow-lg rounded-lg px-4 py-3 flex items-center space-x-2 z-50"
+          >
+            <CheckCircle2 className="h-5 w-5 text-[#009197]" />
+            <span className="text-sm text-[#004645] font-medium">
+              {customTexts.autosaveIndicator}
+            </span>
           </motion.div>
         )}
       </div>

@@ -11,6 +11,8 @@ interface PlusOnesStepProps {
   onBack: () => void;
   onContinue: () => void;
   texts: {
+    plusOnesLabel?: string;
+    plusOnesNone?: string;
     continueButton: string;
     previousButton: string;
   };
@@ -33,7 +35,7 @@ export const PlusOnesStep = React.memo(({
       className="space-y-4"
     >
       <Label htmlFor="plusOnes" className="text-lg">
-        {getStepText('plus-ones', 'plusOnesLabel', `Nombre d'accompagnants (max ${maxPlusOnes})`)}
+        {(texts.plusOnesLabel || `Nombre d'accompagnants (max ${maxPlusOnes})`).replace('{maxPlusOnes}', maxPlusOnes.toString())}
       </Label>
       <Select
         value={plusOnes.toString()}
@@ -45,7 +47,7 @@ export const PlusOnesStep = React.memo(({
         <SelectContent>
           {Array.from({ length: maxPlusOnes + 1 }, (_, i) => (
             <SelectItem key={i} value={i.toString()}>
-              {i === 0 ? getStepText('plus-ones', 'plusOnesNone', "Aucun") : i}
+              {i === 0 ? (texts.plusOnesNone || "Aucun") : i}
             </SelectItem>
           ))}
         </SelectContent>

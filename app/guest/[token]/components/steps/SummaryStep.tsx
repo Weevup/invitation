@@ -43,24 +43,24 @@ export const SummaryStep = React.memo(({
       </h3>
       <div className="bg-muted p-4 rounded-lg space-y-2 text-sm">
         <p>
-          <strong>Participation :</strong>{" "}
-          {attending ? "Oui ✓" : "Non"}
+          <strong>{getStepText('summary', 'summaryParticipation', "Participation")} :</strong>{" "}
+          {attending ? getStepText('summary', 'summaryYes', "Oui ✓") : getStepText('summary', 'summaryNo', "Non")}
         </p>
         {attending && (
           <>
             {allowPlusOnes && (
               <p>
-                <strong>Accompagnants :</strong> {plusOnes}
+                <strong>{getStepText('summary', 'summaryPlusOnes', "Accompagnants")} :</strong> {plusOnes}
               </p>
             )}
             {mealChoice && (
               <p>
-                <strong>Repas :</strong> {mealChoice}
+                <strong>{getStepText('summary', 'summaryMeal', "Repas")} :</strong> {mealChoice}
               </p>
             )}
             {allergies && (
               <p>
-                <strong>Allergies :</strong> {allergies}
+                <strong>{getStepText('summary', 'summaryAllergies', "Allergies")} :</strong> {allergies}
               </p>
             )}
           </>
@@ -72,9 +72,8 @@ export const SummaryStep = React.memo(({
         </p>
       ) : (
         <p className="text-sm text-[#004645]/70">
-          Vous pourrez modifier votre réponse jusqu&apos;au{" "}
-          {rsvpDeadline &&
-            new Date(rsvpDeadline).toLocaleDateString("fr-FR")}
+          {(getStepText('summary', 'summaryModifyUntil', 'Vous pourrez modifier votre réponse jusqu\'au {deadline}'))
+            .replace('{deadline}', rsvpDeadline ? new Date(rsvpDeadline).toLocaleDateString("fr-FR") : '')}
         </p>
       )}
       <div className="flex space-x-2">
@@ -83,7 +82,7 @@ export const SummaryStep = React.memo(({
           onClick={onBack}
           className="border-[#004645] text-[#004645] hover:bg-[#004645] hover:text-white"
         >
-          Retour
+          {getStepText('summary', 'backButton', "Retour")}
         </Button>
         <Button
           onClick={onSubmit}
