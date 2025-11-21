@@ -16,7 +16,7 @@ import { RSVPProgress } from "@/components/rsvp-progress";
 import { RSVPConfirmation } from "@/components/rsvp-confirmation";
 import { buildSteps, getNextStep, getPreviousStep, type StepConfig } from "@/lib/rsvp-steps";
 import { RsvpCustomStep } from "@/components/rsvp-custom-steps";
-import type { RsvpStep } from "@/app/admin/events/[id]/rsvp-steps/page";
+import type { RsvpStep } from "@/app/admin/events/[id]/settings/tabs/rsvp-subtabs/RsvpStepsContent";
 import { ResponseStep } from "./components/steps/ResponseStep";
 import { PlusOnesStep } from "./components/steps/PlusOnesStep";
 import { MealStep } from "./components/steps/MealStep";
