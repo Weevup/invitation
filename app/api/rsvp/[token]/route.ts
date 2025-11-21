@@ -120,6 +120,42 @@ export async function POST(
       )
     }
 
+    // CRITICAL: Validate that confirmation email templates are configured
+    // Check for both accepted and declined templates to ensure proper configuration
+    const acceptedTemplate = await prisma.emailTemplate.findFirst({
+      where: {
+        slug: 'confirmation-accepted',
+        isActive: true,
+      },
+    })
+
+    const declinedTemplate = await prisma.emailTemplate.findFirst({
+      where: {
+        slug: 'confirmation-declined',
+        isActive: true,
+      },
+    })
+
+    // If either template is missing, block the RSVP submission
+    if (!acceptedTemplate || !declinedTemplate) {
+      rsvpLogger.warn({
+        eventId: guest.eventId,
+        missingTemplates: {
+          accepted: !acceptedTemplate,
+          declined: !declinedTemplate
+        }
+      }, 'RSVP blocked: Missing confirmation email templates')
+
+      return NextResponse.json(
+        {
+          error: 'EMAIL_TEMPLATES_NOT_CONFIGURED',
+          message: 'La configuration des emails de confirmation n\'est pas terminée',
+          suggestion: 'L\'organisateur doit configurer les templates d\'email avant que vous puissiez confirmer votre présence. Veuillez réessayer plus tard ou contacter l\'organisateur.'
+        },
+        { status: 503 }
+      )
+    }
+
     // Update or create RSVP
     const rsvp = await prisma.rSVP.upsert({
       where: { guestId: guest.id },
