@@ -125,16 +125,16 @@ export default function EventOverviewPage() {
               <Badge variant="outline" className="text-[#004645] border-[#004645]">
                 {totalGuests} invités
               </Badge>
+              <Link href={`/admin/events/${eventId}/settings?tab=emails`}>
+                <Button size="sm" className="bg-gradient-to-r from-[#004645] to-[#009197] hover:from-[#006C51] hover:to-[#009197] text-white">
+                  <Settings2 className="h-4 w-4 mr-2" />
+                  ⚙️ Configuration
+                </Button>
+              </Link>
               <Link href={`/admin/events/${eventId}/edit`}>
                 <Button variant="outline" size="sm" className="border-[#004645] text-[#004645] hover:bg-[#004645] hover:text-white">
                   <Edit className="h-4 w-4 mr-2" />
                   Modifier l&apos;événement
-                </Button>
-              </Link>
-              <Link href={`/admin/events/${eventId}/rsvp-texts`}>
-                <Button variant="outline" size="sm" className="border-[#009197] text-[#009197] hover:bg-[#009197] hover:text-white">
-                  <Sparkles className="h-4 w-4 mr-2" />
-                  Textes RSVP
                 </Button>
               </Link>
             </div>

@@ -17,9 +17,10 @@ import {
 import {
   Settings, Plus, Trash2, GripVertical, Eye, Save,
   MessageSquare, CheckSquare, List, Calendar,
-  User, Mail, Phone, Building, Utensils, Users, PlayCircle
+  User, Mail, Phone, Building, Utensils, Users, PlayCircle, Sparkles
 } from 'lucide-react'
 import { useParams } from 'next/navigation'
+import Link from 'next/link'
 import { toast } from 'sonner'
 import { RSVPPreviewInteractive } from '@/components/admin/rsvp-preview-interactive'
 import { createClientLogger } from '@/lib/client-logger'
@@ -194,6 +195,15 @@ export default function RSVPConfigPage() {
             <PlayCircle className="h-4 w-4 mr-2" />
             Test interactif
           </Button>
+          <Link href={`/admin/events/${eventId}/rsvp-texts`}>
+            <Button
+              variant="outline"
+              className="border-[#009197] text-[#009197] hover:bg-[#009197] hover:text-white"
+            >
+              <Sparkles className="h-4 w-4 mr-2" />
+              Textes RSVP
+            </Button>
+          </Link>
           <Button
             onClick={handleSave}
             disabled={loading}

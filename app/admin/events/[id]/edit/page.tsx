@@ -71,11 +71,17 @@ export default function EditEventPage() {
       if (response.ok) {
         const data = await response.json();
 
-        // Format dates for input fields
+        // Format dates for input fields (using local time to avoid timezone offset)
         const formatDateForInput = (date: string | null | undefined) => {
           if (!date) return "";
           const d = new Date(date);
-          return d.toISOString().slice(0, 16); // Format: "2025-12-15T20:00"
+          // Use local time methods to avoid UTC conversion issues
+          const year = d.getFullYear();
+          const month = String(d.getMonth() + 1).padStart(2, '0');
+          const day = String(d.getDate()).padStart(2, '0');
+          const hours = String(d.getHours()).padStart(2, '0');
+          const minutes = String(d.getMinutes()).padStart(2, '0');
+          return `${year}-${month}-${day}T${hours}:${minutes}`;
         };
 
         setFormData({
