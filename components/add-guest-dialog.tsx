@@ -215,10 +215,10 @@ export function AddGuestDialog({ eventId, onGuestAdded }: AddGuestDialogProps) {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="companySize">Taille de l&apos;entreprise</Label>
-                  <Select value={formData.companySize} onValueChange={(value) => setFormData({ ...formData, companySize: value })}>
+                  <Label htmlFor="companySize">Taille de l&apos;entreprise (optionnel)</Label>
+                  <Select value={formData.companySize || undefined} onValueChange={(value) => setFormData({ ...formData, companySize: value })}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Sélectionnez..." />
+                      <SelectValue placeholder="Sélectionnez (optionnel)..." />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="TPE">TPE (1-10 employés)</SelectItem>
