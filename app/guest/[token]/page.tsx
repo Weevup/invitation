@@ -17,6 +17,12 @@ import { RSVPConfirmation } from "@/components/rsvp-confirmation";
 import { buildSteps, getNextStep, getPreviousStep, type StepConfig } from "@/lib/rsvp-steps";
 import { RsvpCustomStep } from "@/components/rsvp-custom-steps";
 import type { RsvpStep } from "@/app/admin/events/[id]/rsvp-steps/page";
+import { ResponseStep } from "./components/steps/ResponseStep";
+import { PlusOnesStep } from "./components/steps/PlusOnesStep";
+import { MealStep } from "./components/steps/MealStep";
+import { PracticalStep } from "./components/steps/PracticalStep";
+import { ConsentStep } from "./components/steps/ConsentStep";
+import { SummaryStep } from "./components/steps/SummaryStep";
 
 interface GuestData {
   guest: {
@@ -481,260 +487,100 @@ export default function GuestPage() {
               <CardContent className="space-y-6">
                 {/* Step: Response */}
                 {currentStepId === 'response' && (
-                  <motion.div
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    className="space-y-4"
-                  >
-                    <Label className="text-lg">{getStepText('response', 'responseQuestion', "Participez-vous à l'événement ?")}</Label>
-                    <RadioGroup
-                      value={attending === null ? "" : attending.toString()}
-                      onValueChange={(value) => {
-                        const newAttending = value === "true";
-                        setAttending(newAttending);
-                      }}
-                    >
-                      <div className="flex items-center space-x-2 p-4 border rounded-lg hover:bg-accent cursor-pointer">
-                        <RadioGroupItem value="true" id="yes" />
-                        <Label htmlFor="yes" className="cursor-pointer flex-1">
-                          {getStepText('response', 'responseYes', "✓ J'accepte avec plaisir")}
-                        </Label>
-                      </div>
-                      <div className="flex items-center space-x-2 p-4 border rounded-lg hover:bg-accent cursor-pointer">
-                        <RadioGroupItem value="false" id="no" />
-                        <Label htmlFor="no" className="cursor-pointer flex-1">
-                          {getStepText('response', 'responseNo', "✗ Je ne peux malheureusement pas venir")}
-                        </Label>
-                      </div>
-                    </RadioGroup>
-                    <Button
-                      onClick={() => {
-                        const next = getNextStep('response', steps);
-                        if (next) setCurrentStepId(next);
-                      }}
-                      disabled={attending === null}
-                      className="w-full bg-gradient-to-r from-[#004645] to-[#009197] hover:from-[#006C51] hover:to-[#009197] text-white"
-                    >
-                      {getStepText('response', 'continueButton', "Continuer")}
-                    </Button>
-                  </motion.div>
+                  <ResponseStep
+                    attending={attending}
+                    onAttendingChange={(value) => setAttending(value)}
+                    onContinue={() => {
+                      const next = getNextStep('response', steps);
+                      if (next) setCurrentStepId(next);
+                    }}
+                    texts={customTexts}
+                    getStepText={getStepText}
+                  />
                 )}
 
                 {/* Step: Plus Ones */}
                 {currentStepId === 'plus-ones' && (
-                  <motion.div
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    className="space-y-4"
-                  >
-                    <Label htmlFor="plusOnes" className="text-lg">
-                      {getStepText('plus-ones', 'plusOnesLabel', `Nombre d'accompagnants (max ${event.maxPlusOnes})`)}
-                    </Label>
-                    <Select
-                      value={plusOnes.toString()}
-                      onValueChange={(value) => setPlusOnes(parseInt(value))}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {Array.from({ length: event.maxPlusOnes + 1 }, (_, i) => (
-                          <SelectItem key={i} value={i.toString()}>
-                            {i === 0 ? getStepText('plus-ones', 'plusOnesNone', "Aucun") : i}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <div className="flex space-x-2">
-                      <Button
-                        variant="outline"
-                        onClick={() => {
-                          const prev = getPreviousStep('plus-ones', steps);
-                          if (prev) setCurrentStepId(prev);
-                        }}
-                        className="border-[#004645] text-[#004645] hover:bg-[#004645] hover:text-white"
-                      >
-                        {getStepText('plus-ones', 'backButton', "Retour")}
-                      </Button>
-                      <Button
-                        onClick={() => {
-                          const next = getNextStep('plus-ones', steps);
-                          if (next) setCurrentStepId(next);
-                        }}
-                        className="flex-1 bg-gradient-to-r from-[#004645] to-[#009197] hover:from-[#006C51] hover:to-[#009197] text-white"
-                      >
-                        {getStepText('plus-ones', 'continueButton', "Continuer")}
-                      </Button>
-                    </div>
-                  </motion.div>
+                  <PlusOnesStep
+                    plusOnes={plusOnes}
+                    maxPlusOnes={event.maxPlusOnes}
+                    onPlusOnesChange={(value) => setPlusOnes(value)}
+                    onBack={() => {
+                      const prev = getPreviousStep('plus-ones', steps);
+                      if (prev) setCurrentStepId(prev);
+                    }}
+                    onContinue={() => {
+                      const next = getNextStep('plus-ones', steps);
+                      if (next) setCurrentStepId(next);
+                    }}
+                    texts={customTexts}
+                    getStepText={getStepText}
+                  />
                 )}
 
                 {/* Step: Meal Choice */}
                 {currentStepId === 'meal' && (
-                  <motion.div
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    className="space-y-4"
-                  >
-                    <Label htmlFor="meal" className="text-lg">
-                      {getStepText('meal', 'mealLabel', "Choix de repas")}
-                    </Label>
-                    <Select value={mealChoice} onValueChange={setMealChoice}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Sélectionnez votre choix" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {event.mealOptions.map((option) => (
-                          <SelectItem key={option} value={option}>
-                            {option}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <div className="space-y-2">
-                      <Label htmlFor="allergies">{getStepText('meal', 'allergiesLabel', "Allergies ou régimes spécifiques")}</Label>
-                      <Textarea
-                        id="allergies"
-                        value={allergies}
-                        onChange={(e) => setAllergies(e.target.value)}
-                        placeholder={getStepText('meal', 'allergiesPlaceholder', "Précisez vos éventuelles allergies...")}
-                      />
-                    </div>
-                    <div className="flex space-x-2">
-                      <Button
-                        variant="outline"
-                        onClick={() => {
-                          const prev = getPreviousStep('meal', steps);
-                          if (prev) setCurrentStepId(prev);
-                        }}
-                        className="border-[#004645] text-[#004645] hover:bg-[#004645] hover:text-white"
-                      >
-                        {getStepText('meal', 'backButton', "Retour")}
-                      </Button>
-                      <Button
-                        onClick={() => {
-                          const next = getNextStep('meal', steps);
-                          if (next) setCurrentStepId(next);
-                        }}
-                        className="flex-1 bg-gradient-to-r from-[#004645] to-[#009197] hover:from-[#006C51] hover:to-[#009197] text-white"
-                      >
-                        {getStepText('meal', 'continueButton', "Continuer")}
-                      </Button>
-                    </div>
-                  </motion.div>
+                  <MealStep
+                    mealChoice={mealChoice}
+                    allergies={allergies}
+                    mealOptions={event.mealOptions}
+                    onMealChoiceChange={(value) => setMealChoice(value)}
+                    onAllergiesChange={(value) => setAllergies(value)}
+                    onBack={() => {
+                      const prev = getPreviousStep('meal', steps);
+                      if (prev) setCurrentStepId(prev);
+                    }}
+                    onContinue={() => {
+                      const next = getNextStep('meal', steps);
+                      if (next) setCurrentStepId(next);
+                    }}
+                    texts={customTexts}
+                    getStepText={getStepText}
+                  />
                 )}
 
                 {/* Step: Practical Info */}
                 {currentStepId === 'practical' && (
-                  <motion.div
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    className="space-y-4"
-                  >
-                    <h3 className="text-lg font-semibold">{getStepText('practical', 'practicalTitle', "Informations pratiques")}</h3>
-                    {event.enableAccessibility && (
-                      <div className="space-y-2">
-                        <Label htmlFor="accessibility">
-                          {getStepText('practical', 'accessibilityLabel', "Besoins d'accessibilité")}
-                        </Label>
-                        <Textarea
-                          id="accessibility"
-                          value={accessibilityNotes}
-                          onChange={(e) => setAccessibilityNotes(e.target.value)}
-                          placeholder={getStepText('practical', 'accessibilityPlaceholder', "PMR, assistance particulière...")}
-                        />
-                      </div>
-                    )}
-                    {event.enableTransport && (
-                      <div className="space-y-2">
-                        <Label htmlFor="transport">{getStepText('practical', 'transportLabel', "Besoins de transport")}</Label>
-                        <Textarea
-                          id="transport"
-                          value={transportNeeds}
-                          onChange={(e) => setTransportNeeds(e.target.value)}
-                          placeholder={getStepText('practical', 'transportPlaceholder', "Navette, parking...")}
-                        />
-                      </div>
-                    )}
-                    {event.enableLodging && (
-                      <div className="space-y-2">
-                        <Label htmlFor="lodging">{getStepText('practical', 'lodgingLabel', "Besoins d'hébergement")}</Label>
-                        <Textarea
-                          id="lodging"
-                          value={lodgingNeeds}
-                          onChange={(e) => setLodgingNeeds(e.target.value)}
-                          placeholder={getStepText('practical', 'lodgingPlaceholder', "Hôtel, nuitée...")}
-                        />
-                      </div>
-                    )}
-                    <div className="flex space-x-2">
-                      <Button
-                        variant="outline"
-                        onClick={() => {
-                          const prev = getPreviousStep('practical', steps);
-                          if (prev) setCurrentStepId(prev);
-                        }}
-                        className="border-[#004645] text-[#004645] hover:bg-[#004645] hover:text-white"
-                      >
-                        {getStepText('practical', 'backButton', "Retour")}
-                      </Button>
-                      <Button
-                        onClick={() => {
-                          const next = getNextStep('practical', steps);
-                          if (next) setCurrentStepId(next);
-                        }}
-                        className="flex-1 bg-gradient-to-r from-[#004645] to-[#009197] hover:from-[#006C51] hover:to-[#009197] text-white"
-                      >
-                        {getStepText('practical', 'continueButton', "Continuer")}
-                      </Button>
-                    </div>
-                  </motion.div>
+                  <PracticalStep
+                    accessibilityNotes={accessibilityNotes}
+                    transportNeeds={transportNeeds}
+                    lodgingNeeds={lodgingNeeds}
+                    enableAccessibility={event.enableAccessibility}
+                    enableTransport={event.enableTransport}
+                    enableLodging={event.enableLodging}
+                    onAccessibilityChange={(value) => setAccessibilityNotes(value)}
+                    onTransportChange={(value) => setTransportNeeds(value)}
+                    onLodgingChange={(value) => setLodgingNeeds(value)}
+                    onBack={() => {
+                      const prev = getPreviousStep('practical', steps);
+                      if (prev) setCurrentStepId(prev);
+                    }}
+                    onContinue={() => {
+                      const next = getNextStep('practical', steps);
+                      if (next) setCurrentStepId(next);
+                    }}
+                    texts={customTexts}
+                    getStepText={getStepText}
+                  />
                 )}
 
                 {/* Step: Consents */}
                 {currentStepId === 'consent' && (
-                  <motion.div
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    className="space-y-4"
-                  >
-                    <h3 className="text-lg font-semibold">Consentements</h3>
-                    {event.enablePhotoConsent && (
-                      <div className="flex items-start space-x-2">
-                        <input
-                          type="checkbox"
-                          id="photos"
-                          checked={consentPhotos}
-                          onChange={(e) => setConsentPhotos(e.target.checked)}
-                          className="mt-1"
-                        />
-                        <Label htmlFor="photos" className="cursor-pointer">
-                          {getStepText('consent', 'consentLabel', "J'autorise la prise et l'utilisation de photographies durant l'événement à des fins de communication")}
-                        </Label>
-                      </div>
-                    )}
-                    <div className="flex space-x-2">
-                      <Button
-                        variant="outline"
-                        onClick={() => {
-                          const prev = getPreviousStep('consent', steps);
-                          if (prev) setCurrentStepId(prev);
-                        }}
-                        className="border-[#004645] text-[#004645] hover:bg-[#004645] hover:text-white"
-                      >
-                        {getStepText('consent', 'backButton', "Retour")}
-                      </Button>
-                      <Button
-                        onClick={() => {
-                          const next = getNextStep('consent', steps);
-                          if (next) setCurrentStepId(next);
-                        }}
-                        className="flex-1 bg-gradient-to-r from-[#004645] to-[#009197] hover:from-[#006C51] hover:to-[#009197] text-white"
-                      >
-                        {getStepText('consent', 'continueButton', "Continuer")}
-                      </Button>
-                    </div>
-                  </motion.div>
+                  <ConsentStep
+                    consentPhotos={consentPhotos}
+                    enablePhotoConsent={event.enablePhotoConsent}
+                    onConsentChange={(value) => setConsentPhotos(value)}
+                    onBack={() => {
+                      const prev = getPreviousStep('consent', steps);
+                      if (prev) setCurrentStepId(prev);
+                    }}
+                    onContinue={() => {
+                      const next = getNextStep('consent', steps);
+                      if (next) setCurrentStepId(next);
+                    }}
+                    texts={customTexts}
+                    getStepText={getStepText}
+                  />
                 )}
 
                 {/* Custom Steps (message and custom fields) */}
@@ -793,75 +639,22 @@ export default function GuestPage() {
 
                 {/* Step: Summary */}
                 {currentStepId === 'summary' && (
-                  <motion.div
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    className="space-y-4"
-                  >
-                    <h3 className="text-lg font-semibold">{getStepText('summary', 'summaryTitle', "Récapitulatif")}</h3>
-                    <div className="bg-muted p-4 rounded-lg space-y-2 text-sm">
-                      <p>
-                        <strong>Participation :</strong>{" "}
-                        {attending ? "Oui ✓" : "Non"}
-                      </p>
-                      {attending && (
-                        <>
-                          {event.allowPlusOnes && (
-                            <p>
-                              <strong>Accompagnants :</strong> {plusOnes}
-                            </p>
-                          )}
-                          {mealChoice && (
-                            <p>
-                              <strong>Repas :</strong> {mealChoice}
-                            </p>
-                          )}
-                          {allergies && (
-                            <p>
-                              <strong>Allergies :</strong> {allergies}
-                            </p>
-                          )}
-                        </>
-                      )}
-                    </div>
-                    {getStepText('summary', 'summaryIntro', '') ? (
-                      <p className="text-sm text-[#004645]/70">
-                        {getStepText('summary', 'summaryIntro', '')}
-                      </p>
-                    ) : (
-                      <p className="text-sm text-[#004645]/70">
-                        Vous pourrez modifier votre réponse jusqu&apos;au{" "}
-                        {event.rsvpDeadline &&
-                          new Date(event.rsvpDeadline).toLocaleDateString("fr-FR")}
-                      </p>
-                    )}
-                    <div className="flex space-x-2">
-                      <Button
-                        variant="outline"
-                        onClick={() => {
-                          const prev = getPreviousStep('summary', steps);
-                          if (prev) setCurrentStepId(prev);
-                        }}
-                        className="border-[#004645] text-[#004645] hover:bg-[#004645] hover:text-white"
-                      >
-                        Retour
-                      </Button>
-                      <Button
-                        onClick={handleSubmit}
-                        disabled={submitting}
-                        className="flex-1 bg-gradient-to-r from-[#004645] to-[#009197] hover:from-[#006C51] hover:to-[#009197] text-white"
-                      >
-                        {submitting ? (
-                          <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Enregistrement...
-                          </>
-                        ) : (
-                          getStepText('summary', 'submitButton', "Valider ma réponse")
-                        )}
-                      </Button>
-                    </div>
-                  </motion.div>
+                  <SummaryStep
+                    attending={attending}
+                    plusOnes={plusOnes}
+                    mealChoice={mealChoice}
+                    allergies={allergies}
+                    allowPlusOnes={event.allowPlusOnes}
+                    rsvpDeadline={event.rsvpDeadline}
+                    submitting={submitting}
+                    onBack={() => {
+                      const prev = getPreviousStep('summary', steps);
+                      if (prev) setCurrentStepId(prev);
+                    }}
+                    onSubmit={handleSubmit}
+                    texts={customTexts}
+                    getStepText={getStepText}
+                  />
                 )}
               </CardContent>
             </Card>
