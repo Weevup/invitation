@@ -31,7 +31,9 @@ export const ConsentStep = React.memo(({
       animate={{ opacity: 1, x: 0 }}
       className="space-y-4"
     >
-      <h3 className="text-lg font-semibold">Consentements</h3>
+      <h3 className="text-lg font-semibold">
+        {getStepText('consent', 'consentTitle', "Consentements")}
+      </h3>
       {enablePhotoConsent && (
         <div className="flex items-start space-x-2">
           <input
