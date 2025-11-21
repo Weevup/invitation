@@ -89,15 +89,15 @@ export function EmailsTab({ event, onUpdate }: EmailsTabProps) {
       {
         id: 'confirmation',
         phase: 4,
-        title: 'Confirmation',
-        description: 'Emails conditionnels envoyés automatiquement après RSVP',
+        title: 'Confirmation Automatique',
+        description: '⚠️ CRITIQUE : 2 templates requis (Accepté & Refusé) - Envoi automatique après chaque RSVP',
         icon: CheckCheck,
         color: '#4caf50',
         bgColor: 'from-green-50/50 to-transparent',
         borderColor: 'border-green-500/30',
-        status: 'configured',
+        status: 'not_configured',
         isAutomatic: true,
-        templateName: 'Confirmation présence / absence'
+        templateName: 'Non configuré'
       },
       {
         id: 'day-before',
@@ -267,34 +267,89 @@ export function EmailsTab({ event, onUpdate }: EmailsTabProps) {
 
                       {/* Special info for automatic phase */}
                       {phase.isAutomatic && (
-                        <div className="bg-purple-50 border border-purple-200 rounded-lg p-3 mt-2">
-                          <p className="text-xs text-purple-900">
-                            <strong>Envoi automatique :</strong> Dès qu&apos;un invité répond au RSVP,
-                            un email de confirmation lui est envoyé automatiquement selon sa réponse
-                            (présent ou absent).
-                          </p>
+                        <div className="space-y-3">
+                          <div className="bg-red-50 border border-red-300 rounded-lg p-4 mt-2">
+                            <p className="text-sm font-bold text-red-900 mb-2">
+                              ⚠️ CONFIGURATION OBLIGATOIRE
+                            </p>
+                            <p className="text-xs text-red-800 mb-3">
+                              Ces emails sont envoyés <strong>automatiquement</strong> dès qu&apos;un invité répond au RSVP.
+                              <strong className="block mt-1">Vous devez configurer 2 templates distincts</strong> :
+                            </p>
+                            <div className="space-y-2">
+                              <div className="flex items-start gap-2 text-xs text-red-900">
+                                <span className="font-bold">1.</span>
+                                <div>
+                                  <strong>Email Accepté</strong> : Envoyé quand l&apos;invité confirme sa présence
+                                  <br />
+                                  <span className="text-red-700">→ Doit inclure : infos pratiques, date, lieu, QR code</span>
+                                </div>
+                              </div>
+                              <div className="flex items-start gap-2 text-xs text-red-900">
+                                <span className="font-bold">2.</span>
+                                <div>
+                                  <strong>Email Refusé</strong> : Envoyé quand l&apos;invité décline l&apos;invitation
+                                  <br />
+                                  <span className="text-red-700">→ Doit inclure : message de regret personnalisé</span>
+                                </div>
+                              </div>
+                            </div>
+                            <div className="mt-3 p-2 bg-red-100 rounded text-xs text-red-900">
+                              <strong>⚡ Attention :</strong> Sans configuration, vos invités recevront des emails vides ou non-personnalisés !
+                            </div>
+                          </div>
                         </div>
                       )}
                     </div>
                   </div>
 
                   {/* Right: Actions */}
-                  <div className="flex flex-col gap-2 min-w-[180px]">
-                    {/* Template Actions */}
-                    <Link href={`/admin/events/${event.id}/confirmation-email?phase=${phase.id}`}>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="w-full border-[#004645] text-[#004645] hover:bg-[#004645] hover:text-white"
-                      >
-                        <Edit className="h-3 w-3 mr-2" />
-                        Modifier Template
-                      </Button>
-                    </Link>
-
-                    {/* Test Email */}
-                    {!phase.isAutomatic && (
+                  <div className="flex flex-col gap-2 min-w-[200px]">
+                    {/* Special actions for automatic confirmation phase */}
+                    {phase.isAutomatic ? (
                       <>
+                        <Link href={`/admin/events/${event.id}/confirmation-email?type=accepted`}>
+                          <Button
+                            size="sm"
+                            className="w-full bg-green-600 hover:bg-green-700 text-white"
+                          >
+                            <Edit className="h-3 w-3 mr-2" />
+                            Email "Accepté"
+                          </Button>
+                        </Link>
+                        <Link href={`/admin/events/${event.id}/confirmation-email?type=declined`}>
+                          <Button
+                            size="sm"
+                            className="w-full bg-red-600 hover:bg-red-700 text-white"
+                          >
+                            <Edit className="h-3 w-3 mr-2" />
+                            Email "Refusé"
+                          </Button>
+                        </Link>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="w-full border-green-600 text-green-600 hover:bg-green-600 hover:text-white"
+                        >
+                          <TestTube className="h-3 w-3 mr-2" />
+                          Tester les 2
+                        </Button>
+                      </>
+                    ) : (
+                      <>
+                        {/* Template Actions for non-automatic phases */}
+                        <Link href={`/admin/events/${event.id}/confirmation-email?phase=${phase.id}`}>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="w-full border-[#004645] text-[#004645] hover:bg-[#004645] hover:text-white"
+                          >
+                            <Edit className="h-3 w-3 mr-2" />
+                            Modifier Template
+                          </Button>
+                        </Link>
+
+                        {/* Test Email */}
                         <Button
                           size="sm"
                           variant="outline"
