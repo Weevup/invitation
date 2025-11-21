@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
-import { Calendar, MapPin, Clock, Users, Loader2 } from "lucide-react";
+import { Calendar, MapPin, Clock, Users, Loader2, CheckCircle2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { RSVPProgress } from "@/components/rsvp-progress";
 import { RSVPConfirmation } from "@/components/rsvp-confirmation";
@@ -93,6 +93,7 @@ export default function GuestPage() {
   const [data, setData] = useState<GuestData | null>(null);
   const [currentStepId, setCurrentStepId] = useState('response');
   const [steps, setSteps] = useState<StepConfig[]>([]);
+  const [showAutosaved, setShowAutosaved] = useState(false);
 
   // Form state
   const [attending, setAttending] = useState<boolean | null>(null);
@@ -223,6 +224,10 @@ export default function GuestPage() {
       };
 
       localStorage.setItem(draftKey, JSON.stringify(formData));
+
+      // Show autosave indicator
+      setShowAutosaved(true);
+      setTimeout(() => setShowAutosaved(false), 2000); // Hide after 2 seconds
     }, 1000); // 1 second debounce
 
     return () => clearTimeout(timeout);
@@ -475,13 +480,21 @@ export default function GuestPage() {
             {/* RSVP Form */}
             <Card className="border-[#9CD9F6]/30 bg-white/80 backdrop-blur">
               <CardHeader>
-                <CardTitle className="text-[#004645]" style={{ fontFamily: "var(--font-abril)" }}>
-                  {customTexts.formTitle}
-                </CardTitle>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-[#004645]" style={{ fontFamily: "var(--font-abril)" }}>
+                    {customTexts.formTitle}
+                  </CardTitle>
+                  <span className="text-xs bg-gradient-to-r from-[#009197] to-[#004645] text-white px-3 py-1 rounded-full font-medium flex items-center gap-1">
+                    ✨ Optimisé
+                  </span>
+                </div>
                 <CardDescription className="text-[#004645]/70">
                   {customTexts.formSubtitle}{" "}
                   {event.rsvpDeadline &&
                     new Date(event.rsvpDeadline).toLocaleDateString("fr-FR")}
+                  <span className="block text-xs mt-1 text-[#009197]">
+                    💾 Sauvegarde automatique • ⚡ Performance améliorée
+                  </span>
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -684,6 +697,21 @@ export default function GuestPage() {
                 Retour à l&apos;accueil
               </Button>
             </div>
+          </motion.div>
+        )}
+
+        {/* Autosave indicator */}
+        {showAutosaved && currentStepId !== 'success' && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            className="fixed bottom-8 right-8 bg-white border border-[#009197]/20 shadow-lg rounded-lg px-4 py-3 flex items-center space-x-2 z-50"
+          >
+            <CheckCircle2 className="h-5 w-5 text-[#009197]" />
+            <span className="text-sm text-[#004645] font-medium">
+              Enregistré automatiquement
+            </span>
           </motion.div>
         )}
       </div>
