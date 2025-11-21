@@ -55,6 +55,13 @@ export function EventLaunchChecklist({ eventId, totalGuests, onOpenWizard }: Eve
         const templates = await templatesRes.json()
         const hasInvitationTemplate = templates && templates.length > 0
 
+        // Check if confirmation templates exist
+        const confirmTemplatesRes = await fetch(`/api/admin/templates?eventId=${eventId}`)
+        const allTemplates = await confirmTemplatesRes.json()
+        const hasConfirmationTemplate = allTemplates && allTemplates.some(
+          (t: any) => t.type === 'CONFIRMATION' && t.isActive
+        )
+
         // Check RSVP configuration
         const eventRes = await fetch(`/api/admin/events/${eventId}`)
         const eventData = await eventRes.json()
@@ -102,6 +109,18 @@ export function EventLaunchChecklist({ eventId, totalGuests, onOpenWizard }: Eve
             icon: Sparkles,
             href: `/admin/events/${eventId}/email-editor`,
             actionLabel: 'Créer un template',
+            priority: 'important'
+          },
+          {
+            id: 'confirmation-template',
+            label: 'Email de confirmation',
+            description: hasConfirmationTemplate
+              ? 'Email de confirmation actif'
+              : 'Configurez un email personnalisé',
+            status: hasConfirmationTemplate ? 'completed' : 'pending',
+            icon: CheckCircle2,
+            href: `/admin/events/${eventId}/emails`,
+            actionLabel: 'Configurer',
             priority: 'important'
           },
           {

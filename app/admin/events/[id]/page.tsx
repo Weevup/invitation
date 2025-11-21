@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import {
-  Mail, Users, Clock, Send, CheckCircle, Sparkles, Bell, Megaphone, BarChart3, ArrowRight, QrCode, UserCheck, UtensilsCrossed, XCircle
+  Mail, Users, Clock, Send, CheckCircle, Sparkles, Bell, Megaphone, BarChart3, ArrowRight, QrCode, UserCheck, UtensilsCrossed, XCircle, TestTube, Eye, TrendingUp
 } from 'lucide-react'
 import Link from 'next/link'
 import { AddGuestDialog } from '@/components/add-guest-dialog'
@@ -114,7 +114,7 @@ export default function EventOverviewPage() {
                 Cycle de l&apos;événement
               </CardTitle>
               <CardDescription className="text-[#004645]/70">
-                Save the Date → Invitation → RSVP
+                Save the Date → Invitation → RSVP → Confirmation
               </CardDescription>
             </div>
           </div>
@@ -122,9 +122,9 @@ export default function EventOverviewPage() {
         <CardContent>
           <div className="relative">
             {/* Ligne de connexion */}
-            <div className="absolute top-8 left-0 right-0 h-1 bg-gradient-to-r from-[#FF4713] via-[#009197] to-[#004645] opacity-20 hidden md:block" />
+            <div className="absolute top-8 left-0 right-0 h-1 bg-gradient-to-r from-[#FF4713] via-[#009197] via-[#004645] to-green-600 opacity-20 hidden md:block" />
 
-            <div className="grid md:grid-cols-3 gap-6 relative">
+            <div className="grid md:grid-cols-4 gap-4 relative">
               {/* Étape 1: Save the Date */}
               <div className="text-center">
                 <div className="relative mx-auto mb-4 w-16 h-16 bg-gradient-to-br from-[#FF4713] to-[#FF6B3D] rounded-full flex items-center justify-center shadow-lg">
@@ -169,6 +169,113 @@ export default function EventOverviewPage() {
                   Confirmation de participation
                 </p>
               </div>
+
+              {/* Étape 4: Confirmation - NOUVELLE */}
+              <div className="text-center">
+                <div className="relative mx-auto mb-4 w-16 h-16 bg-gradient-to-br from-green-600 to-emerald-500 rounded-full flex items-center justify-center shadow-lg">
+                  <Mail className="h-8 w-8 text-white" />
+                  <div className="absolute -top-2 -right-2 w-8 h-8 bg-white rounded-full flex items-center justify-center border-2 border-green-600">
+                    <span className="text-xs font-bold text-green-600">4</span>
+                  </div>
+                </div>
+                <h3 className="font-bold text-[#004645] mb-1">Confirmation</h3>
+                <p className="text-xs text-[#004645]/60 mb-2">Automatique</p>
+                <p className="text-sm text-[#004645]/70">
+                  Email personnalisé selon réponse
+                </p>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Nouveau: Email Hub - Gestion centralisée */}
+      <Card className="border-[#009197]/30 bg-gradient-to-br from-[#009197]/5 to-white/80 backdrop-blur">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-3 rounded-lg bg-gradient-to-br from-[#009197] to-[#9CD9F6]">
+                <Mail className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <CardTitle className="text-[#004645]" style={{ fontFamily: "var(--font-abril)" }}>
+                  Hub Email
+                </CardTitle>
+                <CardDescription className="text-[#004645]/70">
+                  Gérez tous vos emails depuis un seul endroit
+                </CardDescription>
+              </div>
+            </div>
+            <Link href={`/admin/events/${eventId}/emails`}>
+              <Button className="bg-gradient-to-r from-[#009197] to-[#9CD9F6] hover:from-[#007B82] hover:to-[#009197] text-white">
+                <BarChart3 className="h-4 w-4 mr-2" />
+                Ouvrir le Hub
+                <ArrowRight className="h-4 w-4 ml-2" />
+              </Button>
+            </Link>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="grid md:grid-cols-4 gap-4">
+            {/* Templates & Analytics */}
+            <div className="flex items-start gap-3 p-4 bg-gradient-to-br from-purple-50 to-transparent rounded-lg border border-purple-100">
+              <Sparkles className="h-8 w-8 text-purple-600 flex-shrink-0" />
+              <div>
+                <p className="font-semibold text-[#004645] mb-1">Templates Visuels</p>
+                <p className="text-sm text-[#004645]/70">
+                  Créez des emails avec l&apos;éditeur WYSIWYG
+                </p>
+              </div>
+            </div>
+
+            {/* Test Emails */}
+            <div className="flex items-start gap-3 p-4 bg-gradient-to-br from-blue-50 to-transparent rounded-lg border border-blue-100">
+              <TestTube className="h-8 w-8 text-blue-600 flex-shrink-0" />
+              <div>
+                <p className="font-semibold text-[#004645] mb-1">Test d&apos;Emails</p>
+                <p className="text-sm text-[#004645]/70">
+                  Prévisualisez avant d&apos;envoyer
+                </p>
+              </div>
+            </div>
+
+            {/* Conditional Templates */}
+            <div className="flex items-start gap-3 p-4 bg-gradient-to-br from-green-50 to-transparent rounded-lg border border-green-100">
+              <CheckCircle className="h-8 w-8 text-green-600 flex-shrink-0" />
+              <div>
+                <p className="font-semibold text-[#004645] mb-1">Emails Conditionnels</p>
+                <p className="text-sm text-[#004645]/70">
+                  Différents selon acceptation/refus
+                </p>
+              </div>
+            </div>
+
+            {/* Analytics */}
+            <div className="flex items-start gap-3 p-4 bg-gradient-to-br from-orange-50 to-transparent rounded-lg border border-orange-100">
+              <TrendingUp className="h-8 w-8 text-orange-600 flex-shrink-0" />
+              <div>
+                <p className="font-semibold text-[#004645] mb-1">Analytics Temps Réel</p>
+                <p className="text-sm text-[#004645]/70">
+                  Taux d&apos;ouverture et clics
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Quick Actions */}
+          <div className="mt-4 p-4 bg-[#009197]/5 rounded-lg border border-[#009197]/20">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Eye className="h-5 w-5 text-[#009197]" />
+                <p className="text-sm font-medium text-[#004645]">
+                  Nouveauté : Prévisualisez et testez vos templates avant envoi
+                </p>
+              </div>
+              <Link href={`/admin/events/${eventId}/emails`}>
+                <Button variant="outline" size="sm" className="border-[#009197] text-[#009197] hover:bg-[#009197] hover:text-white">
+                  Découvrir →
+                </Button>
+              </Link>
             </div>
           </div>
         </CardContent>
@@ -415,24 +522,32 @@ export default function EventOverviewPage() {
         </div>
       </div>
 
-      {/* Gestion des communications */}
+      {/* Gestion des communications - Mise à jour */}
       <Card className="border-[#009197]/30 bg-white/80 backdrop-blur">
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
               <CardTitle className="text-[#004645]" style={{ fontFamily: "var(--font-abril)" }}>
-                Gestion des communications
+                Campagnes d&apos;envoi
               </CardTitle>
               <CardDescription className="text-[#004645]/70">
-                Planifiez vos envois et suivez les statistiques
+                Planifiez vos envois et gérez vos campagnes
               </CardDescription>
             </div>
-            <Link href={`/admin/events/${eventId}/communications`}>
-              <Button className="bg-gradient-to-r from-[#004645] to-[#009197] hover:from-[#006C51] hover:to-[#009197] text-white">
-                <Megaphone className="h-4 w-4 mr-2" />
-                Gérer les envois
-              </Button>
-            </Link>
+            <div className="flex gap-2">
+              <Link href={`/admin/events/${eventId}/emails`}>
+                <Button variant="outline" className="border-[#009197] text-[#009197] hover:bg-[#009197] hover:text-white">
+                  <Mail className="h-4 w-4 mr-2" />
+                  Hub Email
+                </Button>
+              </Link>
+              <Link href={`/admin/events/${eventId}/communications`}>
+                <Button className="bg-gradient-to-r from-[#004645] to-[#009197] hover:from-[#006C51] hover:to-[#009197] text-white">
+                  <Megaphone className="h-4 w-4 mr-2" />
+                  Campagnes
+                </Button>
+              </Link>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
@@ -472,13 +587,13 @@ export default function EventOverviewPage() {
                 Guide rapide
               </CardTitle>
               <CardDescription className="text-[#004645]/70">
-                Suivez ces 4 étapes pour gérer votre événement
+                Suivez ces 5 étapes pour gérer votre événement
               </CardDescription>
             </div>
           </div>
         </CardHeader>
         <CardContent>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-4">
             {/* Étape 1 */}
             <div className="relative">
               <div className="flex items-start gap-3">
@@ -488,7 +603,7 @@ export default function EventOverviewPage() {
                 <div className="flex-1">
                   <h3 className="font-bold text-[#004645] mb-2">Ajoutez des invités</h3>
                   <p className="text-sm text-[#004645]/70 mb-3">
-                    Créez votre liste d&apos;invités manuellement ou importez un fichier CSV
+                    Créez votre liste d&apos;invités ou importez un CSV
                   </p>
                   <div className="flex gap-2 flex-wrap">
                     <AddGuestDialog eventId={eventId} onGuestAdded={fetchEvent} />
@@ -498,22 +613,27 @@ export default function EventOverviewPage() {
               </div>
             </div>
 
-            {/* Étape 2 */}
+            {/* Étape 2 - NOUVELLE: Configuration Email */}
             <div className="relative">
               <div className="flex items-start gap-3">
-                <div className="flex-shrink-0 bg-gradient-to-br from-[#004645] to-[#009197] text-white w-10 h-10 rounded-full flex items-center justify-center font-bold" style={{ fontFamily: "var(--font-abril)" }}>
+                <div className="flex-shrink-0 bg-gradient-to-br from-purple-600 to-purple-400 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold" style={{ fontFamily: "var(--font-abril)" }}>
                   2
                 </div>
                 <div className="flex-1">
-                  <h3 className="font-bold text-[#004645] mb-2">Envoyez les invitations</h3>
+                  <h3 className="font-bold text-[#004645] mb-2">Configurez vos emails</h3>
                   <p className="text-sm text-[#004645]/70 mb-3">
-                    Envoyez des emails personnalisés à vos invités avec leur lien unique
+                    Créez et testez vos templates d&apos;email
                   </p>
-                  <SendInvitationsDialog
-                    eventId={eventId}
-                    totalGuests={totalGuests}
-                    pendingGuests={totalGuests - respondedGuests}
-                  />
+                  <Link href={`/admin/events/${eventId}/emails`}>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="border-purple-600 text-purple-600 hover:bg-purple-600 hover:text-white"
+                    >
+                      <Mail className="h-4 w-4 mr-2" />
+                      Hub Email
+                    </Button>
+                  </Link>
                 </div>
               </div>
             </div>
@@ -525,34 +645,54 @@ export default function EventOverviewPage() {
                   3
                 </div>
                 <div className="flex-1">
+                  <h3 className="font-bold text-[#004645] mb-2">Envoyez les invitations</h3>
+                  <p className="text-sm text-[#004645]/70 mb-3">
+                    Envoyez des emails à vos invités avec leur lien RSVP
+                  </p>
+                  <SendInvitationsDialog
+                    eventId={eventId}
+                    totalGuests={totalGuests}
+                    pendingGuests={totalGuests - respondedGuests}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Étape 4 */}
+            <div className="relative">
+              <div className="flex items-start gap-3">
+                <div className="flex-shrink-0 bg-gradient-to-br from-green-600 to-emerald-500 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold" style={{ fontFamily: "var(--font-abril)" }}>
+                  4
+                </div>
+                <div className="flex-1">
                   <h3 className="font-bold text-[#004645] mb-2">Suivez les réponses</h3>
                   <p className="text-sm text-[#004645]/70 mb-3">
-                    Consultez les réponses en temps réel dans la section invités
+                    Consultez les réponses et analytics en temps réel
                   </p>
                   <Link href={`/admin/events/${eventId}/guests`}>
                     <Button
                       variant="outline"
                       size="sm"
-                      className="border-[#004645] text-[#004645] hover:bg-[#004645] hover:text-white"
+                      className="border-green-600 text-green-600 hover:bg-green-600 hover:text-white"
                     >
                       <Users className="h-4 w-4 mr-2" />
-                      Voir les invités
+                      Voir invités
                     </Button>
                   </Link>
                 </div>
               </div>
             </div>
 
-            {/* Étape 4 - Nouveau */}
+            {/* Étape 5 */}
             <div className="relative">
               <div className="flex items-start gap-3">
                 <div className="flex-shrink-0 bg-gradient-to-br from-[#009197] to-[#9CD9F6] text-white w-10 h-10 rounded-full flex items-center justify-center font-bold" style={{ fontFamily: "var(--font-abril)" }}>
-                  4
+                  5
                 </div>
                 <div className="flex-1">
                   <h3 className="font-bold text-[#004645] mb-2">Check-in le jour J</h3>
                   <p className="text-sm text-[#004645]/70 mb-3">
-                    Enregistrez les arrivées avec le scanner QR code
+                    Enregistrez les arrivées avec QR code
                   </p>
                   <Link href={`/admin/events/${eventId}/checkin`}>
                     <Button
@@ -561,7 +701,7 @@ export default function EventOverviewPage() {
                       className="border-[#009197] text-[#009197] hover:bg-[#009197] hover:text-white"
                     >
                       <QrCode className="h-4 w-4 mr-2" />
-                      Scanner QR codes
+                      Check-in
                     </Button>
                   </Link>
                 </div>
