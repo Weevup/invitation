@@ -442,7 +442,7 @@ export default function RSVPTextsPage() {
             </div>
 
             <div>
-              <Label htmlFor="plusOnesNone">Option "Aucun"</Label>
+              <Label htmlFor="plusOnesNone">Option &quot;Aucun&quot;</Label>
               <Input
                 id="plusOnesNone"
                 value={texts.plusOnesNone || ""}
@@ -656,7 +656,7 @@ export default function RSVPTextsPage() {
             </div>
 
             <div>
-              <Label htmlFor="summaryParticipation">Label "Participation"</Label>
+              <Label htmlFor="summaryParticipation">Label &quot;Participation&quot;</Label>
               <Input
                 id="summaryParticipation"
                 value={texts.summaryParticipation || ""}
@@ -668,7 +668,7 @@ export default function RSVPTextsPage() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="summaryYes">Réponse "Oui"</Label>
+                <Label htmlFor="summaryYes">Réponse &quot;Oui&quot;</Label>
                 <Input
                   id="summaryYes"
                   value={texts.summaryYes || ""}
@@ -679,7 +679,7 @@ export default function RSVPTextsPage() {
               </div>
 
               <div>
-                <Label htmlFor="summaryNo">Réponse "Non"</Label>
+                <Label htmlFor="summaryNo">Réponse &quot;Non&quot;</Label>
                 <Input
                   id="summaryNo"
                   value={texts.summaryNo || ""}
@@ -691,7 +691,7 @@ export default function RSVPTextsPage() {
             </div>
 
             <div>
-              <Label htmlFor="summaryPlusOnes">Label "Accompagnants"</Label>
+              <Label htmlFor="summaryPlusOnes">Label &quot;Accompagnants&quot;</Label>
               <Input
                 id="summaryPlusOnes"
                 value={texts.summaryPlusOnes || ""}
@@ -702,7 +702,7 @@ export default function RSVPTextsPage() {
             </div>
 
             <div>
-              <Label htmlFor="summaryMeal">Label "Repas"</Label>
+              <Label htmlFor="summaryMeal">Label &quot;Repas&quot;</Label>
               <Input
                 id="summaryMeal"
                 value={texts.summaryMeal || ""}
@@ -713,7 +713,7 @@ export default function RSVPTextsPage() {
             </div>
 
             <div>
-              <Label htmlFor="summaryAllergies">Label "Allergies"</Label>
+              <Label htmlFor="summaryAllergies">Label &quot;Allergies&quot;</Label>
               <Input
                 id="summaryAllergies"
                 value={texts.summaryAllergies || ""}
@@ -724,7 +724,7 @@ export default function RSVPTextsPage() {
             </div>
 
             <div>
-              <Label htmlFor="summaryModifyUntil">Texte "Modifier jusqu'au"</Label>
+              <Label htmlFor="summaryModifyUntil">Texte &quot;Modifier jusqu&apos;au&quot;</Label>
               <Input
                 id="summaryModifyUntil"
                 value={texts.summaryModifyUntil || ""}
@@ -744,7 +744,7 @@ export default function RSVPTextsPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <Label htmlFor="formBadge">Badge "Optimisé"</Label>
+              <Label htmlFor="formBadge">Badge &quot;Optimisé&quot;</Label>
               <Input
                 id="formBadge"
                 value={texts.formBadge || ""}
