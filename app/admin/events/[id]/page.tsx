@@ -201,6 +201,12 @@ export default function EventOverviewPage() {
                 </div>
               </div>
               <div className="flex flex-col gap-2">
+                <Link href={`/admin/events/${eventId}/rsvp-texts`}>
+                  <Button size="sm" variant="outline" className="border-[#009197] text-[#009197] hover:bg-[#009197] hover:text-white w-full">
+                    <Sparkles className="h-3 w-3 mr-2" />
+                    Textes RSVP
+                  </Button>
+                </Link>
                 <Link href={`/admin/events/${eventId}/emails`}>
                   <Button size="sm" variant="outline" className="border-[#009197] text-[#009197] hover:bg-[#009197] hover:text-white">
                     <TestTube className="h-3 w-3 mr-2" />
