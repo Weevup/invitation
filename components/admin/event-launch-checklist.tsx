@@ -34,9 +34,10 @@ interface ChecklistItem {
 interface EventLaunchChecklistProps {
   eventId: string
   totalGuests: number
+  onOpenWizard?: () => void
 }
 
-export function EventLaunchChecklist({ eventId, totalGuests }: EventLaunchChecklistProps) {
+export function EventLaunchChecklist({ eventId, totalGuests, onOpenWizard }: EventLaunchChecklistProps) {
   const [checklist, setChecklist] = useState<ChecklistItem[]>([])
   const [loading, setLoading] = useState(true)
   const [isExpanded, setIsExpanded] = useState(true)
@@ -264,6 +265,32 @@ export function EventLaunchChecklist({ eventId, totalGuests }: EventLaunchCheckl
               </div>
             )
           })}
+
+          {/* CTA when not ready - Quick Setup Wizard */}
+          {!isReadyToLaunch && onOpenWizard && (
+            <div className="mt-6 p-4 bg-gradient-to-r from-[#004645] to-[#009197] rounded-lg text-white">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="font-bold mb-1 flex items-center gap-2">
+                    <Sparkles className="h-5 w-5" />
+                    Configuration rapide
+                  </h4>
+                  <p className="text-sm text-white/90">
+                    Laissez-nous vous guider étape par étape pour configurer votre événement.
+                  </p>
+                </div>
+                <Button
+                  onClick={onOpenWizard}
+                  variant="secondary"
+                  size="sm"
+                  className="bg-white text-[#004645] hover:bg-white/90"
+                >
+                  Démarrer
+                  <ArrowRight className="h-4 w-4 ml-1" />
+                </Button>
+              </div>
+            </div>
+          )}
 
           {/* CTA when ready */}
           {isReadyToLaunch && (

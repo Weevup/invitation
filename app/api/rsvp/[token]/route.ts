@@ -169,17 +169,29 @@ export async function POST(
       eventVenue += eventVenue ? `, ${guest.event.city}` : guest.event.city
     }
 
-    // Try to use custom CONFIRMATION template if available
-    const customTemplate = await prisma.emailTemplate.findFirst({
+    // Try to use conditional template based on response (accepted vs declined)
+    // First try to find a template with specific slug for the response type
+    const conditionalSlug = attending ? 'confirmation-accepted' : 'confirmation-declined'
+    let customTemplate = await prisma.emailTemplate.findFirst({
       where: {
-        type: 'CONFIRMATION',
+        slug: conditionalSlug,
         isActive: true,
       },
-      orderBy: [
-        { isDefault: 'desc' }, // Prefer default template
-        { updatedAt: 'desc' }  // Or most recent
-      ]
     })
+
+    // If no conditional template, try generic CONFIRMATION template
+    if (!customTemplate) {
+      customTemplate = await prisma.emailTemplate.findFirst({
+        where: {
+          type: 'CONFIRMATION',
+          isActive: true,
+        },
+        orderBy: [
+          { isDefault: 'desc' }, // Prefer default template
+          { updatedAt: 'desc' }  // Or most recent
+        ]
+      })
+    }
 
     if (customTemplate) {
       // Use custom WYSIWYG template
