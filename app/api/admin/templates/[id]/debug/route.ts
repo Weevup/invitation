@@ -69,7 +69,7 @@ export async function GET(
           }))
         }).flat()
       } catch (e) {
-        logger.error(e, { action: 'parseBlocks' })
+        logger.error({ error: e }, 'Error parsing blocks')
       }
     }
 
