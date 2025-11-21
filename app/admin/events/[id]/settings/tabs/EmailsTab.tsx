@@ -174,12 +174,20 @@ export function EmailsTab({ event, onUpdate }: EmailsTabProps) {
                 Gérez les 5 phases de communication de votre événement au même endroit
               </CardDescription>
             </div>
-            <Link href={`/admin/events/${event.id}/email-analytics`}>
-              <Button variant="outline" className="border-[#009197] text-[#009197]">
-                <BarChart3 className="h-4 w-4 mr-2" />
-                Analytics
-              </Button>
-            </Link>
+            <div className="flex gap-2">
+              <Link href={`/admin/events/${event.id}/confirmation-email`}>
+                <Button className="bg-gradient-to-r from-[#004645] to-[#009197] text-white">
+                  <Edit className="h-4 w-4 mr-2" />
+                  Créer un Template
+                </Button>
+              </Link>
+              <Link href={`/admin/events/${event.id}/email-analytics`}>
+                <Button variant="outline" className="border-[#009197] text-[#009197]">
+                  <BarChart3 className="h-4 w-4 mr-2" />
+                  Analytics
+                </Button>
+              </Link>
+            </div>
           </div>
         </CardHeader>
       </Card>
@@ -271,18 +279,20 @@ export function EmailsTab({ event, onUpdate }: EmailsTabProps) {
                   </div>
 
                   {/* Right: Actions */}
-                  <div className="flex flex-col gap-2 min-w-[140px]">
-                    <Link href={`/admin/events/${event.id}/emails?phase=${phase.id}`}>
+                  <div className="flex flex-col gap-2 min-w-[180px]">
+                    {/* Template Actions */}
+                    <Link href={`/admin/events/${event.id}/confirmation-email?phase=${phase.id}`}>
                       <Button
                         size="sm"
                         variant="outline"
                         className="w-full border-[#004645] text-[#004645] hover:bg-[#004645] hover:text-white"
                       >
                         <Edit className="h-3 w-3 mr-2" />
-                        Éditer
+                        Modifier Template
                       </Button>
                     </Link>
 
+                    {/* Test Email */}
                     {!phase.isAutomatic && (
                       <>
                         <Button
@@ -306,6 +316,7 @@ export function EmailsTab({ event, onUpdate }: EmailsTabProps) {
                           Tester
                         </Button>
 
+                        {/* Send/Schedule Actions */}
                         {phase.status === 'sent' ? (
                           <Button
                             size="sm"
