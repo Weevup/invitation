@@ -902,7 +902,7 @@ export function EmailsTab({ event, onUpdate }: EmailsTabProps) {
                               <strong>✓ Génération automatique :</strong> Les badges avec QR code sont générés automatiquement pour tous les invités confirmés.
                             </p>
                             <p>
-                              <strong>🎨 Personnalisation :</strong> Cliquez sur "Configurer Badges" pour choisir le design, les champs affichés, et la taille du QR code.
+                              <strong>🎨 Personnalisation :</strong> Cliquez sur &quot;Configurer Badges&quot; pour choisir le design, les champs affichés, et la taille du QR code.
                             </p>
                             <p>
                               <strong>📅 Timing optimal :</strong> Cette phase (J-7 à J-3) est le moment idéal pour envoyer le badge avec toutes les infos pratiques finalisées.
