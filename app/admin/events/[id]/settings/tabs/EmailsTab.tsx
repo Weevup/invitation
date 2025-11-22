@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from '@/components/ui/input'
 import {
   Bell, Sparkles, Repeat, CheckCheck, Clock,
-  Send, Calendar, TestTube, Edit, BarChart3, Users, Loader2
+  Send, Calendar, TestTube, Edit, BarChart3, Users, Loader2, List, Settings
 } from 'lucide-react'
 import Link from 'next/link'
 import { toast } from 'sonner'
@@ -808,6 +808,72 @@ export function EmailsTab({ event, onUpdate }: EmailsTabProps) {
 
                           <p className="text-xs text-amber-800">
                             Ou cliquez sur <strong>&quot;Créer/Modifier Template&quot;</strong> à droite pour créer un nouveau template
+                          </p>
+                        </div>
+                      )}
+
+                      {/* RSVP Configuration Section (Phase 2 only) */}
+                      {phase.id === 'invitation' && (
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-3">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-semibold text-blue-900">📋 Configuration RSVP</span>
+                              {event.rsvpDeadline ? (
+                                <Badge className="bg-green-100 text-green-800">
+                                  ✓ Configuré
+                                </Badge>
+                              ) : (
+                                <Badge variant="outline" className="border-orange-300 text-orange-700">
+                                  ⚠️ À configurer
+                                </Badge>
+                              )}
+                            </div>
+                            <Link href={`/admin/events/${event.id}/settings?tab=rsvp`}>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white"
+                              >
+                                <Settings className="h-3 w-3 mr-2" />
+                                Configurer RSVP
+                              </Button>
+                            </Link>
+                          </div>
+                          <div className="grid grid-cols-2 gap-3 text-sm">
+                            {event.rsvpDeadline ? (
+                              <div className="flex items-center gap-2">
+                                <Calendar className="h-4 w-4 text-blue-600" />
+                                <span className="text-blue-900">
+                                  <strong>Date limite :</strong>{' '}
+                                  {new Date(event.rsvpDeadline).toLocaleDateString('fr-FR', {
+                                    day: 'numeric',
+                                    month: 'short',
+                                    year: 'numeric'
+                                  })}
+                                </span>
+                              </div>
+                            ) : (
+                              <div className="flex items-center gap-2 text-orange-700">
+                                <Calendar className="h-4 w-4" />
+                                <span>Date limite non définie</span>
+                              </div>
+                            )}
+                            {event.rsvpConfig && (event.rsvpConfig as any).customSteps ? (
+                              <div className="flex items-center gap-2">
+                                <List className="h-4 w-4 text-blue-600" />
+                                <span className="text-blue-900">
+                                  <strong>Étapes :</strong> {(event.rsvpConfig as any).customSteps.filter((s: any) => s.enabled).length} configurées
+                                </span>
+                              </div>
+                            ) : (
+                              <div className="flex items-center gap-2 text-blue-700">
+                                <List className="h-4 w-4" />
+                                <span>Formulaire standard</span>
+                              </div>
+                            )}
+                          </div>
+                          <p className="text-xs text-blue-800">
+                            💡 L&apos;invitation contient le lien RSVP unique pour chaque invité. Configurez le formulaire et la date limite avant l&apos;envoi.
                           </p>
                         </div>
                       )}
