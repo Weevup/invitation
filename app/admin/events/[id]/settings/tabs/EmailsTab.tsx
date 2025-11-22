@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import {
   Bell, Sparkles, Repeat, CheckCheck, Clock,
   Send, Calendar, TestTube, Edit, BarChart3, Users
@@ -41,10 +42,24 @@ interface PhaseConfig {
 export function EmailsTab({ event, onUpdate }: EmailsTabProps) {
   const [phases, setPhases] = useState<PhaseConfig[]>([])
   const [loading, setLoading] = useState(false)
+  const [availableTemplates, setAvailableTemplates] = useState<any[]>([])
 
   useEffect(() => {
     loadPhases()
+    loadAvailableTemplates()
   }, [event])
+
+  const loadAvailableTemplates = async () => {
+    try {
+      const response = await fetch(`/api/admin/templates?eventId=${event.id}`)
+      if (response.ok) {
+        const templates = await response.json()
+        setAvailableTemplates(templates)
+      }
+    } catch (error) {
+      console.error('Failed to load templates:', error)
+    }
+  }
 
   const loadPhases = () => {
     // Define all available phases with default configuration
@@ -206,6 +221,60 @@ export function EmailsTab({ event, onUpdate }: EmailsTabProps) {
     }
   }
 
+  const assignTemplateToPhase = async (phaseId: string, templateId: string) => {
+    const selectedTemplate = availableTemplates.find(t => t.id === templateId)
+    if (!selectedTemplate) return
+
+    // Update local state
+    setPhases(prevPhases =>
+      prevPhases.map(phase =>
+        phase.id === phaseId
+          ? { ...phase, templateName: selectedTemplate.name, status: 'configured' as const }
+          : phase
+      )
+    )
+
+    // Save to database
+    setLoading(true)
+    try {
+      const updatedPhases = phases.map(phase =>
+        phase.id === phaseId
+          ? { ...phase, templateName: selectedTemplate.name, status: 'configured' as const }
+          : phase
+      )
+
+      const phasesConfig = updatedPhases.map(phase => ({
+        id: phase.id,
+        phase: phase.phase,
+        enabled: phase.enabled,
+        status: phase.status,
+        templateName: phase.templateName,
+        templateId: phase.id === phaseId ? templateId : undefined,
+        scheduledDate: phase.scheduledDate?.toISOString(),
+        recipients: phase.recipients
+      }))
+
+      const response = await fetch(`/api/admin/events/${event.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          emailCampaignsConfig: {
+            phases: phasesConfig
+          }
+        })
+      })
+
+      if (!response.ok) throw new Error('Failed to save template')
+
+      toast.success(`Template "${selectedTemplate.name}" assigné à la phase`)
+      onUpdate()
+    } catch (error) {
+      toast.error('Erreur lors de l\'assignation du template')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const getStatusBadge = (phase: PhaseConfig) => {
     switch (phase.status) {
       case 'sent':
@@ -348,9 +417,34 @@ export function EmailsTab({ event, onUpdate }: EmailsTabProps) {
 
                       {/* Help message for unconfigured phases */}
                       {phase.enabled && phase.status === 'not_configured' && !phase.isAutomatic && (
-                        <div className="bg-amber-50 border border-amber-300 rounded-lg p-3 mt-2">
+                        <div className="bg-amber-50 border border-amber-300 rounded-lg p-3 mt-2 space-y-3">
                           <p className="text-sm text-amber-900">
-                            👉 <strong>Action requise :</strong> Cliquez sur <strong>&quot;Modifier Template&quot;</strong> à droite pour créer l&apos;email de cette phase
+                            👉 <strong>Action requise :</strong> Sélectionnez un template existant ou créez-en un nouveau
+                          </p>
+
+                          {/* Template Selector */}
+                          {availableTemplates.length > 0 && (
+                            <div className="flex items-center gap-3">
+                              <Label htmlFor={`template-${phase.id}`} className="text-sm font-medium text-amber-900 whitespace-nowrap">
+                                Sélectionner un template :
+                              </Label>
+                              <Select onValueChange={(value) => assignTemplateToPhase(phase.id, value)}>
+                                <SelectTrigger id={`template-${phase.id}`} className="flex-1 bg-white">
+                                  <SelectValue placeholder="Choisir un template..." />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {availableTemplates.map((template) => (
+                                    <SelectItem key={template.id} value={template.id}>
+                                      {template.name} {template.type && `(${template.type})`}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          )}
+
+                          <p className="text-xs text-amber-800">
+                            Ou cliquez sur <strong>&quot;Modifier Template&quot;</strong> à droite pour créer un nouveau template
                           </p>
                         </div>
                       )}
