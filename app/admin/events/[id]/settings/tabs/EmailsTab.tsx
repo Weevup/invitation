@@ -118,12 +118,12 @@ export function EmailsTab({ event, onUpdate }: EmailsTabProps) {
   // Filter templates by phase type
   const getTemplatesForPhase = (phaseId: string) => {
     const typeMapping: Record<string, string[]> = {
-      'save-the-date': ['save-the-date', 'announcement'],
-      'invitation': ['invitation', 'invite'],
-      'reminder': ['reminder', 'follow-up'],
-      'confirmation': ['confirmation', 'accepted', 'declined'],
-      'practical-info': ['info', 'practical', 'badge'],
-      'day-before': ['reminder', 'last-minute']
+      'save-the-date': ['save-the-date', 'announcement', 'save the date'],
+      'invitation': ['invitation', 'invite', 'invit'],
+      'reminder': ['reminder', 'follow-up', 'relance', 'rappel'],
+      'confirmation': ['confirmation', 'accepted', 'declined', 'confirmé', 'refusé'],
+      'practical-info': ['info', 'practical', 'badge', 'pratique'],
+      'day-before': ['reminder', 'last-minute', 'rappel', 'jour-j']
     }
 
     const validTypes = typeMapping[phaseId] || []
@@ -133,12 +133,45 @@ export function EmailsTab({ event, onUpdate }: EmailsTabProps) {
       return availableTemplates
     }
 
-    // Filter templates by type
-    return availableTemplates.filter(template => {
-      if (!template.type) return true // Show templates without type
-      const templateType = template.type.toLowerCase()
-      return validTypes.some(validType => templateType.includes(validType))
+    // Exclude confirmation templates from other phases
+    const excludeConfirmation = phaseId !== 'confirmation'
+
+    // Filter templates by type, name, and slug (more flexible matching)
+    const filtered = availableTemplates.filter(template => {
+      // Exclude confirmation-specific templates from other phases
+      if (excludeConfirmation) {
+        if (template.slug === 'confirmation-accepted' || template.slug === 'confirmation-declined') {
+          return false
+        }
+      }
+
+      // If template has no type, name, or slug, show it
+      if (!template.type && !template.name && !template.slug) return true
+
+      const templateType = (template.type || '').toLowerCase()
+      const templateName = (template.name || '').toLowerCase()
+      const templateSlug = (template.slug || '').toLowerCase()
+
+      // Check if any of the valid types match the type, name, or slug
+      return validTypes.some(validType => {
+        const searchTerm = validType.toLowerCase()
+        return (
+          templateType.includes(searchTerm) ||
+          templateName.includes(searchTerm) ||
+          templateSlug.includes(searchTerm)
+        )
+      })
     })
+
+    // If no templates match the strict filter, show all non-confirmation templates
+    if (filtered.length === 0 && excludeConfirmation) {
+      return availableTemplates.filter(t =>
+        t.slug !== 'confirmation-accepted' &&
+        t.slug !== 'confirmation-declined'
+      )
+    }
+
+    return filtered
   }
 
   const loadPhases = () => {
@@ -1232,6 +1265,189 @@ export function EmailsTab({ event, onUpdate }: EmailsTabProps) {
                               <strong>⚡ Attention :</strong> Sans configuration, vos invités recevront des emails vides ou non-personnalisés !
                             </div>
                           </div>
+
+                          {/* Template Selection for Confirmation Emails */}
+                          {(() => {
+                            const acceptedTemplate = availableTemplates.find(t => t.slug === 'confirmation-accepted' && t.isActive)
+                            const declinedTemplate = availableTemplates.find(t => t.slug === 'confirmation-declined' && t.isActive)
+                            const acceptedTemplates = availableTemplates.filter(t =>
+                              t.slug === 'confirmation-accepted' ||
+                              (t.type && t.type.toLowerCase().includes('accepted')) ||
+                              (t.name && t.name.toLowerCase().includes('accepté'))
+                            )
+                            const declinedTemplates = availableTemplates.filter(t =>
+                              t.slug === 'confirmation-declined' ||
+                              (t.type && t.type.toLowerCase().includes('declined')) ||
+                              (t.name && t.name.toLowerCase().includes('refusé')) ||
+                              (t.name && t.name.toLowerCase().includes('absence'))
+                            )
+
+                            return (
+                              <div className="space-y-4">
+                                {/* Template Accepted Selection */}
+                                <div className={`${acceptedTemplate ? 'bg-green-50 border-green-300' : 'bg-amber-50 border-amber-300'} border rounded-lg p-4`}>
+                                  {acceptedTemplate ? (
+                                    <div className="flex items-center gap-2 mb-3">
+                                      <CheckCircle2 className="h-4 w-4 text-green-600" />
+                                      <p className="text-sm font-semibold text-green-900">
+                                        Template &quot;Accepté&quot; sélectionné : {acceptedTemplate.name}
+                                      </p>
+                                    </div>
+                                  ) : (
+                                    <div className="flex items-center gap-2 mb-3">
+                                      <AlertCircle className="h-4 w-4 text-amber-600" />
+                                      <p className="text-sm font-semibold text-amber-900">
+                                        Sélectionnez un template pour les réponses &quot;Accepté&quot;
+                                      </p>
+                                    </div>
+                                  )}
+
+                                  {acceptedTemplates.length > 0 ? (
+                                    <div className="space-y-2">
+                                      <Label htmlFor="template-accepted" className="text-sm font-medium text-gray-700">
+                                        {acceptedTemplate ? 'Changer de template :' : 'Choisir un template :'}
+                                      </Label>
+                                      <div className="flex items-center gap-3">
+                                        <Select
+                                          value={acceptedTemplate?.id || ''}
+                                          onValueChange={(value) => {
+                                            // The template will be automatically detected on next load
+                                            const template = availableTemplates.find(t => t.id === value)
+                                            if (template) {
+                                              // Update template to use correct slug
+                                              fetch(`/api/admin/templates/${template.id}`, {
+                                                method: 'PUT',
+                                                headers: { 'Content-Type': 'application/json' },
+                                                body: JSON.stringify({
+                                                  ...template,
+                                                  slug: 'confirmation-accepted',
+                                                  isActive: true
+                                                })
+                                              }).then(() => {
+                                                toast.success('Template "Accepté" sélectionné')
+                                                loadAvailableTemplates()
+                                              })
+                                            }
+                                          }}
+                                        >
+                                          <SelectTrigger id="template-accepted" className="flex-1 bg-white border-2 hover:border-green-600">
+                                            <SelectValue placeholder="-- Sélectionner un template --" />
+                                          </SelectTrigger>
+                                          <SelectContent>
+                                            {acceptedTemplates.map((template) => (
+                                              <SelectItem key={template.id} value={template.id}>
+                                                <div className="flex items-center justify-between w-full">
+                                                  <span className="font-medium">{template.name}</span>
+                                                  {template.type && (
+                                                    <Badge variant="outline" className="ml-2 text-xs">
+                                                      {template.type}
+                                                    </Badge>
+                                                  )}
+                                                </div>
+                                              </SelectItem>
+                                            ))}
+                                          </SelectContent>
+                                        </Select>
+                                        <Badge variant="secondary" className="whitespace-nowrap">
+                                          {acceptedTemplates.length} disponible{acceptedTemplates.length > 1 ? 's' : ''}
+                                        </Badge>
+                                      </div>
+                                    </div>
+                                  ) : (
+                                    <div className="bg-white border border-amber-200 rounded p-3">
+                                      <p className="text-sm text-amber-900">
+                                        ⚠️ Aucun template pour les réponses &quot;Accepté&quot; n&apos;a été trouvé.
+                                      </p>
+                                      <p className="text-xs text-amber-700 mt-1">
+                                        Créez un nouveau template en utilisant le bouton ci-dessous.
+                                      </p>
+                                    </div>
+                                  )}
+                                </div>
+
+                                {/* Template Declined Selection */}
+                                <div className={`${declinedTemplate ? 'bg-green-50 border-green-300' : 'bg-amber-50 border-amber-300'} border rounded-lg p-4`}>
+                                  {declinedTemplate ? (
+                                    <div className="flex items-center gap-2 mb-3">
+                                      <CheckCircle2 className="h-4 w-4 text-green-600" />
+                                      <p className="text-sm font-semibold text-green-900">
+                                        Template &quot;Refusé&quot; sélectionné : {declinedTemplate.name}
+                                      </p>
+                                    </div>
+                                  ) : (
+                                    <div className="flex items-center gap-2 mb-3">
+                                      <AlertCircle className="h-4 w-4 text-amber-600" />
+                                      <p className="text-sm font-semibold text-amber-900">
+                                        Sélectionnez un template pour les réponses &quot;Refusé&quot;
+                                      </p>
+                                    </div>
+                                  )}
+
+                                  {declinedTemplates.length > 0 ? (
+                                    <div className="space-y-2">
+                                      <Label htmlFor="template-declined" className="text-sm font-medium text-gray-700">
+                                        {declinedTemplate ? 'Changer de template :' : 'Choisir un template :'}
+                                      </Label>
+                                      <div className="flex items-center gap-3">
+                                        <Select
+                                          value={declinedTemplate?.id || ''}
+                                          onValueChange={(value) => {
+                                            // The template will be automatically detected on next load
+                                            const template = availableTemplates.find(t => t.id === value)
+                                            if (template) {
+                                              // Update template to use correct slug
+                                              fetch(`/api/admin/templates/${template.id}`, {
+                                                method: 'PUT',
+                                                headers: { 'Content-Type': 'application/json' },
+                                                body: JSON.stringify({
+                                                  ...template,
+                                                  slug: 'confirmation-declined',
+                                                  isActive: true
+                                                })
+                                              }).then(() => {
+                                                toast.success('Template "Refusé" sélectionné')
+                                                loadAvailableTemplates()
+                                              })
+                                            }
+                                          }}
+                                        >
+                                          <SelectTrigger id="template-declined" className="flex-1 bg-white border-2 hover:border-red-600">
+                                            <SelectValue placeholder="-- Sélectionner un template --" />
+                                          </SelectTrigger>
+                                          <SelectContent>
+                                            {declinedTemplates.map((template) => (
+                                              <SelectItem key={template.id} value={template.id}>
+                                                <div className="flex items-center justify-between w-full">
+                                                  <span className="font-medium">{template.name}</span>
+                                                  {template.type && (
+                                                    <Badge variant="outline" className="ml-2 text-xs">
+                                                      {template.type}
+                                                    </Badge>
+                                                  )}
+                                                </div>
+                                              </SelectItem>
+                                            ))}
+                                          </SelectContent>
+                                        </Select>
+                                        <Badge variant="secondary" className="whitespace-nowrap">
+                                          {declinedTemplates.length} disponible{declinedTemplates.length > 1 ? 's' : ''}
+                                        </Badge>
+                                      </div>
+                                    </div>
+                                  ) : (
+                                    <div className="bg-white border border-amber-200 rounded p-3">
+                                      <p className="text-sm text-amber-900">
+                                        ⚠️ Aucun template pour les réponses &quot;Refusé&quot; n&apos;a été trouvé.
+                                      </p>
+                                      <p className="text-xs text-amber-700 mt-1">
+                                        Créez un nouveau template en utilisant le bouton ci-dessous.
+                                      </p>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            )
+                          })()}
                         </div>
                       )}
                     </div>
