@@ -83,9 +83,23 @@ export function EmailsTab({ event, onUpdate }: EmailsTabProps) {
 
   const loadAvailableTemplates = async () => {
     try {
-      const response = await fetch(`/api/admin/templates?eventId=${event.id}`)
+      // First try to load templates for this specific event
+      let response = await fetch(`/api/admin/templates?eventId=${event.id}`)
       if (response.ok) {
-        const templates = await response.json()
+        let templates = await response.json()
+
+        // If no templates found for this event, load ALL templates as fallback
+        if (templates.length === 0) {
+          console.log('No templates found for this event, loading all templates as fallback')
+          response = await fetch(`/api/admin/templates`)
+          if (response.ok) {
+            templates = await response.json()
+            console.log(`Loaded ${templates.length} templates (all)`)
+          }
+        } else {
+          console.log(`Loaded ${templates.length} templates for event ${event.id}`)
+        }
+
         setAvailableTemplates(templates)
       }
     } catch (error) {
