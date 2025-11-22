@@ -50,6 +50,13 @@ export function EmailsTab({ event, onUpdate }: EmailsTabProps) {
     loadAvailableTemplates()
   }, [event])
 
+  // Auto-detect Phase 4 confirmation templates when templates are loaded
+  useEffect(() => {
+    if (availableTemplates.length > 0 && phases.length > 0) {
+      detectConfirmationTemplates()
+    }
+  }, [availableTemplates])
+
   const loadAvailableTemplates = async () => {
     try {
       const response = await fetch(`/api/admin/templates?eventId=${event.id}`)
@@ -60,6 +67,29 @@ export function EmailsTab({ event, onUpdate }: EmailsTabProps) {
     } catch (error) {
       console.error('Failed to load templates:', error)
     }
+  }
+
+  const detectConfirmationTemplates = () => {
+    // Find confirmation templates by slug
+    const acceptedTemplate = availableTemplates.find(t => t.slug === 'confirmation-accepted' && t.isActive)
+    const declinedTemplate = availableTemplates.find(t => t.slug === 'confirmation-declined' && t.isActive)
+
+    // Update Phase 4 status based on templates existence
+    setPhases(prevPhases =>
+      prevPhases.map(phase => {
+        if (phase.id === 'confirmation') {
+          const bothTemplatesExist = acceptedTemplate && declinedTemplate
+          return {
+            ...phase,
+            status: bothTemplatesExist ? ('configured' as const) : ('not_configured' as const),
+            templateName: bothTemplatesExist
+              ? `2 templates configurés`
+              : phase.templateName || 'Non configuré'
+          }
+        }
+        return phase
+      })
+    )
   }
 
   const loadPhases = () => {
