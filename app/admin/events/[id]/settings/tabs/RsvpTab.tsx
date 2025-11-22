@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
   Save,
   Loader2,
@@ -19,9 +20,18 @@ import {
   ChevronDown,
   ChevronUp,
   Plus,
-  Trash2
+  Trash2,
+  Settings,
+  Layout,
+  Palette,
+  Eye
 } from 'lucide-react'
 import { toast } from 'sonner'
+import { RsvpStepsEditor } from '@/components/rsvp-steps-editor'
+import { RsvpPreview } from '@/components/rsvp-preview'
+import { RsvpThemeEditor, type RsvpTheme } from '@/components/rsvp-theme-editor'
+import { RsvpTemplates } from '@/components/rsvp-templates'
+import type { RsvpStep } from './rsvp-subtabs/RsvpStepsContent'
 
 interface RsvpTabProps {
   event: any
@@ -32,6 +42,7 @@ interface RsvpTabProps {
 export function RsvpTab({ event, onUpdate }: RsvpTabProps) {
   const [saving, setSaving] = useState(false)
   const [showAdvanced, setShowAdvanced] = useState(false)
+  const [activeView, setActiveView] = useState('config')
 
   const [rsvpDeadline, setRsvpDeadline] = useState('')
   const [config, setConfig] = useState({
@@ -51,6 +62,10 @@ export function RsvpTab({ event, onUpdate }: RsvpTabProps) {
     enableTransport: false,
     enableLodging: false,
     enablePhotoConsent: true,
+
+    // Étapes personnalisées et thème
+    customSteps: [] as RsvpStep[],
+    theme: {} as RsvpTheme
   })
 
   useEffect(() => {
@@ -70,7 +85,13 @@ export function RsvpTab({ event, onUpdate }: RsvpTabProps) {
 
         // Load config
         if (data.rsvpConfig) {
-          setConfig(prev => ({ ...prev, ...data.rsvpConfig }))
+          setConfig(prev => ({
+            ...prev,
+            ...data.rsvpConfig,
+            // Ensure we keep customSteps and theme if they exist
+            customSteps: data.rsvpConfig.customSteps || prev.customSteps,
+            theme: data.rsvpConfig.theme || prev.theme
+          }))
         }
       }
     } catch (error) {
@@ -148,7 +169,7 @@ export function RsvpTab({ event, onUpdate }: RsvpTabProps) {
             <div>
               <CardTitle className="text-[#004645]">Formulaire RSVP</CardTitle>
               <CardDescription>
-                Configuration simple du formulaire de confirmation de présence
+                Configuration complète : paramètres, étapes, design et aperçu
               </CardDescription>
             </div>
             {hasDeadline && (
@@ -161,290 +182,388 @@ export function RsvpTab({ event, onUpdate }: RsvpTabProps) {
         </CardHeader>
       </Card>
 
-      {/* Section 1 : Configuration Essentielle */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg text-[#004645]">Configuration Essentielle</CardTitle>
-          <CardDescription>
-            Les paramètres de base pour votre formulaire RSVP
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {/* Date limite RSVP */}
-          <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
-            <div className="flex items-start gap-3">
-              <Calendar className="h-5 w-5 text-amber-600 mt-0.5" />
-              <div className="flex-1 space-y-3">
-                <div>
-                  <Label htmlFor="deadline" className="text-base font-semibold text-amber-900">
-                    Date limite de réponse <span className="text-red-500">*</span>
-                  </Label>
-                  <p className="text-sm text-amber-700 mt-1">
-                    Date à partir de laquelle les invités ne pourront plus modifier leur réponse
-                  </p>
-                </div>
-                <Input
-                  id="deadline"
-                  type="datetime-local"
-                  value={rsvpDeadline}
-                  onChange={(e) => setRsvpDeadline(e.target.value)}
-                  className="max-w-sm bg-white"
-                  required
-                />
-                {rsvpDeadline && (
-                  <p className="text-xs text-amber-600">
-                    ⏰ Les invités pourront répondre jusqu&apos;au {new Date(rsvpDeadline).toLocaleDateString('fr-FR', {
-                      weekday: 'long',
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit'
-                    })}
-                  </p>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Question de participation */}
-          <div className="flex items-start justify-between p-4 bg-[#009197]/5 rounded-lg border border-[#009197]/20">
-            <div className="flex-1">
-              <div className="flex items-center gap-2 mb-1">
-                <Label className="text-base font-semibold">Question de participation</Label>
-                <Badge variant="secondary" className="text-xs">Toujours actif</Badge>
-              </div>
-              <p className="text-sm text-[#004645]/70">
-                Participez-vous à l&apos;événement ? (Oui/Non)
-              </p>
-            </div>
-            <CheckCircle2 className="h-5 w-5 text-green-600" />
-          </div>
-
-          {/* Accompagnants */}
-          <div className="flex items-start justify-between p-4 bg-white rounded-lg border">
-            <div className="flex-1 space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <Users className="h-5 w-5 text-[#009197]" />
-                  <div>
-                    <Label className="text-base font-semibold">Accompagnants (+1)</Label>
-                    <p className="text-sm text-[#004645]/70 mt-1">
-                      Permettre aux invités d&apos;amener des accompagnants
-                    </p>
-                  </div>
-                </div>
-                <Switch
-                  checked={config.allowPlusOnes}
-                  onCheckedChange={(checked) => setConfig({ ...config, allowPlusOnes: checked })}
-                />
-              </div>
-
-              {config.allowPlusOnes && (
-                <div className="pt-3 border-t ml-8">
-                  <Label htmlFor="maxPlusOnes" className="text-sm">Nombre maximum par invité</Label>
-                  <Input
-                    id="maxPlusOnes"
-                    type="number"
-                    min="1"
-                    max="10"
-                    value={config.maxPlusOnes}
-                    onChange={(e) => setConfig({ ...config, maxPlusOnes: parseInt(e.target.value) || 1 })}
-                    className="w-24 mt-2"
-                  />
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Choix de repas */}
-          <div className="flex items-start justify-between p-4 bg-white rounded-lg border">
-            <div className="flex-1 space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <Utensils className="h-5 w-5 text-[#009197]" />
-                  <div>
-                    <Label className="text-base font-semibold">Choix de repas</Label>
-                    <p className="text-sm text-[#004645]/70 mt-1">
-                      Proposer plusieurs menus au choix
-                    </p>
-                  </div>
-                </div>
-                <Switch
-                  checked={config.collectMealChoice}
-                  onCheckedChange={(checked) => setConfig({ ...config, collectMealChoice: checked })}
-                />
-              </div>
-
-              {config.collectMealChoice && (
-                <div className="pt-3 border-t ml-8 space-y-2">
-                  <Label className="text-sm">Options de menu</Label>
-                  {config.mealOptions.map((option, index) => (
-                    <div key={index} className="flex gap-2">
-                      <Input
-                        value={option}
-                        onChange={(e) => updateMealOption(index, e.target.value)}
-                        placeholder={`Menu ${index + 1}`}
-                      />
-                      {config.mealOptions.length > 1 && (
-                        <Button
-                          size="icon"
-                          variant="outline"
-                          onClick={() => removeMealOption(index)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      )}
-                    </div>
-                  ))}
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={addMealOption}
-                    className="w-full"
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Ajouter une option
-                  </Button>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Allergies */}
-          <div className="flex items-start justify-between p-4 bg-white rounded-lg border">
-            <div className="flex-1">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <AlertCircle className="h-5 w-5 text-[#009197]" />
-                  <div>
-                    <Label className="text-base font-semibold">Allergies / Régimes alimentaires</Label>
-                    <p className="text-sm text-[#004645]/70 mt-1">
-                      Collecter les informations sur les allergies et restrictions alimentaires
-                    </p>
-                  </div>
-                </div>
-                <Switch
-                  checked={config.collectAllergies}
-                  onCheckedChange={(checked) => setConfig({ ...config, collectAllergies: checked })}
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Messages de confirmation */}
-          <div className="p-4 bg-gray-50 rounded-lg border space-y-4">
-            <Label className="text-base font-semibold text-[#004645]">Messages de confirmation</Label>
-            <p className="text-sm text-[#004645]/70">
-              Messages affichés après la soumission du formulaire
-            </p>
-
-            <div>
-              <Label htmlFor="confirmAccepted" className="text-sm">✅ Message pour les participants</Label>
-              <Textarea
-                id="confirmAccepted"
-                value={config.confirmationMessageAccepted}
-                onChange={(e) => setConfig({ ...config, confirmationMessageAccepted: e.target.value })}
-                rows={2}
-                className="mt-2"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="confirmDeclined" className="text-sm">❌ Message pour les absents</Label>
-              <Textarea
-                id="confirmDeclined"
-                value={config.confirmationMessageDeclined}
-                onChange={(e) => setConfig({ ...config, confirmationMessageDeclined: e.target.value })}
-                rows={2}
-                className="mt-2"
-              />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Section 2 : Options Avancées (Collapsible) */}
-      <Card>
-        <CardHeader>
-          <Button
-            variant="ghost"
-            className="w-full flex items-center justify-between p-4 h-auto hover:bg-gray-50"
-            onClick={() => setShowAdvanced(!showAdvanced)}
+      {/* Navigation entre les vues */}
+      <Tabs value={activeView} onValueChange={setActiveView} className="space-y-6">
+        <TabsList className="grid w-full grid-cols-4 bg-[#9CD9F6]/10 p-1">
+          <TabsTrigger
+            value="config"
+            className="data-[state=active]:bg-white data-[state=active]:text-[#004645] data-[state=active]:shadow-sm"
           >
-            <div className="text-left">
-              <CardTitle className="text-lg text-[#004645]">Options Avancées</CardTitle>
+            <Settings className="h-4 w-4 mr-2" />
+            Configuration
+          </TabsTrigger>
+          <TabsTrigger
+            value="steps"
+            className="data-[state=active]:bg-white data-[state=active]:text-[#004645] data-[state=active]:shadow-sm"
+          >
+            <Layout className="h-4 w-4 mr-2" />
+            Étapes
+          </TabsTrigger>
+          <TabsTrigger
+            value="design"
+            className="data-[state=active]:bg-white data-[state=active]:text-[#004645] data-[state=active]:shadow-sm"
+          >
+            <Palette className="h-4 w-4 mr-2" />
+            Design
+          </TabsTrigger>
+          <TabsTrigger
+            value="preview"
+            className="data-[state=active]:bg-white data-[state=active]:text-[#004645] data-[state=active]:shadow-sm"
+          >
+            <Eye className="h-4 w-4 mr-2" />
+            Aperçu
+          </TabsTrigger>
+        </TabsList>
+
+        {/* Vue Configuration */}
+        <TabsContent value="config" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg text-[#004645]">Configuration Essentielle</CardTitle>
               <CardDescription>
-                Questions supplémentaires (transport, hébergement, accessibilité...)
+                Les paramètres de base pour votre formulaire RSVP
               </CardDescription>
-            </div>
-            {showAdvanced ? (
-              <ChevronUp className="h-5 w-5 text-[#004645]" />
-            ) : (
-              <ChevronDown className="h-5 w-5 text-[#004645]" />
-            )}
-          </Button>
-        </CardHeader>
-
-        {showAdvanced && (
-          <CardContent className="space-y-4 pt-0">
-            <div className="p-4 bg-blue-50 rounded-lg border border-blue-200 space-y-3">
-              <p className="text-sm text-blue-900">
-                💡 Ces options ajoutent des questions supplémentaires au formulaire RSVP
-              </p>
-
-              <div className="space-y-3">
-                <div className="flex items-center justify-between bg-white p-3 rounded border">
-                  <div>
-                    <Label className="text-sm font-medium">Accessibilité</Label>
-                    <p className="text-xs text-[#004645]/70">PMR, assistance particulière</p>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Date limite RSVP */}
+              <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                <div className="flex items-start gap-3">
+                  <Calendar className="h-5 w-5 text-amber-600 mt-0.5" />
+                  <div className="flex-1 space-y-3">
+                    <div>
+                      <Label htmlFor="deadline" className="text-base font-semibold text-amber-900">
+                        Date limite de réponse <span className="text-red-500">*</span>
+                      </Label>
+                      <p className="text-sm text-amber-700 mt-1">
+                        Date à partir de laquelle les invités ne pourront plus modifier leur réponse
+                      </p>
+                    </div>
+                    <Input
+                      id="deadline"
+                      type="datetime-local"
+                      value={rsvpDeadline}
+                      onChange={(e) => setRsvpDeadline(e.target.value)}
+                      className="max-w-sm bg-white"
+                      required
+                    />
+                    {rsvpDeadline && (
+                      <p className="text-xs text-amber-600">
+                        ⏰ Les invités pourront répondre jusqu&apos;au {new Date(rsvpDeadline).toLocaleDateString('fr-FR', {
+                          weekday: 'long',
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
+                      </p>
+                    )}
                   </div>
-                  <Switch
-                    checked={config.enableAccessibility}
-                    onCheckedChange={(checked) => setConfig({ ...config, enableAccessibility: checked })}
+                </div>
+              </div>
+
+              {/* Question de participation */}
+              <div className="flex items-start justify-between p-4 bg-[#009197]/5 rounded-lg border border-[#009197]/20">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Label className="text-base font-semibold">Question de participation</Label>
+                    <Badge variant="secondary" className="text-xs">Toujours actif</Badge>
+                  </div>
+                  <p className="text-sm text-[#004645]/70">
+                    Participez-vous à l&apos;événement ? (Oui/Non)
+                  </p>
+                </div>
+                <CheckCircle2 className="h-5 w-5 text-green-600" />
+              </div>
+
+              {/* Accompagnants */}
+              <div className="flex items-start justify-between p-4 bg-white rounded-lg border">
+                <div className="flex-1 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <Users className="h-5 w-5 text-[#009197]" />
+                      <div>
+                        <Label className="text-base font-semibold">Accompagnants (+1)</Label>
+                        <p className="text-sm text-[#004645]/70 mt-1">
+                          Permettre aux invités d&apos;amener des accompagnants
+                        </p>
+                      </div>
+                    </div>
+                    <Switch
+                      checked={config.allowPlusOnes}
+                      onCheckedChange={(checked) => setConfig({ ...config, allowPlusOnes: checked })}
+                    />
+                  </div>
+
+                  {config.allowPlusOnes && (
+                    <div className="pt-3 border-t ml-8">
+                      <Label htmlFor="maxPlusOnes" className="text-sm">Nombre maximum par invité</Label>
+                      <Input
+                        id="maxPlusOnes"
+                        type="number"
+                        min="1"
+                        max="10"
+                        value={config.maxPlusOnes}
+                        onChange={(e) => setConfig({ ...config, maxPlusOnes: parseInt(e.target.value) || 1 })}
+                        className="w-24 mt-2"
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Choix de repas */}
+              <div className="flex items-start justify-between p-4 bg-white rounded-lg border">
+                <div className="flex-1 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <Utensils className="h-5 w-5 text-[#009197]" />
+                      <div>
+                        <Label className="text-base font-semibold">Choix de repas</Label>
+                        <p className="text-sm text-[#004645]/70 mt-1">
+                          Proposer plusieurs menus au choix
+                        </p>
+                      </div>
+                    </div>
+                    <Switch
+                      checked={config.collectMealChoice}
+                      onCheckedChange={(checked) => setConfig({ ...config, collectMealChoice: checked })}
+                    />
+                  </div>
+
+                  {config.collectMealChoice && (
+                    <div className="pt-3 border-t ml-8 space-y-2">
+                      <Label className="text-sm">Options de menu</Label>
+                      {config.mealOptions.map((option, index) => (
+                        <div key={index} className="flex gap-2">
+                          <Input
+                            value={option}
+                            onChange={(e) => updateMealOption(index, e.target.value)}
+                            placeholder={`Menu ${index + 1}`}
+                          />
+                          {config.mealOptions.length > 1 && (
+                            <Button
+                              size="icon"
+                              variant="outline"
+                              onClick={() => removeMealOption(index)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
+                      ))}
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={addMealOption}
+                        className="w-full"
+                      >
+                        <Plus className="h-4 w-4 mr-2" />
+                        Ajouter une option
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Allergies */}
+              <div className="flex items-start justify-between p-4 bg-white rounded-lg border">
+                <div className="flex-1">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <AlertCircle className="h-5 w-5 text-[#009197]" />
+                      <div>
+                        <Label className="text-base font-semibold">Allergies / Régimes alimentaires</Label>
+                        <p className="text-sm text-[#004645]/70 mt-1">
+                          Collecter les informations sur les allergies et restrictions alimentaires
+                        </p>
+                      </div>
+                    </div>
+                    <Switch
+                      checked={config.collectAllergies}
+                      onCheckedChange={(checked) => setConfig({ ...config, collectAllergies: checked })}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Messages de confirmation */}
+              <div className="p-4 bg-gray-50 rounded-lg border space-y-4">
+                <Label className="text-base font-semibold text-[#004645]">Messages de confirmation</Label>
+                <p className="text-sm text-[#004645]/70">
+                  Messages affichés après la soumission du formulaire
+                </p>
+
+                <div>
+                  <Label htmlFor="confirmAccepted" className="text-sm">✅ Message pour les participants</Label>
+                  <Textarea
+                    id="confirmAccepted"
+                    value={config.confirmationMessageAccepted}
+                    onChange={(e) => setConfig({ ...config, confirmationMessageAccepted: e.target.value })}
+                    rows={2}
+                    className="mt-2"
                   />
                 </div>
 
-                <div className="flex items-center justify-between bg-white p-3 rounded border">
-                  <div>
-                    <Label className="text-sm font-medium">Transport</Label>
-                    <p className="text-xs text-[#004645]/70">Navette, parking, covoiturage</p>
-                  </div>
-                  <Switch
-                    checked={config.enableTransport}
-                    onCheckedChange={(checked) => setConfig({ ...config, enableTransport: checked })}
-                  />
-                </div>
-
-                <div className="flex items-center justify-between bg-white p-3 rounded border">
-                  <div>
-                    <Label className="text-sm font-medium">Hébergement</Label>
-                    <p className="text-xs text-[#004645]/70">Besoins de logement</p>
-                  </div>
-                  <Switch
-                    checked={config.enableLodging}
-                    onCheckedChange={(checked) => setConfig({ ...config, enableLodging: checked })}
-                  />
-                </div>
-
-                <div className="flex items-center justify-between bg-white p-3 rounded border">
-                  <div>
-                    <Label className="text-sm font-medium">Consentement photos/vidéos</Label>
-                    <p className="text-xs text-[#004645]/70">Autorisation pour la prise de photos</p>
-                  </div>
-                  <Switch
-                    checked={config.enablePhotoConsent}
-                    onCheckedChange={(checked) => setConfig({ ...config, enablePhotoConsent: checked })}
+                <div>
+                  <Label htmlFor="confirmDeclined" className="text-sm">❌ Message pour les absents</Label>
+                  <Textarea
+                    id="confirmDeclined"
+                    value={config.confirmationMessageDeclined}
+                    onChange={(e) => setConfig({ ...config, confirmationMessageDeclined: e.target.value })}
+                    rows={2}
+                    className="mt-2"
                   />
                 </div>
               </div>
-            </div>
-          </CardContent>
-        )}
-      </Card>
+            </CardContent>
+          </Card>
+
+          {/* Section Options Avancées */}
+          <Card>
+            <CardHeader>
+              <Button
+                variant="ghost"
+                className="w-full flex items-center justify-between p-4 h-auto hover:bg-gray-50"
+                onClick={() => setShowAdvanced(!showAdvanced)}
+              >
+                <div className="text-left">
+                  <CardTitle className="text-lg text-[#004645]">Options Avancées</CardTitle>
+                  <CardDescription>
+                    Questions supplémentaires (transport, hébergement, accessibilité...)
+                  </CardDescription>
+                </div>
+                {showAdvanced ? (
+                  <ChevronUp className="h-5 w-5 text-[#004645]" />
+                ) : (
+                  <ChevronDown className="h-5 w-5 text-[#004645]" />
+                )}
+              </Button>
+            </CardHeader>
+
+            {showAdvanced && (
+              <CardContent className="space-y-4 pt-0">
+                <div className="p-4 bg-blue-50 rounded-lg border border-blue-200 space-y-3">
+                  <p className="text-sm text-blue-900">
+                    💡 Ces options ajoutent des questions supplémentaires au formulaire RSVP
+                  </p>
+
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between bg-white p-3 rounded border">
+                      <div>
+                        <Label className="text-sm font-medium">Accessibilité</Label>
+                        <p className="text-xs text-[#004645]/70">PMR, assistance particulière</p>
+                      </div>
+                      <Switch
+                        checked={config.enableAccessibility}
+                        onCheckedChange={(checked) => setConfig({ ...config, enableAccessibility: checked })}
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between bg-white p-3 rounded border">
+                      <div>
+                        <Label className="text-sm font-medium">Transport</Label>
+                        <p className="text-xs text-[#004645]/70">Navette, parking, covoiturage</p>
+                      </div>
+                      <Switch
+                        checked={config.enableTransport}
+                        onCheckedChange={(checked) => setConfig({ ...config, enableTransport: checked })}
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between bg-white p-3 rounded border">
+                      <div>
+                        <Label className="text-sm font-medium">Hébergement</Label>
+                        <p className="text-xs text-[#004645]/70">Besoins de logement</p>
+                      </div>
+                      <Switch
+                        checked={config.enableLodging}
+                        onCheckedChange={(checked) => setConfig({ ...config, enableLodging: checked })}
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between bg-white p-3 rounded border">
+                      <div>
+                        <Label className="text-sm font-medium">Consentement photos/vidéos</Label>
+                        <p className="text-xs text-[#004645]/70">Autorisation pour la prise de photos</p>
+                      </div>
+                      <Switch
+                        checked={config.enablePhotoConsent}
+                        onCheckedChange={(checked) => setConfig({ ...config, enablePhotoConsent: checked })}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            )}
+          </Card>
+        </TabsContent>
+
+        {/* Vue Étapes personnalisées */}
+        <TabsContent value="steps" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg text-[#004645]">Étapes du formulaire</CardTitle>
+              <CardDescription>
+                Personnalisez les étapes et les champs de votre formulaire RSVP
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <RsvpStepsEditor
+                steps={config.customSteps}
+                onChange={(newSteps) => setConfig({ ...config, customSteps: newSteps })}
+              />
+
+              <div className="mt-6 pt-6 border-t">
+                <h3 className="text-sm font-semibold text-[#004645] mb-3">Templates prédéfinis</h3>
+                <RsvpTemplates
+                  onLoadTemplate={(steps) => setConfig({ ...config, customSteps: steps })}
+                />
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Vue Design */}
+        <TabsContent value="design" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg text-[#004645]">Personnalisation visuelle</CardTitle>
+              <CardDescription>
+                Personnalisez les couleurs, polices et style de votre formulaire
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <RsvpThemeEditor
+                theme={config.theme}
+                onChange={(newTheme) => setConfig({ ...config, theme: newTheme })}
+              />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Vue Aperçu */}
+        <TabsContent value="preview" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg text-[#004645]">Aperçu du formulaire</CardTitle>
+              <CardDescription>
+                Prévisualisez votre formulaire tel qu&apos;il apparaîtra aux invités
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <RsvpPreview
+                steps={config.customSteps}
+                theme={config.theme}
+                eventName={event.name}
+              />
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
 
       {/* Save Button */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between sticky bottom-0 bg-white p-4 border-t shadow-lg rounded-lg">
         <p className="text-sm text-[#004645]/70">
           {!hasDeadline && (
             <span className="text-amber-600 font-medium">⚠️ La date limite est obligatoire</span>
@@ -453,6 +572,7 @@ export function RsvpTab({ event, onUpdate }: RsvpTabProps) {
         <Button
           onClick={handleSave}
           disabled={saving || !rsvpDeadline}
+          size="lg"
           className="bg-gradient-to-r from-[#004645] to-[#009197] hover:from-[#006C51] hover:to-[#009197] text-white"
         >
           {saving ? (
@@ -463,7 +583,7 @@ export function RsvpTab({ event, onUpdate }: RsvpTabProps) {
           ) : (
             <>
               <Save className="h-4 w-4 mr-2" />
-              Enregistrer la configuration
+              Enregistrer toute la configuration
             </>
           )}
         </Button>
