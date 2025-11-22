@@ -73,10 +73,11 @@ export function EmailsTab({ event, onUpdate }: EmailsTabProps) {
     loadGlobalStats()
   }, [event])
 
-  // Auto-detect Phase 4 confirmation templates when templates are loaded
+  // Auto-detect and auto-assign templates when templates are loaded
   useEffect(() => {
     if (availableTemplates.length > 0 && phases.length > 0) {
       detectConfirmationTemplates()
+      autoAssignTemplates()
     }
   }, [availableTemplates])
 
@@ -92,10 +93,69 @@ export function EmailsTab({ event, onUpdate }: EmailsTabProps) {
     }
   }
 
-  const detectConfirmationTemplates = () => {
+  const detectConfirmationTemplates = async () => {
     // Find confirmation templates by slug
-    const acceptedTemplate = availableTemplates.find(t => t.slug === 'confirmation-accepted' && t.isActive)
-    const declinedTemplate = availableTemplates.find(t => t.slug === 'confirmation-declined' && t.isActive)
+    let acceptedTemplate = availableTemplates.find(t => t.slug === 'confirmation-accepted' && t.isActive)
+    let declinedTemplate = availableTemplates.find(t => t.slug === 'confirmation-declined' && t.isActive)
+
+    // If not found by exact slug, try to find by name/type and auto-assign slug
+    if (!acceptedTemplate) {
+      const candidate = availableTemplates.find(t =>
+        (t.name && t.name.toLowerCase().includes('accepté')) ||
+        (t.name && t.name.toLowerCase().includes('accepted')) ||
+        (t.name && t.name.toLowerCase().includes('confirmé')) ||
+        (t.type && t.type.toLowerCase().includes('accepted'))
+      )
+      if (candidate) {
+        // Auto-assign the correct slug
+        try {
+          await fetch(`/api/admin/templates/${candidate.id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              ...candidate,
+              slug: 'confirmation-accepted',
+              isActive: true
+            })
+          })
+          acceptedTemplate = { ...candidate, slug: 'confirmation-accepted' }
+          console.log(`Auto-assigned slug "confirmation-accepted" to template "${candidate.name}"`)
+          // Reload templates
+          await loadAvailableTemplates()
+        } catch (error) {
+          console.error('Failed to auto-assign slug:', error)
+        }
+      }
+    }
+
+    if (!declinedTemplate) {
+      const candidate = availableTemplates.find(t =>
+        (t.name && t.name.toLowerCase().includes('refusé')) ||
+        (t.name && t.name.toLowerCase().includes('declined')) ||
+        (t.name && t.name.toLowerCase().includes('absence')) ||
+        (t.type && t.type.toLowerCase().includes('declined'))
+      )
+      if (candidate && candidate.id !== acceptedTemplate?.id) {
+        // Auto-assign the correct slug
+        try {
+          await fetch(`/api/admin/templates/${candidate.id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              ...candidate,
+              slug: 'confirmation-declined',
+              isActive: true
+            })
+          })
+          declinedTemplate = { ...candidate, slug: 'confirmation-declined' }
+          console.log(`Auto-assigned slug "confirmation-declined" to template "${candidate.name}"`)
+          // Reload templates
+          await loadAvailableTemplates()
+        } catch (error) {
+          console.error('Failed to auto-assign slug:', error)
+        }
+      }
+    }
 
     // Update Phase 4 status based on templates existence
     setPhases(prevPhases =>
@@ -113,6 +173,77 @@ export function EmailsTab({ event, onUpdate }: EmailsTabProps) {
         return phase
       })
     )
+
+    if (acceptedTemplate && declinedTemplate) {
+      toast.success('Templates de confirmation détectés et configurés automatiquement')
+    }
+  }
+
+  // Auto-assign templates to phases that don't have one yet
+  const autoAssignTemplates = async () => {
+    let needsUpdate = false
+    const updatedPhases = phases.map(phase => {
+      // Skip automatic phases (Phase 4) - they're handled separately
+      if (phase.isAutomatic) return phase
+
+      // Skip if template already assigned
+      if (phase.templateId) return phase
+
+      // Skip if phase is not enabled
+      if (!phase.enabled) return phase
+
+      // Get suitable templates for this phase
+      const phaseTemplates = getTemplatesForPhase(phase.id)
+
+      // If templates exist, auto-assign the first one
+      if (phaseTemplates.length > 0) {
+        const firstTemplate = phaseTemplates[0]
+        needsUpdate = true
+        console.log(`Auto-assigning template "${firstTemplate.name}" to phase "${phase.title}"`)
+
+        return {
+          ...phase,
+          templateId: firstTemplate.id,
+          templateName: firstTemplate.name,
+          status: 'configured' as const
+        }
+      }
+
+      return phase
+    })
+
+    // If any phase was updated, save to database
+    if (needsUpdate) {
+      setPhases(updatedPhases)
+
+      try {
+        const phasesConfig = updatedPhases.map(phase => ({
+          id: phase.id,
+          phase: phase.phase,
+          enabled: phase.enabled,
+          status: phase.status,
+          templateName: phase.templateName,
+          templateId: phase.templateId,
+          scheduledDate: phase.scheduledDate?.toISOString(),
+          recipients: phase.recipients
+        }))
+
+        await fetch(`/api/admin/events/${event.id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            emailCampaignsConfig: {
+              phases: phasesConfig
+            }
+          })
+        })
+
+        console.log('Templates auto-assigned and saved successfully')
+        toast.success('Templates détectés et assignés automatiquement')
+      } catch (error) {
+        console.error('Failed to save auto-assigned templates:', error)
+      }
+    }
   }
 
   // Filter templates by phase type
