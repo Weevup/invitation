@@ -118,12 +118,12 @@ export function EmailsTab({ event, onUpdate }: EmailsTabProps) {
   // Filter templates by phase type
   const getTemplatesForPhase = (phaseId: string) => {
     const typeMapping: Record<string, string[]> = {
-      'save-the-date': ['save-the-date', 'announcement'],
-      'invitation': ['invitation', 'invite'],
-      'reminder': ['reminder', 'follow-up'],
-      'confirmation': ['confirmation', 'accepted', 'declined'],
-      'practical-info': ['info', 'practical', 'badge'],
-      'day-before': ['reminder', 'last-minute']
+      'save-the-date': ['save-the-date', 'announcement', 'save the date'],
+      'invitation': ['invitation', 'invite', 'invit'],
+      'reminder': ['reminder', 'follow-up', 'relance', 'rappel'],
+      'confirmation': ['confirmation', 'accepted', 'declined', 'confirmé', 'refusé'],
+      'practical-info': ['info', 'practical', 'badge', 'pratique'],
+      'day-before': ['reminder', 'last-minute', 'rappel', 'jour-j']
     }
 
     const validTypes = typeMapping[phaseId] || []
@@ -133,12 +133,45 @@ export function EmailsTab({ event, onUpdate }: EmailsTabProps) {
       return availableTemplates
     }
 
-    // Filter templates by type
-    return availableTemplates.filter(template => {
-      if (!template.type) return true // Show templates without type
-      const templateType = template.type.toLowerCase()
-      return validTypes.some(validType => templateType.includes(validType))
+    // Exclude confirmation templates from other phases
+    const excludeConfirmation = phaseId !== 'confirmation'
+
+    // Filter templates by type, name, and slug (more flexible matching)
+    const filtered = availableTemplates.filter(template => {
+      // Exclude confirmation-specific templates from other phases
+      if (excludeConfirmation) {
+        if (template.slug === 'confirmation-accepted' || template.slug === 'confirmation-declined') {
+          return false
+        }
+      }
+
+      // If template has no type, name, or slug, show it
+      if (!template.type && !template.name && !template.slug) return true
+
+      const templateType = (template.type || '').toLowerCase()
+      const templateName = (template.name || '').toLowerCase()
+      const templateSlug = (template.slug || '').toLowerCase()
+
+      // Check if any of the valid types match the type, name, or slug
+      return validTypes.some(validType => {
+        const searchTerm = validType.toLowerCase()
+        return (
+          templateType.includes(searchTerm) ||
+          templateName.includes(searchTerm) ||
+          templateSlug.includes(searchTerm)
+        )
+      })
     })
+
+    // If no templates match the strict filter, show all non-confirmation templates
+    if (filtered.length === 0 && excludeConfirmation) {
+      return availableTemplates.filter(t =>
+        t.slug !== 'confirmation-accepted' &&
+        t.slug !== 'confirmation-declined'
+      )
+    }
+
+    return filtered
   }
 
   const loadPhases = () => {
