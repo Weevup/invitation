@@ -695,7 +695,7 @@ export function EmailsTab({ event, onUpdate }: EmailsTabProps) {
               </CardDescription>
             </div>
             <div className="flex gap-2">
-              <Link href={`/admin/events/${event.id}/confirmation-email`}>
+              <Link href={`/admin/events/${event.id}/my-templates`}>
                 <Button className="bg-gradient-to-r from-[#004645] to-[#009197] text-white">
                   <Edit className="h-4 w-4 mr-2" />
                   Créer un Template
@@ -807,7 +807,7 @@ export function EmailsTab({ event, onUpdate }: EmailsTabProps) {
                           )}
 
                           <p className="text-xs text-amber-800">
-                            Ou cliquez sur <strong>&quot;Modifier Template&quot;</strong> à droite pour créer un nouveau template
+                            Ou cliquez sur <strong>&quot;Créer/Modifier Template&quot;</strong> à droite pour créer un nouveau template
                           </p>
                         </div>
                       )}
@@ -925,14 +925,14 @@ export function EmailsTab({ event, onUpdate }: EmailsTabProps) {
                     ) : (
                       <>
                         {/* Template Actions for non-automatic phases */}
-                        <Link href={`/admin/events/${event.id}/confirmation-email?phase=${phase.id}`}>
+                        <Link href={`/admin/events/${event.id}/my-templates`}>
                           <Button
                             size="sm"
                             variant="outline"
                             className="w-full border-[#004645] text-[#004645] hover:bg-[#004645] hover:text-white"
                           >
                             <Edit className="h-3 w-3 mr-2" />
-                            Modifier Template
+                            Créer/Modifier Template
                           </Button>
                         </Link>
 
