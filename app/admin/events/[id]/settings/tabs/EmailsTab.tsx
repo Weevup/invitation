@@ -118,6 +118,8 @@ export function EmailsTab({ event, onUpdate }: EmailsTabProps) {
         (t.name && t.name.toLowerCase().includes('accepté')) ||
         (t.name && t.name.toLowerCase().includes('accepted')) ||
         (t.name && t.name.toLowerCase().includes('confirmé')) ||
+        (t.name && t.name.toLowerCase().includes('présence')) ||
+        (t.name && t.name.toLowerCase().includes('presence')) ||
         (t.type && t.type.toLowerCase().includes('accepted'))
       )
       if (candidate) {
@@ -147,6 +149,7 @@ export function EmailsTab({ event, onUpdate }: EmailsTabProps) {
         (t.name && t.name.toLowerCase().includes('refusé')) ||
         (t.name && t.name.toLowerCase().includes('declined')) ||
         (t.name && t.name.toLowerCase().includes('absence')) ||
+        (t.name && t.name.toLowerCase().includes('déclin')) ||
         (t.type && t.type.toLowerCase().includes('declined'))
       )
       if (candidate && candidate.id !== acceptedTemplate?.id) {
@@ -167,6 +170,62 @@ export function EmailsTab({ event, onUpdate }: EmailsTabProps) {
           await loadAvailableTemplates()
         } catch (error) {
           console.error('Failed to auto-assign slug:', error)
+        }
+      }
+    }
+
+    // Fallback: If still not found, use any CONFIRMATION type templates
+    if (!acceptedTemplate || !declinedTemplate) {
+      const confirmationTemplates = availableTemplates.filter(t =>
+        t.type && t.type.toUpperCase() === 'CONFIRMATION' && t.isActive
+      )
+
+      console.log(`Found ${confirmationTemplates.length} CONFIRMATION templates`)
+
+      // If we have exactly 2 confirmation templates and both slots are empty, assign them
+      if (confirmationTemplates.length >= 2) {
+        if (!acceptedTemplate) {
+          // Assign first one as accepted
+          const firstTemplate = confirmationTemplates[0]
+          try {
+            await fetch(`/api/admin/templates/${firstTemplate.id}`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                ...firstTemplate,
+                slug: 'confirmation-accepted',
+                isActive: true
+              })
+            })
+            acceptedTemplate = { ...firstTemplate, slug: 'confirmation-accepted' }
+            console.log(`Auto-assigned CONFIRMATION template "${firstTemplate.name}" as accepted`)
+            await loadAvailableTemplates()
+          } catch (error) {
+            console.error('Failed to auto-assign:', error)
+          }
+        }
+
+        if (!declinedTemplate) {
+          // Assign second one as declined
+          const secondTemplate = confirmationTemplates.find(t => t.id !== acceptedTemplate?.id)
+          if (secondTemplate) {
+            try {
+              await fetch(`/api/admin/templates/${secondTemplate.id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  ...secondTemplate,
+                  slug: 'confirmation-declined',
+                  isActive: true
+                })
+              })
+              declinedTemplate = { ...secondTemplate, slug: 'confirmation-declined' }
+              console.log(`Auto-assigned CONFIRMATION template "${secondTemplate.name}" as declined`)
+              await loadAvailableTemplates()
+            } catch (error) {
+              console.error('Failed to auto-assign:', error)
+            }
+          }
         }
       }
     }
