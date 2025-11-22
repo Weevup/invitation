@@ -119,6 +119,13 @@ interface GuestData {
         successTitle?: string;
         successMessage?: string;
       };
+      // Page de confirmation finale
+      confirmationButtonText?: string;
+      confirmationButtonUrl?: string;
+      confirmationTitleAccepted?: string;
+      confirmationTextAccepted?: string;
+      confirmationTitleDeclined?: string;
+      confirmationTextDeclined?: string;
     };
   };
   rsvp?: {
