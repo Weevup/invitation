@@ -517,7 +517,7 @@ export function RsvpTab({ event, onUpdate }: RsvpTabProps) {
               <div className="mt-6 pt-6 border-t">
                 <h3 className="text-sm font-semibold text-[#004645] mb-3">Templates prédéfinis</h3>
                 <RsvpTemplates
-                  onLoadTemplate={(steps) => setConfig({ ...config, customSteps: steps })}
+                  onSelectTemplate={(steps) => setConfig({ ...config, customSteps: steps })}
                 />
               </div>
             </CardContent>
