@@ -197,19 +197,19 @@ export default function EventLayout({
       title: "📧 EMAIL & COMMUNICATIONS",
       items: [
         {
-          label: 'Hub des Emails',
-          href: `/admin/events/${eventId}/emails`,
-          icon: MailOpen,
+          label: 'Gestion des Emails',
+          href: `/admin/events/${eventId}/settings?tab=emails`,
+          icon: Settings,
         },
         {
-          label: 'Éditeur visuel',
+          label: 'Hub & Analytics',
+          href: `/admin/events/${eventId}/emails`,
+          icon: BarChart3,
+        },
+        {
+          label: 'Mes Templates',
           href: `/admin/events/${eventId}/my-templates`,
           icon: FileText,
-        },
-        {
-          label: 'Envoi de campagnes',
-          href: `/admin/events/${eventId}/communications`,
-          icon: Settings,
         },
         {
           label: 'Configuration RSVP',
