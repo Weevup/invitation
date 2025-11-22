@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from '@/components/ui/input'
 import {
   Bell, Sparkles, Repeat, CheckCheck, Clock,
-  Send, Calendar, TestTube, Edit, BarChart3, Users, Loader2
+  Send, Calendar, TestTube, Edit, BarChart3, Users, Loader2, List, Settings, QrCode
 } from 'lucide-react'
 import Link from 'next/link'
 import { toast } from 'sonner'
@@ -175,13 +175,13 @@ export function EmailsTab({ event, onUpdate }: EmailsTabProps) {
         id: 'practical-info',
         phase: 5,
         title: 'Infos Pratiques & Badge',
-        description: 'Envoi des infos pratiques et du badge avec QR code aux participants confirmés (J-7 à J-3). Activez si le badge n\'est pas envoyé dans la confirmation.',
+        description: 'Envoi du badge avec QR code + infos pratiques complètes aux participants confirmés (J-7 à J-3). C\'est le moment idéal pour envoyer toutes les informations finalisées : programme, badge, accès, etc.',
         icon: Users,
         color: '#673ab7',
         bgColor: 'from-purple-50/50 to-transparent',
         borderColor: 'border-purple-500/30',
         status: 'not_configured',
-        enabled: false, // Optional - disabled by default
+        enabled: true, // Enabled by default - important phase for badges
         isMandatory: false
       },
       {
@@ -695,7 +695,7 @@ export function EmailsTab({ event, onUpdate }: EmailsTabProps) {
               </CardDescription>
             </div>
             <div className="flex gap-2">
-              <Link href={`/admin/events/${event.id}/confirmation-email`}>
+              <Link href={`/admin/events/${event.id}/my-templates`}>
                 <Button className="bg-gradient-to-r from-[#004645] to-[#009197] text-white">
                   <Edit className="h-4 w-4 mr-2" />
                   Créer un Template
@@ -807,8 +807,110 @@ export function EmailsTab({ event, onUpdate }: EmailsTabProps) {
                           )}
 
                           <p className="text-xs text-amber-800">
-                            Ou cliquez sur <strong>&quot;Modifier Template&quot;</strong> à droite pour créer un nouveau template
+                            Ou cliquez sur <strong>&quot;Créer/Modifier Template&quot;</strong> à droite pour créer un nouveau template
                           </p>
+                        </div>
+                      )}
+
+                      {/* RSVP Configuration Section (Phase 2 only) */}
+                      {phase.id === 'invitation' && (
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-3">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-semibold text-blue-900">📋 Configuration RSVP</span>
+                              {event.rsvpDeadline ? (
+                                <Badge className="bg-green-100 text-green-800">
+                                  ✓ Configuré
+                                </Badge>
+                              ) : (
+                                <Badge variant="outline" className="border-orange-300 text-orange-700">
+                                  ⚠️ À configurer
+                                </Badge>
+                              )}
+                            </div>
+                            <Link href={`/admin/events/${event.id}/settings?tab=rsvp`}>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white"
+                              >
+                                <Settings className="h-3 w-3 mr-2" />
+                                Configurer RSVP
+                              </Button>
+                            </Link>
+                          </div>
+                          <div className="grid grid-cols-2 gap-3 text-sm">
+                            {event.rsvpDeadline ? (
+                              <div className="flex items-center gap-2">
+                                <Calendar className="h-4 w-4 text-blue-600" />
+                                <span className="text-blue-900">
+                                  <strong>Date limite :</strong>{' '}
+                                  {new Date(event.rsvpDeadline).toLocaleDateString('fr-FR', {
+                                    day: 'numeric',
+                                    month: 'short',
+                                    year: 'numeric'
+                                  })}
+                                </span>
+                              </div>
+                            ) : (
+                              <div className="flex items-center gap-2 text-orange-700">
+                                <Calendar className="h-4 w-4" />
+                                <span>Date limite non définie</span>
+                              </div>
+                            )}
+                            {event.rsvpConfig && (event.rsvpConfig as any).customSteps ? (
+                              <div className="flex items-center gap-2">
+                                <List className="h-4 w-4 text-blue-600" />
+                                <span className="text-blue-900">
+                                  <strong>Étapes :</strong> {(event.rsvpConfig as any).customSteps.filter((s: any) => s.enabled).length} configurées
+                                </span>
+                              </div>
+                            ) : (
+                              <div className="flex items-center gap-2 text-blue-700">
+                                <List className="h-4 w-4" />
+                                <span>Formulaire standard</span>
+                              </div>
+                            )}
+                          </div>
+                          <p className="text-xs text-blue-800">
+                            💡 L&apos;invitation contient le lien RSVP unique pour chaque invité. Configurez le formulaire et la date limite avant l&apos;envoi.
+                          </p>
+                        </div>
+                      )}
+
+                      {/* Badge & QR Code Section (Phase 5 only) */}
+                      {phase.id === 'practical-info' && (
+                        <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 space-y-3">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <QrCode className="h-4 w-4 text-purple-600" />
+                              <span className="text-sm font-semibold text-purple-900">📱 Badge & QR Code</span>
+                            </div>
+                            <Link href={`/admin/events/${event.id}/badges`}>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="border-purple-600 text-purple-600 hover:bg-purple-600 hover:text-white"
+                              >
+                                <QrCode className="h-3 w-3 mr-2" />
+                                Configurer Badges
+                              </Button>
+                            </Link>
+                          </div>
+                          <div className="space-y-2 text-xs text-purple-900">
+                            <p>
+                              <strong>✓ Génération automatique :</strong> Les badges avec QR code sont générés automatiquement pour tous les invités confirmés.
+                            </p>
+                            <p>
+                              <strong>🎨 Personnalisation :</strong> Cliquez sur &quot;Configurer Badges&quot; pour choisir le design, les champs affichés, et la taille du QR code.
+                            </p>
+                            <p>
+                              <strong>📅 Timing optimal :</strong> Cette phase (J-7 à J-3) est le moment idéal pour envoyer le badge avec toutes les infos pratiques finalisées.
+                            </p>
+                            <p className="text-purple-700">
+                              💡 Le QR code contient le lien unique de l&apos;invité pour faciliter le check-in le jour de l&apos;événement.
+                            </p>
+                          </div>
                         </div>
                       )}
 
@@ -867,7 +969,7 @@ export function EmailsTab({ event, onUpdate }: EmailsTabProps) {
                                 <div>
                                   <strong>Email Accepté</strong> : Envoyé quand l&apos;invité confirme sa présence
                                   <br />
-                                  <span className="text-red-700">→ Doit inclure : infos pratiques, date, lieu, QR code</span>
+                                  <span className="text-red-700">→ Doit inclure : message de remerciement et confirmation</span>
                                 </div>
                               </div>
                               <div className="flex items-start gap-2 text-xs text-red-900">
@@ -925,14 +1027,14 @@ export function EmailsTab({ event, onUpdate }: EmailsTabProps) {
                     ) : (
                       <>
                         {/* Template Actions for non-automatic phases */}
-                        <Link href={`/admin/events/${event.id}/confirmation-email?phase=${phase.id}`}>
+                        <Link href={`/admin/events/${event.id}/my-templates`}>
                           <Button
                             size="sm"
                             variant="outline"
                             className="w-full border-[#004645] text-[#004645] hover:bg-[#004645] hover:text-white"
                           >
                             <Edit className="h-3 w-3 mr-2" />
-                            Modifier Template
+                            Créer/Modifier Template
                           </Button>
                         </Link>
 
