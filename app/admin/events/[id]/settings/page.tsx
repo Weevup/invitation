@@ -28,9 +28,6 @@ export default function SettingsPage() {
   const initialTab = searchParams.get('tab') || 'emails'
   const [activeTab, setActiveTab] = useState(initialTab)
 
-  // Read subtab from URL (for RSVP tab)
-  const subtab = searchParams.get('subtab') || undefined
-
   useEffect(() => {
     loadEvent()
   }, [eventId])
@@ -145,7 +142,7 @@ export default function SettingsPage() {
 
         {/* RSVP Tab */}
         <TabsContent value="rsvp" className="space-y-6">
-          <RsvpTab event={event} onUpdate={loadEvent} initialSubTab={subtab} />
+          <RsvpTab event={event} onUpdate={loadEvent} />
         </TabsContent>
 
         {/* Appearance Tab */}
