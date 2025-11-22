@@ -279,7 +279,13 @@ export default async function EventShowcasePage({ params }: PageProps) {
                         }}
                       >
                         <Clock className="h-6 w-6" />
-                        <span className="font-semibold">{format(new Date(event.startsAt), 'HH:mm', { locale: fr })}</span>
+                        <span className="font-semibold">
+                          {new Date(event.startsAt).toLocaleTimeString('fr-FR', {
+                            timeZone: 'Europe/Paris',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -552,8 +558,16 @@ export default async function EventShowcasePage({ params }: PageProps) {
                               {format(new Date(event.startsAt), 'EEEE d MMMM yyyy', { locale: fr })}
                             </p>
                             <p className="text-sm" style={{ color: `${primaryColor}99` }}>
-                              {format(new Date(event.startsAt), 'HH:mm', { locale: fr })}
-                              {event.endsAt && ` - ${format(new Date(event.endsAt), 'HH:mm', { locale: fr })}`}
+                              {new Date(event.startsAt).toLocaleTimeString('fr-FR', {
+                                timeZone: 'Europe/Paris',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              })}
+                              {event.endsAt && ` - ${new Date(event.endsAt).toLocaleTimeString('fr-FR', {
+                                timeZone: 'Europe/Paris',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              })}`}
                             </p>
                           </div>
                         </div>
