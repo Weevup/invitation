@@ -2,12 +2,30 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { requireAdmin, handleAuthError } from '@/lib/auth-utils'
 
-// GET all templates
-export async function GET() {
+// GET all templates (with optional filters)
+export async function GET(request: NextRequest) {
   try {
     await requireAdmin()
 
+    const { searchParams } = new URL(request.url)
+    const eventId = searchParams.get('eventId')
+    const type = searchParams.get('type')
+    const slug = searchParams.get('slug')
+
+    // Build filter conditions
+    const where: any = {}
+    if (eventId) {
+      where.eventId = eventId
+    }
+    if (type) {
+      where.type = type
+    }
+    if (slug) {
+      where.slug = slug
+    }
+
     const templates = await prisma.emailTemplate.findMany({
+      where,
       orderBy: [
         { isDefault: 'desc' },
         { createdAt: 'desc' }

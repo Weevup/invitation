@@ -1,28 +1,36 @@
 "use client"
 
 import { useState, useEffect } from 'react'
-import { useParams } from 'next/navigation'
+import { useParams, useSearchParams } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Sparkles, Save, Download, Loader2 } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
+import { Sparkles, Save, Download, Loader2, CheckCircle, XCircle } from 'lucide-react'
 import { EmailEditor, EmailTemplate, PREDEFINED_TEMPLATES, blocksToHTML } from '@/components/email-editor'
 import { toast } from 'sonner'
 import { createClientLogger } from '@/lib/client-logger'
 
 const logger = createClientLogger({ component: 'ConfirmationEmailEditorPage' })
 
+type TemplateType = 'accepted' | 'declined' | null
+
 export default function ConfirmationEmailEditorPage() {
   const params = useParams()
+  const searchParams = useSearchParams()
   const eventId = params.id as string
+
+  // Read type parameter from URL (accepted or declined)
+  const typeParam = searchParams.get('type') as TemplateType
 
   const [selectedTemplate, setSelectedTemplate] = useState<EmailTemplate | null>(null)
   const [showTemplateSelector, setShowTemplateSelector] = useState(true)
   const [showSaveDialog, setShowSaveDialog] = useState(false)
   const [saving, setSaving] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [templateType, setTemplateType] = useState<TemplateType>(typeParam)
 
   // Save form state
   const [templateName, setTemplateName] = useState('')
@@ -32,12 +40,19 @@ export default function ConfirmationEmailEditorPage() {
   // Load existing confirmation template if exists
   useEffect(() => {
     loadExistingTemplate()
-  }, [eventId])
+  }, [eventId, templateType])
 
   const loadExistingTemplate = async () => {
     setLoading(true)
     try {
-      const response = await fetch(`/api/admin/templates?eventId=${eventId}&type=CONFIRMATION`)
+      // Load specific template based on type parameter
+      const slug = templateType === 'accepted'
+        ? 'confirmation-accepted'
+        : templateType === 'declined'
+        ? 'confirmation-declined'
+        : 'confirmation'
+
+      const response = await fetch(`/api/admin/templates?eventId=${eventId}&slug=${slug}`)
       if (!response.ok) throw new Error('Failed to load templates')
 
       const templates = await response.json()
@@ -51,8 +66,11 @@ export default function ConfirmationEmailEditorPage() {
           setSelectedTemplate(parsedTemplate)
           setShowTemplateSelector(false)
         } else {
-          // Use default template
-          setSelectedTemplate(PREDEFINED_TEMPLATES['confirmation-accepted'])
+          // Use default template based on type
+          const defaultTemplate = templateType === 'declined'
+            ? PREDEFINED_TEMPLATES['confirmation-declined']
+            : PREDEFINED_TEMPLATES['confirmation-accepted']
+          setSelectedTemplate(defaultTemplate)
           setShowTemplateSelector(true)
         }
 
@@ -63,13 +81,25 @@ export default function ConfirmationEmailEditorPage() {
 
         toast.success('Template de confirmation chargé')
       } else {
-        // No template found, show selector
-        setShowTemplateSelector(true)
+        // No template found, auto-select appropriate predefined template
+        if (templateType === 'accepted') {
+          handleSelectTemplate('confirmation-accepted')
+        } else if (templateType === 'declined') {
+          handleSelectTemplate('confirmation-declined')
+        } else {
+          setShowTemplateSelector(true)
+        }
       }
     } catch (error) {
       logger.error(error, { action: 'loadExistingTemplate' })
-      // Show template selector on error
-      setShowTemplateSelector(true)
+      // Show template selector on error or auto-select if type is specified
+      if (templateType === 'accepted') {
+        handleSelectTemplate('confirmation-accepted')
+      } else if (templateType === 'declined') {
+        handleSelectTemplate('confirmation-declined')
+      } else {
+        setShowTemplateSelector(true)
+      }
     } finally {
       setLoading(false)
     }
@@ -110,11 +140,15 @@ export default function ConfirmationEmailEditorPage() {
       const html = blocksToHTML(selectedTemplate)
       const blocksJson = JSON.stringify(selectedTemplate)
 
-      // Generate unique slug from name
-      const slug = templateName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+      // Use specific slug based on template type
+      const slug = templateType === 'accepted'
+        ? 'confirmation-accepted'
+        : templateType === 'declined'
+        ? 'confirmation-declined'
+        : templateName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
 
       // Check if template already exists
-      const existingResponse = await fetch(`/api/admin/templates?eventId=${eventId}&type=CONFIRMATION`)
+      const existingResponse = await fetch(`/api/admin/templates?eventId=${eventId}&slug=${slug}`)
       const existingTemplates = await existingResponse.json()
 
       const isEditing = existingTemplates && existingTemplates.length > 0
@@ -150,6 +184,9 @@ export default function ConfirmationEmailEditorPage() {
 
       toast.success(`Template "${templateName}" ${isEditing ? 'mis à jour' : 'sauvegardé'} avec succès !`)
       setShowSaveDialog(false)
+
+      // Reload to show updated template
+      await loadExistingTemplate()
     } catch (error) {
       toast.error('Erreur lors de la sauvegarde')
       logger.error(error, { action: 'SaveError' })
@@ -188,11 +225,29 @@ export default function ConfirmationEmailEditorPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-3xl font-bold text-[#004645] mb-2" style={{ fontFamily: "var(--font-abril)" }}>
-            Email de Confirmation RSVP
-          </h2>
+          <div className="flex items-center gap-3 mb-2">
+            <h2 className="text-3xl font-bold text-[#004645]" style={{ fontFamily: "var(--font-abril)" }}>
+              Email de Confirmation RSVP
+            </h2>
+            {templateType === 'accepted' && (
+              <Badge className="bg-green-600 text-white">
+                <CheckCircle className="h-3 w-3 mr-1" />
+                Présence Confirmée
+              </Badge>
+            )}
+            {templateType === 'declined' && (
+              <Badge className="bg-red-600 text-white">
+                <XCircle className="h-3 w-3 mr-1" />
+                Absence
+              </Badge>
+            )}
+          </div>
           <p className="text-[#004645]/70">
-            Personnalisez l&apos;email envoyé automatiquement après qu&apos;un invité confirme sa présence
+            {templateType === 'accepted'
+              ? 'Email automatique envoyé quand un invité confirme sa présence'
+              : templateType === 'declined'
+              ? 'Email automatique envoyé quand un invité décline l\'invitation'
+              : 'Personnalisez l\'email envoyé automatiquement après qu\'un invité répond au RSVP'}
           </p>
         </div>
         <div className="flex gap-2">
@@ -356,6 +411,7 @@ export default function ConfirmationEmailEditorPage() {
             <p><code className="bg-white px-2 py-1 rounded">{'{{event.name}}'}</code> - Nom de l&apos;événement</p>
             <p><code className="bg-white px-2 py-1 rounded">{'{{event.date}}'}</code> - Date formatée de l&apos;événement</p>
             <p><code className="bg-white px-2 py-1 rounded">{'{{event.location}}'}</code> - Lieu de l&apos;événement</p>
+            <p><code className="bg-white px-2 py-1 rounded">{'{{badge.downloadUrl}}'}</code> - Lien vers le badge avec QR code (si activé)</p>
             <p className="text-xs mt-4 italic">
               Ces variables seront automatiquement remplacées lors de l&apos;envoi de l&apos;email
             </p>

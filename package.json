@@ -37,6 +37,7 @@
     "test:e2e:headed": "playwright test --headed",
     "test:e2e:debug": "playwright test --debug",
     "test:e2e:report": "playwright show-report",
+    "test:confirmation-system": "tsx scripts/test-confirmation-email-system.ts",
     "postinstall": "prisma generate"
   },
   "dependencies": {

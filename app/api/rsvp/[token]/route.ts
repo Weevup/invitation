@@ -120,6 +120,42 @@ export async function POST(
       )
     }
 
+    // CRITICAL: Validate that confirmation email templates are configured
+    // Check for both accepted and declined templates to ensure proper configuration
+    const acceptedTemplate = await prisma.emailTemplate.findFirst({
+      where: {
+        slug: 'confirmation-accepted',
+        isActive: true,
+      },
+    })
+
+    const declinedTemplate = await prisma.emailTemplate.findFirst({
+      where: {
+        slug: 'confirmation-declined',
+        isActive: true,
+      },
+    })
+
+    // If either template is missing, block the RSVP submission
+    if (!acceptedTemplate || !declinedTemplate) {
+      rsvpLogger.warn({
+        eventId: guest.eventId,
+        missingTemplates: {
+          accepted: !acceptedTemplate,
+          declined: !declinedTemplate
+        }
+      }, 'RSVP blocked: Missing confirmation email templates')
+
+      return NextResponse.json(
+        {
+          error: 'EMAIL_TEMPLATES_NOT_CONFIGURED',
+          message: 'La configuration des emails de confirmation n\'est pas terminée',
+          suggestion: 'L\'organisateur doit configurer les templates d\'email avant que vous puissiez confirmer votre présence. Veuillez réessayer plus tard ou contacter l\'organisateur.'
+        },
+        { status: 503 }
+      )
+    }
+
     // Update or create RSVP
     const rsvp = await prisma.rSVP.upsert({
       where: { guestId: guest.id },
@@ -158,9 +194,20 @@ export async function POST(
 
     // Generate QR code if attending
     let qrCodeData = null
+    let badgeDownloadUrl = null
     if (attending) {
       const checkinUrl = getCheckinUrl(rsvp.qrCodeId)
       qrCodeData = await generateQRCode(checkinUrl)
+
+      // Check if event has badge design with QR code enabled
+      const badgeDesign = await prisma.badgeDesign.findUnique({
+        where: { eventId: guest.eventId }
+      })
+
+      if (badgeDesign?.includeQRCode) {
+        // Generate badge download URL for templates
+        badgeDownloadUrl = `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/guest/${guest.token}/badge`
+      }
     }
 
     // Build venue string (avoid "null" in output)
@@ -204,6 +251,7 @@ export async function POST(
         'event.time': new Date(guest.event.startsAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
         'event.location': eventVenue,
         'event.address': guest.event.address || '',
+        'badge.downloadUrl': badgeDownloadUrl || '', // Badge with QR code download link
       }
 
       const renderedHtml = renderTemplate(customTemplate.htmlContent, variables)
