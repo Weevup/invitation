@@ -17,9 +17,11 @@ interface ConfirmationProps {
   guestName: string
   eventName: string
   qrCodeData?: string
+  customTitle?: string
+  customMessage?: string
 }
 
-export function RSVPConfirmation({ attending, guestName, eventName, qrCodeData }: ConfirmationProps) {
+export function RSVPConfirmation({ attending, guestName, eventName, qrCodeData, customTitle, customMessage }: ConfirmationProps) {
   const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null)
 
   useEffect(() => {
@@ -96,10 +98,10 @@ export function RSVPConfirmation({ attending, guestName, eventName, qrCodeData }
           </div>
 
           <h2 className="text-3xl font-bold text-[#004645] mb-3" style={{ fontFamily: "var(--font-abril)" }}>
-            Confirmation enregistrée !
+            {customTitle || 'Confirmation enregistrée !'}
           </h2>
           <p className="text-lg text-[#004645]/70 mb-8">
-            Merci {guestName}, votre participation à <strong>{eventName}</strong> est confirmée.
+            {customMessage || `Merci ${guestName}, votre participation à ${eventName} est confirmée.`}
           </p>
 
           {qrCodeUrl && (
@@ -151,17 +153,11 @@ export function RSVPConfirmation({ attending, guestName, eventName, qrCodeData }
         </div>
 
         <h2 className="text-3xl font-bold text-[#004645] mb-3" style={{ fontFamily: "var(--font-abril)" }}>
-          Réponse enregistrée
+          {customTitle || 'Réponse enregistrée'}
         </h2>
         <p className="text-lg text-[#004645]/70 mb-6">
-          Merci {guestName} d&apos;avoir pris le temps de répondre.
+          {customMessage || `Merci ${guestName} d'avoir pris le temps de répondre. Nous espérons vous voir lors d'un prochain événement !`}
         </p>
-
-        <div className="p-4 bg-[#FF4713]/10 rounded-lg border border-[#FF4713]/30">
-          <p className="text-sm text-[#004645]">
-            Nous espérons vous voir lors d&apos;un prochain événement !
-          </p>
-        </div>
       </CardContent>
     </Card>
   )

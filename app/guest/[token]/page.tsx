@@ -788,15 +788,32 @@ export default function GuestPage() {
               guestName={guest.firstName}
               eventName={event.name}
               qrCodeData={qrCode || undefined}
+              customTitle={
+                attending
+                  ? data?.event.rsvpConfig?.confirmationTitleAccepted
+                  : data?.event.rsvpConfig?.confirmationTitleDeclined
+              }
+              customMessage={
+                attending
+                  ? data?.event.rsvpConfig?.confirmationTextAccepted
+                  : data?.event.rsvpConfig?.confirmationTextDeclined
+              }
             />
             <div className="mt-6 text-center">
               <Button
-                onClick={() => router.push("/")}
+                onClick={() => {
+                  const url = data?.event.rsvpConfig?.confirmationButtonUrl || "/"
+                  if (url.startsWith('http://') || url.startsWith('https://')) {
+                    window.location.href = url
+                  } else {
+                    router.push(url)
+                  }
+                }}
                 variant="outline"
                 size="lg"
                 className="border-[#004645] text-[#004645] hover:bg-[#004645] hover:text-white"
               >
-                Retour à l&apos;accueil
+                {data?.event.rsvpConfig?.confirmationButtonText || "Retour à l'accueil"}
               </Button>
             </div>
           </motion.div>
