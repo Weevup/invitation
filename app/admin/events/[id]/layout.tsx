@@ -34,6 +34,7 @@ import {
   LineChart,
   FileText,
   Code,
+  Edit,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useEventModules } from '@/lib/modules/use-event-modules'
@@ -150,6 +151,11 @@ export default function EventLayout({
           href: `/admin/events/${eventId}`,
           icon: LayoutDashboard,
           exact: true,
+        },
+        {
+          label: 'Modifier l\'événement',
+          href: `/admin/events/${eventId}/edit`,
+          icon: Edit,
         },
         {
           label: 'Configuration',
