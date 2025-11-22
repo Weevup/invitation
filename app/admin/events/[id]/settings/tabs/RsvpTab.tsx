@@ -58,8 +58,8 @@ export function RsvpTab({ event, onUpdate }: RsvpTabProps) {
     confirmationMessageDeclined: 'Nous sommes désolés que vous ne puissiez pas être des nôtres.',
 
     // Page de confirmation finale
-    confirmationButtonText: 'Retour à l\'accueil',
-    confirmationButtonUrl: '/',
+    confirmationButtonText: 'Voir l\'événement',
+    confirmationButtonUrl: `/event/${event.slug}`,
     confirmationTitleAccepted: 'Confirmation enregistrée !',
     confirmationTextAccepted: 'Merci, votre participation est confirmée.',
     confirmationTitleDeclined: 'Réponse enregistrée',
@@ -96,9 +96,17 @@ export function RsvpTab({ event, onUpdate }: RsvpTabProps) {
           setConfig(prev => ({
             ...prev,
             ...data.rsvpConfig,
+            // Set default confirmationButtonUrl to showcase if not already set
+            confirmationButtonUrl: data.rsvpConfig.confirmationButtonUrl || `/event/${event.slug}`,
             // Ensure we keep customSteps and theme if they exist
             customSteps: data.rsvpConfig.customSteps || prev.customSteps,
             theme: data.rsvpConfig.theme || prev.theme
+          }))
+        } else {
+          // If no config exists yet, set the default URL to showcase
+          setConfig(prev => ({
+            ...prev,
+            confirmationButtonUrl: `/event/${event.slug}`
           }))
         }
       }
@@ -444,7 +452,7 @@ export function RsvpTab({ event, onUpdate }: RsvpTabProps) {
                       id="buttonText"
                       value={config.confirmationButtonText}
                       onChange={(e) => setConfig({ ...config, confirmationButtonText: e.target.value })}
-                      placeholder="Ex: Retour à l'accueil"
+                      placeholder="Ex: Voir l'événement"
                       className="mt-1"
                     />
                   </div>
@@ -455,11 +463,11 @@ export function RsvpTab({ event, onUpdate }: RsvpTabProps) {
                       id="buttonUrl"
                       value={config.confirmationButtonUrl}
                       onChange={(e) => setConfig({ ...config, confirmationButtonUrl: e.target.value })}
-                      placeholder="Ex: / ou https://votre-site.com"
+                      placeholder={`Par défaut: /event/${event.slug} (showcase)`}
                       className="mt-1"
                     />
                     <p className="text-xs text-[#004645]/60 mt-1">
-                      &quot;/&quot; pour l&apos;accueil ou une URL complète
+                      Par défaut redirige vers le showcase de l&apos;événement
                     </p>
                   </div>
                 </div>
