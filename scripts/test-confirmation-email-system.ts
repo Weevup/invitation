@@ -247,7 +247,7 @@ async function testRSVPFlow(event: any) {
     logSuccess(`${emailLogs.length} email(s) de confirmation envoyé(s)`)
 
     for (const emailLog of emailLogs) {
-      log(`  📧 ${emailLog.sentAt.toISOString()}`)
+      log(`  📧 ${emailLog.sentAt?.toISOString() || 'N/A'}`)
       log(`     Subject: ${emailLog.subject}`)
       log(`     Status: ${emailLog.status}`)
       if (emailLog.providerId) {
