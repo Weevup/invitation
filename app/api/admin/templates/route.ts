@@ -8,15 +8,14 @@ export async function GET(request: NextRequest) {
     await requireAdmin()
 
     const { searchParams } = new URL(request.url)
-    const eventId = searchParams.get('eventId')
+    // Note: eventId parameter is ignored as EmailTemplate doesn't have eventId field
+    // Templates are global and not linked to specific events
     const type = searchParams.get('type')
     const slug = searchParams.get('slug')
 
     // Build filter conditions
     const where: any = {}
-    if (eventId) {
-      where.eventId = eventId
-    }
+    // Removed eventId filter - field doesn't exist in schema
     if (type) {
       where.type = type
     }
