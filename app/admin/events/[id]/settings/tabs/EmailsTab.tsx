@@ -6,9 +6,12 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
 import {
   Bell, Sparkles, Repeat, CheckCheck, Clock,
-  Send, Calendar, TestTube, Edit, BarChart3, Users
+  Send, Calendar, TestTube, Edit, BarChart3, Users, Loader2
 } from 'lucide-react'
 import Link from 'next/link'
 import { toast } from 'sonner'
@@ -33,6 +36,7 @@ interface PhaseConfig {
   status: 'not_configured' | 'configured' | 'scheduled' | 'sent'
   recipients?: number
   templateName?: string
+  templateId?: string // ID of the assigned template
   isAutomatic?: boolean
   enabled: boolean // Whether this phase is enabled/active
   isMandatory?: boolean // Whether this phase can be disabled (Phase 4 is mandatory)
@@ -41,10 +45,74 @@ interface PhaseConfig {
 export function EmailsTab({ event, onUpdate }: EmailsTabProps) {
   const [phases, setPhases] = useState<PhaseConfig[]>([])
   const [loading, setLoading] = useState(false)
+  const [availableTemplates, setAvailableTemplates] = useState<any[]>([])
+  const [showTestDialog, setShowTestDialog] = useState(false)
+  const [testPhaseId, setTestPhaseId] = useState<string | null>(null)
+  const [testEmailAddress, setTestEmailAddress] = useState('')
+  const [sendingTest, setSendingTest] = useState(false)
+  const [showSendDialog, setShowSendDialog] = useState(false)
+  const [sendPhaseId, setSendPhaseId] = useState<string | null>(null)
+  const [sendingCampaign, setSendingCampaign] = useState(false)
+  const [guestCount, setGuestCount] = useState<number>(0)
+  const [showScheduleDialog, setShowScheduleDialog] = useState(false)
+  const [schedulePhaseId, setSchedulePhaseId] = useState<string | null>(null)
+  const [scheduledDate, setScheduledDate] = useState<Date | undefined>(undefined)
+  const [schedulingCampaign, setSchedulingCampaign] = useState(false)
+  const [globalStats, setGlobalStats] = useState({
+    totalSent: 0,
+    openRate: '0',
+    clickRate: '0',
+    responseRate: '0'
+  })
 
   useEffect(() => {
     loadPhases()
+    loadAvailableTemplates()
+    loadGuestCount()
+    loadGlobalStats()
   }, [event])
+
+  // Auto-detect Phase 4 confirmation templates when templates are loaded
+  useEffect(() => {
+    if (availableTemplates.length > 0 && phases.length > 0) {
+      detectConfirmationTemplates()
+    }
+  }, [availableTemplates])
+
+  const loadAvailableTemplates = async () => {
+    try {
+      const response = await fetch(`/api/admin/templates?eventId=${event.id}`)
+      if (response.ok) {
+        const templates = await response.json()
+        setAvailableTemplates(templates)
+      }
+    } catch (error) {
+      console.error('Failed to load templates:', error)
+    }
+  }
+
+  const detectConfirmationTemplates = () => {
+    // Find confirmation templates by slug
+    const acceptedTemplate = availableTemplates.find(t => t.slug === 'confirmation-accepted' && t.isActive)
+    const declinedTemplate = availableTemplates.find(t => t.slug === 'confirmation-declined' && t.isActive)
+
+    // Update Phase 4 status based on templates existence
+    setPhases(prevPhases =>
+      prevPhases.map(phase => {
+        if (phase.id === 'confirmation') {
+          const bothTemplatesExist = acceptedTemplate && declinedTemplate
+          return {
+            ...phase,
+            status: bothTemplatesExist ? ('configured' as const) : ('not_configured' as const),
+            templateName: bothTemplatesExist
+              ? `2 templates configurés`
+              : phase.templateName || 'Non configuré'
+          }
+        }
+        return phase
+      })
+    )
+  }
 
   const loadPhases = () => {
     // Define all available phases with default configuration
@@ -143,6 +211,7 @@ export function EmailsTab({ event, onUpdate }: EmailsTabProps) {
             enabled: savedPhase.enabled !== undefined ? savedPhase.enabled : defaultPhase.enabled,
             status: savedPhase.status || defaultPhase.status,
             templateName: savedPhase.templateName || defaultPhase.templateName,
+            templateId: savedPhase.templateId || undefined, // Load saved templateId
             scheduledDate: savedPhase.scheduledDate ? new Date(savedPhase.scheduledDate) : undefined,
             recipients: savedPhase.recipients
           }
@@ -175,6 +244,7 @@ export function EmailsTab({ event, onUpdate }: EmailsTabProps) {
         enabled: phase.enabled,
         status: phase.status,
         templateName: phase.templateName,
+        templateId: phase.templateId, // Preserve templateId
         scheduledDate: phase.scheduledDate?.toISOString(),
         recipients: phase.recipients
       }))
@@ -206,6 +276,365 @@ export function EmailsTab({ event, onUpdate }: EmailsTabProps) {
     }
   }
 
+  const handleOpenTestDialog = (phaseId: string) => {
+    setTestPhaseId(phaseId)
+    setTestEmailAddress('')
+    setShowTestDialog(true)
+  }
+
+  const handleSendTestEmail = async () => {
+    if (!testEmailAddress || !testPhaseId) return
+
+    // Simple email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(testEmailAddress)) {
+      toast.error('Adresse email invalide')
+      return
+    }
+
+    const phase = phases.find(p => p.id === testPhaseId)
+    if (!phase) {
+      toast.error('Phase non trouvée')
+      return
+    }
+
+    setSendingTest(true)
+    try {
+      // Special handling for Phase 4 (Confirmation) - send both emails
+      if (phase.id === 'confirmation' && phase.isAutomatic) {
+        const acceptedTemplate = availableTemplates.find(t => t.slug === 'confirmation-accepted' && t.isActive)
+        const declinedTemplate = availableTemplates.find(t => t.slug === 'confirmation-declined' && t.isActive)
+
+        if (!acceptedTemplate || !declinedTemplate) {
+          toast.error('Les 2 templates de confirmation doivent être configurés')
+          return
+        }
+
+        // Send both test emails
+        const [acceptedRes, declinedRes] = await Promise.all([
+          fetch(`/api/admin/events/${event.id}/test-email`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              templateId: acceptedTemplate.id,
+              testEmail: testEmailAddress
+            })
+          }),
+          fetch(`/api/admin/events/${event.id}/test-email`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              templateId: declinedTemplate.id,
+              testEmail: testEmailAddress
+            })
+          })
+        ])
+
+        if (!acceptedRes.ok || !declinedRes.ok) {
+          throw new Error('Failed to send one or both test emails')
+        }
+
+        toast.success(`2 emails de test envoyés à ${testEmailAddress} (Accepté + Refusé)`)
+        setShowTestDialog(false)
+      } else {
+        // Regular single template phases
+        if (!phase.templateId) {
+          toast.error('Aucun template assigné à cette phase')
+          return
+        }
+
+        const response = await fetch(`/api/admin/events/${event.id}/test-email`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            templateId: phase.templateId,
+            testEmail: testEmailAddress
+          })
+        })
+
+        if (!response.ok) throw new Error('Failed to send test email')
+
+        toast.success(`Email de test envoyé à ${testEmailAddress}`)
+        setShowTestDialog(false)
+      }
+    } catch (error) {
+      toast.error('Erreur lors de l\'envoi de l\'email de test')
+    } finally {
+      setSendingTest(false)
+    }
+  }
+
+  const loadGuestCount = async () => {
+    try {
+      const response = await fetch(`/api/admin/events/${event.id}/guests`)
+      if (response.ok) {
+        const guests = await response.json()
+        setGuestCount(guests.length)
+      }
+    } catch (error) {
+      console.error('Failed to load guest count:', error)
+    }
+  }
+
+  const loadGlobalStats = async () => {
+    try {
+      // Load email analytics
+      const analyticsResponse = await fetch(`/api/admin/events/${event.id}/email-analytics`)
+      if (!analyticsResponse.ok) return
+
+      const analytics = await analyticsResponse.json()
+
+      // Load RSVP count for response rate
+      const rsvpResponse = await fetch(`/api/admin/events/${event.id}/rsvp`)
+      let rsvpCount = 0
+      if (rsvpResponse.ok) {
+        const rsvps = await rsvpResponse.json()
+        rsvpCount = rsvps.filter((r: any) => r.attending !== null).length
+      }
+
+      // Calculate response rate
+      const responseRate = analytics.overview.totalSent > 0
+        ? ((rsvpCount / analytics.overview.totalSent) * 100).toFixed(1)
+        : '0'
+
+      setGlobalStats({
+        totalSent: analytics.overview.totalSent,
+        openRate: analytics.overview.openRate,
+        clickRate: analytics.overview.clickRate,
+        responseRate
+      })
+    } catch (error) {
+      console.error('Failed to load global stats:', error)
+    }
+  }
+
+  const handleOpenSendDialog = (phaseId: string) => {
+    setSendPhaseId(phaseId)
+    setShowSendDialog(true)
+  }
+
+  const handleSendCampaign = async () => {
+    if (!sendPhaseId) return
+
+    const phase = phases.find(p => p.id === sendPhaseId)
+    if (!phase || !phase.templateId) {
+      toast.error('Aucun template assigné à cette phase')
+      return
+    }
+
+    setSendingCampaign(true)
+    try {
+      // Map phase ID to email type
+      const typeMap: Record<string, string> = {
+        'save-the-date': 'save-the-date',
+        'invitation': 'invitation',
+        'reminder': 'reminder',
+        'practical-info': 'practical-info',
+        'day-before': 'day-before'
+      }
+
+      const emailType = typeMap[phase.id] || phase.id
+
+      const response = await fetch(`/api/admin/events/${event.id}/send-emails`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: emailType,
+          templateId: phase.templateId
+        })
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || 'Failed to send campaign')
+      }
+
+      const result = await response.json()
+
+      // Update phase status to 'sent'
+      setPhases(prevPhases =>
+        prevPhases.map(p =>
+          p.id === sendPhaseId
+            ? { ...p, status: 'sent' as const }
+            : p
+        )
+      )
+
+      // Save updated status to database
+      const updatedPhases = phases.map(p =>
+        p.id === sendPhaseId
+          ? { ...p, status: 'sent' as const }
+          : p
+      )
+
+      await fetch(`/api/admin/events/${event.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          emailCampaigns: updatedPhases.map(phase => ({
+            id: phase.id,
+            phase: phase.phase,
+            enabled: phase.enabled,
+            status: phase.status,
+            templateName: phase.templateName,
+            templateId: phase.templateId,
+            scheduledDate: phase.scheduledDate?.toISOString(),
+            recipients: phase.recipients
+          }))
+        })
+      })
+
+      toast.success(`✅ Campagne envoyée avec succès à ${result.results.success}/${result.results.total} destinataires`)
+      setShowSendDialog(false)
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Erreur lors de l\'envoi de la campagne')
+    } finally {
+      setSendingCampaign(false)
+    }
+  }
+
+  const handleOpenScheduleDialog = (phaseId: string) => {
+    const phase = phases.find(p => p.id === phaseId)
+    setSchedulePhaseId(phaseId)
+    setScheduledDate(phase?.scheduledDate || undefined)
+    setShowScheduleDialog(true)
+  }
+
+  const handleScheduleCampaign = async () => {
+    if (!schedulePhaseId || !scheduledDate) return
+
+    const phase = phases.find(p => p.id === schedulePhaseId)
+    if (!phase || !phase.templateId) {
+      toast.error('Aucun template assigné à cette phase')
+      return
+    }
+
+    setSchedulingCampaign(true)
+    try {
+      // Map phase ID to email type
+      const typeMap: Record<string, string> = {
+        'save-the-date': 'save-the-date',
+        'invitation': 'invitation',
+        'reminder': 'reminder',
+        'practical-info': 'practical-info',
+        'day-before': 'day-before'
+      }
+
+      const emailType = typeMap[phase.id] || phase.id
+
+      const response = await fetch(`/api/admin/events/${event.id}/send-emails`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: emailType,
+          templateId: phase.templateId,
+          scheduleFor: scheduledDate.toISOString()
+        })
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || 'Failed to schedule campaign')
+      }
+
+      const result = await response.json()
+
+      // Update phase status to 'scheduled' and save the date
+      setPhases(prevPhases =>
+        prevPhases.map(p =>
+          p.id === schedulePhaseId
+            ? { ...p, status: 'scheduled' as const, scheduledDate }
+            : p
+        )
+      )
+
+      // Save updated status to database
+      const updatedPhases = phases.map(p =>
+        p.id === schedulePhaseId
+          ? { ...p, status: 'scheduled' as const, scheduledDate }
+          : p
+      )
+
+      await fetch(`/api/admin/events/${event.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          emailCampaigns: updatedPhases.map(phase => ({
+            id: phase.id,
+            phase: phase.phase,
+            enabled: phase.enabled,
+            status: phase.status,
+            templateName: phase.templateName,
+            templateId: phase.templateId,
+            scheduledDate: phase.scheduledDate?.toISOString(),
+            recipients: phase.recipients
+          }))
+        })
+      })
+
+      toast.success(`✅ Campagne planifiée pour le ${result.scheduledEmail.scheduledFor ? new Date(result.scheduledEmail.scheduledFor).toLocaleString('fr-FR') : scheduledDate.toLocaleString('fr-FR')}`)
+      setShowScheduleDialog(false)
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Erreur lors de la planification')
+    } finally {
+      setSchedulingCampaign(false)
+    }
+  }
+
+  const assignTemplateToPhase = async (phaseId: string, templateId: string) => {
+    const selectedTemplate = availableTemplates.find(t => t.id === templateId)
+    if (!selectedTemplate) return
+
+    // Update local state
+    setPhases(prevPhases =>
+      prevPhases.map(phase =>
+        phase.id === phaseId
+          ? { ...phase, templateName: selectedTemplate.name, templateId, status: 'configured' as const }
+          : phase
+      )
+    )
+
+    // Save to database
+    setLoading(true)
+    try {
+      const updatedPhases = phases.map(phase =>
+        phase.id === phaseId
+          ? { ...phase, templateName: selectedTemplate.name, templateId, status: 'configured' as const }
+          : phase
+      )
+
+      const phasesConfig = updatedPhases.map(phase => ({
+        id: phase.id,
+        phase: phase.phase,
+        enabled: phase.enabled,
+        status: phase.status,
+        templateName: phase.templateName,
+        templateId: phase.templateId, // Always save templateId if present
+        scheduledDate: phase.scheduledDate?.toISOString(),
+        recipients: phase.recipients
+      }))
+
+      const response = await fetch(`/api/admin/events/${event.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          emailCampaignsConfig: {
+            phases: phasesConfig
+          }
+        })
+      })
+
+      if (!response.ok) throw new Error('Failed to save template')
+
+      toast.success(`Template "${selectedTemplate.name}" assigné à la phase`)
+      onUpdate()
+    } catch (error) {
+      toast.error('Erreur lors de l\'assignation du template')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const getStatusBadge = (phase: PhaseConfig) => {
     switch (phase.status) {
       case 'sent':
@@ -223,13 +652,13 @@ export function EmailsTab({ event, onUpdate }: EmailsTabProps) {
       case 'configured':
         return (
           <Badge className="bg-gray-100 text-gray-800 hover:bg-gray-100">
-            ⚙️ Configuré
+            ✓ Template créé
           </Badge>
         )
       default:
         return (
           <Badge variant="outline" className="border-red-300 text-red-700">
-            ⚠️ À configurer
+            ⚠️ Template manquant
           </Badge>
         )
     }
@@ -346,6 +775,43 @@ export function EmailsTab({ event, onUpdate }: EmailsTabProps) {
                         )}
                       </div>
 
+                      {/* Help message for unconfigured phases */}
+                      {phase.enabled && phase.status === 'not_configured' && !phase.isAutomatic && (
+                        <div className="bg-amber-50 border border-amber-300 rounded-lg p-3 mt-2 space-y-3">
+                          <p className="text-sm text-amber-900">
+                            👉 <strong>Action requise :</strong> Sélectionnez un template existant ou créez-en un nouveau
+                          </p>
+
+                          {/* Template Selector */}
+                          {availableTemplates.length > 0 && (
+                            <div className="flex items-center gap-3">
+                              <Label htmlFor={`template-${phase.id}`} className="text-sm font-medium text-amber-900 whitespace-nowrap">
+                                Sélectionner un template :
+                              </Label>
+                              <Select
+                                value={phase.templateId || ''}
+                                onValueChange={(value) => assignTemplateToPhase(phase.id, value)}
+                              >
+                                <SelectTrigger id={`template-${phase.id}`} className="flex-1 bg-white">
+                                  <SelectValue placeholder="Choisir un template..." />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {availableTemplates.map((template) => (
+                                    <SelectItem key={template.id} value={template.id}>
+                                      {template.name} {template.type && `(${template.type})`}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          )}
+
+                          <p className="text-xs text-amber-800">
+                            Ou cliquez sur <strong>&quot;Modifier Template&quot;</strong> à droite pour créer un nouveau template
+                          </p>
+                        </div>
+                      )}
+
                       {/* Description */}
                       <p className="text-sm text-[#004645]/70">
                         {phase.description}
@@ -449,7 +915,8 @@ export function EmailsTab({ event, onUpdate }: EmailsTabProps) {
                           size="sm"
                           variant="outline"
                           className="w-full border-green-600 text-green-600 hover:bg-green-600 hover:text-white"
-                          disabled={!phase.enabled}
+                          disabled={!phase.enabled || phase.status !== 'configured'}
+                          onClick={() => handleOpenTestDialog(phase.id)}
                         >
                           <TestTube className="h-3 w-3 mr-2" />
                           Tester les 2
@@ -474,19 +941,20 @@ export function EmailsTab({ event, onUpdate }: EmailsTabProps) {
                           size="sm"
                           variant="outline"
                           className="w-full"
-                          disabled={!phase.enabled}
+                          disabled={!phase.enabled || !phase.templateId}
+                          onClick={() => handleOpenTestDialog(phase.id)}
                           style={{
                             borderColor: phase.color,
                             color: phase.color
                           }}
                           onMouseEnter={(e) => {
-                            if (phase.enabled) {
+                            if (phase.enabled && phase.templateId) {
                               e.currentTarget.style.backgroundColor = phase.color
                               e.currentTarget.style.color = 'white'
                             }
                           }}
                           onMouseLeave={(e) => {
-                            if (phase.enabled) {
+                            if (phase.enabled && phase.templateId) {
                               e.currentTarget.style.backgroundColor = 'transparent'
                               e.currentTarget.style.color = phase.color
                             }
@@ -507,25 +975,53 @@ export function EmailsTab({ event, onUpdate }: EmailsTabProps) {
                             Envoyé
                           </Button>
                         ) : phase.status === 'scheduled' ? (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="w-full border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white"
-                            disabled={!phase.enabled}
-                          >
-                            <Calendar className="h-3 w-3 mr-2" />
-                            Modifier
-                          </Button>
+                          <>
+                            <div className="w-full bg-blue-50 border border-blue-300 rounded p-2 text-xs text-blue-900">
+                              📅 Planifié pour :{' '}
+                              <strong>
+                                {phase.scheduledDate?.toLocaleString('fr-FR', {
+                                  weekday: 'short',
+                                  day: 'numeric',
+                                  month: 'short',
+                                  hour: '2-digit',
+                                  minute: '2-digit'
+                                })}
+                              </strong>
+                            </div>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="w-full border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white"
+                              disabled={!phase.enabled}
+                              onClick={() => handleOpenScheduleDialog(phase.id)}
+                            >
+                              <Calendar className="h-3 w-3 mr-2" />
+                              Modifier
+                            </Button>
+                          </>
                         ) : (
-                          <Button
-                            size="sm"
-                            className="w-full text-white"
-                            style={{ backgroundColor: phase.color }}
-                            disabled={!phase.enabled}
-                          >
-                            <Send className="h-3 w-3 mr-2" />
-                            Envoyer
-                          </Button>
+                          <>
+                            <Button
+                              size="sm"
+                              className="w-full text-white"
+                              style={{ backgroundColor: phase.color }}
+                              disabled={!phase.enabled || !phase.templateId}
+                              onClick={() => handleOpenSendDialog(phase.id)}
+                            >
+                              <Send className="h-3 w-3 mr-2" />
+                              Envoyer
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="w-full border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white"
+                              disabled={!phase.enabled || !phase.templateId}
+                              onClick={() => handleOpenScheduleDialog(phase.id)}
+                            >
+                              <Calendar className="h-3 w-3 mr-2" />
+                              Planifier
+                            </Button>
+                          </>
                         )}
                       </>
                     )}
@@ -546,23 +1042,166 @@ export function EmailsTab({ event, onUpdate }: EmailsTabProps) {
           <div className="grid grid-cols-4 gap-6">
             <div>
               <p className="text-sm text-[#004645]/70 mb-1">Emails envoyés</p>
-              <p className="text-3xl font-bold text-[#004645]">312</p>
+              <p className="text-3xl font-bold text-[#004645]">{globalStats.totalSent}</p>
             </div>
             <div>
               <p className="text-sm text-[#004645]/70 mb-1">Taux d&apos;ouverture</p>
-              <p className="text-3xl font-bold text-green-600">78%</p>
+              <p className="text-3xl font-bold text-green-600">{globalStats.openRate}%</p>
             </div>
             <div>
               <p className="text-sm text-[#004645]/70 mb-1">Clics</p>
-              <p className="text-3xl font-bold text-[#009197]">45%</p>
+              <p className="text-3xl font-bold text-[#009197]">{globalStats.clickRate}%</p>
             </div>
             <div>
               <p className="text-sm text-[#004645]/70 mb-1">Taux de réponse</p>
-              <p className="text-3xl font-bold text-purple-600">65%</p>
+              <p className="text-3xl font-bold text-purple-600">{globalStats.responseRate}%</p>
             </div>
           </div>
         </CardContent>
       </Card>
+
+      {/* Test Email Dialog */}
+      <Dialog open={showTestDialog} onOpenChange={setShowTestDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Envoyer un email de test</DialogTitle>
+            <DialogDescription>
+              Entrez une adresse email pour recevoir un email de test de cette phase.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="test-email">Adresse email</Label>
+              <Input
+                id="test-email"
+                type="email"
+                placeholder="exemple@email.com"
+                value={testEmailAddress}
+                onChange={(e) => setTestEmailAddress(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault()
+                    handleSendTestEmail()
+                  }
+                }}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowTestDialog(false)} disabled={sendingTest}>
+              Annuler
+            </Button>
+            <Button onClick={handleSendTestEmail} disabled={sendingTest || !testEmailAddress}>
+              {sendingTest && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Envoyer
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Send Campaign Confirmation Dialog */}
+      <Dialog open={showSendDialog} onOpenChange={setShowSendDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirmer l&apos;envoi de la campagne</DialogTitle>
+            <DialogDescription>
+              Vous êtes sur le point d&apos;envoyer cette campagne email à tous vos invités.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="bg-amber-50 border border-amber-300 rounded-lg p-4 space-y-2">
+              <p className="text-sm font-semibold text-amber-900">⚠️ Attention</p>
+              <p className="text-sm text-amber-800">
+                Cette action enverra immédiatement l&apos;email à <strong>{guestCount} destinataire{guestCount > 1 ? 's' : ''}</strong>.
+              </p>
+              <p className="text-sm text-amber-800">
+                Cette action est <strong>irréversible</strong>.
+              </p>
+            </div>
+            {sendPhaseId && (
+              <div className="space-y-2">
+                <p className="text-sm text-gray-700">
+                  <strong>Phase :</strong> {phases.find(p => p.id === sendPhaseId)?.title}
+                </p>
+                <p className="text-sm text-gray-700">
+                  <strong>Template :</strong> {phases.find(p => p.id === sendPhaseId)?.templateName}
+                </p>
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowSendDialog(false)} disabled={sendingCampaign}>
+              Annuler
+            </Button>
+            <Button
+              onClick={handleSendCampaign}
+              disabled={sendingCampaign}
+              className="bg-[#004645] hover:bg-[#003534]"
+            >
+              {sendingCampaign && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Envoyer maintenant
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Schedule Campaign Dialog */}
+      <Dialog open={showScheduleDialog} onOpenChange={setShowScheduleDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Planifier l&apos;envoi de la campagne</DialogTitle>
+            <DialogDescription>
+              Choisissez la date et l&apos;heure d&apos;envoi de cette campagne.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            {schedulePhaseId && (
+              <div className="space-y-2 pb-4 border-b">
+                <p className="text-sm text-gray-700">
+                  <strong>Phase :</strong> {phases.find(p => p.id === schedulePhaseId)?.title}
+                </p>
+                <p className="text-sm text-gray-700">
+                  <strong>Template :</strong> {phases.find(p => p.id === schedulePhaseId)?.templateName}
+                </p>
+                <p className="text-sm text-gray-700">
+                  <strong>Destinataires :</strong> {guestCount} invité{guestCount > 1 ? 's' : ''}
+                </p>
+              </div>
+            )}
+            <div className="space-y-2">
+              <Label htmlFor="scheduled-date">Date et heure d&apos;envoi</Label>
+              <Input
+                id="scheduled-date"
+                type="datetime-local"
+                value={scheduledDate ? scheduledDate.toISOString().slice(0, 16) : ''}
+                onChange={(e) => {
+                  const date = e.target.value ? new Date(e.target.value) : undefined
+                  setScheduledDate(date)
+                }}
+                min={new Date().toISOString().slice(0, 16)}
+                className="w-full"
+              />
+              <p className="text-xs text-gray-500">
+                L&apos;email sera envoyé automatiquement à la date et l&apos;heure sélectionnées.
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowScheduleDialog(false)} disabled={schedulingCampaign}>
+              Annuler
+            </Button>
+            <Button
+              onClick={handleScheduleCampaign}
+              disabled={schedulingCampaign || !scheduledDate}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              {schedulingCampaign && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              <Calendar className="mr-2 h-4 w-4" />
+              Planifier
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
