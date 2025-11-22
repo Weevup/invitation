@@ -1242,34 +1242,68 @@ export function EmailsTab({ event, onUpdate }: EmailsTabProps) {
                     {/* Special actions for automatic confirmation phase */}
                     {phase.isAutomatic ? (
                       <>
-                        <Link href={`/admin/events/${event.id}/confirmation-email?type=accepted`}>
-                          <Button
-                            size="sm"
-                            className="w-full bg-green-600 hover:bg-green-700 text-white"
-                          >
-                            <Edit className="h-3 w-3 mr-2" />
-                            Email &quot;Accepté&quot;
-                          </Button>
-                        </Link>
-                        <Link href={`/admin/events/${event.id}/confirmation-email?type=declined`}>
-                          <Button
-                            size="sm"
-                            className="w-full bg-red-600 hover:bg-red-700 text-white"
-                          >
-                            <Edit className="h-3 w-3 mr-2" />
-                            Email &quot;Refusé&quot;
-                          </Button>
-                        </Link>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="w-full border-green-600 text-green-600 hover:bg-green-600 hover:text-white"
-                          disabled={!phase.enabled || phase.status !== 'configured'}
-                          onClick={() => handleOpenTestDialog(phase.id)}
-                        >
-                          <TestTube className="h-3 w-3 mr-2" />
-                          Tester les 2
-                        </Button>
+                        {(() => {
+                          const acceptedTemplate = availableTemplates.find(t => t.slug === 'confirmation-accepted' && t.isActive)
+                          const declinedTemplate = availableTemplates.find(t => t.slug === 'confirmation-declined' && t.isActive)
+
+                          return (
+                            <>
+                              {/* Template Accepted */}
+                              <div className="space-y-1">
+                                <Link href={`/admin/events/${event.id}/confirmation-email?type=accepted`} className="block">
+                                  <Button
+                                    size="sm"
+                                    className={`w-full ${acceptedTemplate ? 'bg-green-600 hover:bg-green-700' : 'bg-amber-500 hover:bg-amber-600'} text-white`}
+                                  >
+                                    <Edit className="h-3 w-3 mr-2" />
+                                    Email &quot;Accepté&quot;
+                                    {acceptedTemplate && <CheckCircle2 className="h-3 w-3 ml-2" />}
+                                    {!acceptedTemplate && <AlertCircle className="h-3 w-3 ml-2" />}
+                                  </Button>
+                                </Link>
+                                {acceptedTemplate ? (
+                                  <p className="text-xs text-green-700 text-center">✓ Configuré</p>
+                                ) : (
+                                  <p className="text-xs text-amber-700 text-center font-semibold">⚠️ À créer</p>
+                                )}
+                              </div>
+
+                              {/* Template Declined */}
+                              <div className="space-y-1">
+                                <Link href={`/admin/events/${event.id}/confirmation-email?type=declined`} className="block">
+                                  <Button
+                                    size="sm"
+                                    className={`w-full ${declinedTemplate ? 'bg-red-600 hover:bg-red-700' : 'bg-amber-500 hover:bg-amber-600'} text-white`}
+                                  >
+                                    <Edit className="h-3 w-3 mr-2" />
+                                    Email &quot;Refusé&quot;
+                                    {declinedTemplate && <CheckCircle2 className="h-3 w-3 ml-2" />}
+                                    {!declinedTemplate && <AlertCircle className="h-3 w-3 ml-2" />}
+                                  </Button>
+                                </Link>
+                                {declinedTemplate ? (
+                                  <p className="text-xs text-red-700 text-center">✓ Configuré</p>
+                                ) : (
+                                  <p className="text-xs text-amber-700 text-center font-semibold">⚠️ À créer</p>
+                                )}
+                              </div>
+
+                              {/* Test button */}
+                              <div className="pt-2 border-t">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="w-full border-green-600 text-green-600 hover:bg-green-600 hover:text-white"
+                                  disabled={!phase.enabled || phase.status !== 'configured'}
+                                  onClick={() => handleOpenTestDialog(phase.id)}
+                                >
+                                  <TestTube className="h-3 w-3 mr-2" />
+                                  Tester les 2
+                                </Button>
+                              </div>
+                            </>
+                          )
+                        })()}
                       </>
                     ) : (
                       <>
