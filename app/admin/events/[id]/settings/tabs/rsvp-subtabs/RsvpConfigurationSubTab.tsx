@@ -40,7 +40,15 @@ export function RsvpConfigurationSubTab({ event, onUpdate }: RsvpConfigurationSu
 
     // Messages
     confirmationMessageAccepted: 'Merci ! Nous avons bien enregistré votre participation.',
-    confirmationMessageDeclined: 'Nous sommes désolés que vous ne puissiez pas être des nôtres.'
+    confirmationMessageDeclined: 'Nous sommes désolés que vous ne puissiez pas être des nôtres.',
+
+    // Page de confirmation finale
+    confirmationButtonText: 'Retour à l\'accueil',
+    confirmationButtonUrl: '/',
+    confirmationTitleAccepted: 'Confirmation enregistrée !',
+    confirmationTextAccepted: 'Merci, votre participation est confirmée.',
+    confirmationTitleDeclined: 'Réponse enregistrée',
+    confirmationTextDeclined: 'Merci d\'avoir pris le temps de répondre. Nous espérons vous voir lors d\'un prochain événement !'
   })
 
   useEffect(() => {
@@ -319,6 +327,103 @@ export function RsvpConfigurationSubTab({ event, onUpdate }: RsvpConfigurationSu
               rows={2}
               className="mt-2"
             />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Page de confirmation finale */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg text-[#004645]">Page de confirmation finale</CardTitle>
+          <CardDescription>
+            Personnalisez la page affichée après validation du RSVP
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {/* Button Configuration */}
+          <div className="p-4 bg-[#9CD9F6]/10 rounded-lg border border-[#9CD9F6]/30 space-y-4">
+            <Label className="text-base font-semibold text-[#004645]">Bouton de redirection</Label>
+
+            <div>
+              <Label htmlFor="buttonText">Texte du bouton</Label>
+              <Input
+                id="buttonText"
+                value={config.confirmationButtonText}
+                onChange={(e) => setConfig({ ...config, confirmationButtonText: e.target.value })}
+                placeholder="Ex: Retour à l'accueil"
+                className="mt-2"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="buttonUrl">URL de redirection</Label>
+              <Input
+                id="buttonUrl"
+                value={config.confirmationButtonUrl}
+                onChange={(e) => setConfig({ ...config, confirmationButtonUrl: e.target.value })}
+                placeholder="Ex: / ou https://votre-site.com"
+                className="mt-2"
+              />
+              <p className="text-xs text-[#004645]/70 mt-1">
+                Utilisez &quot;/&quot; pour la page d&apos;accueil ou une URL complète
+              </p>
+            </div>
+          </div>
+
+          {/* Accepted Confirmation */}
+          <div className="space-y-3">
+            <Label className="text-base font-semibold text-[#004645]">Message pour participation confirmée</Label>
+
+            <div>
+              <Label htmlFor="titleAccepted">Titre</Label>
+              <Input
+                id="titleAccepted"
+                value={config.confirmationTitleAccepted}
+                onChange={(e) => setConfig({ ...config, confirmationTitleAccepted: e.target.value })}
+                placeholder="Ex: Confirmation enregistrée !"
+                className="mt-2"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="textAccepted">Message</Label>
+              <Textarea
+                id="textAccepted"
+                value={config.confirmationTextAccepted}
+                onChange={(e) => setConfig({ ...config, confirmationTextAccepted: e.target.value })}
+                placeholder="Ex: Merci, votre participation est confirmée."
+                rows={2}
+                className="mt-2"
+              />
+            </div>
+          </div>
+
+          {/* Declined Confirmation */}
+          <div className="space-y-3">
+            <Label className="text-base font-semibold text-[#004645]">Message pour absence</Label>
+
+            <div>
+              <Label htmlFor="titleDeclined">Titre</Label>
+              <Input
+                id="titleDeclined"
+                value={config.confirmationTitleDeclined}
+                onChange={(e) => setConfig({ ...config, confirmationTitleDeclined: e.target.value })}
+                placeholder="Ex: Réponse enregistrée"
+                className="mt-2"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="textDeclined">Message</Label>
+              <Textarea
+                id="textDeclined"
+                value={config.confirmationTextDeclined}
+                onChange={(e) => setConfig({ ...config, confirmationTextDeclined: e.target.value })}
+                placeholder="Ex: Merci d'avoir pris le temps de répondre."
+                rows={2}
+                className="mt-2"
+              />
+            </div>
           </div>
         </CardContent>
       </Card>
