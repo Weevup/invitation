@@ -175,13 +175,13 @@ export function EmailsTab({ event, onUpdate }: EmailsTabProps) {
         id: 'practical-info',
         phase: 5,
         title: 'Infos Pratiques & Badge',
-        description: 'OPTIONNEL - Envoi séparé des infos pratiques et du badge (J-7 à J-3). Par défaut, le badge est déjà inclus dans l\'email de confirmation (Phase 4). N\'activez cette phase que si vous souhaitez renvoyer les infos pratiques plus près de la date.',
+        description: 'Envoi du badge avec QR code + infos pratiques complètes aux participants confirmés (J-7 à J-3). C\'est le moment idéal pour envoyer toutes les informations finalisées : programme, badge, accès, etc.',
         icon: Users,
         color: '#673ab7',
         bgColor: 'from-purple-50/50 to-transparent',
         borderColor: 'border-purple-500/30',
         status: 'not_configured',
-        enabled: false, // Optional - disabled by default
+        enabled: true, // Enabled by default - important phase for badges
         isMandatory: false
       },
       {
@@ -878,6 +878,42 @@ export function EmailsTab({ event, onUpdate }: EmailsTabProps) {
                         </div>
                       )}
 
+                      {/* Badge & QR Code Section (Phase 5 only) */}
+                      {phase.id === 'practical-info' && (
+                        <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 space-y-3">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <QrCode className="h-4 w-4 text-purple-600" />
+                              <span className="text-sm font-semibold text-purple-900">📱 Badge & QR Code</span>
+                            </div>
+                            <Link href={`/admin/events/${event.id}/badges`}>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="border-purple-600 text-purple-600 hover:bg-purple-600 hover:text-white"
+                              >
+                                <QrCode className="h-3 w-3 mr-2" />
+                                Configurer Badges
+                              </Button>
+                            </Link>
+                          </div>
+                          <div className="space-y-2 text-xs text-purple-900">
+                            <p>
+                              <strong>✓ Génération automatique :</strong> Les badges avec QR code sont générés automatiquement pour tous les invités confirmés.
+                            </p>
+                            <p>
+                              <strong>🎨 Personnalisation :</strong> Cliquez sur "Configurer Badges" pour choisir le design, les champs affichés, et la taille du QR code.
+                            </p>
+                            <p>
+                              <strong>📅 Timing optimal :</strong> Cette phase (J-7 à J-3) est le moment idéal pour envoyer le badge avec toutes les infos pratiques finalisées.
+                            </p>
+                            <p className="text-purple-700">
+                              💡 Le QR code contient le lien unique de l&apos;invité pour faciliter le check-in le jour de l&apos;événement.
+                            </p>
+                          </div>
+                        </div>
+                      )}
+
                       {/* Description */}
                       <p className="text-sm text-[#004645]/70">
                         {phase.description}
@@ -933,7 +969,7 @@ export function EmailsTab({ event, onUpdate }: EmailsTabProps) {
                                 <div>
                                   <strong>Email Accepté</strong> : Envoyé quand l&apos;invité confirme sa présence
                                   <br />
-                                  <span className="text-red-700">→ Doit inclure : infos pratiques, date, lieu, QR code</span>
+                                  <span className="text-red-700">→ Doit inclure : message de remerciement et confirmation</span>
                                 </div>
                               </div>
                               <div className="flex items-start gap-2 text-xs text-red-900">
@@ -947,37 +983,6 @@ export function EmailsTab({ event, onUpdate }: EmailsTabProps) {
                             </div>
                             <div className="mt-3 p-2 bg-red-100 rounded text-xs text-red-900">
                               <strong>⚡ Attention :</strong> Sans configuration, vos invités recevront des emails vides ou non-personnalisés !
-                            </div>
-                          </div>
-
-                          {/* Badge & QR Code Info (Phase 4 only) */}
-                          <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 mt-3 space-y-3">
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-2">
-                                <QrCode className="h-4 w-4 text-purple-600" />
-                                <span className="text-sm font-semibold text-purple-900">Badge & QR Code</span>
-                              </div>
-                              <Link href={`/admin/events/${event.id}/badges`}>
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  className="border-purple-600 text-purple-600 hover:bg-purple-600 hover:text-white"
-                                >
-                                  <QrCode className="h-3 w-3 mr-2" />
-                                  Configurer Badges
-                                </Button>
-                              </Link>
-                            </div>
-                            <div className="space-y-2 text-xs text-purple-900">
-                              <p>
-                                <strong>✓ Génération automatique :</strong> Les badges avec QR code sont générés automatiquement pour tous les invités confirmés.
-                              </p>
-                              <p>
-                                <strong>🎨 Personnalisation :</strong> Cliquez sur "Configurer Badges" pour choisir le design, les champs affichés, et la taille du QR code.
-                              </p>
-                              <p className="text-purple-700">
-                                💡 Le QR code contient le lien unique de l&apos;invité pour faciliter le check-in le jour de l&apos;événement.
-                              </p>
                             </div>
                           </div>
                         </div>
