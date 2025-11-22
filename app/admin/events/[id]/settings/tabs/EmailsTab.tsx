@@ -11,7 +11,8 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from '@/components/ui/input'
 import {
   Bell, Sparkles, Repeat, CheckCheck, Clock,
-  Send, Calendar, TestTube, Edit, BarChart3, Users, Loader2, List, Settings, QrCode
+  Send, Calendar, TestTube, Edit, BarChart3, Users, Loader2, List, Settings, QrCode,
+  AlertCircle, CheckCircle2, Plus
 } from 'lucide-react'
 import Link from 'next/link'
 import { toast } from 'sonner'
