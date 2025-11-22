@@ -589,14 +589,9 @@ export default function GuestPage() {
             {/* RSVP Form */}
             <Card className="border-[#9CD9F6]/30 bg-white/80 backdrop-blur">
               <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-[#004645]" style={{ fontFamily: "var(--font-abril)" }}>
-                    {customTexts.formTitle}
-                  </CardTitle>
-                  <span className="text-xs bg-gradient-to-r from-[#009197] to-[#004645] text-white px-3 py-1 rounded-full font-medium flex items-center gap-1">
-                    {customTexts.formBadge}
-                  </span>
-                </div>
+                <CardTitle className="text-[#004645]" style={{ fontFamily: "var(--font-abril)" }}>
+                  {customTexts.formTitle}
+                </CardTitle>
                 <CardDescription className="text-[#004645]/70">
                   {customTexts.formSubtitle}{" "}
                   {event.rsvpDeadline &&
