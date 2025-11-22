@@ -114,6 +114,32 @@ export function EmailsTab({ event, onUpdate }: EmailsTabProps) {
     )
   }
 
+  // Filter templates by phase type
+  const getTemplatesForPhase = (phaseId: string) => {
+    const typeMapping: Record<string, string[]> = {
+      'save-the-date': ['save-the-date', 'announcement'],
+      'invitation': ['invitation', 'invite'],
+      'reminder': ['reminder', 'follow-up'],
+      'confirmation': ['confirmation', 'accepted', 'declined'],
+      'practical-info': ['info', 'practical', 'badge'],
+      'day-before': ['reminder', 'last-minute']
+    }
+
+    const validTypes = typeMapping[phaseId] || []
+
+    // If no specific types defined, show all templates
+    if (validTypes.length === 0) {
+      return availableTemplates
+    }
+
+    // Filter templates by type
+    return availableTemplates.filter(template => {
+      if (!template.type) return true // Show templates without type
+      const templateType = template.type.toLowerCase()
+      return validTypes.some(validType => templateType.includes(validType))
+    })
+  }
+
   const loadPhases = () => {
     // Define all available phases with default configuration
     const defaultPhasesData: PhaseConfig[] = [
@@ -958,28 +984,38 @@ export function EmailsTab({ event, onUpdate }: EmailsTabProps) {
                           </p>
 
                           {/* Template Selector */}
-                          {availableTemplates.length > 0 && (
-                            <div className="flex items-center gap-3">
-                              <Label htmlFor={`template-${phase.id}`} className="text-sm font-medium text-amber-900 whitespace-nowrap">
-                                Sélectionner un template :
-                              </Label>
-                              <Select
-                                value={phase.templateId || ''}
-                                onValueChange={(value) => assignTemplateToPhase(phase.id, value)}
-                              >
-                                <SelectTrigger id={`template-${phase.id}`} className="flex-1 bg-white">
-                                  <SelectValue placeholder="Choisir un template..." />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {availableTemplates.map((template) => (
-                                    <SelectItem key={template.id} value={template.id}>
-                                      {template.name} {template.type && `(${template.type})`}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </div>
-                          )}
+                          {(() => {
+                            const phaseTemplates = getTemplatesForPhase(phase.id)
+                            return phaseTemplates.length > 0 ? (
+                              <div className="flex items-center gap-3">
+                                <Label htmlFor={`template-${phase.id}`} className="text-sm font-medium text-amber-900 whitespace-nowrap">
+                                  Sélectionner un template :
+                                </Label>
+                                <Select
+                                  value={phase.templateId || ''}
+                                  onValueChange={(value) => assignTemplateToPhase(phase.id, value)}
+                                >
+                                  <SelectTrigger id={`template-${phase.id}`} className="flex-1 bg-white">
+                                    <SelectValue placeholder="Choisir un template..." />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {phaseTemplates.map((template) => (
+                                      <SelectItem key={template.id} value={template.id}>
+                                        {template.name} {template.type && `(${template.type})`}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                                <span className="text-xs text-amber-700">
+                                  {phaseTemplates.length} template{phaseTemplates.length > 1 ? 's' : ''} disponible{phaseTemplates.length > 1 ? 's' : ''}
+                                </span>
+                              </div>
+                            ) : (
+                              <p className="text-sm text-amber-800">
+                                Aucun template d&apos;invitation disponible. Créez-en un nouveau ci-dessous.
+                              </p>
+                            )
+                          })()}
 
                           <p className="text-xs text-amber-800">
                             Ou cliquez sur <strong>&quot;Créer/Modifier Template&quot;</strong> à droite pour créer un nouveau template
