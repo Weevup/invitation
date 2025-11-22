@@ -223,13 +223,13 @@ export function EmailsTab({ event, onUpdate }: EmailsTabProps) {
       case 'configured':
         return (
           <Badge className="bg-gray-100 text-gray-800 hover:bg-gray-100">
-            ⚙️ Configuré
+            ✓ Template créé
           </Badge>
         )
       default:
         return (
           <Badge variant="outline" className="border-red-300 text-red-700">
-            ⚠️ À configurer
+            ⚠️ Template manquant
           </Badge>
         )
     }
@@ -345,6 +345,15 @@ export function EmailsTab({ event, onUpdate }: EmailsTabProps) {
                           </Badge>
                         )}
                       </div>
+
+                      {/* Help message for unconfigured phases */}
+                      {phase.enabled && phase.status === 'not_configured' && !phase.isAutomatic && (
+                        <div className="bg-amber-50 border border-amber-300 rounded-lg p-3 mt-2">
+                          <p className="text-sm text-amber-900">
+                            👉 <strong>Action requise :</strong> Cliquez sur <strong>&quot;Modifier Template&quot;</strong> à droite pour créer l&apos;email de cette phase
+                          </p>
+                        </div>
+                      )}
 
                       {/* Description */}
                       <p className="text-sm text-[#004645]/70">
