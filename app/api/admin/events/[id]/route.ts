@@ -51,8 +51,6 @@ export async function GET(
               emailCampaignsConfig: true,
               saveTheDateConfig: true,
               invitationConfig: true,
-              remindersConfig: true,
-              confirmationConfig: true,
               showcaseTheme: true,
               showcaseCustomHTML: true,
               showcaseCustomCSS: true,
