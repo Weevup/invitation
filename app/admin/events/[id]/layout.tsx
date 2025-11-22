@@ -218,8 +218,13 @@ export default function EventLayout({
           icon: FileText,
         },
         {
+          label: 'Email de Confirmation',
+          href: `/admin/events/${eventId}/confirmation-email`,
+          icon: MailOpen,
+        },
+        {
           label: 'Configuration RSVP',
-          href: `/admin/events/${eventId}/rsvp-steps`,
+          href: `/admin/events/${eventId}/settings?tab=rsvp`,
           icon: UserCheck,
         },
       ],

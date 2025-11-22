@@ -271,7 +271,7 @@ export default function EmailsHubPage() {
       'SAVE_THE_DATE': `/admin/events/${eventId}/save-the-date`,
       'INVITE': `/admin/events/${eventId}/invitation`,
       'CONFIRMATION': `/admin/events/${eventId}/confirmation-email`,
-      'REMINDER': `/admin/events/${eventId}/reminders`,
+      'REMINDER': `/admin/events/${eventId}/email-editor`,
     }
     router.push(routes[type] || `/admin/events/${eventId}/emails`)
   }
@@ -544,18 +544,10 @@ export default function EmailsHubPage() {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => router.push(`/admin/settings/integrations`)}
+            onClick={() => router.push(`/admin/events/${eventId}/settings?tab=emails`)}
           >
             <Settings className="h-4 w-4 mr-2" />
-            Configurer intégrations
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => router.push(`/admin/events/${eventId}/campaigns`)}
-          >
-            <Send className="h-4 w-4 mr-2" />
-            Campagnes d&apos;envoi
+            Configurer les emails
           </Button>
         </CardContent>
       </Card>
