@@ -34,6 +34,7 @@ interface PhaseConfig {
   status: 'not_configured' | 'configured' | 'scheduled' | 'sent'
   recipients?: number
   templateName?: string
+  templateId?: string // ID of the assigned template
   isAutomatic?: boolean
   enabled: boolean // Whether this phase is enabled/active
   isMandatory?: boolean // Whether this phase can be disabled (Phase 4 is mandatory)
@@ -158,6 +159,7 @@ export function EmailsTab({ event, onUpdate }: EmailsTabProps) {
             enabled: savedPhase.enabled !== undefined ? savedPhase.enabled : defaultPhase.enabled,
             status: savedPhase.status || defaultPhase.status,
             templateName: savedPhase.templateName || defaultPhase.templateName,
+            templateId: savedPhase.templateId || undefined, // Load saved templateId
             scheduledDate: savedPhase.scheduledDate ? new Date(savedPhase.scheduledDate) : undefined,
             recipients: savedPhase.recipients
           }
@@ -190,6 +192,7 @@ export function EmailsTab({ event, onUpdate }: EmailsTabProps) {
         enabled: phase.enabled,
         status: phase.status,
         templateName: phase.templateName,
+        templateId: phase.templateId, // Preserve templateId
         scheduledDate: phase.scheduledDate?.toISOString(),
         recipients: phase.recipients
       }))
@@ -229,7 +232,7 @@ export function EmailsTab({ event, onUpdate }: EmailsTabProps) {
     setPhases(prevPhases =>
       prevPhases.map(phase =>
         phase.id === phaseId
-          ? { ...phase, templateName: selectedTemplate.name, status: 'configured' as const }
+          ? { ...phase, templateName: selectedTemplate.name, templateId, status: 'configured' as const }
           : phase
       )
     )
@@ -239,7 +242,7 @@ export function EmailsTab({ event, onUpdate }: EmailsTabProps) {
     try {
       const updatedPhases = phases.map(phase =>
         phase.id === phaseId
-          ? { ...phase, templateName: selectedTemplate.name, status: 'configured' as const }
+          ? { ...phase, templateName: selectedTemplate.name, templateId, status: 'configured' as const }
           : phase
       )
 
@@ -249,7 +252,7 @@ export function EmailsTab({ event, onUpdate }: EmailsTabProps) {
         enabled: phase.enabled,
         status: phase.status,
         templateName: phase.templateName,
-        templateId: phase.id === phaseId ? templateId : undefined,
+        templateId: phase.templateId, // Always save templateId if present
         scheduledDate: phase.scheduledDate?.toISOString(),
         recipients: phase.recipients
       }))
@@ -428,7 +431,10 @@ export function EmailsTab({ event, onUpdate }: EmailsTabProps) {
                               <Label htmlFor={`template-${phase.id}`} className="text-sm font-medium text-amber-900 whitespace-nowrap">
                                 Sélectionner un template :
                               </Label>
-                              <Select onValueChange={(value) => assignTemplateToPhase(phase.id, value)}>
+                              <Select
+                                value={phase.templateId || ''}
+                                onValueChange={(value) => assignTemplateToPhase(phase.id, value)}
+                              >
                                 <SelectTrigger id={`template-${phase.id}`} className="flex-1 bg-white">
                                   <SelectValue placeholder="Choisir un template..." />
                                 </SelectTrigger>
