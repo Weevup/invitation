@@ -712,6 +712,181 @@ export function EmailsTab({ event, onUpdate }: EmailsTabProps) {
         </CardHeader>
       </Card>
 
+      {/* Progress Indicator */}
+      {(() => {
+        const totalPhases = phases.length
+        const enabledPhases = phases.filter(p => p.enabled).length
+        const configuredPhases = phases.filter(p => p.enabled && p.status === 'configured').length
+        const mandatoryPhases = phases.filter(p => p.isMandatory).length
+        const mandatoryConfigured = phases.filter(p => p.isMandatory && p.status === 'configured').length
+        const progressPercentage = enabledPhases > 0 ? Math.round((configuredPhases / enabledPhases) * 100) : 0
+        const isReadyToSend = mandatoryConfigured === mandatoryPhases && configuredPhases === enabledPhases
+
+        return (
+          <Card className="border-purple-200 bg-gradient-to-r from-purple-50 to-white">
+            <CardContent className="pt-6">
+              <div className="space-y-4">
+                {/* Status Badge & Stats */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="text-2xl">📊</div>
+                    <div>
+                      <h3 className="font-semibold text-[#004645]">Progression de Configuration</h3>
+                      <p className="text-sm text-gray-600">
+                        {configuredPhases} / {enabledPhases} phases configurées
+                        {mandatoryPhases > 0 && ` • ${mandatoryConfigured}/${mandatoryPhases} obligatoires`}
+                      </p>
+                    </div>
+                  </div>
+                  {isReadyToSend ? (
+                    <Badge className="bg-green-100 text-green-800 border-green-300 px-4 py-2">
+                      ✅ Prêt à envoyer
+                    </Badge>
+                  ) : (
+                    <Badge variant="outline" className="border-orange-300 text-orange-700 px-4 py-2">
+                      ⚠️ Configuration incomplète
+                    </Badge>
+                  )}
+                </div>
+
+                {/* Progress Bar */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-gray-600">Avancement global</span>
+                    <span className="font-semibold text-[#004645]">{progressPercentage}%</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-3">
+                    <div
+                      className="bg-gradient-to-r from-[#004645] to-[#009197] h-3 rounded-full transition-all duration-500"
+                      style={{ width: `${progressPercentage}%` }}
+                    />
+                  </div>
+                </div>
+
+                {/* Quick Stats */}
+                <div className="grid grid-cols-4 gap-3 text-xs">
+                  <div className="bg-white rounded-lg p-2 border border-gray-200">
+                    <div className="text-gray-500">Activées</div>
+                    <div className="text-lg font-bold text-[#004645]">{enabledPhases}</div>
+                  </div>
+                  <div className="bg-white rounded-lg p-2 border border-gray-200">
+                    <div className="text-gray-500">Configurées</div>
+                    <div className="text-lg font-bold text-green-600">{configuredPhases}</div>
+                  </div>
+                  <div className="bg-white rounded-lg p-2 border border-gray-200">
+                    <div className="text-gray-500">En attente</div>
+                    <div className="text-lg font-bold text-orange-600">{enabledPhases - configuredPhases}</div>
+                  </div>
+                  <div className="bg-white rounded-lg p-2 border border-gray-200">
+                    <div className="text-gray-500">Envoyées</div>
+                    <div className="text-lg font-bold text-blue-600">{phases.filter(p => p.status === 'sent').length}</div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )
+      })()}
+
+      {/* Quick Start Guide (only show if not all mandatory phases configured) */}
+      {(() => {
+        const mandatoryPhases = phases.filter(p => p.isMandatory)
+        const mandatoryConfigured = phases.filter(p => p.isMandatory && p.status === 'configured').length
+        const showGuide = mandatoryConfigured < mandatoryPhases.length ||
+                         !event.rsvpDeadline ||
+                         phases.filter(p => p.enabled && p.status === 'configured').length < 3
+
+        if (!showGuide) return null
+
+        return (
+          <Card className="border-blue-200 bg-gradient-to-r from-blue-50 to-white">
+            <CardContent className="pt-6">
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <div className="text-2xl">🚀</div>
+                  <div>
+                    <h3 className="font-semibold text-[#004645]">Guide de Démarrage Rapide</h3>
+                    <p className="text-sm text-gray-600">Suivez ces étapes pour configurer votre campagne email</p>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  {/* Step 1: Invitation + RSVP */}
+                  <div className="flex items-start gap-3 p-3 bg-white rounded-lg border border-blue-100">
+                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold">
+                      1
+                    </div>
+                    <div className="flex-1">
+                      <div className="font-semibold text-[#004645] mb-1">Configurez l&apos;Invitation (Phase 2)</div>
+                      <p className="text-sm text-gray-600 mb-2">Sélectionnez un template et configurez le formulaire RSVP avec la date limite</p>
+                      {phases.find(p => p.id === 'invitation')?.status !== 'configured' && (
+                        <Badge variant="outline" className="border-orange-300 text-orange-700 text-xs">
+                          ⚠️ À configurer
+                        </Badge>
+                      )}
+                      {phases.find(p => p.id === 'invitation')?.status === 'configured' && !event.rsvpDeadline && (
+                        <Badge variant="outline" className="border-orange-300 text-orange-700 text-xs">
+                          ⚠️ RSVP à configurer
+                        </Badge>
+                      )}
+                      {phases.find(p => p.id === 'invitation')?.status === 'configured' && event.rsvpDeadline && (
+                        <Badge className="bg-green-100 text-green-800 text-xs">
+                          ✓ Configuré
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Step 2: Confirmation */}
+                  <div className="flex items-start gap-3 p-3 bg-white rounded-lg border border-blue-100">
+                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold">
+                      2
+                    </div>
+                    <div className="flex-1">
+                      <div className="font-semibold text-[#004645] mb-1">Configurez la Confirmation (Phase 4) - Obligatoire</div>
+                      <p className="text-sm text-gray-600 mb-2">Créez les 2 templates : email accepté + email refusé</p>
+                      {phases.find(p => p.id === 'confirmation')?.status !== 'configured' ? (
+                        <Badge variant="outline" className="border-red-300 text-red-700 text-xs">
+                          ⚠️ Obligatoire - À configurer
+                        </Badge>
+                      ) : (
+                        <Badge className="bg-green-100 text-green-800 text-xs">
+                          ✓ Configuré
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Step 3: Badge */}
+                  <div className="flex items-start gap-3 p-3 bg-white rounded-lg border border-blue-100">
+                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold">
+                      3
+                    </div>
+                    <div className="flex-1">
+                      <div className="font-semibold text-[#004645] mb-1">Configurez le Badge & Infos Pratiques (Phase 5)</div>
+                      <p className="text-sm text-gray-600 mb-2">Personnalisez le design du badge et créez le template d&apos;infos pratiques</p>
+                      {phases.find(p => p.id === 'practical-info')?.status !== 'configured' ? (
+                        <Badge variant="outline" className="border-orange-300 text-orange-700 text-xs">
+                          ⚠️ Recommandé
+                        </Badge>
+                      ) : (
+                        <Badge className="bg-green-100 text-green-800 text-xs">
+                          ✓ Configuré
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-900">
+                  💡 <strong>Astuce :</strong> Les autres phases (Save the Date, Relance, Rappel J-1) sont optionnelles et peuvent être configurées selon vos besoins.
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )
+      })()}
+
       {/* Timeline of Phases */}
       <div className="space-y-4">
         {phases.map((phase) => {
@@ -1220,16 +1395,71 @@ export function EmailsTab({ event, onUpdate }: EmailsTabProps) {
                 Cette action est <strong>irréversible</strong>.
               </p>
             </div>
-            {sendPhaseId && (
-              <div className="space-y-2">
-                <p className="text-sm text-gray-700">
-                  <strong>Phase :</strong> {phases.find(p => p.id === sendPhaseId)?.title}
-                </p>
-                <p className="text-sm text-gray-700">
-                  <strong>Template :</strong> {phases.find(p => p.id === sendPhaseId)?.templateName}
-                </p>
-              </div>
-            )}
+
+            {/* Pre-send Checklist */}
+            {sendPhaseId && (() => {
+              const phase = phases.find(p => p.id === sendPhaseId)
+              const checks = [
+                {
+                  label: 'Template configuré',
+                  passed: !!phase?.templateId,
+                  critical: true
+                },
+                {
+                  label: `${guestCount} destinataire${guestCount > 1 ? 's' : ''} dans la liste`,
+                  passed: guestCount > 0,
+                  critical: true
+                },
+                {
+                  label: 'RSVP configuré (si Phase 2)',
+                  passed: phase?.id !== 'invitation' || !!event.rsvpDeadline,
+                  critical: phase?.id === 'invitation'
+                },
+                {
+                  label: 'Badge configuré (si Phase 5)',
+                  passed: phase?.id !== 'practical-info' || true, // Always pass for now
+                  critical: false
+                }
+              ]
+
+              const criticalChecksFailed = checks.filter(c => c.critical && !c.passed).length > 0
+
+              return (
+                <div className="space-y-3">
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <p className="text-sm font-semibold text-blue-900 mb-3">✓ Vérification pré-envoi</p>
+                    <div className="space-y-2">
+                      {checks.map((check, idx) => (
+                        <div key={idx} className="flex items-center gap-2 text-sm">
+                          {check.passed ? (
+                            <CheckCheck className="h-4 w-4 text-green-600 flex-shrink-0" />
+                          ) : (
+                            <span className="h-4 w-4 flex-shrink-0 text-orange-600">⚠️</span>
+                          )}
+                          <span className={check.passed ? 'text-green-700' : 'text-orange-700'}>
+                            {check.label}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                    {criticalChecksFailed && (
+                      <div className="mt-3 text-xs text-red-700 bg-red-50 border border-red-200 rounded p-2">
+                        ⚠️ Certains éléments critiques ne sont pas configurés. Veuillez les corriger avant l&apos;envoi.
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <p className="text-sm text-gray-700">
+                      <strong>Phase :</strong> {phase?.title}
+                    </p>
+                    <p className="text-sm text-gray-700">
+                      <strong>Template :</strong> {phase?.templateName}
+                    </p>
+                  </div>
+                </div>
+              )
+            })()}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowSendDialog(false)} disabled={sendingCampaign}>
@@ -1237,7 +1467,12 @@ export function EmailsTab({ event, onUpdate }: EmailsTabProps) {
             </Button>
             <Button
               onClick={handleSendCampaign}
-              disabled={sendingCampaign}
+              disabled={
+                sendingCampaign ||
+                guestCount === 0 ||
+                !phases.find(p => p.id === sendPhaseId)?.templateId ||
+                (sendPhaseId === 'invitation' && !event.rsvpDeadline)
+              }
               className="bg-[#004645] hover:bg-[#003534]"
             >
               {sendingCampaign && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
