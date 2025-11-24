@@ -129,6 +129,7 @@ export async function POST(
           }),
           'event.location': event.venueName || '',
           'rsvpLink': invitationLink,
+          'unsubscribeUrl': `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/unsubscribe?email=${encodeURIComponent(guest.email)}&token=${guest.token}`,
         }
 
         const renderedSubject = renderTemplate(invitationTemplate.subject, variables)

@@ -254,6 +254,7 @@ export async function POST(
         'event.location': eventVenue,
         'event.address': guest.event.address || '',
         'badge.downloadUrl': badgeDownloadUrl || '', // Badge with QR code download link
+        'unsubscribeUrl': `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/unsubscribe?email=${encodeURIComponent(guest.email)}&token=${guest.token}`,
       }
 
       const renderedHtml = renderTemplate(customTemplate.htmlContent, variables)

@@ -9,6 +9,7 @@
 import nodemailer from 'nodemailer'
 import { decrypt, safeDecrypt } from './encryption'
 import { emailLogger } from './logger'
+import { prisma } from './prisma'
 
 export interface EmailData {
   to: string | string[]
@@ -68,6 +69,9 @@ export interface TemplateVariables {
   'host.name'?: string
   'host.email'?: string
 
+  // Unsubscribe link
+  'unsubscribeUrl'?: string
+
   // Design variables
   'fontFamily'?: string
   'primaryColor'?: string
@@ -92,6 +96,37 @@ export interface TemplateVariables {
  * })
  * ```
  */
+/**
+ * Check if an email address has unsubscribed
+ */
+export async function isEmailUnsubscribed(email: string): Promise<boolean> {
+  try {
+    const normalizedEmail = email.toLowerCase().trim()
+    const unsubscribe = await prisma.emailUnsubscribe.findUnique({
+      where: { email: normalizedEmail }
+    })
+    return !!unsubscribe
+  } catch (error) {
+    emailLogger.error({ error, email }, 'Error checking unsubscribe status')
+    // On error, allow sending (fail open)
+    return false
+  }
+}
+
+/**
+ * Generate unsubscribe URL for an email address
+ */
+export function generateUnsubscribeUrl(email: string, token?: string): string {
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
+  const params = new URLSearchParams({
+    email: email.toLowerCase().trim()
+  })
+  if (token) {
+    params.set('token', token)
+  }
+  return `${baseUrl}/unsubscribe?${params.toString()}`
+}
+
 export function renderTemplate(
   template: string,
   variables: TemplateVariables
@@ -194,6 +229,20 @@ export async function sendEmail(
   integration: EmailIntegration
 ): Promise<EmailResult> {
   try {
+    // Check if recipient has unsubscribed
+    const recipients = Array.isArray(data.to) ? data.to : [data.to]
+
+    for (const email of recipients) {
+      const isUnsubscribed = await isEmailUnsubscribed(email)
+      if (isUnsubscribed) {
+        emailLogger.info({ email, subject: data.subject }, 'Email not sent - recipient unsubscribed')
+        return {
+          success: false,
+          error: `Recipient ${email} has unsubscribed`
+        }
+      }
+    }
+
     const from = data.from || integration.fromEmail
     const fromName = data.fromName || integration.fromName
     const replyTo = data.replyTo || integration.replyTo
@@ -232,6 +281,10 @@ async function sendViaSendGrid(
   // Decrypt API key before using it
   const apiKey = integration.apiKey ? safeDecrypt(integration.apiKey) : ''
 
+  // Get recipient email (first if array)
+  const recipientEmail = Array.isArray(data.to) ? data.to[0] : data.to
+  const unsubscribeUrl = data.unsubscribeUrl || generateUnsubscribeUrl(recipientEmail)
+
   const payload = {
     personalizations: [{
       to: Array.isArray(data.to) ? data.to.map(email => ({ email })) : [{ email: data.to }],
@@ -247,6 +300,10 @@ async function sendViaSendGrid(
       click_tracking: { enable: integration.trackClicks },
       open_tracking: { enable: integration.trackOpens },
     },
+    headers: {
+      'List-Unsubscribe': `<${unsubscribeUrl}>`,
+      'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click'
+    }
   }
 
   const response = await fetch('https://api.sendgrid.com/v3/mail/send', {
@@ -276,6 +333,10 @@ async function sendViaResend(
   // Decrypt API key before using it
   const apiKey = integration.apiKey ? safeDecrypt(integration.apiKey) : ''
 
+  // Get recipient email (first if array)
+  const recipientEmail = Array.isArray(data.to) ? data.to[0] : data.to
+  const unsubscribeUrl = data.unsubscribeUrl || generateUnsubscribeUrl(recipientEmail)
+
   const payload = {
     from: fromName ? `${fromName} <${from}>` : from,
     to: Array.isArray(data.to) ? data.to : [data.to],
@@ -283,6 +344,10 @@ async function sendViaResend(
     subject: data.subject,
     html: data.html,
     ...(data.text && { text: data.text }),
+    headers: {
+      'List-Unsubscribe': `<${unsubscribeUrl}>`,
+      'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click'
+    }
   }
 
   const response = await fetch('https://api.resend.com/emails', {
@@ -314,6 +379,10 @@ async function sendViaMailgun(
   const apiKey = integration.apiKey ? safeDecrypt(integration.apiKey) : ''
   const domain = integration.apiSecret
 
+  // Get recipient email (first if array)
+  const recipientEmail = Array.isArray(data.to) ? data.to[0] : data.to
+  const unsubscribeUrl = data.unsubscribeUrl || generateUnsubscribeUrl(recipientEmail)
+
   const formData = new FormData()
   formData.append('from', fromName ? `${fromName} <${from}>` : from)
   formData.append('to', Array.isArray(data.to) ? data.to.join(',') : data.to)
@@ -323,6 +392,10 @@ async function sendViaMailgun(
   if (data.text) formData.append('text', data.text)
   if (integration.trackOpens) formData.append('o:tracking-opens', 'yes')
   if (integration.trackClicks) formData.append('o:tracking-clicks', 'yes')
+
+  // Add unsubscribe headers
+  formData.append('h:List-Unsubscribe', `<${unsubscribeUrl}>`)
+  formData.append('h:List-Unsubscribe-Post', 'List-Unsubscribe=One-Click')
 
   const response = await fetch(`https://api.mailgun.net/v3/${domain}/messages`, {
     method: 'POST',
