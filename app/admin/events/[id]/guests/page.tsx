@@ -60,6 +60,7 @@ interface Guest {
     lodgingNeeds?: string
     consentPhotos: boolean
     createdAt: string
+    respondedAt?: string
     qrCodeId: string
   }
   checkins?: Array<{
@@ -95,6 +96,8 @@ export default function GuestsPage() {
   const [companySizeFilter, setCompanySizeFilter] = useState<string>('all')
   const [industryFilter, setIndustryFilter] = useState<string>('all')
   const [jobTitleFilter, setJobTitleFilter] = useState<string>('all')
+  // Sort state
+  const [sortBy, setSortBy] = useState<'name' | 'response-date'>('name')
   // Selection state
   const [selectedGuestIds, setSelectedGuestIds] = useState<Set<string>>(new Set())
 
@@ -175,6 +178,15 @@ export default function GuestsPage() {
         : guest.rsvp?.attending === false
         ? 'Décline'
         : 'En attente',
+      'Date de réponse': guest.rsvp?.respondedAt
+        ? new Date(guest.rsvp.respondedAt).toLocaleString('fr-FR', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          })
+        : '',
       Accompagnants: guest.rsvp?.plusOnes || 0,
       'Choix Menu': guest.rsvp?.mealChoice || '',
     }))
@@ -217,40 +229,58 @@ export default function GuestsPage() {
   const allIndustries = Array.from(new Set(event.guests.map((g) => g.industry).filter(Boolean))) as string[]
   const allJobTitles = Array.from(new Set(event.guests.map((g) => g.jobTitle).filter(Boolean))) as string[]
 
-  const filteredGuests = event.guests.filter((guest) => {
-    const searchLower = search.toLowerCase()
-    const matchesSearch =
-      guest.firstName.toLowerCase().includes(searchLower) ||
-      guest.lastName.toLowerCase().includes(searchLower) ||
-      guest.email.toLowerCase().includes(searchLower) ||
-      guest.company?.toLowerCase().includes(searchLower) ||
-      guest.jobTitle?.toLowerCase().includes(searchLower) ||
-      guest.industry?.toLowerCase().includes(searchLower) ||
-      guest.tags.some((tag) => tag.toLowerCase().includes(searchLower))
+  const filteredGuests = event.guests
+    .filter((guest) => {
+      const searchLower = search.toLowerCase()
+      const matchesSearch =
+        guest.firstName.toLowerCase().includes(searchLower) ||
+        guest.lastName.toLowerCase().includes(searchLower) ||
+        guest.email.toLowerCase().includes(searchLower) ||
+        guest.company?.toLowerCase().includes(searchLower) ||
+        guest.jobTitle?.toLowerCase().includes(searchLower) ||
+        guest.industry?.toLowerCase().includes(searchLower) ||
+        guest.tags.some((tag) => tag.toLowerCase().includes(searchLower))
 
-    // Status filter
-    const matchesStatus =
-      statusFilter === 'all' ||
-      (statusFilter === 'confirmed' && guest.rsvp?.attending === true) ||
-      (statusFilter === 'declined' && guest.rsvp?.attending === false) ||
-      (statusFilter === 'pending' && !guest.rsvp)
+      // Status filter
+      const matchesStatus =
+        statusFilter === 'all' ||
+        (statusFilter === 'confirmed' && guest.rsvp?.attending === true) ||
+        (statusFilter === 'declined' && guest.rsvp?.attending === false) ||
+        (statusFilter === 'pending' && !guest.rsvp)
 
-    // Tag filter
-    const matchesTag =
-      tagFilter === 'all' || guest.tags.includes(tagFilter)
+      // Tag filter
+      const matchesTag =
+        tagFilter === 'all' || guest.tags.includes(tagFilter)
 
-    // Professional filters
-    const matchesCompanySize =
-      companySizeFilter === 'all' || guest.companySize === companySizeFilter
+      // Professional filters
+      const matchesCompanySize =
+        companySizeFilter === 'all' || guest.companySize === companySizeFilter
 
-    const matchesIndustry =
-      industryFilter === 'all' || guest.industry === industryFilter
+      const matchesIndustry =
+        industryFilter === 'all' || guest.industry === industryFilter
 
-    const matchesJobTitle =
-      jobTitleFilter === 'all' || guest.jobTitle === jobTitleFilter
+      const matchesJobTitle =
+        jobTitleFilter === 'all' || guest.jobTitle === jobTitleFilter
 
-    return matchesSearch && matchesStatus && matchesTag && matchesCompanySize && matchesIndustry && matchesJobTitle
-  })
+      return matchesSearch && matchesStatus && matchesTag && matchesCompanySize && matchesIndustry && matchesJobTitle
+    })
+    .sort((a, b) => {
+      if (sortBy === 'response-date') {
+        // Sort by response date (most recent first)
+        const aDate = a.rsvp?.respondedAt ? new Date(a.rsvp.respondedAt).getTime() : 0
+        const bDate = b.rsvp?.respondedAt ? new Date(b.rsvp.respondedAt).getTime() : 0
+        // Guests without response go to the end
+        if (aDate === 0 && bDate === 0) return 0
+        if (aDate === 0) return 1
+        if (bDate === 0) return -1
+        return bDate - aDate // Most recent first
+      } else {
+        // Sort by name (default)
+        const aName = `${a.firstName} ${a.lastName || ''}`.toLowerCase()
+        const bName = `${b.firstName} ${b.lastName || ''}`.toLowerCase()
+        return aName.localeCompare(bName)
+      }
+    })
 
   const hasGuests = event.guests.length > 0
 
@@ -504,6 +534,19 @@ export default function GuestsPage() {
                 </SelectContent>
               </Select>
 
+              <div className="border-l border-[#9CD9F6]/30 pl-4 ml-2">
+                <span className="text-sm text-[#004645]/70 mr-2">Trier par :</span>
+                <Select value={sortBy} onValueChange={(value) => setSortBy(value as 'name' | 'response-date')}>
+                  <SelectTrigger className="w-[180px] border-[#9CD9F6]/50">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="name">📝 Nom</SelectItem>
+                    <SelectItem value="response-date">📅 Date de réponse</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
               {(statusFilter !== 'all' || tagFilter !== 'all' || companySizeFilter !== 'all' || industryFilter !== 'all' || jobTitleFilter !== 'all') && (
                 <Button
                   variant="ghost"
@@ -671,6 +714,7 @@ export default function GuestsPage() {
                     <th className="pb-3 font-medium">Email</th>
                     <th className="pb-3 font-medium">Entreprise</th>
                     <th className="pb-3 font-medium">Tags</th>
+                    <th className="pb-3 font-medium">Date de réponse</th>
                     <th className="pb-3 font-medium">Statut</th>
                     <th className="pb-3 font-medium">Actions</th>
                   </tr>
@@ -716,6 +760,27 @@ export default function GuestsPage() {
                             </Badge>
                           ))}
                         </div>
+                      </td>
+                      <td className="py-3 text-[#004645]/70 text-sm">
+                        {guest.rsvp?.respondedAt ? (
+                          <div className="flex flex-col">
+                            <span className="font-medium text-[#004645]">
+                              {new Date(guest.rsvp.respondedAt).toLocaleDateString('fr-FR', {
+                                day: '2-digit',
+                                month: '2-digit',
+                                year: 'numeric'
+                              })}
+                            </span>
+                            <span className="text-xs text-[#004645]/50">
+                              {new Date(guest.rsvp.respondedAt).toLocaleTimeString('fr-FR', {
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              })}
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="text-[#004645]/30">-</span>
+                        )}
                       </td>
                       <td className="py-3">
                         {guest.rsvp ? (

@@ -375,6 +375,9 @@ model RSVP {
   // QR Code for check-in
   qrCodeId String @unique @default(cuid())
 
+  // Response tracking
+  respondedAt DateTime? // Timestamp when guest submitted their RSVP response
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
