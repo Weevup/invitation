@@ -166,7 +166,7 @@ export async function POST(
 
         // Generate invitation token
         const token = generateGuestToken()
-        const hashedToken = await hashToken(token)
+        const tokenHash = await hashToken(token)
 
         // Create guest
         await prisma.guest.create({
@@ -177,7 +177,8 @@ export async function POST(
             email,
             company: guestData.company?.trim() || null,
             tags: allTags,
-            invitationToken: hashedToken,
+            token,
+            tokenHash,
             status: 'PENDING',
             // Professional information
             jobTitle: guestData.jobTitle?.trim() || null,
