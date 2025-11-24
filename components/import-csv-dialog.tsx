@@ -104,7 +104,6 @@ export function ImportCSVDialog({ eventId, onImportComplete }: ImportCSVDialogPr
       complete: async (results) => {
         const data = results.data as CSVRow[];
         const errors: string[] = [];
-        let successCount = 0;
 
         if (data.length === 0) {
           toast.error('Le fichier CSV est vide');
@@ -112,83 +111,70 @@ export function ImportCSVDialog({ eventId, onImportComplete }: ImportCSVDialogPr
           return;
         }
 
-        setProgress({ current: 0, total: data.length });
         toast.info(`${data.length} ligne(s) détectée(s). Import en cours...`);
+        setProgress({ current: 0, total: data.length });
 
-        for (let i = 0; i < data.length; i++) {
-          const row = data[i];
-          setProgress({ current: i + 1, total: data.length });
+        try {
+          // Use batch import endpoint
+          const response = await fetch(`/api/admin/events/${eventId}/guests/batch-import`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              guests: data.map(row => ({
+                firstName: row.firstName?.trim(),
+                lastName: row.lastName?.trim() || undefined,
+                email: row.email?.trim().toLowerCase(),
+                company: row.company?.trim() || undefined,
+                tags: row.tags
+                  ? row.tags.split(",").map((t) => t.trim()).filter(Boolean)
+                  : [],
+                jobTitle: row.jobTitle?.trim() || undefined,
+                department: row.department?.trim() || undefined,
+                companySize: row.companySize?.trim() || undefined,
+                industry: row.industry?.trim() || undefined,
+                phone: row.phone?.trim() || undefined,
+                phoneNumber: row.phoneNumber?.trim() || undefined,
+                linkedinUrl: row.linkedinUrl?.trim() || undefined,
+                dietaryReqs: row.dietaryReqs?.trim() || undefined,
+                accessibility: row.accessibility?.trim() || undefined,
+              }))
+            }),
+          });
 
-          // Validate required fields
-          if (!row.firstName || !row.email) {
-            errors.push(`Ligne ${i + 2}: Prénom et email sont requis`);
-            continue;
-          }
+          const result = await response.json();
 
-          // Import guest
-          try {
-            const payload = {
-              firstName: row.firstName.trim(),
-              lastName: row.lastName.trim(),
-              email: row.email.trim().toLowerCase(),
-              company: row.company?.trim() || undefined,
-              tags: row.tags
-                ? row.tags.split(",").map((t) => t.trim()).filter(Boolean)
-                : [],
-              // Professional fields
-              jobTitle: row.jobTitle?.trim() || undefined,
-              department: row.department?.trim() || undefined,
-              companySize: row.companySize?.trim() || undefined,
-              industry: row.industry?.trim() || undefined,
-              phone: row.phone?.trim() || undefined, // SMS phone (international)
-              phoneNumber: row.phoneNumber?.trim() || undefined, // Landline
-              linkedinUrl: row.linkedinUrl?.trim() || undefined,
-              // Event needs
-              dietaryReqs: row.dietaryReqs?.trim() || undefined,
-              accessibility: row.accessibility?.trim() || undefined,
-            };
-
-            console.log(`Importing guest ${i + 1}/${data.length}:`, payload);
-
-            const response = await fetch(`/api/admin/events/${eventId}/guests`, {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify(payload),
+          if (response.ok && result.success) {
+            setResults({
+              success: result.results.imported,
+              errors: result.results.errors
             });
 
-            if (response.ok) {
-              successCount++;
-              console.log(`✓ Guest ${i + 1} imported successfully`);
-            } else {
-              const error = await response.json();
-              const errorMsg = `Ligne ${i + 2} (${row.email}): ${error.error || error.message || "Erreur inconnue"}`;
-              console.error(`✗ Guest ${i + 1} failed:`, error);
-              errors.push(errorMsg);
+            if (result.results.imported > 0) {
+              toast.success(`✅ ${result.results.imported} invité(s) importé(s) avec succès !`);
+              onImportComplete();
             }
-          } catch (error) {
-            const errorMsg = `Ligne ${i + 2} (${row.email}): ${error instanceof Error ? error.message : 'Erreur de connexion'}`;
-            console.error(`✗ Guest ${i + 1} exception:`, error);
-            errors.push(errorMsg);
+
+            if (result.results.skipped > 0) {
+              toast.info(`ℹ️ ${result.results.skipped} invité(s) ignoré(s) (doublons)`);
+            }
+
+            if (result.results.errors.length > 0) {
+              toast.error(`❌ ${result.results.errors.length} erreur(s) lors de l'import`);
+            }
+          } else {
+            throw new Error(result.error || 'Erreur lors de l\'import batch');
           }
-        }
-
-        setResults({ success: successCount, errors });
-        setLoading(false);
-        setProgress(null);
-
-        if (successCount > 0) {
-          toast.success(`✅ ${successCount} invité(s) importé(s) avec succès !`);
-          onImportComplete();
-        }
-
-        if (errors.length > 0) {
-          toast.error(`❌ ${errors.length} erreur(s) lors de l'import`);
-        }
-
-        if (successCount === 0 && errors.length === 0) {
-          toast.warning('Aucun invité n\'a été importé');
+        } catch (error) {
+          console.error('Batch import error:', error);
+          toast.error(
+            error instanceof Error ? error.message : 'Erreur lors de l\'import'
+          );
+          setResults({ success: 0, errors: [error instanceof Error ? error.message : 'Erreur inconnue'] });
+        } finally {
+          setLoading(false);
+          setProgress(null);
         }
       },
       error: (error) => {
