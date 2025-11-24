@@ -63,6 +63,15 @@ interface Guest {
     respondedAt?: string
     qrCodeId: string
   }
+  emailLogs?: Array<{
+    id: string
+    type: string
+    status: string
+    sentAt: string | null
+    openedAt: string | null
+    clickedAt: string | null
+    bouncedAt: string | null
+  }>
   checkins?: Array<{
     checkedInAt: string
     desk?: string

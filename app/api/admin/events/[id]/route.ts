@@ -150,6 +150,15 @@ export async function GET(
                 checkedInAt: 'desc',
               },
             },
+            emailLogs: {
+              where: {
+                type: 'INVITATION',
+              },
+              orderBy: {
+                createdAt: 'desc',
+              },
+              take: 1, // Only the most recent invitation email
+            },
           },
           orderBy: {
             lastName: 'asc',
