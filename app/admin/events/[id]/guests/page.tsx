@@ -536,7 +536,7 @@ export default function GuestsPage() {
 
               <div className="border-l border-[#9CD9F6]/30 pl-4 ml-2">
                 <span className="text-sm text-[#004645]/70 mr-2">Trier par :</span>
-                <Select value={sortBy} onValueChange={setSortBy}>
+                <Select value={sortBy} onValueChange={(value) => setSortBy(value as 'name' | 'response-date')}>
                   <SelectTrigger className="w-[180px] border-[#9CD9F6]/50">
                     <SelectValue />
                   </SelectTrigger>
