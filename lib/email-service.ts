@@ -316,8 +316,51 @@ async function sendViaSendGrid(
   })
 
   if (!response.ok) {
-    const error = await response.text()
-    return { success: false, error: `SendGrid error: ${error}` }
+    let errorMessage = 'Unknown SendGrid error'
+
+    try {
+      const errorData = await response.json()
+
+      // Check for authentication errors
+      if (errorData.errors && Array.isArray(errorData.errors)) {
+        const authError = errorData.errors.find((err: any) =>
+          err.message && (
+            err.message.includes('authorization') ||
+            err.message.includes('invalid') ||
+            err.message.includes('expired') ||
+            err.message.includes('revoked')
+          )
+        )
+
+        if (authError) {
+          emailLogger.error({
+            error: authError.message,
+            statusCode: response.status
+          }, '🚨 SendGrid API Key Authentication Failed')
+
+          return {
+            success: false,
+            error: `🔑 Clé API SendGrid invalide ou expirée. Veuillez la mettre à jour dans les paramètres d'intégration.`
+          }
+        }
+
+        // Other errors
+        errorMessage = errorData.errors.map((e: any) => e.message).join(', ')
+      } else if (errorData.message) {
+        errorMessage = errorData.message
+      }
+    } catch (parseError) {
+      // If JSON parsing fails, use text
+      errorMessage = await response.text()
+    }
+
+    emailLogger.error({
+      error: errorMessage,
+      statusCode: response.status,
+      to: data.to
+    }, 'SendGrid email send failed')
+
+    return { success: false, error: `SendGrid error (${response.status}): ${errorMessage}` }
   }
 
   return { success: true, messageId: response.headers.get('x-message-id') || undefined }
@@ -362,7 +405,26 @@ async function sendViaResend(
   const result = await response.json()
 
   if (!response.ok) {
-    return { success: false, error: `Resend error: ${result.message || JSON.stringify(result)}` }
+    // Check for authentication errors
+    if (response.status === 401 || response.status === 403) {
+      emailLogger.error({
+        error: result.message || 'Authentication failed',
+        statusCode: response.status
+      }, '🚨 Resend API Key Authentication Failed')
+
+      return {
+        success: false,
+        error: `🔑 Clé API Resend invalide ou expirée. Veuillez la mettre à jour dans les paramètres d'intégration.`
+      }
+    }
+
+    emailLogger.error({
+      error: result.message || JSON.stringify(result),
+      statusCode: response.status,
+      to: data.to
+    }, 'Resend email send failed')
+
+    return { success: false, error: `Resend error (${response.status}): ${result.message || JSON.stringify(result)}` }
   }
 
   return { success: true, messageId: result.id }
@@ -408,7 +470,26 @@ async function sendViaMailgun(
   const result = await response.json()
 
   if (!response.ok) {
-    return { success: false, error: `Mailgun error: ${result.message || JSON.stringify(result)}` }
+    // Check for authentication errors
+    if (response.status === 401 || response.status === 403) {
+      emailLogger.error({
+        error: result.message || 'Authentication failed',
+        statusCode: response.status
+      }, '🚨 Mailgun API Key Authentication Failed')
+
+      return {
+        success: false,
+        error: `🔑 Clé API Mailgun invalide ou expirée. Veuillez la mettre à jour dans les paramètres d'intégration.`
+      }
+    }
+
+    emailLogger.error({
+      error: result.message || JSON.stringify(result),
+      statusCode: response.status,
+      to: data.to
+    }, 'Mailgun email send failed')
+
+    return { success: false, error: `Mailgun error (${response.status}): ${result.message || JSON.stringify(result)}` }
   }
 
   return { success: true, messageId: result.id }
