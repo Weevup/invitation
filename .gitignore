@@ -40,3 +40,4 @@ prisma/dev.db-journal
 # sentry
 .sentryclirc
 sentry.properties
+.env.local
