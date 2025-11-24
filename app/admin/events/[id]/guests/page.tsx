@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import {
-  Users, Download, Search, Link as LinkIcon, UserPlus, Upload, Eye, Filter, CreditCard, CheckSquare, Square, X, RefreshCw, Edit, Trash2
+  Users, Download, Search, Link as LinkIcon, UserPlus, Upload, Eye, Filter, CreditCard, CheckSquare, Square, X, RefreshCw, Edit, Trash2, Mail
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { AddGuestDialog } from '@/components/add-guest-dialog'
@@ -342,6 +342,46 @@ export default function GuestsPage() {
     setSelectedGuestIds(new Set())
   }
 
+  const handleResendInvitations = async () => {
+    if (selectedGuestIds.size === 0) return
+
+    const confirmMessage = `Renvoyer l'invitation à ${selectedGuestIds.size} invité${selectedGuestIds.size > 1 ? 's' : ''} ?`
+
+    if (!window.confirm(confirmMessage)) {
+      return
+    }
+
+    try {
+      toast.loading('Envoi en cours...', { id: 'resend-invitations' })
+
+      const response = await fetch(`/api/admin/events/${eventId}/guests/resend-invitations`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          guestIds: Array.from(selectedGuestIds),
+        }),
+      })
+
+      const result = await response.json()
+
+      if (response.ok && result.success) {
+        toast.success(
+          `${result.sent} invitation${result.sent > 1 ? 's' : ''} envoyée${result.sent > 1 ? 's' : ''}${result.failed > 0 ? ` (${result.failed} échec${result.failed > 1 ? 's' : ''})` : ''}`,
+          { id: 'resend-invitations' }
+        )
+        clearSelection()
+        fetchEvent()
+      } else {
+        throw new Error(result.error || 'Erreur lors de l\'envoi')
+      }
+    } catch (error) {
+      logger.error(error, { action: 'resendInvitations' })
+      toast.error('Erreur lors de l\'envoi des invitations', { id: 'resend-invitations' })
+    }
+  }
+
   const handleBulkDelete = async () => {
     if (selectedGuestIds.size === 0) return
 
@@ -454,6 +494,27 @@ export default function GuestsPage() {
           >
             <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
             Actualiser
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => {
+              const nonOpenedGuests = filteredGuests.filter((g) => {
+                const status = getEmailStatus(g)
+                return status === 'delivered' || status === 'sent'
+              })
+              setSelectedGuestIds(new Set(nonOpenedGuests.map(g => g.id)))
+              if (nonOpenedGuests.length > 0) {
+                toast.success(`${nonOpenedGuests.length} invité${nonOpenedGuests.length > 1 ? 's' : ''} sélectionné${nonOpenedGuests.length > 1 ? 's' : ''}`)
+              } else {
+                toast.info('Aucun invité avec email non ouvert')
+              }
+            }}
+            disabled={!hasGuests}
+            className="border-orange-500 text-orange-600 hover:bg-orange-500 hover:text-white"
+            title="Sélectionner les invités dont l'email n'a pas été ouvert"
+          >
+            <CheckSquare className="h-4 w-4 mr-2" />
+            Sélectionner non-ouverts
           </Button>
           <Button
             variant="outline"
@@ -984,6 +1045,15 @@ export default function GuestsPage() {
                   selectedGuestIds={Array.from(selectedGuestIds)}
                   onComplete={clearSelection}
                 />
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleResendInvitations}
+                  className="text-[#009197] hover:bg-[#009197]/10"
+                >
+                  <Mail className="h-4 w-4 mr-1" />
+                  Renvoyer
+                </Button>
                 <Button
                   variant="ghost"
                   size="sm"
