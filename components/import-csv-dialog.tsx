@@ -363,7 +363,7 @@ Marie,Bernard,marie.bernard@example.com,StartupCo,+33698765432,,Product Manager,
                         )}
                       </div>
                       <p className="text-sm text-red-700 mb-3">
-                        Les invités suivants n'ont pas pu être importés :
+                        Les invités suivants n&apos;ont pas pu être importés :
                       </p>
                       <div className="bg-white rounded border border-red-200 p-3 max-h-60 overflow-y-auto">
                         <ul className="text-sm text-red-800 space-y-2 font-mono">
@@ -377,7 +377,7 @@ Marie,Bernard,marie.bernard@example.com,StartupCo,+33698765432,,Product Manager,
                       </div>
                       {results.errors.length > 10 && (
                         <p className="text-xs text-red-600 mt-2 italic">
-                          💡 Astuce : Cliquez sur "Télécharger les erreurs" pour obtenir la liste complète
+                          💡 Astuce : Cliquez sur &quot;Télécharger les erreurs&quot; pour obtenir la liste complète
                         </p>
                       )}
                     </div>
