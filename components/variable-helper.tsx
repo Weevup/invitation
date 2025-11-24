@@ -101,7 +101,7 @@ export function VariableHelper({ title, description }: VariableHelperProps) {
       variables: [
         { name: 'rsvpLink', example: 'https://...guest/abc123', description: 'Lien RSVP personnalisé' },
         { name: 'showcaseLink', example: 'https://...events/mon-event', description: 'Page publique événement' },
-        { name: 'unsubscribeLink', example: 'https://...unsubscribe/abc123', description: 'Lien de désinscription' },
+        { name: 'unsubscribeUrl', example: 'https://...unsubscribe?email=...', description: 'Lien de désinscription' },
         { name: 'calendarLink', example: 'https://...calendar/...', description: 'Ajout au calendrier' },
         { name: 'directionsLink', example: 'https://maps.google.com/...', description: 'Itinéraire Google Maps' }
       ]

@@ -403,7 +403,7 @@ function ButtonBlockEditor({
               variant="outline"
               size="sm"
               className="text-xs h-7"
-              onClick={() => updateContent('url', '{{unsubscribeLink}}')}
+              onClick={() => updateContent('url', '{{unsubscribeUrl}}')}
             >
               Désinscription
             </Button>
