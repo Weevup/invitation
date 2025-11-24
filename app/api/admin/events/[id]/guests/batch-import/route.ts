@@ -139,16 +139,19 @@ export async function POST(
       try {
         // Validate required fields
         if (!guestData.firstName || !guestData.email) {
-          results.errors.push(`Ligne ${i + 1}: Prénom et email sont requis`)
+          const name = guestData.firstName || 'Prénom manquant'
+          const email = guestData.email || 'Email manquant'
+          results.errors.push(`Ligne ${i + 1} - ${name} (${email}): Prénom et email sont requis`)
           continue
         }
 
         const email = guestData.email.trim().toLowerCase()
+        const fullName = `${guestData.firstName}${guestData.lastName ? ' ' + guestData.lastName : ''}`
 
         // Skip if email already exists
         if (existingEmails.has(email)) {
           results.skipped++
-          results.errors.push(`Ligne ${i + 1} (${email}): Email déjà existant`)
+          results.errors.push(`Ligne ${i + 1} - ${fullName} (${email}): Email déjà existant dans l'événement`)
           continue
         }
 
@@ -198,7 +201,8 @@ export async function POST(
         existingEmails.add(email)
         results.success++
       } catch (error) {
-        const errorMsg = `Ligne ${i + 1} (${guestData.email}): ${error instanceof Error ? error.message : 'Erreur inconnue'}`
+        const fullName = `${guestData.firstName || '?'}${guestData.lastName ? ' ' + guestData.lastName : ''}`
+        const errorMsg = `Ligne ${i + 1} - ${fullName} (${guestData.email || 'email manquant'}): ${error instanceof Error ? error.message : 'Erreur inconnue'}`
         logger.error({ error, guestData }, 'Failed to import guest')
         results.errors.push(errorMsg)
       }
