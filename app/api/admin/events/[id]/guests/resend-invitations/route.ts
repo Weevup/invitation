@@ -141,7 +141,7 @@ export async function POST(
           html: renderedHtml,
           eventId,
           guestId: guest.id,
-          type: 'INVITATION' as 'INVITATION',
+          type: 'INVITE',
         })
 
         successCount++
