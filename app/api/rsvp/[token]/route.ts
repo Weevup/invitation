@@ -171,6 +171,7 @@ export async function POST(
         lodgingNeeds,
         consentPhotos: consentPhotos || false,
         customAnswers: customAnswers || {},
+        respondedAt: new Date(),
       },
       update: {
         attending: attending ?? null,
@@ -182,6 +183,7 @@ export async function POST(
         lodgingNeeds,
         consentPhotos: consentPhotos || false,
         customAnswers: customAnswers || {},
+        respondedAt: new Date(),
         updatedAt: new Date(),
       },
     })
