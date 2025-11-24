@@ -321,28 +321,65 @@ Marie,Bernard,marie.bernard@example.com,StartupCo,+33698765432,,Product Manager,
           {/* Results */}
           {results && (
             <div className="space-y-3">
+              {/* Success Summary */}
               <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-md">
-                <CheckCircle className="h-5 w-5 text-green-600" />
-                <div>
+                <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0" />
+                <div className="flex-1">
                   <p className="font-medium text-green-800">
-                    {results.success} invité(s) importé(s) avec succès
+                    {results.success} invité{results.success > 1 ? 's' : ''} importé{results.success > 1 ? 's' : ''} avec succès
                   </p>
                 </div>
               </div>
 
+              {/* Errors Section */}
               {results.errors.length > 0 && (
-                <div className="p-3 bg-red-50 border border-red-200 rounded-md">
-                  <div className="flex items-start gap-2">
-                    <AlertCircle className="h-5 w-5 text-red-600 mt-0.5" />
-                    <div>
-                      <p className="font-medium text-red-800 mb-2">
-                        {results.errors.length} erreur(s):
+                <div className="p-4 bg-red-50 border-2 border-red-200 rounded-lg">
+                  <div className="flex items-start gap-3 mb-3">
+                    <AlertCircle className="h-6 w-6 text-red-600 flex-shrink-0 mt-0.5" />
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between mb-2">
+                        <p className="font-semibold text-red-900 text-base">
+                          {results.errors.length} erreur{results.errors.length > 1 ? 's' : ''} détectée{results.errors.length > 1 ? 's' : ''}
+                        </p>
+                        {results.errors.length > 5 && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              const errorText = results.errors.join('\n')
+                              const blob = new Blob([errorText], { type: 'text/plain' })
+                              const url = URL.createObjectURL(blob)
+                              const a = document.createElement('a')
+                              a.href = url
+                              a.download = 'erreurs-import.txt'
+                              a.click()
+                              toast.success('Fichier des erreurs téléchargé')
+                            }}
+                            className="text-xs"
+                          >
+                            <Download className="h-3 w-3 mr-1" />
+                            Télécharger les erreurs
+                          </Button>
+                        )}
+                      </div>
+                      <p className="text-sm text-red-700 mb-3">
+                        Les invités suivants n'ont pas pu être importés :
                       </p>
-                      <ul className="text-xs text-red-700 space-y-1 max-h-40 overflow-y-auto">
-                        {results.errors.map((error, idx) => (
-                          <li key={idx}>• {error}</li>
-                        ))}
-                      </ul>
+                      <div className="bg-white rounded border border-red-200 p-3 max-h-60 overflow-y-auto">
+                        <ul className="text-sm text-red-800 space-y-2 font-mono">
+                          {results.errors.map((error, idx) => (
+                            <li key={idx} className="flex gap-2 items-start">
+                              <span className="text-red-500 font-bold flex-shrink-0">•</span>
+                              <span className="break-all">{error}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                      {results.errors.length > 10 && (
+                        <p className="text-xs text-red-600 mt-2 italic">
+                          💡 Astuce : Cliquez sur "Télécharger les erreurs" pour obtenir la liste complète
+                        </p>
+                      )}
                     </div>
                   </div>
                 </div>
