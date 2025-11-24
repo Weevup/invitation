@@ -93,6 +93,7 @@ export default function GuestsPage() {
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [tagFilter, setTagFilter] = useState<string>('all')
   // Professional filters
+  const [companyFilter, setCompanyFilter] = useState<string>('all')
   const [companySizeFilter, setCompanySizeFilter] = useState<string>('all')
   const [industryFilter, setIndustryFilter] = useState<string>('all')
   const [jobTitleFilter, setJobTitleFilter] = useState<string>('all')
@@ -226,6 +227,7 @@ export default function GuestsPage() {
   const allTags = Array.from(new Set(event.guests.flatMap((g) => g.tags)))
 
   // Get all unique professional fields
+  const allCompanies = Array.from(new Set(event.guests.map((g) => g.company).filter(Boolean))) as string[]
   const allIndustries = Array.from(new Set(event.guests.map((g) => g.industry).filter(Boolean))) as string[]
   const allJobTitles = Array.from(new Set(event.guests.map((g) => g.jobTitle).filter(Boolean))) as string[]
 
@@ -253,6 +255,9 @@ export default function GuestsPage() {
         tagFilter === 'all' || guest.tags.includes(tagFilter)
 
       // Professional filters
+      const matchesCompany =
+        companyFilter === 'all' || guest.company === companyFilter
+
       const matchesCompanySize =
         companySizeFilter === 'all' || guest.companySize === companySizeFilter
 
@@ -262,7 +267,7 @@ export default function GuestsPage() {
       const matchesJobTitle =
         jobTitleFilter === 'all' || guest.jobTitle === jobTitleFilter
 
-      return matchesSearch && matchesStatus && matchesTag && matchesCompanySize && matchesIndustry && matchesJobTitle
+      return matchesSearch && matchesStatus && matchesTag && matchesCompany && matchesCompanySize && matchesIndustry && matchesJobTitle
     })
     .sort((a, b) => {
       if (sortBy === 'response-date') {
@@ -493,6 +498,20 @@ export default function GuestsPage() {
                 </SelectContent>
               </Select>
 
+              <Select value={companyFilter} onValueChange={setCompanyFilter}>
+                <SelectTrigger className="w-[180px] border-[#9CD9F6]/50">
+                  <SelectValue placeholder="Entreprise" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Toutes entreprises</SelectItem>
+                  {allCompanies.map((company) => (
+                    <SelectItem key={company} value={company}>
+                      {company}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
               <Select value={companySizeFilter} onValueChange={setCompanySizeFilter}>
                 <SelectTrigger className="w-[200px] border-[#9CD9F6]/50">
                   <SelectValue placeholder="Taille entreprise" />
@@ -547,13 +566,14 @@ export default function GuestsPage() {
                 </Select>
               </div>
 
-              {(statusFilter !== 'all' || tagFilter !== 'all' || companySizeFilter !== 'all' || industryFilter !== 'all' || jobTitleFilter !== 'all') && (
+              {(statusFilter !== 'all' || tagFilter !== 'all' || companyFilter !== 'all' || companySizeFilter !== 'all' || industryFilter !== 'all' || jobTitleFilter !== 'all') && (
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => {
                     setStatusFilter('all')
                     setTagFilter('all')
+                    setCompanyFilter('all')
                     setCompanySizeFilter('all')
                     setIndustryFilter('all')
                     setJobTitleFilter('all')
