@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import {
-  Users, Download, Search, Link as LinkIcon, UserPlus, Upload, Eye, Filter, CreditCard, CheckSquare, Square, X, RefreshCw, Edit, Trash2
+  Users, Download, Search, Link as LinkIcon, UserPlus, Upload, Eye, Filter, CreditCard, CheckSquare, Square, X, RefreshCw, Edit, Trash2, Mail
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { AddGuestDialog } from '@/components/add-guest-dialog'
@@ -63,6 +63,15 @@ interface Guest {
     respondedAt?: string
     qrCodeId: string
   }
+  emailLogs?: Array<{
+    id: string
+    type: string
+    status: string
+    sentAt: string | null
+    openedAt: string | null
+    clickedAt: string | null
+    bouncedAt: string | null
+  }>
   checkins?: Array<{
     checkedInAt: string
     desk?: string
@@ -92,6 +101,7 @@ export default function GuestsPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [tagFilter, setTagFilter] = useState<string>('all')
+  const [emailStatusFilter, setEmailStatusFilter] = useState<string>('all')
   // Professional filters
   const [companyFilter, setCompanyFilter] = useState<string>('all')
   const [companySizeFilter, setCompanySizeFilter] = useState<string>('all')
@@ -231,6 +241,17 @@ export default function GuestsPage() {
   const allIndustries = Array.from(new Set(event.guests.map((g) => g.industry).filter(Boolean))) as string[]
   const allJobTitles = Array.from(new Set(event.guests.map((g) => g.jobTitle).filter(Boolean))) as string[]
 
+  // Helper function to get email status
+  const getEmailStatus = (guest: Guest): 'opened' | 'delivered' | 'sent' | 'bounced' | 'not-sent' => {
+    const latestEmail = guest.emailLogs?.[0]
+    if (!latestEmail) return 'not-sent'
+    if (latestEmail.bouncedAt) return 'bounced'
+    if (latestEmail.openedAt) return 'opened'
+    if (latestEmail.status === 'DELIVERED') return 'delivered'
+    if (latestEmail.status === 'SENT') return 'sent'
+    return 'not-sent'
+  }
+
   const filteredGuests = event.guests
     .filter((guest) => {
       const searchLower = search.toLowerCase()
@@ -254,6 +275,10 @@ export default function GuestsPage() {
       const matchesTag =
         tagFilter === 'all' || guest.tags.includes(tagFilter)
 
+      // Email status filter
+      const matchesEmailStatus =
+        emailStatusFilter === 'all' || getEmailStatus(guest) === emailStatusFilter
+
       // Professional filters
       const matchesCompany =
         companyFilter === 'all' || guest.company === companyFilter
@@ -267,7 +292,7 @@ export default function GuestsPage() {
       const matchesJobTitle =
         jobTitleFilter === 'all' || guest.jobTitle === jobTitleFilter
 
-      return matchesSearch && matchesStatus && matchesTag && matchesCompany && matchesCompanySize && matchesIndustry && matchesJobTitle
+      return matchesSearch && matchesStatus && matchesTag && matchesEmailStatus && matchesCompany && matchesCompanySize && matchesIndustry && matchesJobTitle
     })
     .sort((a, b) => {
       if (sortBy === 'response-date') {
@@ -315,6 +340,46 @@ export default function GuestsPage() {
 
   const clearSelection = () => {
     setSelectedGuestIds(new Set())
+  }
+
+  const handleResendInvitations = async () => {
+    if (selectedGuestIds.size === 0) return
+
+    const confirmMessage = `Renvoyer l'invitation à ${selectedGuestIds.size} invité${selectedGuestIds.size > 1 ? 's' : ''} ?`
+
+    if (!window.confirm(confirmMessage)) {
+      return
+    }
+
+    try {
+      toast.loading('Envoi en cours...', { id: 'resend-invitations' })
+
+      const response = await fetch(`/api/admin/events/${eventId}/guests/resend-invitations`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          guestIds: Array.from(selectedGuestIds),
+        }),
+      })
+
+      const result = await response.json()
+
+      if (response.ok && result.success) {
+        toast.success(
+          `${result.sent} invitation${result.sent > 1 ? 's' : ''} envoyée${result.sent > 1 ? 's' : ''}${result.failed > 0 ? ` (${result.failed} échec${result.failed > 1 ? 's' : ''})` : ''}`,
+          { id: 'resend-invitations' }
+        )
+        clearSelection()
+        fetchEvent()
+      } else {
+        throw new Error(result.error || 'Erreur lors de l\'envoi')
+      }
+    } catch (error) {
+      logger.error(error, { action: 'resendInvitations' })
+      toast.error('Erreur lors de l\'envoi des invitations', { id: 'resend-invitations' })
+    }
   }
 
   const handleBulkDelete = async () => {
@@ -432,6 +497,27 @@ export default function GuestsPage() {
           </Button>
           <Button
             variant="outline"
+            onClick={() => {
+              const nonOpenedGuests = filteredGuests.filter((g) => {
+                const status = getEmailStatus(g)
+                return status === 'delivered' || status === 'sent'
+              })
+              setSelectedGuestIds(new Set(nonOpenedGuests.map(g => g.id)))
+              if (nonOpenedGuests.length > 0) {
+                toast.success(`${nonOpenedGuests.length} invité${nonOpenedGuests.length > 1 ? 's' : ''} sélectionné${nonOpenedGuests.length > 1 ? 's' : ''}`)
+              } else {
+                toast.info('Aucun invité avec email non ouvert')
+              }
+            }}
+            disabled={!hasGuests}
+            className="border-orange-500 text-orange-600 hover:bg-orange-500 hover:text-white"
+            title="Sélectionner les invités dont l'email n'a pas été ouvert"
+          >
+            <CheckSquare className="h-4 w-4 mr-2" />
+            Sélectionner non-ouverts
+          </Button>
+          <Button
+            variant="outline"
             onClick={handleExportCSV}
             disabled={!hasGuests}
             className="border-[#004645] text-[#004645] hover:bg-[#004645] hover:text-white"
@@ -495,6 +581,20 @@ export default function GuestsPage() {
                       {tag}
                     </SelectItem>
                   ))}
+                </SelectContent>
+              </Select>
+
+              <Select value={emailStatusFilter} onValueChange={setEmailStatusFilter}>
+                <SelectTrigger className="w-[200px] border-[#9CD9F6]/50">
+                  <SelectValue placeholder="Statut email" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tous statuts email</SelectItem>
+                  <SelectItem value="opened">📧 Ouvert</SelectItem>
+                  <SelectItem value="delivered">📬 Livré (non ouvert)</SelectItem>
+                  <SelectItem value="sent">📤 Envoyé</SelectItem>
+                  <SelectItem value="bounced">⚠️ Échec</SelectItem>
+                  <SelectItem value="not-sent">⏸️ Non envoyé</SelectItem>
                 </SelectContent>
               </Select>
 
@@ -566,13 +666,14 @@ export default function GuestsPage() {
                 </Select>
               </div>
 
-              {(statusFilter !== 'all' || tagFilter !== 'all' || companyFilter !== 'all' || companySizeFilter !== 'all' || industryFilter !== 'all' || jobTitleFilter !== 'all') && (
+              {(statusFilter !== 'all' || tagFilter !== 'all' || emailStatusFilter !== 'all' || companyFilter !== 'all' || companySizeFilter !== 'all' || industryFilter !== 'all' || jobTitleFilter !== 'all') && (
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => {
                     setStatusFilter('all')
                     setTagFilter('all')
+                    setEmailStatusFilter('all')
                     setCompanyFilter('all')
                     setCompanySizeFilter('all')
                     setIndustryFilter('all')
@@ -803,25 +904,62 @@ export default function GuestsPage() {
                         )}
                       </td>
                       <td className="py-3">
-                        {guest.rsvp ? (
-                          guest.rsvp.attending ? (
-                            <Badge className="bg-green-100 text-green-800 border-green-200">
-                              ✓ Participe
-                            </Badge>
-                          ) : guest.rsvp.attending === false ? (
-                            <Badge className="bg-red-100 text-red-800 border-red-200">
-                              ✗ Décline
-                            </Badge>
+                        <div className="flex flex-col gap-1">
+                          {guest.rsvp ? (
+                            guest.rsvp.attending ? (
+                              <Badge className="bg-green-100 text-green-800 border-green-200">
+                                ✓ Participe
+                              </Badge>
+                            ) : guest.rsvp.attending === false ? (
+                              <Badge className="bg-red-100 text-red-800 border-red-200">
+                                ✗ Décline
+                              </Badge>
+                            ) : (
+                              <Badge className="bg-gray-100 text-gray-800 border-gray-200">
+                                Indécis
+                              </Badge>
+                            )
                           ) : (
-                            <Badge className="bg-gray-100 text-gray-800 border-gray-200">
-                              Indécis
+                            <Badge className="bg-[#FF4713]/10 text-[#FF4713] border-[#FF4713]/30">
+                              En attente
                             </Badge>
-                          )
-                        ) : (
-                          <Badge className="bg-[#FF4713]/10 text-[#FF4713] border-[#FF4713]/30">
-                            En attente
-                          </Badge>
-                        )}
+                          )}
+                          {(() => {
+                            const emailStatus = getEmailStatus(guest)
+                            switch (emailStatus) {
+                              case 'opened':
+                                return (
+                                  <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-300">
+                                    📧 Ouvert
+                                  </Badge>
+                                )
+                              case 'delivered':
+                                return (
+                                  <Badge variant="outline" className="text-xs bg-orange-50 text-orange-700 border-orange-300">
+                                    📬 Livré
+                                  </Badge>
+                                )
+                              case 'sent':
+                                return (
+                                  <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-300">
+                                    📤 Envoyé
+                                  </Badge>
+                                )
+                              case 'bounced':
+                                return (
+                                  <Badge variant="outline" className="text-xs bg-red-50 text-red-700 border-red-300">
+                                    ⚠️ Échec
+                                  </Badge>
+                                )
+                              case 'not-sent':
+                                return (
+                                  <Badge variant="outline" className="text-xs bg-gray-50 text-gray-500 border-gray-300">
+                                    ⏸️ Non envoyé
+                                  </Badge>
+                                )
+                            }
+                          })()}
+                        </div>
                       </td>
                       <td className="py-3">
                         <div className="flex items-center gap-1">
@@ -907,6 +1045,15 @@ export default function GuestsPage() {
                   selectedGuestIds={Array.from(selectedGuestIds)}
                   onComplete={clearSelection}
                 />
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleResendInvitations}
+                  className="text-[#009197] hover:bg-[#009197]/10"
+                >
+                  <Mail className="h-4 w-4 mr-1" />
+                  Renvoyer
+                </Button>
                 <Button
                   variant="ghost"
                   size="sm"

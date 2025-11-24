@@ -533,6 +533,29 @@ model EmailTemplate {
   @@index([isDefault])
 }
 
+// Email Unsubscribe management
+model EmailUnsubscribe {
+  id          String   @id @default(cuid())
+
+  // Guest or email address
+  guestId     String?
+  email       String   // Email address that unsubscribed (normalized)
+
+  // Unsubscribe details
+  reason      String?  @db.Text // User-provided reason
+  source      String   @default("manual") // "email_link", "manual", "api"
+
+  // Metadata
+  metadata    Json?
+
+  unsubscribedAt DateTime @default(now())
+  createdAt      DateTime @default(now())
+
+  @@unique([email])
+  @@index([guestId])
+  @@index([email])
+}
+
 // ============================================
 // PHASE 2: MODULAR FEATURES
 // ============================================
