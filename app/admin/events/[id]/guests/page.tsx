@@ -282,6 +282,41 @@ export default function GuestsPage() {
     setSelectedGuestIds(new Set())
   }
 
+  const handleBulkDelete = async () => {
+    if (selectedGuestIds.size === 0) return
+
+    const confirmMessage = `Êtes-vous sûr de vouloir supprimer ${selectedGuestIds.size} invité${selectedGuestIds.size > 1 ? 's' : ''} ? Cette action est irréversible.`
+
+    if (!window.confirm(confirmMessage)) {
+      return
+    }
+
+    try {
+      const response = await fetch(`/api/admin/events/${eventId}/guests/bulk-delete`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          guestIds: Array.from(selectedGuestIds),
+        }),
+      })
+
+      const result = await response.json()
+
+      if (response.ok && result.success) {
+        toast.success(`${result.deleted} invité${result.deleted > 1 ? 's' : ''} supprimé${result.deleted > 1 ? 's' : ''} avec succès`)
+        clearSelection()
+        fetchEvent()
+      } else {
+        throw new Error(result.error || 'Erreur lors de la suppression')
+      }
+    } catch (error) {
+      logger.error(error, { action: 'bulkDelete' })
+      toast.error(error instanceof Error ? error.message : 'Erreur lors de la suppression des invités')
+    }
+  }
+
   const isAllSelected = filteredGuests.length > 0 && selectedGuestIds.size === filteredGuests.length
 
   return (
@@ -790,8 +825,17 @@ export default function GuestsPage() {
                 <Button
                   variant="ghost"
                   size="sm"
+                  onClick={handleBulkDelete}
+                  className="text-red-600 hover:bg-red-50"
+                >
+                  <Trash2 className="h-4 w-4 mr-1" />
+                  Supprimer
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
                   onClick={clearSelection}
-                  className="text-[#FF4713] hover:bg-[#FF4713]/10"
+                  className="text-gray-600 hover:bg-gray-100"
                 >
                   <X className="h-4 w-4 mr-1" />
                   Annuler
