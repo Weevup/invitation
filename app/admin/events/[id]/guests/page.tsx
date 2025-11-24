@@ -101,6 +101,7 @@ export default function GuestsPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [tagFilter, setTagFilter] = useState<string>('all')
+  const [emailStatusFilter, setEmailStatusFilter] = useState<string>('all')
   // Professional filters
   const [companyFilter, setCompanyFilter] = useState<string>('all')
   const [companySizeFilter, setCompanySizeFilter] = useState<string>('all')
@@ -240,6 +241,17 @@ export default function GuestsPage() {
   const allIndustries = Array.from(new Set(event.guests.map((g) => g.industry).filter(Boolean))) as string[]
   const allJobTitles = Array.from(new Set(event.guests.map((g) => g.jobTitle).filter(Boolean))) as string[]
 
+  // Helper function to get email status
+  const getEmailStatus = (guest: Guest): 'opened' | 'delivered' | 'sent' | 'bounced' | 'not-sent' => {
+    const latestEmail = guest.emailLogs?.[0]
+    if (!latestEmail) return 'not-sent'
+    if (latestEmail.bouncedAt) return 'bounced'
+    if (latestEmail.openedAt) return 'opened'
+    if (latestEmail.status === 'DELIVERED') return 'delivered'
+    if (latestEmail.status === 'SENT') return 'sent'
+    return 'not-sent'
+  }
+
   const filteredGuests = event.guests
     .filter((guest) => {
       const searchLower = search.toLowerCase()
@@ -263,6 +275,10 @@ export default function GuestsPage() {
       const matchesTag =
         tagFilter === 'all' || guest.tags.includes(tagFilter)
 
+      // Email status filter
+      const matchesEmailStatus =
+        emailStatusFilter === 'all' || getEmailStatus(guest) === emailStatusFilter
+
       // Professional filters
       const matchesCompany =
         companyFilter === 'all' || guest.company === companyFilter
@@ -276,7 +292,7 @@ export default function GuestsPage() {
       const matchesJobTitle =
         jobTitleFilter === 'all' || guest.jobTitle === jobTitleFilter
 
-      return matchesSearch && matchesStatus && matchesTag && matchesCompany && matchesCompanySize && matchesIndustry && matchesJobTitle
+      return matchesSearch && matchesStatus && matchesTag && matchesEmailStatus && matchesCompany && matchesCompanySize && matchesIndustry && matchesJobTitle
     })
     .sort((a, b) => {
       if (sortBy === 'response-date') {
@@ -507,6 +523,20 @@ export default function GuestsPage() {
                 </SelectContent>
               </Select>
 
+              <Select value={emailStatusFilter} onValueChange={setEmailStatusFilter}>
+                <SelectTrigger className="w-[200px] border-[#9CD9F6]/50">
+                  <SelectValue placeholder="Statut email" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tous statuts email</SelectItem>
+                  <SelectItem value="opened">📧 Ouvert</SelectItem>
+                  <SelectItem value="delivered">📬 Livré (non ouvert)</SelectItem>
+                  <SelectItem value="sent">📤 Envoyé</SelectItem>
+                  <SelectItem value="bounced">⚠️ Échec</SelectItem>
+                  <SelectItem value="not-sent">⏸️ Non envoyé</SelectItem>
+                </SelectContent>
+              </Select>
+
               <Select value={companyFilter} onValueChange={setCompanyFilter}>
                 <SelectTrigger className="w-[180px] border-[#9CD9F6]/50">
                   <SelectValue placeholder="Entreprise" />
@@ -575,13 +605,14 @@ export default function GuestsPage() {
                 </Select>
               </div>
 
-              {(statusFilter !== 'all' || tagFilter !== 'all' || companyFilter !== 'all' || companySizeFilter !== 'all' || industryFilter !== 'all' || jobTitleFilter !== 'all') && (
+              {(statusFilter !== 'all' || tagFilter !== 'all' || emailStatusFilter !== 'all' || companyFilter !== 'all' || companySizeFilter !== 'all' || industryFilter !== 'all' || jobTitleFilter !== 'all') && (
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => {
                     setStatusFilter('all')
                     setTagFilter('all')
+                    setEmailStatusFilter('all')
                     setCompanyFilter('all')
                     setCompanySizeFilter('all')
                     setIndustryFilter('all')
@@ -812,25 +843,62 @@ export default function GuestsPage() {
                         )}
                       </td>
                       <td className="py-3">
-                        {guest.rsvp ? (
-                          guest.rsvp.attending ? (
-                            <Badge className="bg-green-100 text-green-800 border-green-200">
-                              ✓ Participe
-                            </Badge>
-                          ) : guest.rsvp.attending === false ? (
-                            <Badge className="bg-red-100 text-red-800 border-red-200">
-                              ✗ Décline
-                            </Badge>
+                        <div className="flex flex-col gap-1">
+                          {guest.rsvp ? (
+                            guest.rsvp.attending ? (
+                              <Badge className="bg-green-100 text-green-800 border-green-200">
+                                ✓ Participe
+                              </Badge>
+                            ) : guest.rsvp.attending === false ? (
+                              <Badge className="bg-red-100 text-red-800 border-red-200">
+                                ✗ Décline
+                              </Badge>
+                            ) : (
+                              <Badge className="bg-gray-100 text-gray-800 border-gray-200">
+                                Indécis
+                              </Badge>
+                            )
                           ) : (
-                            <Badge className="bg-gray-100 text-gray-800 border-gray-200">
-                              Indécis
+                            <Badge className="bg-[#FF4713]/10 text-[#FF4713] border-[#FF4713]/30">
+                              En attente
                             </Badge>
-                          )
-                        ) : (
-                          <Badge className="bg-[#FF4713]/10 text-[#FF4713] border-[#FF4713]/30">
-                            En attente
-                          </Badge>
-                        )}
+                          )}
+                          {(() => {
+                            const emailStatus = getEmailStatus(guest)
+                            switch (emailStatus) {
+                              case 'opened':
+                                return (
+                                  <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-300">
+                                    📧 Ouvert
+                                  </Badge>
+                                )
+                              case 'delivered':
+                                return (
+                                  <Badge variant="outline" className="text-xs bg-orange-50 text-orange-700 border-orange-300">
+                                    📬 Livré
+                                  </Badge>
+                                )
+                              case 'sent':
+                                return (
+                                  <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-300">
+                                    📤 Envoyé
+                                  </Badge>
+                                )
+                              case 'bounced':
+                                return (
+                                  <Badge variant="outline" className="text-xs bg-red-50 text-red-700 border-red-300">
+                                    ⚠️ Échec
+                                  </Badge>
+                                )
+                              case 'not-sent':
+                                return (
+                                  <Badge variant="outline" className="text-xs bg-gray-50 text-gray-500 border-gray-300">
+                                    ⏸️ Non envoyé
+                                  </Badge>
+                                )
+                            }
+                          })()}
+                        </div>
                       </td>
                       <td className="py-3">
                         <div className="flex items-center gap-1">
