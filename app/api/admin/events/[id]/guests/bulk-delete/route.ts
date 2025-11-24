@@ -31,10 +31,10 @@ export async function POST(
       )
     }
 
-    // Limit to 100 guests at once for safety
-    if (guestIds.length > 100) {
+    // Limit to 500 guests at once for safety
+    if (guestIds.length > 500) {
       return NextResponse.json(
-        { error: 'Maximum 100 invités peuvent être supprimés à la fois' },
+        { error: 'Maximum 500 invités peuvent être supprimés à la fois' },
         { status: 400 }
       )
     }
