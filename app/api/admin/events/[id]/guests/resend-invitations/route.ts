@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { requireAdmin, handleAuthError } from '@/lib/auth-utils'
 import { requireEventOwnership } from '@/lib/permissions'
-import { sendEmail, renderTemplate } from '@/lib/email-service'
+import { sendEmailLegacy as sendEmail, renderTemplate } from '@/lib/email-service'
 import { createLogger } from '@/lib/logger'
 
 const logger = createLogger({ module: 'resend-invitations' })
@@ -141,7 +141,7 @@ export async function POST(
           html: renderedHtml,
           eventId,
           guestId: guest.id,
-          type: 'INVITATION',
+          type: 'INVITATION' as 'INVITATION',
         })
 
         successCount++
