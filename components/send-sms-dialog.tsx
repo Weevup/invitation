@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -22,6 +22,14 @@ interface SendSMSDialogProps {
   guestIds: string[] // Array of guest IDs to send SMS to
   guestsWithPhone: number // Count of guests with valid phone numbers
   totalGuests: number // Total count of selected guests
+}
+
+interface SMSTemplate {
+  id: string
+  name: string
+  description?: string
+  message: string
+  category?: string
 }
 
 const SMS_TEMPLATES = {
@@ -52,7 +60,9 @@ export function SendSMSDialog({
   const [open, setOpen] = useState(false)
   const [message, setMessage] = useState('')
   const [sending, setSending] = useState(false)
-  const [selectedTemplate, setSelectedTemplate] = useState<keyof typeof SMS_TEMPLATES>('custom')
+  const [selectedTemplate, setSelectedTemplate] = useState<keyof typeof SMS_TEMPLATES | string>('custom')
+  const [dbTemplates, setDbTemplates] = useState<SMSTemplate[]>([])
+  const [loadingTemplates, setLoadingTemplates] = useState(false)
   const [sendResult, setSendResult] = useState<{
     success: boolean
     sent: number
@@ -64,9 +74,43 @@ export function SendSMSDialog({
   const smsCount = Math.ceil(messageLength / 160)
   const remainingChars = messageLength > 0 ? 160 - (messageLength % 160) : 160
 
-  const handleSelectTemplate = (templateKey: keyof typeof SMS_TEMPLATES) => {
+  // Fetch templates from database when dialog opens
+  useEffect(() => {
+    if (open && dbTemplates.length === 0) {
+      fetchTemplates()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open])
+
+  const fetchTemplates = async () => {
+    setLoadingTemplates(true)
+    try {
+      const response = await fetch(`/api/admin/events/${eventId}/sms-templates`)
+      if (response.ok) {
+        const data = await response.json()
+        setDbTemplates(data.templates || [])
+      }
+    } catch (error) {
+      console.error('Error fetching SMS templates:', error)
+      toast.error('Erreur lors du chargement des templates SMS')
+    } finally {
+      setLoadingTemplates(false)
+    }
+  }
+
+  const handleSelectTemplate = (templateKey: keyof typeof SMS_TEMPLATES | string) => {
     setSelectedTemplate(templateKey)
-    setMessage(SMS_TEMPLATES[templateKey].message)
+
+    // Check if it's a hardcoded template
+    if (templateKey in SMS_TEMPLATES) {
+      setMessage(SMS_TEMPLATES[templateKey as keyof typeof SMS_TEMPLATES].message)
+    } else {
+      // It's a database template
+      const dbTemplate = dbTemplates.find(t => t.id === templateKey)
+      if (dbTemplate) {
+        setMessage(dbTemplate.message)
+      }
+    }
   }
 
   const handleSend = async () => {
@@ -89,6 +133,19 @@ export function SendSMSDialog({
     setSendResult(null)
 
     try {
+      // Get template name for logging/tracking
+      let templateName: string | undefined
+      if (selectedTemplate !== 'custom') {
+        if (selectedTemplate in SMS_TEMPLATES) {
+          // Hardcoded template
+          templateName = SMS_TEMPLATES[selectedTemplate as keyof typeof SMS_TEMPLATES].name
+        } else {
+          // Database template
+          const dbTemplate = dbTemplates.find(t => t.id === selectedTemplate)
+          templateName = dbTemplate?.name
+        }
+      }
+
       const response = await fetch(`/api/admin/events/${eventId}/notifications/send-sms`, {
         method: 'POST',
         headers: {
@@ -97,7 +154,7 @@ export function SendSMSDialog({
         body: JSON.stringify({
           guestIds,
           message,
-          templateName: selectedTemplate !== 'custom' ? SMS_TEMPLATES[selectedTemplate].name : undefined,
+          templateName,
         }),
       })
 
@@ -193,23 +250,63 @@ export function SendSMSDialog({
             <label className="text-sm font-medium text-[#004645] mb-2 block">
               Modèles de message
             </label>
-            <div className="flex gap-2 flex-wrap">
-              {Object.entries(SMS_TEMPLATES).map(([key, template]) => (
-                <Button
-                  key={key}
-                  variant={selectedTemplate === key ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => handleSelectTemplate(key as keyof typeof SMS_TEMPLATES)}
-                  className={
-                    selectedTemplate === key
-                      ? 'bg-[#009197] hover:bg-[#004645]'
-                      : 'border-[#9CD9F6]/50'
-                  }
-                >
-                  {template.name}
-                </Button>
-              ))}
-            </div>
+            {loadingTemplates ? (
+              <div className="flex items-center justify-center p-4 text-sm text-[#004645]/70">
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                Chargement des templates...
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {/* Database templates */}
+                {dbTemplates.length > 0 && (
+                  <div>
+                    <div className="text-xs font-medium text-[#004645]/70 mb-2">Vos templates personnalisés</div>
+                    <div className="flex gap-2 flex-wrap">
+                      {dbTemplates.map((template) => (
+                        <Button
+                          key={template.id}
+                          variant={selectedTemplate === template.id ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => handleSelectTemplate(template.id)}
+                          className={
+                            selectedTemplate === template.id
+                              ? 'bg-[#009197] hover:bg-[#004645]'
+                              : 'border-[#9CD9F6]/50'
+                          }
+                        >
+                          {template.name}
+                          {template.description && (
+                            <span className="ml-1 text-xs opacity-70">• {template.description}</span>
+                          )}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Hardcoded templates */}
+                <div>
+                  <div className="text-xs font-medium text-[#004645]/70 mb-2">Templates par défaut</div>
+                  <div className="flex gap-2 flex-wrap">
+                    {Object.entries(SMS_TEMPLATES).map(([key, template]) => (
+                      <Button
+                        key={key}
+                        variant={selectedTemplate === key ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={() => handleSelectTemplate(key as keyof typeof SMS_TEMPLATES)}
+                        className={
+                          selectedTemplate === key
+                            ? 'bg-[#009197] hover:bg-[#004645]'
+                            : 'border-[#9CD9F6]/50'
+                        }
+                      >
+                        {template.name}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Message Input */}
