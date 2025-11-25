@@ -85,6 +85,7 @@ export async function POST(
     for (const guest of targetGuests) {
       try {
         const invitationUrl = `${baseUrl}/guest/${guest.token}`
+        const unsubscribeUrl = `${baseUrl}/unsubscribe?email=${encodeURIComponent(guest.email)}&token=${guest.token}`
 
         let emailHtml: string
         let subject: string
@@ -97,6 +98,7 @@ export async function POST(
             eventVenue,
             invitationUrl,
             rsvpDeadline,
+            unsubscribeUrl,
           })
           // Use custom subject or fallback to default
           const reminderSubject = invitationConfig.reminderEmailSubject || `⏰ Rappel : ${event.name}`
@@ -108,6 +110,7 @@ export async function POST(
             eventDate,
             eventVenue,
             invitationUrl,
+            unsubscribeUrl,
           })
           // Use custom subject from invitation config or fallback to default
           const inviteSubject = invitationConfig.emailSubject || `✉️ Invitation : ${event.name}`
