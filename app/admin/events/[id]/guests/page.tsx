@@ -257,7 +257,7 @@ export default function GuestsPage() {
       const searchLower = search.toLowerCase()
       const matchesSearch =
         guest.firstName.toLowerCase().includes(searchLower) ||
-        guest.lastName.toLowerCase().includes(searchLower) ||
+        guest.lastName?.toLowerCase().includes(searchLower) ||
         guest.email.toLowerCase().includes(searchLower) ||
         guest.company?.toLowerCase().includes(searchLower) ||
         guest.jobTitle?.toLowerCase().includes(searchLower) ||
