@@ -655,6 +655,7 @@ export function getInvitationEmailTemplate(params: {
   eventDate: string
   eventVenue: string
   invitationUrl: string
+  unsubscribeUrl?: string
 }) {
   return `
     <!DOCTYPE html>
@@ -696,6 +697,7 @@ export function getInvitationEmailTemplate(params: {
           </div>
           <div class="footer">
             <p>Cet email a été envoyé par Invitation Manager</p>
+            ${params.unsubscribeUrl ? `<p style="font-size: 12px; color: #a0aec0; margin-top: 10px;"><a href="${params.unsubscribeUrl}" style="color: #a0aec0; text-decoration: underline;">Se désabonner</a></p>` : ''}
             <p>Si vous avez reçu cet email par erreur, veuillez l'ignorer.</p>
           </div>
         </div>
@@ -781,6 +783,7 @@ export function getReminderEmailTemplate(params: {
   eventVenue: string
   invitationUrl: string
   rsvpDeadline?: string
+  unsubscribeUrl?: string
 }) {
   return `
     <!DOCTYPE html>
@@ -831,6 +834,7 @@ export function getReminderEmailTemplate(params: {
           </div>
           <div class="footer">
             <p>Cet email a été envoyé par Invitation Manager</p>
+            ${params.unsubscribeUrl ? `<p style="font-size: 12px; color: #a0aec0; margin-top: 10px;"><a href="${params.unsubscribeUrl}" style="color: #a0aec0; text-decoration: underline;">Se désabonner</a></p>` : ''}
             <p>Si vous avez déjà répondu, veuillez ignorer ce message.</p>
           </div>
         </div>
