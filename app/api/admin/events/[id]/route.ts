@@ -152,12 +152,14 @@ export async function GET(
             },
             emailLogs: {
               where: {
-                type: 'INVITATION',
+                type: {
+                  in: ['INVITATION', 'INVITE', 'REMINDER', 'SAVE_THE_DATE'],
+                },
               },
               orderBy: {
                 createdAt: 'desc',
               },
-              take: 1, // Only the most recent invitation email
+              take: 3, // Show up to 3 most recent emails (for better status tracking)
             },
           },
           orderBy: {
