@@ -742,6 +742,19 @@ export default function GuestsPage() {
               <Button
                 variant="outline"
                 size="sm"
+                onClick={() => {
+                  const declinedIds = filteredGuests
+                    .filter(g => g.rsvp?.attending === false)
+                    .map(g => g.id)
+                  setSelectedGuestIds(new Set(declinedIds))
+                }}
+                className="border-red-600 text-red-600 hover:bg-red-600 hover:text-white"
+              >
+                Déclinés ({filteredGuests.filter(g => g.rsvp?.attending === false).length})
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={() => setSelectedGuestIds(new Set(filteredGuests.map(g => g.id)))}
                 className="border-[#004645] text-[#004645] hover:bg-[#004645] hover:text-white"
               >
