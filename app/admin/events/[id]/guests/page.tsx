@@ -432,7 +432,7 @@ export default function GuestsPage() {
         throw new Error(result.error || 'Erreur lors de la confirmation')
       }
     } catch (error) {
-      logger.error(error, { action: 'manualConfirm', guestId })
+      logger.error(error, { action: 'manualConfirm' })
       toast.error(error instanceof Error ? error.message : 'Erreur lors de la confirmation')
     }
   }
