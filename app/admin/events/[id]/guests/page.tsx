@@ -417,16 +417,31 @@ export default function GuestsPage() {
     }
   }
 
-  const handleManualConfirm = async (guestId: string, guestName: string) => {
+  const handleManualConfirm = async (guestId: string, guestName: string, guestEmail: string) => {
+    // Ask if user wants to send confirmation email
+    const sendEmail = window.confirm(
+      `Confirmer ${guestName} manuellement.\n\nVoulez-vous envoyer un email de confirmation ?\n\n✅ OK = Confirmer AVEC email\n❌ Annuler = Confirmer SANS email`
+    )
+
     try {
       const response = await fetch(`/api/admin/events/${eventId}/guests/${guestId}/confirm`, {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          sendConfirmationEmail: sendEmail,
+        }),
       })
 
       const result = await response.json()
 
       if (response.ok && result.success) {
-        toast.success(`${guestName} confirmé manuellement`)
+        if (sendEmail) {
+          toast.success(`${guestName} confirmé manuellement (email envoyé)`)
+        } else {
+          toast.success(`${guestName} confirmé manuellement`)
+        }
         fetchEvent()
       } else {
         throw new Error(result.error || 'Erreur lors de la confirmation')
@@ -940,9 +955,16 @@ export default function GuestsPage() {
                         <div className="flex flex-col gap-1">
                           {guest.rsvp ? (
                             guest.rsvp.attending ? (
-                              <Badge className="bg-green-100 text-green-800 border-green-200">
-                                ✓ Participe
-                              </Badge>
+                              <>
+                                <Badge className="bg-green-100 text-green-800 border-green-200">
+                                  ✓ Participe
+                                </Badge>
+                                {guest.tags.includes('Confirmation orale') && (
+                                  <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-300">
+                                    🗣️ Oral
+                                  </Badge>
+                                )}
+                              </>
                             ) : guest.rsvp.attending === false ? (
                               <Badge className="bg-red-100 text-red-800 border-red-200">
                                 ✗ Décline
@@ -1021,7 +1043,7 @@ export default function GuestsPage() {
                             <Button
                               size="sm"
                               variant="ghost"
-                              onClick={() => handleManualConfirm(guest.id, `${guest.firstName} ${guest.lastName || ''}`)}
+                              onClick={() => handleManualConfirm(guest.id, `${guest.firstName} ${guest.lastName || ''}`, guest.email)}
                               className="text-green-600 hover:text-green-800 hover:bg-green-50"
                               title="Confirmer manuellement (confirmation orale)"
                             >
