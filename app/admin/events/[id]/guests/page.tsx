@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import {
-  Users, Download, Search, Link as LinkIcon, UserPlus, Upload, Eye, Filter, CreditCard, CheckSquare, Square, X, RefreshCw, Edit, Trash2, Mail
+  Users, Download, Search, Link as LinkIcon, UserPlus, Upload, Eye, Filter, CreditCard, CheckSquare, Square, X, RefreshCw, Edit, Trash2, Mail, CheckCircle
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { AddGuestDialog } from '@/components/add-guest-dialog'
@@ -414,6 +414,26 @@ export default function GuestsPage() {
     } catch (error) {
       logger.error(error, { action: 'bulkDelete' })
       toast.error(error instanceof Error ? error.message : 'Erreur lors de la suppression des invités')
+    }
+  }
+
+  const handleManualConfirm = async (guestId: string, guestName: string) => {
+    try {
+      const response = await fetch(`/api/admin/events/${eventId}/guests/${guestId}/confirm`, {
+        method: 'POST',
+      })
+
+      const result = await response.json()
+
+      if (response.ok && result.success) {
+        toast.success(`${guestName} confirmé manuellement`)
+        fetchEvent()
+      } else {
+        throw new Error(result.error || 'Erreur lors de la confirmation')
+      }
+    } catch (error) {
+      logger.error(error, { action: 'manualConfirm', guestId })
+      toast.error(error instanceof Error ? error.message : 'Erreur lors de la confirmation')
     }
   }
 
@@ -997,6 +1017,17 @@ export default function GuestsPage() {
                           >
                             <Edit className="h-4 w-4" />
                           </Button>
+                          {guest.rsvp?.attending !== true && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => handleManualConfirm(guest.id, `${guest.firstName} ${guest.lastName || ''}`)}
+                              className="text-green-600 hover:text-green-800 hover:bg-green-50"
+                              title="Confirmer manuellement (confirmation orale)"
+                            >
+                              <CheckCircle className="h-4 w-4" />
+                            </Button>
+                          )}
                           <Button
                             size="sm"
                             variant="ghost"
