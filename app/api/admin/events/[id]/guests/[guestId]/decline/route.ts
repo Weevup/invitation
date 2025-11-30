@@ -76,7 +76,7 @@ export async function POST(
           html,
           eventId,
           guestId: guest.id,
-          type: 'INFO',
+          type: 'CUSTOM',
         })
 
         logger.info({ guestId, eventId }, 'Decline email sent for manual declination')
