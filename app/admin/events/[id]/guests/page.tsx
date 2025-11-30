@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import {
-  Users, Download, Search, Link as LinkIcon, UserPlus, Upload, Eye, Filter, CreditCard, CheckSquare, Square, X, RefreshCw, Edit, Trash2, Mail, CheckCircle
+  Users, Download, Search, Link as LinkIcon, UserPlus, Upload, Eye, Filter, CreditCard, CheckSquare, Square, X, RefreshCw, Edit, Trash2, Mail, CheckCircle, XCircle
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { AddGuestDialog } from '@/components/add-guest-dialog'
@@ -449,6 +449,41 @@ export default function GuestsPage() {
     } catch (error) {
       logger.error(error, { action: 'manualConfirm' })
       toast.error(error instanceof Error ? error.message : 'Erreur lors de la confirmation')
+    }
+  }
+
+  const handleManualDecline = async (guestId: string, guestName: string, guestEmail: string) => {
+    // Ask if user wants to send decline email
+    const sendEmail = window.confirm(
+      `Décliner ${guestName} manuellement.\n\nVoulez-vous envoyer un email de notification ?\n\n✅ OK = Décliner AVEC email\n❌ Annuler = Décliner SANS email`
+    )
+
+    try {
+      const response = await fetch(`/api/admin/events/${eventId}/guests/${guestId}/decline`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          sendDeclineEmail: sendEmail,
+        }),
+      })
+
+      const result = await response.json()
+
+      if (response.ok && result.success) {
+        if (sendEmail) {
+          toast.success(`${guestName} décliné manuellement (email envoyé)`)
+        } else {
+          toast.success(`${guestName} décliné manuellement`)
+        }
+        fetchEvent()
+      } else {
+        throw new Error(result.error || 'Erreur lors de la déclinaison')
+      }
+    } catch (error) {
+      logger.error(error, { action: 'manualDecline' })
+      toast.error(error instanceof Error ? error.message : 'Erreur lors de la déclinaison')
     }
   }
 
@@ -966,9 +1001,16 @@ export default function GuestsPage() {
                                 )}
                               </>
                             ) : guest.rsvp.attending === false ? (
-                              <Badge className="bg-red-100 text-red-800 border-red-200">
-                                ✗ Décline
-                              </Badge>
+                              <>
+                                <Badge className="bg-red-100 text-red-800 border-red-200">
+                                  ✗ Décline
+                                </Badge>
+                                {guest.tags.includes('Déclinaison manuelle') && (
+                                  <Badge variant="outline" className="text-xs bg-orange-50 text-orange-700 border-orange-300">
+                                    🗣️ Manuel
+                                  </Badge>
+                                )}
+                              </>
                             ) : (
                               <Badge className="bg-gray-100 text-gray-800 border-gray-200">
                                 Indécis
@@ -1048,6 +1090,17 @@ export default function GuestsPage() {
                               title="Confirmer manuellement (confirmation orale)"
                             >
                               <CheckCircle className="h-4 w-4" />
+                            </Button>
+                          )}
+                          {guest.rsvp?.attending !== false && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => handleManualDecline(guest.id, `${guest.firstName} ${guest.lastName || ''}`, guest.email)}
+                              className="text-red-600 hover:text-red-800 hover:bg-red-50"
+                              title="Décliner manuellement"
+                            >
+                              <XCircle className="h-4 w-4" />
                             </Button>
                           )}
                           <Button
