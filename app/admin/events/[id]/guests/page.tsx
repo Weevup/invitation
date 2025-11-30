@@ -490,6 +490,13 @@ export default function GuestsPage() {
 
   const isAllSelected = filteredGuests.length > 0 && selectedGuestIds.size === filteredGuests.length
 
+  // Calculate totals for confirmed guests
+  const confirmedGuests = event.guests.filter((g) => g.rsvp?.attending === true)
+  const totalConfirmedPersons = confirmedGuests.reduce((sum, g) => {
+    return sum + 1 + (g.adminPlusOnes || 0) + (g.rsvp?.plusOnes || 0)
+  }, 0)
+  const totalAdminPlusOnes = confirmedGuests.reduce((sum, g) => sum + (g.adminPlusOnes || 0), 0)
+
   return (
     <div className="space-y-6">
       {/* Guest Details Modal */}
@@ -552,6 +559,12 @@ export default function GuestsPage() {
           </h2>
           <p className="text-[#004645]/70">
             {event.guests.length} invité{event.guests.length !== 1 ? 's' : ''} au total
+            {confirmedGuests.length > 0 && (
+              <span className="ml-2 font-semibold text-green-700">
+                • {confirmedGuests.length} confirmé{confirmedGuests.length !== 1 ? 's' : ''} ({totalConfirmedPersons} personne{totalConfirmedPersons !== 1 ? 's' : ''}
+                {totalAdminPlusOnes > 0 && ` dont ${totalAdminPlusOnes} +1 admin`})
+              </span>
+            )}
             <span className="text-xs ml-2 text-[#009197]">• Actualisation auto toutes les 30s</span>
           </p>
         </div>

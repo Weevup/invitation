@@ -109,6 +109,18 @@ export async function GET(
                 plusOnes: true,
               },
             }),
+            // Total admin +1s
+            prisma.guest.aggregate({
+              where: {
+                eventId: id,
+                rsvp: {
+                  attending: true,
+                },
+              },
+              _sum: {
+                adminPlusOnes: true,
+              },
+            }),
           ])
         ),
       ])
@@ -120,7 +132,7 @@ export async function GET(
         )
       }
 
-      const [respondedCount, attendingCount, decliningCount, checkedInCount, plusOnesSum] = stats
+      const [respondedCount, attendingCount, decliningCount, checkedInCount, plusOnesSum, adminPlusOnesSum] = stats
 
       // Retourner les données optimisées
       return NextResponse.json({
@@ -133,7 +145,8 @@ export async function GET(
           decliningGuests: decliningCount,
           checkedInGuests: checkedInCount,
           totalPlusOnes: plusOnesSum._sum.plusOnes || 0,
-          totalExpected: attendingCount + (plusOnesSum._sum.plusOnes || 0),
+          totalAdminPlusOnes: adminPlusOnesSum._sum.adminPlusOnes || 0,
+          totalExpected: attendingCount + (plusOnesSum._sum.plusOnes || 0) + (adminPlusOnesSum._sum.adminPlusOnes || 0),
         },
       })
     }
