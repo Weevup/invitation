@@ -36,6 +36,7 @@ export function AddGuestDialog({ eventId, onGuestAdded }: AddGuestDialogProps) {
     email: "",
     company: "",
     tags: "",
+    adminPlusOnes: 0,
     // Professional information
     jobTitle: "",
     department: "",
@@ -76,6 +77,7 @@ export function AddGuestDialog({ eventId, onGuestAdded }: AddGuestDialogProps) {
           email: "",
           company: "",
           tags: "",
+          adminPlusOnes: 0,
           jobTitle: "",
           department: "",
           companySize: "",
@@ -187,6 +189,27 @@ export function AddGuestDialog({ eventId, onGuestAdded }: AddGuestDialogProps) {
                   onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
                   placeholder="VIP, Presse, Sponsor"
                 />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="adminPlusOnes">
+                  Nombre d&apos;accompagnants
+                  <span className="text-xs text-muted-foreground ml-2">
+                    Total de personnes avec cette invitation (0 = uniquement l&apos;invité principal)
+                  </span>
+                </Label>
+                <Input
+                  id="adminPlusOnes"
+                  type="number"
+                  min="0"
+                  max="10"
+                  value={formData.adminPlusOnes}
+                  onChange={(e) => setFormData({ ...formData, adminPlusOnes: parseInt(e.target.value) || 0 })}
+                  placeholder="0"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Exemple : Pour vos parents qui partagent une invitation mais seront 2 personnes, indiquez &quot;1&quot;
+                </p>
               </div>
             </TabsContent>
 

@@ -294,6 +294,7 @@ model Guest {
   dietaryReqs   String?     @db.Text  // Restrictions alimentaires (JSON: {type, allergens, details})
   accessibility String?     @db.Text  // Besoins d'accessibilité
   adminNotes    String?     @db.Text  // Notes privées admin
+  adminPlusOnes Int         @default(0) // Accompagnants définis par l'admin (ex: 1 invitation pour 2 personnes)
 
   // Enhanced fields
   emergencyContact  Json?       // Contact urgence: {name, phone, relationship}

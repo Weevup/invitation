@@ -48,6 +48,7 @@ interface GuestDetailsModalProps {
     tags: string[]
     status: string
     token: string
+    adminPlusOnes?: number
     rsvp?: {
       attending?: boolean
       plusOnes: number
@@ -139,6 +140,17 @@ export function GuestDetailsModal({ guest, open, onOpenChange }: GuestDetailsMod
                   <div>
                     <p className="text-sm text-gray-500">Entreprise</p>
                     <p className="font-medium">{guest.company}</p>
+                  </div>
+                </div>
+              )}
+              {(guest.adminPlusOnes || 0) > 0 && (
+                <div className="flex items-start gap-3">
+                  <Users className="h-5 w-5 text-purple-600 mt-0.5" />
+                  <div>
+                    <p className="text-sm text-gray-500">Personnes attendues avec cette invitation</p>
+                    <p className="font-medium text-purple-700">
+                      {guest.adminPlusOnes! + 1} {guest.adminPlusOnes! + 1 > 1 ? 'personnes' : 'personne'} ({guest.firstName} + {guest.adminPlusOnes} accompagnant{guest.adminPlusOnes! > 1 ? 's' : ''})
+                    </p>
                   </div>
                 </div>
               )}

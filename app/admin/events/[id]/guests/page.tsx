@@ -38,6 +38,7 @@ interface Guest {
   tags: string[]
   status: string
   token: string
+  adminPlusOnes?: number
   // Professional information
   jobTitle?: string
   department?: string
@@ -946,8 +947,15 @@ export default function GuestsPage() {
                         </button>
                       </td>
                       <td className="py-3">
-                        <div className="font-medium text-[#004645]">
-                          {guest.firstName} {guest.lastName}
+                        <div className="flex items-center gap-2">
+                          <div className="font-medium text-[#004645]">
+                            {guest.firstName} {guest.lastName}
+                          </div>
+                          {(guest.adminPlusOnes || 0) > 0 && (
+                            <Badge variant="outline" className="text-xs bg-purple-50 text-purple-700 border-purple-300">
+                              +{guest.adminPlusOnes}
+                            </Badge>
+                          )}
                         </div>
                       </td>
                       <td className="py-3 text-[#004645]/70">{guest.email}</td>
