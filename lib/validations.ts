@@ -50,6 +50,7 @@ export const createGuestSchema = z.object({
   email: z.string().email('Email invalide').max(255, 'Email trop long'),
   company: z.string().max(200, 'Nom de société trop long').optional(),
   tags: z.array(z.string()).optional(),
+  adminPlusOnes: z.number().int().min(0).max(10).optional(),
 
   // Professional information
   jobTitle: z.string().max(100, 'Fonction trop longue').optional(),

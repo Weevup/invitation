@@ -112,6 +112,7 @@ export async function PATCH(
       email,
       company,
       tags,
+      adminPlusOnes,
       // Professional information
       jobTitle,
       department,
@@ -177,6 +178,7 @@ export async function PATCH(
         email,
         company: company || null,
         tags: combinedTags,
+        adminPlusOnes: adminPlusOnes ?? 0,
         // Professional information
         jobTitle: jobTitle || null,
         department: department || null,
