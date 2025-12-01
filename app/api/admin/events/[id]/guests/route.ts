@@ -162,6 +162,7 @@ export async function POST(
       email,
       company,
       tags,
+      adminPlusOnes,
       // Professional information
       jobTitle,
       department,
@@ -231,6 +232,7 @@ export async function POST(
         email,
         company: company || null,
         tags: combinedTags,
+        adminPlusOnes: adminPlusOnes ?? 0,
         // Professional information
         jobTitle: jobTitle || null,
         department: department || null,
