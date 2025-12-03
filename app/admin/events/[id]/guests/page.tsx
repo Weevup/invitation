@@ -167,12 +167,16 @@ export default function GuestsPage() {
   const handleExportCSV = () => {
     if (!event) return
 
+    const baseUrl = typeof window !== 'undefined' ? window.location.origin : process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
+
     const csvData = event.guests.map((guest) => ({
       Prénom: guest.firstName,
       Nom: guest.lastName || '',
       Email: guest.email,
+      'Lien RSVP': `${baseUrl}/guest/${guest.token}`,
       Entreprise: guest.company || '',
       Tags: guest.tags.join(', '),
+      'Accompagnants Admin': guest.adminPlusOnes || 0,
       // Informations professionnelles
       'Fonction/Poste': guest.jobTitle || '',
       Département: guest.department || '',
@@ -199,7 +203,7 @@ export default function GuestsPage() {
             minute: '2-digit'
           })
         : '',
-      Accompagnants: guest.rsvp?.plusOnes || 0,
+      'Accompagnants RSVP': guest.rsvp?.plusOnes || 0,
       'Choix Menu': guest.rsvp?.mealChoice || '',
     }))
 
