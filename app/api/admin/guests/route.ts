@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
 
     // Get all events owned by the admin
     const events = await prisma.event.findMany({
-      where: { userId: session.user.id },
+      where: { adminId: session.user.id },
       select: { id: true },
     })
 
