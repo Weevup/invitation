@@ -161,15 +161,22 @@ export async function POST(
           emailSubject = renderTemplate(convocationTemplate.subject, variables)
         } else {
           // Use default template
-          emailSubject = `Convocation : ${event.name}`
+          emailSubject = `🎫 Votre convocation : ${event.name}`
           emailHtml = generateDefaultConvocationEmail({
             guestName: guest.firstName,
             eventName: event.name,
             eventDate: formatDateTime(event.startsAt),
             eventTime: new Date(event.startsAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+            eventEndTime: event.endsAt ? new Date(event.endsAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : undefined,
             eventLocation: eventVenue,
             eventAddress: event.address || '',
+            eventCity: event.city || undefined,
+            eventDescription: event.description || undefined,
             qrCodeDataUrl,
+            plusOnes: guest.rsvp?.plusOnes || 0,
+            mealChoice: guest.rsvp?.mealChoice || undefined,
+            allergies: guest.rsvp?.allergies || undefined,
+            qrCodeId: guest.rsvp.qrCodeId,
           })
         }
 
@@ -250,186 +257,306 @@ function generateDefaultConvocationEmail(params: {
   eventName: string
   eventDate: string
   eventTime: string
+  eventEndTime?: string
   eventLocation: string
   eventAddress: string
+  eventCity?: string
+  eventDescription?: string
   qrCodeDataUrl: string
+  plusOnes?: number
+  mealChoice?: string
+  allergies?: string
+  qrCodeId: string
 }): string {
+  // Build Google Maps link
+  const mapQuery = encodeURIComponent(`${params.eventAddress} ${params.eventCity || ''}`.trim())
+  const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${mapQuery}`
+
+  // Build calendar link (Google Calendar)
+  const calendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(params.eventName)}&location=${encodeURIComponent(`${params.eventLocation}, ${params.eventAddress}`)}&details=${encodeURIComponent(params.eventDescription || '')}`
+
+  // Plus ones section
+  const plusOnesHtml = params.plusOnes && params.plusOnes > 0 ? `
+        <div class="info-card">
+          <div class="info-icon">👥</div>
+          <div class="info-content">
+            <div class="info-label">Accompagnants</div>
+            <div class="info-value">${params.plusOnes} personne${params.plusOnes > 1 ? 's' : ''}</div>
+          </div>
+        </div>` : ''
+
+  // Meal section
+  const mealHtml = params.mealChoice ? `
+        <div class="info-card">
+          <div class="info-icon">🍽️</div>
+          <div class="info-content">
+            <div class="info-label">Menu sélectionné</div>
+            <div class="info-value">${params.mealChoice}</div>
+            ${params.allergies ? `<div class="info-note">Allergies/régime : ${params.allergies}</div>` : ''}
+          </div>
+        </div>` : ''
+
   return `
 <!DOCTYPE html>
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${params.eventName} - Convocation</title>
-  <style>
-    body {
-      margin: 0;
-      padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-      background-color: #f5f5f5;
-    }
-    .container {
-      max-width: 600px;
-      margin: 0 auto;
-      background-color: white;
-    }
-    .header {
-      background: linear-gradient(135deg, #004645, #009197);
-      color: white;
-      padding: 40px 20px;
-      text-align: center;
-    }
-    .badge {
-      background-color: rgba(255,255,255,0.2);
-      display: inline-block;
-      padding: 10px 20px;
-      border-radius: 20px;
-      font-size: 14px;
-      font-weight: bold;
-      margin-bottom: 15px;
-    }
-    .event-name {
-      font-size: 32px;
-      font-weight: bold;
-      margin: 15px 0;
-    }
-    .content {
-      padding: 40px 30px;
-      text-align: center;
-    }
-    .greeting {
-      color: #333;
-      font-size: 18px;
-      margin: 20px 0;
-    }
-    .event-info {
-      background: linear-gradient(135deg, #f9f9f9, #f0f0f0);
-      border-radius: 15px;
-      padding: 30px;
-      margin: 30px 0;
-    }
-    .info-item {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      margin: 15px 0;
-      font-size: 16px;
-      color: #333;
-    }
-    .qr-section {
-      margin: 40px 0;
-      padding: 30px;
-      background-color: #f7fafc;
-      border-radius: 15px;
-    }
-    .qr-title {
-      color: #004645;
-      font-size: 20px;
-      font-weight: bold;
-      margin-bottom: 20px;
-    }
-    .qr-code {
-      background-color: white;
-      padding: 20px;
-      border-radius: 10px;
-      display: inline-block;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    }
-    .qr-code img {
-      width: 200px;
-      height: 200px;
-    }
-    .qr-note {
-      color: #666;
-      font-size: 14px;
-      margin-top: 15px;
-    }
-    .tips {
-      background-color: #e6f7f7;
-      border-left: 4px solid #009197;
-      padding: 20px;
-      margin: 30px 0;
-      text-align: left;
-      border-radius: 0 10px 10px 0;
-    }
-    .tips-title {
-      font-weight: bold;
-      color: #004645;
-      margin-bottom: 10px;
-    }
-    .tips-list {
-      color: #004645;
-      font-size: 14px;
-      line-height: 1.8;
-    }
-    .footer {
-      background-color: #f9f9f9;
-      padding: 30px 20px;
-      text-align: center;
-      color: #666;
-      font-size: 12px;
-    }
+  <title>${params.eventName} - Votre Convocation</title>
+  <!--[if mso]>
+  <style type="text/css">
+    body, table, td {font-family: Arial, Helvetica, sans-serif !important;}
   </style>
+  <![endif]-->
 </head>
-<body>
-  <div class="container">
-    <div class="header">
-      <div class="badge">Convocation officielle</div>
-      <h1 class="event-name">${params.eventName}</h1>
-      <p>Nous avons le plaisir de vous accueillir !</p>
-    </div>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f0f4f8; -webkit-font-smoothing: antialiased;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #f0f4f8;">
+    <tr>
+      <td align="center" style="padding: 40px 20px;">
+        <table role="presentation" width="600" cellspacing="0" cellpadding="0" style="max-width: 600px; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 24px rgba(0, 70, 69, 0.12);">
 
-    <div class="content">
-      <p class="greeting">
-        Bonjour ${params.guestName},<br><br>
-        Votre participation a bien ete enregistree. Voici votre convocation officielle avec votre QR code d'acces.
-      </p>
+          <!-- Header avec gradient -->
+          <tr>
+            <td style="background: linear-gradient(135deg, #004645 0%, #009197 50%, #00b4a0 100%); padding: 50px 40px; text-align: center;">
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
+                <tr>
+                  <td align="center">
+                    <span style="display: inline-block; background-color: rgba(255,255,255,0.2); color: white; padding: 8px 20px; border-radius: 50px; font-size: 12px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 20px;">
+                      ✓ Convocation Officielle
+                    </span>
+                  </td>
+                </tr>
+                <tr>
+                  <td align="center" style="padding-top: 20px;">
+                    <h1 style="margin: 0; color: #ffffff; font-size: 32px; font-weight: 700; line-height: 1.2;">
+                      ${params.eventName}
+                    </h1>
+                  </td>
+                </tr>
+                <tr>
+                  <td align="center" style="padding-top: 15px;">
+                    <p style="margin: 0; color: rgba(255,255,255,0.9); font-size: 16px;">
+                      Votre présence est confirmée !
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
 
-      <div class="event-info">
-        <div class="info-item">
-          <span style="font-size: 24px;">&#128197;</span>
-          <strong>${params.eventDate}</strong>
-        </div>
-        <div class="info-item">
-          <span style="font-size: 24px;">&#128336;</span>
-          <strong>${params.eventTime}</strong>
-        </div>
-        <div class="info-item">
-          <span style="font-size: 24px;">&#128205;</span>
-          <div>
-            <strong>${params.eventLocation}</strong><br>
-            <span style="font-size: 14px; color: #666;">${params.eventAddress}</span>
-          </div>
-        </div>
-      </div>
+          <!-- Message de bienvenue -->
+          <tr>
+            <td style="padding: 40px 40px 20px;">
+              <p style="margin: 0; color: #1a1a1a; font-size: 18px; line-height: 1.6;">
+                Bonjour <strong>${params.guestName}</strong>,
+              </p>
+              <p style="margin: 20px 0 0; color: #4a5568; font-size: 16px; line-height: 1.7;">
+                Nous avons le plaisir de vous confirmer votre inscription. Veuillez trouver ci-dessous votre convocation avec toutes les informations pratiques et votre <strong>QR code d'accès personnel</strong>.
+              </p>
+            </td>
+          </tr>
 
-      <div class="qr-section">
-        <div class="qr-title">&#128274; Votre QR Code d'acces</div>
-        <div class="qr-code">
-          <img src="${params.qrCodeDataUrl}" alt="QR Code" />
-        </div>
-        <p class="qr-note">
-          Presentez ce QR code a l'entree pour un enregistrement rapide.<br>
-          Conservez cet email sur votre telephone ou imprimez-le.
-        </p>
-      </div>
+          <!-- Informations événement -->
+          <tr>
+            <td style="padding: 20px 40px;">
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border-radius: 12px; border: 1px solid #e2e8f0;">
+                <tr>
+                  <td style="padding: 30px;">
+                    <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
+                      <!-- Date -->
+                      <tr>
+                        <td style="padding-bottom: 20px;">
+                          <table role="presentation" cellspacing="0" cellpadding="0">
+                            <tr>
+                              <td style="width: 50px; vertical-align: top;">
+                                <div style="width: 44px; height: 44px; background: linear-gradient(135deg, #004645, #009197); border-radius: 10px; text-align: center; line-height: 44px; font-size: 20px;">
+                                  📅
+                                </div>
+                              </td>
+                              <td style="vertical-align: middle; padding-left: 15px;">
+                                <div style="color: #64748b; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Date</div>
+                                <div style="color: #1e293b; font-size: 16px; font-weight: 600;">${params.eventDate}</div>
+                              </td>
+                            </tr>
+                          </table>
+                        </td>
+                      </tr>
+                      <!-- Heure -->
+                      <tr>
+                        <td style="padding-bottom: 20px;">
+                          <table role="presentation" cellspacing="0" cellpadding="0">
+                            <tr>
+                              <td style="width: 50px; vertical-align: top;">
+                                <div style="width: 44px; height: 44px; background: linear-gradient(135deg, #004645, #009197); border-radius: 10px; text-align: center; line-height: 44px; font-size: 20px;">
+                                  🕐
+                                </div>
+                              </td>
+                              <td style="vertical-align: middle; padding-left: 15px;">
+                                <div style="color: #64748b; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Horaire</div>
+                                <div style="color: #1e293b; font-size: 16px; font-weight: 600;">${params.eventTime}${params.eventEndTime ? ` - ${params.eventEndTime}` : ''}</div>
+                              </td>
+                            </tr>
+                          </table>
+                        </td>
+                      </tr>
+                      <!-- Lieu -->
+                      <tr>
+                        <td>
+                          <table role="presentation" cellspacing="0" cellpadding="0">
+                            <tr>
+                              <td style="width: 50px; vertical-align: top;">
+                                <div style="width: 44px; height: 44px; background: linear-gradient(135deg, #004645, #009197); border-radius: 10px; text-align: center; line-height: 44px; font-size: 20px;">
+                                  📍
+                                </div>
+                              </td>
+                              <td style="vertical-align: middle; padding-left: 15px;">
+                                <div style="color: #64748b; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Lieu</div>
+                                <div style="color: #1e293b; font-size: 16px; font-weight: 600;">${params.eventLocation}</div>
+                                <div style="color: #64748b; font-size: 14px; margin-top: 4px;">${params.eventAddress}</div>
+                                <a href="${mapsUrl}" target="_blank" style="display: inline-block; margin-top: 10px; color: #009197; font-size: 13px; text-decoration: none; font-weight: 500;">
+                                  📍 Voir sur Google Maps →
+                                </a>
+                              </td>
+                            </tr>
+                          </table>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
 
-      <div class="tips">
-        <div class="tips-title">&#128161; Informations pratiques</div>
-        <div class="tips-list">
-          &#8226; Prevoyez d'arriver 15 minutes en avance<br>
-          &#8226; Conservez cet email sur votre telephone<br>
-          &#8226; En cas d'empechement de derniere minute, prevenez-nous
-        </div>
-      </div>
-    </div>
+          <!-- QR Code Section -->
+          <tr>
+            <td style="padding: 20px 40px;">
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background: linear-gradient(135deg, #004645 0%, #006666 100%); border-radius: 16px; overflow: hidden;">
+                <tr>
+                  <td style="padding: 35px; text-align: center;">
+                    <h2 style="margin: 0 0 10px; color: #ffffff; font-size: 20px; font-weight: 600;">
+                      🎫 Votre Pass d'Entrée
+                    </h2>
+                    <p style="margin: 0 0 25px; color: rgba(255,255,255,0.85); font-size: 14px;">
+                      Présentez ce QR code à l'accueil pour un enregistrement rapide
+                    </p>
+                    <table role="presentation" cellspacing="0" cellpadding="0" style="margin: 0 auto;">
+                      <tr>
+                        <td style="background-color: #ffffff; padding: 15px; border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.2);">
+                          <img src="${params.qrCodeDataUrl}" alt="QR Code d'accès" width="180" height="180" style="display: block; border-radius: 8px;" />
+                        </td>
+                      </tr>
+                    </table>
+                    <p style="margin: 20px 0 0; color: rgba(255,255,255,0.7); font-size: 12px;">
+                      Code unique : ${params.qrCodeId.substring(0, 8).toUpperCase()}
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
 
-    <div class="footer">
-      <p>A tres bientot !</p>
-      <p>&copy; ${new Date().getFullYear()} - Tous droits reserves</p>
-    </div>
-  </div>
+          ${plusOnesHtml || mealHtml ? `
+          <!-- Détails personnels -->
+          <tr>
+            <td style="padding: 20px 40px;">
+              <h3 style="margin: 0 0 15px; color: #1e293b; font-size: 16px; font-weight: 600;">
+                📋 Récapitulatif de votre inscription
+              </h3>
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0;">
+                <tr>
+                  <td style="padding: 20px;">
+                    ${params.plusOnes && params.plusOnes > 0 ? `
+                    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin-bottom: ${params.mealChoice ? '15px' : '0'};">
+                      <tr>
+                        <td style="width: 40px; vertical-align: top; font-size: 20px;">👥</td>
+                        <td style="vertical-align: top;">
+                          <div style="color: #64748b; font-size: 12px; text-transform: uppercase; margin-bottom: 4px;">Accompagnants</div>
+                          <div style="color: #1e293b; font-size: 15px; font-weight: 500;">${params.plusOnes} personne${params.plusOnes > 1 ? 's' : ''}</div>
+                        </td>
+                      </tr>
+                    </table>
+                    ` : ''}
+                    ${params.mealChoice ? `
+                    <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
+                      <tr>
+                        <td style="width: 40px; vertical-align: top; font-size: 20px;">🍽️</td>
+                        <td style="vertical-align: top;">
+                          <div style="color: #64748b; font-size: 12px; text-transform: uppercase; margin-bottom: 4px;">Menu sélectionné</div>
+                          <div style="color: #1e293b; font-size: 15px; font-weight: 500;">${params.mealChoice}</div>
+                          ${params.allergies ? `<div style="color: #64748b; font-size: 13px; margin-top: 4px;">Allergies/régime : ${params.allergies}</div>` : ''}
+                        </td>
+                      </tr>
+                    </table>
+                    ` : ''}
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          ` : ''}
+
+          <!-- Conseils pratiques -->
+          <tr>
+            <td style="padding: 20px 40px;">
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #ecfdf5; border-radius: 12px; border-left: 4px solid #10b981;">
+                <tr>
+                  <td style="padding: 20px 25px;">
+                    <h3 style="margin: 0 0 12px; color: #065f46; font-size: 15px; font-weight: 600;">
+                      💡 Conseils pratiques
+                    </h3>
+                    <ul style="margin: 0; padding: 0 0 0 20px; color: #047857; font-size: 14px; line-height: 1.8;">
+                      <li>Arrivez <strong>15 minutes avant</strong> le début de l'événement</li>
+                      <li>Gardez cet email accessible sur votre téléphone</li>
+                      <li>Une pièce d'identité peut vous être demandée</li>
+                      <li>En cas d'empêchement, prévenez-nous dès que possible</li>
+                    </ul>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Bouton Calendrier -->
+          <tr>
+            <td style="padding: 20px 40px 30px; text-align: center;">
+              <a href="${calendarUrl}" target="_blank" style="display: inline-block; background: linear-gradient(135deg, #009197, #00b4a0); color: #ffffff; text-decoration: none; padding: 14px 30px; border-radius: 8px; font-size: 14px; font-weight: 600; box-shadow: 0 4px 14px rgba(0, 145, 151, 0.4);">
+                📅 Ajouter à mon calendrier
+              </a>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="background-color: #f8fafc; padding: 30px 40px; border-top: 1px solid #e2e8f0;">
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
+                <tr>
+                  <td align="center">
+                    <p style="margin: 0 0 10px; color: #1e293b; font-size: 16px; font-weight: 600;">
+                      À très bientôt ! 🎉
+                    </p>
+                    <p style="margin: 0; color: #64748b; font-size: 13px; line-height: 1.6;">
+                      Une question ? Répondez directement à cet email.
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Copyright -->
+          <tr>
+            <td style="background-color: #1e293b; padding: 20px 40px; text-align: center;">
+              <p style="margin: 0; color: #94a3b8; font-size: 12px;">
+                © ${new Date().getFullYear()} - Généré par Weevup
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
 </body>
 </html>
   `.trim()
