@@ -175,6 +175,7 @@ export default function EventOverviewPage() {
               eventId={eventId}
               totalGuests={totalGuests}
               pendingGuests={totalGuests - respondedGuests}
+              confirmedGuests={attendingGuests}
             />
             <Link href={`/admin/events/${eventId}/communications?type=reminder`}>
               <Button size="sm" variant="outline" className="border-orange-500 text-orange-600 hover:bg-orange-500 hover:text-white">
@@ -425,6 +426,7 @@ export default function EventOverviewPage() {
                     eventId={eventId}
                     totalGuests={totalGuests}
                     pendingGuests={totalGuests - respondedGuests}
+                    confirmedGuests={attendingGuests}
                   />
                 </div>
               </div>
