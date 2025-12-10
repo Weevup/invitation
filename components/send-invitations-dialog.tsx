@@ -18,7 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Send, Loader2, CheckCircle, AlertCircle, Mail } from "lucide-react";
+import { Send, Loader2, CheckCircle, AlertCircle, Mail, QrCode } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
@@ -30,7 +30,9 @@ interface SendInvitationsDialogProps {
   eventId: string;
   totalGuests: number;
   pendingGuests: number;
+  confirmedGuests?: number;
   selectedGuestIds?: string[];
+  selectedGuestsConfirmedCount?: number;
   onComplete?: () => void;
 }
 
@@ -46,12 +48,14 @@ export function SendInvitationsDialog({
   eventId,
   totalGuests,
   pendingGuests,
+  confirmedGuests = 0,
   selectedGuestIds,
+  selectedGuestsConfirmedCount = 0,
   onComplete,
 }: SendInvitationsDialogProps) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [emailType, setEmailType] = useState<"invitation" | "save-the-date" | "reminder">("invitation");
+  const [emailType, setEmailType] = useState<"invitation" | "save-the-date" | "reminder" | "convocation">("invitation");
   const [templateId, setTemplateId] = useState<string>("default");
   const [templates, setTemplates] = useState<EmailTemplate[]>([]);
   const [loadingTemplates, setLoadingTemplates] = useState(false);
@@ -91,40 +95,81 @@ export function SendInvitationsDialog({
     setResults(null);
 
     try {
-      const response = await fetch(
-        `/api/admin/events/${eventId}/send-emails`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            type: emailType,
-            templateId: templateId !== "default" ? templateId : undefined,
-            guestIds: selectedGuestIds && selectedGuestIds.length > 0 ? selectedGuestIds : undefined,
-          }),
-        }
-      );
-
-      const data = await response.json();
-
-      if (response.ok) {
-        setResults(data.results);
-        if (data.results.success > 0) {
-          toast.success(`${data.results.success} email(s) envoyé(s) avec succès`);
-          // Call onComplete callback if provided
-          if (onComplete) {
-            onComplete();
+      // Use different endpoint for convocations with QR code
+      if (emailType === "convocation") {
+        const response = await fetch(
+          `/api/admin/events/${eventId}/guests/send-final-invites`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              guestIds: selectedGuestIds && selectedGuestIds.length > 0 ? selectedGuestIds : undefined,
+            }),
           }
+        );
+
+        const data = await response.json();
+
+        if (response.ok) {
+          setResults({
+            total: data.results.total,
+            success: data.results.sent,
+            failed: data.results.failed,
+            errors: data.results.errors || [],
+          });
+          if (data.results.sent > 0) {
+            toast.success(`${data.results.sent} convocation(s) avec QR code envoyée(s)`);
+            if (onComplete) {
+              onComplete();
+            }
+          }
+        } else {
+          setResults({
+            total: 0,
+            success: 0,
+            failed: 1,
+            errors: [data.error || "Erreur inconnue"],
+          });
+          toast.error(data.error || "Erreur lors de l'envoi");
         }
       } else {
-        setResults({
-          total: 0,
-          success: 0,
-          failed: 1,
-          errors: [data.error || "Erreur inconnue"],
-        });
-        toast.error(data.error || "Erreur lors de l'envoi");
+        const response = await fetch(
+          `/api/admin/events/${eventId}/send-emails`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              type: emailType,
+              templateId: templateId !== "default" ? templateId : undefined,
+              guestIds: selectedGuestIds && selectedGuestIds.length > 0 ? selectedGuestIds : undefined,
+            }),
+          }
+        );
+
+        const data = await response.json();
+
+        if (response.ok) {
+          setResults(data.results);
+          if (data.results.success > 0) {
+            toast.success(`${data.results.success} email(s) envoyé(s) avec succès`);
+            // Call onComplete callback if provided
+            if (onComplete) {
+              onComplete();
+            }
+          }
+        } else {
+          setResults({
+            total: 0,
+            success: 0,
+            failed: 1,
+            errors: [data.error || "Erreur inconnue"],
+          });
+          toast.error(data.error || "Erreur lors de l'envoi");
+        }
       }
     } catch (error) {
       setResults({
@@ -149,7 +194,14 @@ export function SendInvitationsDialog({
   const getTargetCount = () => {
     // If specific guests are selected, use that count
     if (selectedGuestIds && selectedGuestIds.length > 0) {
+      // For convocation, only count confirmed guests among selection
+      if (emailType === "convocation") {
+        return selectedGuestsConfirmedCount;
+      }
       return selectedGuestIds.length;
+    }
+    if (emailType === "convocation") {
+      return confirmedGuests;
     }
     return emailType === "reminder" ? pendingGuests : totalGuests;
   };
@@ -224,54 +276,73 @@ export function SendInvitationsDialog({
                     </p>
                   </div>
                 </div>
+
+                <div className="flex items-start space-x-3 p-3 border rounded-lg hover:bg-accent cursor-pointer border-purple-200 bg-purple-50/50">
+                  <RadioGroupItem value="convocation" id="convocation" className="mt-1" />
+                  <div className="flex-1">
+                    <Label htmlFor="convocation" className="cursor-pointer font-medium text-sm flex items-center gap-2">
+                      <QrCode className="h-4 w-4 text-purple-600" />
+                      Convocation avec QR Code
+                    </Label>
+                    <p className="text-xs text-gray-600 mt-0.5">
+                      Billet d&apos;entrée pour les invités confirmés ({confirmedGuests} personnes)
+                    </p>
+                  </div>
+                </div>
               </RadioGroup>
             </div>
 
-            {/* Sélecteur de template */}
-            <div className="space-y-2">
-              <Label htmlFor="template" className="text-sm font-medium">
-                Template email (optionnel)
-              </Label>
-              <Select value={templateId} onValueChange={setTemplateId}>
-                <SelectTrigger id="template">
-                  <SelectValue placeholder={
-                    loadingTemplates
-                      ? "Chargement..."
-                      : "Template par défaut (hardcodé)"
-                  } />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="default">
-                    <div className="flex items-center gap-2">
-                      <Mail className="h-4 w-4" />
-                      <span>Template par défaut (hardcodé)</span>
-                    </div>
-                  </SelectItem>
-                  {getFilteredTemplates().map((template) => (
-                    <SelectItem key={template.id} value={template.id}>
-                      <div className="flex flex-col">
-                        <span className="font-medium">{template.name}</span>
-                        {template.description && (
-                          <span className="text-xs text-gray-500">{template.description}</span>
-                        )}
+            {/* Sélecteur de template - masqué pour les convocations */}
+            {emailType !== "convocation" && (
+              <div className="space-y-2">
+                <Label htmlFor="template" className="text-sm font-medium">
+                  Template email (optionnel)
+                </Label>
+                <Select value={templateId} onValueChange={setTemplateId}>
+                  <SelectTrigger id="template">
+                    <SelectValue placeholder={
+                      loadingTemplates
+                        ? "Chargement..."
+                        : "Template par défaut (hardcodé)"
+                    } />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="default">
+                      <div className="flex items-center gap-2">
+                        <Mail className="h-4 w-4" />
+                        <span>Template par défaut (hardcodé)</span>
                       </div>
                     </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <p className="text-xs text-gray-500">
-                {templateId !== "default"
-                  ? "Un template personnalisé sera utilisé"
-                  : "Le template codé en dur dans l'application sera utilisé"}
-              </p>
-            </div>
+                    {getFilteredTemplates().map((template) => (
+                      <SelectItem key={template.id} value={template.id}>
+                        <div className="flex flex-col">
+                          <span className="font-medium">{template.name}</span>
+                          {template.description && (
+                            <span className="text-xs text-gray-500">{template.description}</span>
+                          )}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-gray-500">
+                  {templateId !== "default"
+                    ? "Un template personnalisé sera utilisé"
+                    : "Le template codé en dur dans l'application sera utilisé"}
+                </p>
+              </div>
+            )}
 
             {/* Info box */}
-            <div className="bg-blue-50 border border-blue-200 rounded-md p-3 text-sm">
-              <p className="text-blue-800">
-                <strong>📧 {getTargetCount()} email(s)</strong> seront envoyés.
+            <div className={`rounded-md p-3 text-sm ${emailType === "convocation" ? "bg-purple-50 border border-purple-200" : "bg-blue-50 border border-blue-200"}`}>
+              <p className={emailType === "convocation" ? "text-purple-800" : "text-blue-800"}>
+                <strong>{emailType === "convocation" ? "🎟️" : "📧"} {getTargetCount()} email(s)</strong> seront envoyés.
               </p>
-              {selectedGuestIds && selectedGuestIds.length > 0 ? (
+              {emailType === "convocation" ? (
+                <p className="text-purple-700 mt-1 text-xs">
+                  Chaque invité confirmé recevra un QR code unique pour l&apos;entrée.
+                </p>
+              ) : selectedGuestIds && selectedGuestIds.length > 0 ? (
                 <p className="text-blue-700 mt-1 text-xs">
                   ✓ Envoi ciblé uniquement aux invités sélectionnés
                 </p>

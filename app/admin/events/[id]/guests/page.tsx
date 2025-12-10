@@ -632,6 +632,7 @@ export default function GuestsPage() {
             eventId={eventId}
             totalGuests={event.guests.length}
             pendingGuests={event.guests.filter((g) => !g.rsvp || g.rsvp.attending === null).length}
+            confirmedGuests={event.guests.filter((g) => g.rsvp?.attending === true).length}
           />
         </div>
       </div>
@@ -1186,7 +1187,9 @@ export default function GuestsPage() {
                   eventId={eventId}
                   totalGuests={event.guests.length}
                   pendingGuests={event.guests.filter((g) => !g.rsvp || g.rsvp.attending === null).length}
+                  confirmedGuests={event.guests.filter((g) => g.rsvp?.attending === true).length}
                   selectedGuestIds={Array.from(selectedGuestIds)}
+                  selectedGuestsConfirmedCount={event.guests.filter((g) => selectedGuestIds.has(g.id) && g.rsvp?.attending === true).length}
                   onComplete={clearSelection}
                 />
                 <Button
