@@ -16,8 +16,9 @@ import {
 import {
   Users, Search, Upload, Download, Plus, Edit, Trash2,
   CheckCircle, XCircle, Clock, Filter, Mail, Copy, ExternalLink,
-  Send, UserPlus, TrendingUp
+  Send, UserPlus, TrendingUp, QrCode
 } from 'lucide-react'
+import { SendConvocationsDialog } from '@/components/send-convocations-dialog'
 import Link from 'next/link'
 import { createClientLogger } from '@/lib/client-logger'
 
@@ -31,11 +32,13 @@ interface Guest {
   email: string
   company: string | null
   token: string
+  lastEmailAt?: string | null
   rsvp: {
     attending: boolean
     createdAt: string
     updatedAt?: string
     message?: string
+    respondedAt?: string
   } | null
   event: {
     id: string
@@ -54,6 +57,7 @@ export default function RSVPManagementPage() {
   const [events, setEvents] = useState<Array<{ id: string; name: string }>>([])
   const [copiedToken, setCopiedToken] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState('overview')
+  const [convocationDialogOpen, setConvocationDialogOpen] = useState(false)
 
   const fetchData = useCallback(async () => {
     try {
@@ -311,6 +315,10 @@ export default function RSVPManagementPage() {
           <TabsTrigger value="responses" className="data-[state=active]:bg-[#004645] data-[state=active]:text-white">
             <CheckCircle className="h-4 w-4 mr-2" />
             Réponses RSVP
+          </TabsTrigger>
+          <TabsTrigger value="convocations" className="data-[state=active]:bg-[#004645] data-[state=active]:text-white">
+            <QrCode className="h-4 w-4 mr-2" />
+            Convocations
           </TabsTrigger>
         </TabsList>
 
@@ -583,7 +591,161 @@ export default function RSVPManagementPage() {
             </CardContent>
           </Card>
         </TabsContent>
+
+        {/* Convocations Tab */}
+        <TabsContent value="convocations" className="space-y-6">
+          <Card className="border-[#9CD9F6]/30 bg-white/80 backdrop-blur">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-[#004645] flex items-center gap-2">
+                    <QrCode className="h-5 w-5" />
+                    Envoi des convocations avec QR Code
+                  </CardTitle>
+                  <CardDescription>
+                    Envoyez les convocations finales aux invites confirmes avec leur QR code d&apos;acces
+                  </CardDescription>
+                </div>
+                <Button
+                  onClick={() => setConvocationDialogOpen(true)}
+                  disabled={stats.confirmed === 0}
+                  className="bg-gradient-to-r from-[#004645] to-[#009197] hover:from-[#006C51] hover:to-[#009197] text-white"
+                >
+                  <Send className="h-4 w-4 mr-2" />
+                  Envoyer les convocations
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {/* Stats for convocations */}
+              <div className="grid md:grid-cols-3 gap-4 mb-6">
+                <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                  <div className="flex items-center gap-2 mb-2">
+                    <CheckCircle className="h-5 w-5 text-green-600" />
+                    <span className="font-medium text-green-800">Invites confirmes</span>
+                  </div>
+                  <p className="text-2xl font-bold text-green-600" style={{ fontFamily: "var(--font-abril)" }}>
+                    {stats.confirmed}
+                  </p>
+                  <p className="text-sm text-green-700">Prets a recevoir leur convocation</p>
+                </div>
+
+                <div className="p-4 bg-[#9CD9F6]/20 border border-[#9CD9F6] rounded-lg">
+                  <div className="flex items-center gap-2 mb-2">
+                    <QrCode className="h-5 w-5 text-[#009197]" />
+                    <span className="font-medium text-[#004645]">QR Codes generes</span>
+                  </div>
+                  <p className="text-2xl font-bold text-[#009197]" style={{ fontFamily: "var(--font-abril)" }}>
+                    {stats.confirmed}
+                  </p>
+                  <p className="text-sm text-[#004645]/70">Un par invite confirme</p>
+                </div>
+
+                <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Clock className="h-5 w-5 text-yellow-600" />
+                    <span className="font-medium text-yellow-800">En attente</span>
+                  </div>
+                  <p className="text-2xl font-bold text-yellow-600" style={{ fontFamily: "var(--font-abril)" }}>
+                    {stats.pending}
+                  </p>
+                  <p className="text-sm text-yellow-700">N&apos;ont pas encore repondu</p>
+                </div>
+              </div>
+
+              {/* Info box */}
+              <div className="bg-[#9CD9F6]/10 border border-[#9CD9F6]/30 rounded-lg p-4 mb-6">
+                <h4 className="font-medium text-[#004645] mb-2">Comment ca marche ?</h4>
+                <ol className="text-sm text-[#004645]/80 space-y-2">
+                  <li className="flex items-start gap-2">
+                    <span className="bg-[#009197] text-white rounded-full w-5 h-5 flex items-center justify-center text-xs flex-shrink-0">1</span>
+                    <span>Selectionnez les invites confirmes auxquels envoyer la convocation</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="bg-[#009197] text-white rounded-full w-5 h-5 flex items-center justify-center text-xs flex-shrink-0">2</span>
+                    <span>Chaque invite recoit un email avec les informations de l&apos;evenement et son QR code personnel</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="bg-[#009197] text-white rounded-full w-5 h-5 flex items-center justify-center text-xs flex-shrink-0">3</span>
+                    <span>Le jour J, les invites presentent leur QR code pour un check-in rapide</span>
+                  </li>
+                </ol>
+              </div>
+
+              {/* Confirmed guests list */}
+              <div>
+                <h4 className="font-medium text-[#004645] mb-3">
+                  Invites confirmes ({guests.filter(g => g.rsvp?.attending === true).length})
+                </h4>
+                {guests.filter(g => g.rsvp?.attending === true).length === 0 ? (
+                  <div className="text-center py-8 border border-dashed border-[#9CD9F6]/50 rounded-lg">
+                    <Users className="h-12 w-12 text-[#009197] mx-auto mb-3 opacity-30" />
+                    <p className="text-[#004645]/70">Aucun invite confirme pour le moment</p>
+                    <p className="text-sm text-[#004645]/50 mt-1">
+                      Les invites doivent d&apos;abord confirmer leur presence via le formulaire RSVP
+                    </p>
+                  </div>
+                ) : (
+                  <div className="border border-[#9CD9F6]/30 rounded-lg overflow-hidden">
+                    <table className="w-full">
+                      <thead className="bg-[#9CD9F6]/10">
+                        <tr>
+                          <th className="text-left py-3 px-4 text-sm font-medium text-[#004645]">Nom</th>
+                          <th className="text-left py-3 px-4 text-sm font-medium text-[#004645]">Email</th>
+                          <th className="text-left py-3 px-4 text-sm font-medium text-[#004645]">Evenement</th>
+                          <th className="text-left py-3 px-4 text-sm font-medium text-[#004645]">Date confirmation</th>
+                          <th className="text-center py-3 px-4 text-sm font-medium text-[#004645]">QR Code</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-[#9CD9F6]/20">
+                        {guests
+                          .filter(g => g.rsvp?.attending === true)
+                          .map((guest) => (
+                            <tr key={guest.id} className="hover:bg-[#9CD9F6]/5">
+                              <td className="py-3 px-4">
+                                <span className="font-medium text-[#004645]">
+                                  {guest.firstName} {guest.lastName}
+                                </span>
+                              </td>
+                              <td className="py-3 px-4 text-sm text-[#004645]/70">
+                                {guest.email}
+                              </td>
+                              <td className="py-3 px-4 text-sm text-[#004645]/70">
+                                {guest.event.name}
+                              </td>
+                              <td className="py-3 px-4 text-sm text-[#004645]/70">
+                                {guest.rsvp?.createdAt && new Date(guest.rsvp.createdAt).toLocaleDateString('fr-FR', {
+                                  day: 'numeric',
+                                  month: 'short',
+                                  year: 'numeric'
+                                })}
+                              </td>
+                              <td className="py-3 px-4 text-center">
+                                <Badge variant="outline" className="border-green-600 text-green-600">
+                                  <QrCode className="h-3 w-3 mr-1" />
+                                  Pret
+                                </Badge>
+                              </td>
+                            </tr>
+                          ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
       </Tabs>
+
+      {/* Convocation Dialog */}
+      <SendConvocationsDialog
+        eventId={eventFilter !== 'all' ? eventFilter : (events[0]?.id || '')}
+        confirmedGuests={guests.filter(g => g.rsvp?.attending === true && (eventFilter === 'all' || g.event.id === eventFilter))}
+        open={convocationDialogOpen}
+        onOpenChange={setConvocationDialogOpen}
+        onComplete={fetchData}
+      />
     </div>
   )
 }
