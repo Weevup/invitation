@@ -25,7 +25,6 @@ export async function GET(request: NextRequest) {
     const guests = await prisma.guest.findMany({
       where: {
         eventId: { in: eventIds },
-        deletedAt: null,
       },
       select: {
         id: true,
