@@ -451,14 +451,11 @@ L'équipe {{event.organizerName}}`
   console.log(`✓ Confirmation template created: ${confirmationTemplate.name}`)
 
   // 4. Final Access Template (Confirmation & Accès with QR Code)
-  const finalAccessTemplate = await prisma.emailTemplate.upsert({
-    where: { slug: 'final-access-qrcode' },
-    update: {},
-    create: {
+  const finalAccessData = {
       name: 'Confirmation & Accès (avec QR Code)',
       slug: 'final-access-qrcode',
       description: 'Email final avec QR code d\'entrée pour les invités confirmés',
-      type: 'INFO',
+      type: 'INFO' as const,
       subject: '🎫 Votre confirmation : {{event.name}}',
       isDefault: true,
       htmlContent: `<!DOCTYPE html>
@@ -767,10 +764,15 @@ Votre participation est confirmée ! Voici les informations importantes.
 - Présentez le QR code à l'entrée
 
 À très bientôt !`
-    }
+  }
+
+  const finalAccessTemplate = await prisma.emailTemplate.upsert({
+    where: { slug: 'final-access-qrcode' },
+    update: finalAccessData,
+    create: { ...finalAccessData, slug: 'final-access-qrcode' }
   })
 
-  console.log(`✓ Final Access template created: ${finalAccessTemplate.name}`)
+  console.log(`✓ Final Access template created/updated: ${finalAccessTemplate.name}`)
 
   console.log('\n✅ All default email templates created successfully!')
 }
