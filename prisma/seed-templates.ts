@@ -455,7 +455,7 @@ L'équipe {{event.organizerName}}`
       name: 'Confirmation & Accès (avec QR Code)',
       slug: 'final-access-qrcode',
       description: 'Email final avec QR code d\'entrée pour les invités confirmés',
-      type: 'INFO',
+      type: 'INFO' as const,
       subject: '🎫 Votre confirmation : {{event.name}}',
       isDefault: true,
       htmlContent: `<!DOCTYPE html>
