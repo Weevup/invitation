@@ -3,8 +3,8 @@ import { prisma } from '@/lib/prisma'
 import { requireAdmin, handleAuthError } from '@/lib/auth-utils'
 import { requireEventOwnership } from '@/lib/permissions'
 import { sendEmail as sendEmailDirect, renderTemplate, TemplateVariables } from '@/lib/email-service'
-import { generateQRCode, getCheckinUrl } from '@/lib/qrcode'
-import { formatDateTime } from '@/lib/utils'
+import { generateQRCode, generateQRCodeUrl, getCheckinUrl } from '@/lib/qrcode'
+import { formatDate, formatDateTime } from '@/lib/utils'
 import { createLogger } from '@/lib/logger'
 
 const logger = createLogger({ module: 'send-final-invites' })
@@ -151,6 +151,9 @@ export async function POST(
 
         // Generate QR code for check-in
         const checkinUrl = getCheckinUrl(guest.rsvp.qrCodeId)
+        // Use external QR code URL for better email compatibility (base64 is blocked by many email clients)
+        const qrCodeUrl = generateQRCodeUrl(checkinUrl, 200)
+        // Also generate base64 for default template (used in img src directly)
         const qrCodeDataUrl = await generateQRCode(checkinUrl)
 
         let emailHtml: string
@@ -158,20 +161,20 @@ export async function POST(
 
         if (convocationTemplate) {
           // Use custom template
-          // Wrap QR code data URL in an img tag for the template
-          const qrCodeHtml = `<img src="${qrCodeDataUrl}" alt="QR Code d'accès" width="200" height="200" style="display: block; border-radius: 8px;" />`
+          // Use external URL for QR code (works in all email clients)
+          const qrCodeHtml = `<img src="${qrCodeUrl}" alt="QR Code d'accès" width="200" height="200" style="display: block; border-radius: 8px;" />`
 
           const variables: TemplateVariables = {
             'guest.firstName': guest.firstName,
             'guest.lastName': guest.lastName || '',
             'guest.email': guest.email,
             'event.name': event.name,
-            'event.date': formatDateTime(event.startsAt),
+            'event.date': formatDate(event.startsAt),
             'event.time': new Date(event.startsAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
             'event.location': eventVenue,
             'event.address': event.address || '',
             'event.description': event.description || '',
-            'qrCode': qrCodeHtml, // QR code as HTML img tag
+            'qrCode': qrCodeHtml, // QR code as HTML img tag with external URL
             'unsubscribeUrl': `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/unsubscribe?email=${encodeURIComponent(guest.email)}&token=${guest.token}`,
           }
 
