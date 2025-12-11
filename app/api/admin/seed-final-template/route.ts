@@ -51,15 +51,19 @@ const blocksJson = JSON.stringify({
       content: { height: 'medium' },
     },
     {
-      id: 'infobox-qr',
-      type: 'infoBox',
+      id: 'qrcode-section',
+      type: 'text',
       order: 4,
       content: {
-        icon: '🎫',
-        title: 'Votre QR Code d\'entrée',
-        description: 'Présentez ce code à l\'entrée de l\'événement.\n\n{{qrCode}}',
-        backgroundColor: '#f8fafc',
-        borderColor: '#cbd5e1',
+        html: `<div style="background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); border-radius: 12px; border: 2px solid #cbd5e1; padding: 30px; text-align: center;">
+          <p style="margin: 0 0 15px; color: #1e293b; font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">🎫 Votre QR Code d'entrée</p>
+          <div style="background: #ffffff; padding: 15px; border-radius: 12px; display: inline-block; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">{{qrCode}}</div>
+          <p style="margin: 15px 0 0; color: #64748b; font-size: 13px;">Présentez ce code à l'entrée</p>
+        </div>`,
+        fontSize: 'medium',
+        align: 'center',
+        color: '#1e293b',
+        padding: 'medium',
       },
     },
     {
