@@ -158,6 +158,9 @@ export async function POST(
 
         if (convocationTemplate) {
           // Use custom template
+          // Wrap QR code data URL in an img tag for the template
+          const qrCodeHtml = `<img src="${qrCodeDataUrl}" alt="QR Code d'accès" width="200" height="200" style="display: block; border-radius: 8px;" />`
+
           const variables: TemplateVariables = {
             'guest.firstName': guest.firstName,
             'guest.lastName': guest.lastName || '',
@@ -168,7 +171,7 @@ export async function POST(
             'event.location': eventVenue,
             'event.address': event.address || '',
             'event.description': event.description || '',
-            'qrCode': qrCodeDataUrl, // QR code as data URL
+            'qrCode': qrCodeHtml, // QR code as HTML img tag
             'unsubscribeUrl': `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/unsubscribe?email=${encodeURIComponent(guest.email)}&token=${guest.token}`,
           }
 
