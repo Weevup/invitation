@@ -282,10 +282,10 @@ export function SendInvitationsDialog({
                   <div className="flex-1">
                     <Label htmlFor="convocation" className="cursor-pointer font-medium text-sm flex items-center gap-2">
                       <QrCode className="h-4 w-4 text-purple-600" />
-                      Convocation avec QR Code
+                      Confirmation & Accès
                     </Label>
                     <p className="text-xs text-gray-600 mt-0.5">
-                      Billet d&apos;entrée pour les invités confirmés ({confirmedGuests} personnes)
+                      Infos pratiques + QR code d&apos;entrée ({confirmedGuests} confirmés)
                     </p>
                   </div>
                 </div>

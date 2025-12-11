@@ -161,7 +161,7 @@ export async function POST(
           emailSubject = renderTemplate(convocationTemplate.subject, variables)
         } else {
           // Use default template
-          emailSubject = `🎫 Votre convocation : ${event.name}`
+          emailSubject = `🎫 Votre confirmation : ${event.name}`
           emailHtml = generateDefaultConvocationEmail({
             guestName: guest.firstName,
             eventName: event.name,
@@ -322,7 +322,7 @@ function generateDefaultConvocationEmail(params: {
                 <tr>
                   <td align="center">
                     <span style="display: inline-block; background-color: rgba(255,255,255,0.2); color: white; padding: 8px 20px; border-radius: 50px; font-size: 12px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 20px;">
-                      ✓ Convocation Officielle
+                      ✓ Confirmation de participation
                     </span>
                   </td>
                 </tr>
