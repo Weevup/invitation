@@ -106,6 +106,7 @@ export function SendInvitationsDialog({
             },
             body: JSON.stringify({
               guestIds: selectedGuestIds && selectedGuestIds.length > 0 ? selectedGuestIds : undefined,
+              templateId: templateId !== "default" ? templateId : undefined,
             }),
           }
         );
@@ -210,9 +211,11 @@ export function SendInvitationsDialog({
     if (emailType === "save-the-date") {
       return templates.filter(t => t.type === "SAVE_THE_DATE");
     } else if (emailType === "invitation") {
-      return templates.filter(t => t.type === "INVITE");
+      return templates.filter(t => t.type === "INVITE" || t.type === "INVITATION");
     } else if (emailType === "reminder") {
       return templates.filter(t => t.type === "REMINDER");
+    } else if (emailType === "convocation") {
+      return templates.filter(t => t.type === "INFO" || t.type === "CONFIRMATION");
     }
     return templates;
   };
@@ -292,46 +295,44 @@ export function SendInvitationsDialog({
               </RadioGroup>
             </div>
 
-            {/* Sélecteur de template - masqué pour les convocations */}
-            {emailType !== "convocation" && (
-              <div className="space-y-2">
-                <Label htmlFor="template" className="text-sm font-medium">
-                  Template email (optionnel)
-                </Label>
-                <Select value={templateId} onValueChange={setTemplateId}>
-                  <SelectTrigger id="template">
-                    <SelectValue placeholder={
-                      loadingTemplates
-                        ? "Chargement..."
-                        : "Template par défaut (hardcodé)"
-                    } />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="default">
-                      <div className="flex items-center gap-2">
-                        <Mail className="h-4 w-4" />
-                        <span>Template par défaut (hardcodé)</span>
+            {/* Sélecteur de template */}
+            <div className="space-y-2">
+              <Label htmlFor="template" className="text-sm font-medium">
+                Template email (optionnel)
+              </Label>
+              <Select value={templateId} onValueChange={setTemplateId}>
+                <SelectTrigger id="template">
+                  <SelectValue placeholder={
+                    loadingTemplates
+                      ? "Chargement..."
+                      : "Template par défaut"
+                  } />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="default">
+                    <div className="flex items-center gap-2">
+                      <Mail className="h-4 w-4" />
+                      <span>Template par défaut</span>
+                    </div>
+                  </SelectItem>
+                  {getFilteredTemplates().map((template) => (
+                    <SelectItem key={template.id} value={template.id}>
+                      <div className="flex flex-col">
+                        <span className="font-medium">{template.name}</span>
+                        {template.description && (
+                          <span className="text-xs text-gray-500">{template.description}</span>
+                        )}
                       </div>
                     </SelectItem>
-                    {getFilteredTemplates().map((template) => (
-                      <SelectItem key={template.id} value={template.id}>
-                        <div className="flex flex-col">
-                          <span className="font-medium">{template.name}</span>
-                          {template.description && (
-                            <span className="text-xs text-gray-500">{template.description}</span>
-                          )}
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <p className="text-xs text-gray-500">
-                  {templateId !== "default"
-                    ? "Un template personnalisé sera utilisé"
-                    : "Le template codé en dur dans l'application sera utilisé"}
+                  ))}
+                </SelectContent>
+              </Select>
+              {emailType === "convocation" && getFilteredTemplates().length === 0 && (
+                <p className="text-xs text-amber-600">
+                  💡 Créez un template de type &quot;Information&quot; dans Templates pour personnaliser cet email
                 </p>
-              </div>
-            )}
+              )}
+            </div>
 
             {/* Info box */}
             <div className={`rounded-md p-3 text-sm ${emailType === "convocation" ? "bg-purple-50 border border-purple-200" : "bg-blue-50 border border-blue-200"}`}>
