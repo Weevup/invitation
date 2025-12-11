@@ -14,6 +14,15 @@ export async function generateQRCode(data: string): Promise<string> {
   }
 }
 
+/**
+ * Generate QR code URL using external service (for email compatibility)
+ * Many email clients block base64 images, so we use an external URL
+ */
+export function generateQRCodeUrl(data: string, size: number = 200): string {
+  const encodedData = encodeURIComponent(data)
+  return `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodedData}&format=png&margin=10`
+}
+
 export function getCheckinUrl(qrCodeId: string): string {
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
   return `${baseUrl}/api/checkin/${qrCodeId}`
