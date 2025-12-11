@@ -27,14 +27,14 @@ interface EmailPreviewModalProps {
 
 /**
  * Extract variables from template content
- * Supports: {{variable}}, {variable}, ${variable}, %variable%
+ * Supports: {{variable}}, ${variable}, %variable%
+ * Variable names must be alphanumeric with dots, underscores allowed
  */
 function extractVariables(content: string): string[] {
   const patterns = [
-    /\{\{([^}]+)\}\}/g,  // {{variable}}
-    /\{([^}]+)\}/g,      // {variable}
-    /\$\{([^}]+)\}/g,    // ${variable}
-    /%([^%]+)%/g,        // %variable%
+    /\{\{([a-zA-Z_][a-zA-Z0-9_.]*)\}\}/g,  // {{variable}} or {{object.property}}
+    /\$\{([a-zA-Z_][a-zA-Z0-9_.]*)\}/g,    // ${variable}
+    /%([a-zA-Z_][a-zA-Z0-9_.]*)%/g,        // %variable%
   ];
 
   const variables = new Set<string>();
@@ -50,18 +50,27 @@ function extractVariables(content: string): string[] {
 }
 
 /**
+ * Escape special regex characters in a string
+ */
+function escapeRegex(str: string): string {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/**
  * Replace variables in content with actual values
  */
 function replaceVariables(content: string, values: Record<string, string>): string {
   let result = content;
 
   Object.entries(values).forEach(([key, value]) => {
+    // Escape special regex characters in the key
+    const escapedKey = escapeRegex(key);
+
     // Replace all variable formats
     const patterns = [
-      new RegExp(`\\{\\{\\s*${key}\\s*\\}\\}`, 'g'),  // {{variable}}
-      new RegExp(`\\{\\s*${key}\\s*\\}`, 'g'),         // {variable}
-      new RegExp(`\\$\\{\\s*${key}\\s*\\}`, 'g'),      // ${variable}
-      new RegExp(`%\\s*${key}\\s*%`, 'g'),             // %variable%
+      new RegExp(`\\{\\{\\s*${escapedKey}\\s*\\}\\}`, 'g'),  // {{variable}}
+      new RegExp(`\\$\\{\\s*${escapedKey}\\s*\\}`, 'g'),      // ${variable}
+      new RegExp(`%\\s*${escapedKey}\\s*%`, 'g'),             // %variable%
     ];
 
     patterns.forEach(pattern => {
@@ -77,14 +86,18 @@ function replaceVariables(content: string, values: Record<string, string>): stri
  */
 function getSampleData(variableName: string): string {
   const samples: Record<string, string> = {
-    // Guest data
+    // Guest data (both formats)
     'guestName': 'Sophie Martin',
     'firstName': 'Sophie',
     'lastName': 'Martin',
     'email': 'sophie.martin@example.com',
     'company': 'Weevup',
+    'guest.firstName': 'Sophie',
+    'guest.lastName': 'Martin',
+    'guest.email': 'sophie.martin@example.com',
+    'guest.company': 'Weevup',
 
-    // Event data
+    // Event data (both formats)
     'eventName': 'Gala Annuel 2025',
     'eventDate': '15 juin 2025',
     'date': '15 juin 2025',
@@ -94,6 +107,13 @@ function getSampleData(variableName: string): string {
     'venueName': 'Le Grand Palais',
     'city': 'Paris',
     'description': 'Rejoignez-nous pour une soirée exceptionnelle',
+    'event.name': 'Gala Annuel 2025',
+    'event.date': '15 juin 2025',
+    'event.time': '19h00',
+    'event.location': 'Le Grand Palais',
+    'event.address': '3 Avenue du Général Eisenhower, 75008 Paris',
+    'event.description': 'Rejoignez-nous pour une soirée exceptionnelle',
+    'event.organizerName': 'Weevup Events',
 
     // Messages
     'welcomeMessage': 'Bienvenue à notre événement',
@@ -114,8 +134,11 @@ function getSampleData(variableName: string): string {
     'accentColor': '#FF4713',
     'backgroundColor': '#FFFFFF',
 
-    // Other
+    // QR Code (actual HTML for preview)
+    'qrCode': '<img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=DEMO-QR-CODE" alt="QR Code" style="width: 200px; height: 200px;" />',
     'qrCodeUrl': 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=DEMO',
+
+    // Other
     'logoUrl': 'https://via.placeholder.com/150x50/004645/FFFFFF?text=LOGO',
     'headerImage': 'https://via.placeholder.com/600x200/009197/FFFFFF?text=EVENT',
   };
