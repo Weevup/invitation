@@ -20,7 +20,9 @@ import {
   Code,
   FileText,
   CheckCircle,
-  AlertCircle
+  AlertCircle,
+  Download,
+  QrCode
 } from 'lucide-react'
 import {
   Dialog,
@@ -72,6 +74,7 @@ export default function TemplatesPage() {
   const [previewTemplate, setPreviewTemplate] = useState<EmailTemplate | null>(null)
   const [showEditor, setShowEditor] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [installingDefault, setInstallingDefault] = useState(false)
 
   // Form state
   const [formData, setFormData] = useState({
@@ -102,6 +105,28 @@ export default function TemplatesPage() {
       toast.error('Erreur lors du chargement des templates')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleInstallDefaultTemplate = async () => {
+    setInstallingDefault(true)
+    try {
+      const response = await fetch('/api/admin/seed-final-template', {
+        method: 'POST'
+      })
+
+      if (response.ok) {
+        await fetchTemplates()
+        toast.success('Template "Confirmation & Accès" installé avec succès')
+      } else {
+        const data = await response.json()
+        toast.error(data.error || 'Erreur lors de l\'installation')
+      }
+    } catch (error) {
+      logger.error(error, { action: 'installDefaultTemplate' })
+      toast.error('Erreur lors de l\'installation du template')
+    } finally {
+      setInstallingDefault(false)
     }
   }
 
@@ -328,10 +353,16 @@ export default function TemplatesPage() {
             Créez et personnalisez vos templates d&apos;emails pour les invitations, rappels et confirmations
           </p>
         </div>
-        <Button onClick={handleCreate}>
-          <Plus className="h-4 w-4 mr-2" />
-          Nouveau Template
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={handleInstallDefaultTemplate} disabled={installingDefault}>
+            <QrCode className="h-4 w-4 mr-2" />
+            {installingDefault ? 'Installation...' : 'Installer template QR Code'}
+          </Button>
+          <Button onClick={handleCreate}>
+            <Plus className="h-4 w-4 mr-2" />
+            Nouveau Template
+          </Button>
+        </div>
       </div>
 
       {/* Templates Grid */}
