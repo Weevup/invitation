@@ -161,7 +161,7 @@ export async function POST(
           emailSubject = renderTemplate(convocationTemplate.subject, variables)
         } else {
           // Use default template
-          emailSubject = `🎫 Votre convocation : ${event.name}`
+          emailSubject = `🎫 Votre confirmation : ${event.name}`
           emailHtml = generateDefaultConvocationEmail({
             guestName: guest.firstName,
             eventName: event.name,
@@ -322,7 +322,7 @@ function generateDefaultConvocationEmail(params: {
                 <tr>
                   <td align="center">
                     <span style="display: inline-block; background-color: rgba(255,255,255,0.2); color: white; padding: 8px 20px; border-radius: 50px; font-size: 12px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 20px;">
-                      ✓ Convocation Officielle
+                      ✓ Confirmation de participation
                     </span>
                   </td>
                 </tr>
@@ -496,6 +496,97 @@ function generateDefaultConvocationEmail(params: {
           </tr>
           ` : ''}
 
+          <!-- Informations importantes -->
+          <tr>
+            <td style="padding: 20px 40px;">
+              <h3 style="margin: 0 0 15px; color: #1e293b; font-size: 16px; font-weight: 600;">
+                ⚠️ Informations importantes
+              </h3>
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
+                <!-- Tenue -->
+                <tr>
+                  <td style="padding-bottom: 12px;">
+                    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #fef3c7; border-radius: 10px; border-left: 4px solid #f59e0b;">
+                      <tr>
+                        <td style="padding: 15px 20px;">
+                          <table role="presentation" cellspacing="0" cellpadding="0">
+                            <tr>
+                              <td style="width: 35px; vertical-align: top; font-size: 20px;">👔</td>
+                              <td style="vertical-align: top;">
+                                <div style="color: #92400e; font-size: 14px; font-weight: 600; margin-bottom: 4px;">Dress code</div>
+                                <div style="color: #a16207; font-size: 13px;">Tenue de soirée élégante recommandée</div>
+                              </td>
+                            </tr>
+                          </table>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+                <!-- Cadeau -->
+                <tr>
+                  <td style="padding-bottom: 12px;">
+                    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #fce7f3; border-radius: 10px; border-left: 4px solid #ec4899;">
+                      <tr>
+                        <td style="padding: 15px 20px;">
+                          <table role="presentation" cellspacing="0" cellpadding="0">
+                            <tr>
+                              <td style="width: 35px; vertical-align: top; font-size: 20px;">🎁</td>
+                              <td style="vertical-align: top;">
+                                <div style="color: #9d174d; font-size: 14px; font-weight: 600; margin-bottom: 4px;">Cadeau</div>
+                                <div style="color: #be185d; font-size: 13px;">N'oubliez pas d'apporter un cadeau pour les mariés !</div>
+                              </td>
+                            </tr>
+                          </table>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+                <!-- Piscine -->
+                <tr>
+                  <td style="padding-bottom: 12px;">
+                    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #e0f2fe; border-radius: 10px; border-left: 4px solid #0ea5e9;">
+                      <tr>
+                        <td style="padding: 15px 20px;">
+                          <table role="presentation" cellspacing="0" cellpadding="0">
+                            <tr>
+                              <td style="width: 35px; vertical-align: top; font-size: 20px;">🏊</td>
+                              <td style="vertical-align: top;">
+                                <div style="color: #0369a1; font-size: 14px; font-weight: 600; margin-bottom: 4px;">Piscine disponible</div>
+                                <div style="color: #0284c7; font-size: 13px;">Pensez à prendre votre maillot de bain si vous souhaitez profiter de la piscine</div>
+                              </td>
+                            </tr>
+                          </table>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+                <!-- Attention aux oeuvres -->
+                <tr>
+                  <td>
+                    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #fee2e2; border-radius: 10px; border-left: 4px solid #ef4444;">
+                      <tr>
+                        <td style="padding: 15px 20px;">
+                          <table role="presentation" cellspacing="0" cellpadding="0">
+                            <tr>
+                              <td style="width: 35px; vertical-align: top; font-size: 20px;">🖼️</td>
+                              <td style="vertical-align: top;">
+                                <div style="color: #b91c1c; font-size: 14px; font-weight: 600; margin-bottom: 4px;">Attention aux œuvres d'art</div>
+                                <div style="color: #dc2626; font-size: 13px;">Le lieu contient des œuvres d'art précieuses. Merci de faire attention et de ne pas les toucher.</div>
+                              </td>
+                            </tr>
+                          </table>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
           <!-- Conseils pratiques -->
           <tr>
             <td style="padding: 20px 40px;">
@@ -503,12 +594,12 @@ function generateDefaultConvocationEmail(params: {
                 <tr>
                   <td style="padding: 20px 25px;">
                     <h3 style="margin: 0 0 12px; color: #065f46; font-size: 15px; font-weight: 600;">
-                      💡 Conseils pratiques
+                      💡 Rappels pratiques
                     </h3>
                     <ul style="margin: 0; padding: 0 0 0 20px; color: #047857; font-size: 14px; line-height: 1.8;">
                       <li>Arrivez <strong>15 minutes avant</strong> le début de l'événement</li>
                       <li>Gardez cet email accessible sur votre téléphone</li>
-                      <li>Une pièce d'identité peut vous être demandée</li>
+                      <li>L'adresse exacte est indiquée ci-dessus avec le lien Google Maps</li>
                       <li>En cas d'empêchement, prévenez-nous dès que possible</li>
                     </ul>
                   </td>
