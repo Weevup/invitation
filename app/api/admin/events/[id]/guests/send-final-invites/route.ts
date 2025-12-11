@@ -25,7 +25,7 @@ export async function POST(
     await requireEventOwnership(eventId, session.user.id)
 
     const body = await request.json()
-    const { guestIds } = body as { guestIds: string[] }
+    const { guestIds, templateId } = body as { guestIds: string[], templateId?: string }
 
     if (!guestIds || guestIds.length === 0) {
       return NextResponse.json(
@@ -97,15 +97,30 @@ export async function POST(
       )
     }
 
-    // Get final convocation template (or create default)
-    let convocationTemplate = await prisma.emailTemplate.findFirst({
-      where: {
-        slug: 'final-convocation',
-        isActive: true,
-      },
-    })
+    // Get template - prioritize user-selected templateId
+    let convocationTemplate = null
 
-    // If no specific template, try to find a generic INFO template
+    if (templateId) {
+      // User selected a specific template
+      convocationTemplate = await prisma.emailTemplate.findFirst({
+        where: {
+          id: templateId,
+          isActive: true,
+        },
+      })
+    }
+
+    // Fallback: try to find a template with slug 'final-convocation'
+    if (!convocationTemplate) {
+      convocationTemplate = await prisma.emailTemplate.findFirst({
+        where: {
+          slug: 'final-convocation',
+          isActive: true,
+        },
+      })
+    }
+
+    // Fallback: try to find a generic INFO template
     if (!convocationTemplate) {
       convocationTemplate = await prisma.emailTemplate.findFirst({
         where: {
