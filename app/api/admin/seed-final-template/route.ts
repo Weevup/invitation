@@ -19,7 +19,7 @@ const blocksJson = JSON.stringify({
       type: 'header',
       order: 0,
       content: {
-        title: '🎫 Confirmation d\'accès',
+        title: 'Prêt pour la soirée ?',
         subtitle: '{{event.name}}',
         backgroundColor: '#1e3a5f',
         textColor: '#FFFFFF',
@@ -33,11 +33,12 @@ const blocksJson = JSON.stringify({
       content: { height: 'large' },
     },
     {
-      id: 'text-1',
+      id: 'text-intro',
       type: 'text',
       order: 2,
       content: {
-        html: '<p>Bonjour <strong>{{guest.firstName}}</strong>,</p><p>Votre participation est confirmée ! Voici toutes les informations importantes pour le jour J.</p>',
+        html: `<p style="font-size: 16px; color: #1e293b;">Bonjour <strong>{{guest.firstName}}</strong>,</p>
+<p style="font-size: 15px; color: #475569; line-height: 1.7;">Nous sommes heureux de vous compter parmi les invités. Vous trouverez ci-dessous votre accès personnel ainsi que les informations essentielles pour préparer votre venue.</p>`,
         fontSize: 'medium',
         align: 'left',
         color: '#1e293b',
@@ -55,10 +56,10 @@ const blocksJson = JSON.stringify({
       type: 'text',
       order: 4,
       content: {
-        html: `<div style="background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); border-radius: 12px; border: 2px solid #cbd5e1; padding: 30px; text-align: center;">
-          <p style="margin: 0 0 15px; color: #1e293b; font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">🎫 Votre QR Code d'entrée</p>
-          <div style="background: #ffffff; padding: 15px; border-radius: 12px; display: inline-block; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">{{qrCode}}</div>
-          <p style="margin: 15px 0 0; color: #64748b; font-size: 13px;">Présentez ce code à l'entrée</p>
+        html: `<div style="background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0; padding: 30px; text-align: center;">
+          <h3 style="margin: 0 0 10px; color: #1e293b; font-size: 18px; font-weight: 600;">Votre QR code d'accès</h3>
+          <p style="margin: 0 0 20px; color: #64748b; font-size: 14px;">À présenter à l'arrivée, sur votre téléphone ou imprimé.</p>
+          <div style="background: #ffffff; padding: 15px; border-radius: 12px; display: inline-block; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">{{qrCode}}</div>
         </div>`,
         fontSize: 'medium',
         align: 'center',
@@ -70,32 +71,14 @@ const blocksJson = JSON.stringify({
       id: 'spacer-3',
       type: 'spacer',
       order: 5,
-      content: { height: 'medium' },
+      content: { height: 'large' },
     },
     {
-      id: 'infobox-event',
-      type: 'infoBox',
+      id: 'text-infos-title',
+      type: 'text',
       order: 6,
       content: {
-        icon: '📅',
-        title: 'Détails de l\'événement',
-        description: 'Date : {{event.date}}\nHeure : {{event.time}}\nLieu : {{event.location}}\nAdresse : {{event.address}}',
-        backgroundColor: '#f1f5f9',
-        borderColor: '#2d5a87',
-      },
-    },
-    {
-      id: 'spacer-4',
-      type: 'spacer',
-      order: 7,
-      content: { height: 'medium' },
-    },
-    {
-      id: 'text-important',
-      type: 'text',
-      order: 8,
-      content: {
-        html: '<h3 style="color: #1e293b; margin-bottom: 15px;">⚠️ Informations importantes</h3>',
+        html: `<h2 style="margin: 0 0 20px; color: #1e293b; font-size: 20px; font-weight: 600; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px;">📍 Informations pratiques</h2>`,
         fontSize: 'medium',
         align: 'left',
         color: '#1e293b',
@@ -103,68 +86,155 @@ const blocksJson = JSON.stringify({
       },
     },
     {
-      id: 'twocolumn-1',
-      type: 'twoColumn',
-      order: 9,
+      id: 'text-infos',
+      type: 'text',
+      order: 7,
       content: {
-        leftColumn: '<div style="background: #fef3c7; border-radius: 10px; padding: 15px; text-align: center;"><p style="font-size: 20px; margin: 0;">👔</p><p style="margin: 8px 0 0; color: #92400e; font-size: 13px; font-weight: 600;">Dress code</p><p style="margin: 4px 0 0; color: #a16207; font-size: 12px;">Tenue de soirée élégante</p></div>',
-        rightColumn: '<div style="background: #fce7f3; border-radius: 10px; padding: 15px; text-align: center;"><p style="font-size: 20px; margin: 0;">🎁</p><p style="margin: 8px 0 0; color: #9d174d; font-size: 13px; font-weight: 600;">Cadeau</p><p style="margin: 4px 0 0; color: #be185d; font-size: 12px;">N\'oubliez pas d\'apporter un cadeau</p></div>',
-        leftWidth: 50,
-        rightWidth: 50,
-        gap: 'medium',
+        html: `<table style="width: 100%; font-size: 15px; color: #334155;">
+          <tr><td style="padding: 8px 0; color: #64748b; width: 100px;">Date</td><td style="padding: 8px 0; font-weight: 500;">{{event.date}}</td></tr>
+          <tr><td style="padding: 8px 0; color: #64748b;">À partir de</td><td style="padding: 8px 0; font-weight: 500;">{{event.time}}</td></tr>
+          <tr><td style="padding: 8px 0; color: #64748b;">Lieu</td><td style="padding: 8px 0; font-weight: 500;">{{event.location}}</td></tr>
+          <tr><td style="padding: 8px 0; color: #64748b;">Adresse</td><td style="padding: 8px 0; font-weight: 500;">{{event.address}}</td></tr>
+        </table>`,
+        fontSize: 'medium',
+        align: 'left',
+        color: '#334155',
+        padding: 'medium',
+      },
+    },
+    {
+      id: 'text-acces',
+      type: 'text',
+      order: 8,
+      content: {
+        html: `<div style="background: #fffbeb; border-left: 4px solid #f59e0b; padding: 15px 20px; border-radius: 0 8px 8px 0; margin-top: 15px;">
+          <p style="margin: 0 0 5px; color: #92400e; font-size: 14px; font-weight: 600;">🚪 Accès</p>
+          <p style="margin: 0; color: #a16207; font-size: 14px;">L'entrée se fait par la piscine intérieure, à l'adresse indiquée.<br/>Veuillez ne pas passer par l'entrée principale de l'hôtel.</p>
+        </div>`,
+        fontSize: 'medium',
+        align: 'left',
+        color: '#1e293b',
+        padding: 'small',
+      },
+    },
+    {
+      id: 'spacer-4',
+      type: 'spacer',
+      order: 9,
+      content: { height: 'large' },
+    },
+    {
+      id: 'text-prepare-title',
+      type: 'text',
+      order: 10,
+      content: {
+        html: `<h2 style="margin: 0 0 20px; color: #1e293b; font-size: 20px; font-weight: 600; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px;">✨ Préparez votre venue</h2>`,
+        fontSize: 'medium',
+        align: 'left',
+        color: '#1e293b',
+        padding: 'small',
+      },
+    },
+    {
+      id: 'text-dresscode',
+      type: 'text',
+      order: 11,
+      content: {
+        html: `<div style="margin-bottom: 20px;">
+          <p style="margin: 0 0 5px; color: #1e293b; font-size: 15px; font-weight: 600;">👔 Dress Code</p>
+          <p style="margin: 0; color: #64748b; font-size: 14px;">Tenue de soirée élégante recommandée.</p>
+        </div>`,
+        fontSize: 'medium',
+        align: 'left',
+        color: '#1e293b',
+        padding: 'small',
+      },
+    },
+    {
+      id: 'text-cadeau',
+      type: 'text',
+      order: 12,
+      content: {
+        html: `<div style="margin-bottom: 20px;">
+          <p style="margin: 0 0 5px; color: #1e293b; font-size: 15px; font-weight: 600;">🎁 Cadeau</p>
+          <p style="margin: 0; color: #64748b; font-size: 14px;">Vous êtes invité à apporter un cadeau pour l'association Elise Princesse Courageuse.</p>
+        </div>`,
+        fontSize: 'medium',
+        align: 'left',
+        color: '#1e293b',
+        padding: 'small',
+      },
+    },
+    {
+      id: 'text-piscine',
+      type: 'text',
+      order: 13,
+      content: {
+        html: `<div style="margin-bottom: 20px;">
+          <p style="margin: 0 0 5px; color: #1e293b; font-size: 15px; font-weight: 600;">🏊 Piscine</p>
+          <p style="margin: 0; color: #64748b; font-size: 14px;">La piscine sera accessible. Si vous souhaitez en profiter, prévoyez votre maillot.</p>
+        </div>`,
+        fontSize: 'medium',
+        align: 'left',
+        color: '#1e293b',
+        padding: 'small',
+      },
+    },
+    {
+      id: 'text-oeuvres',
+      type: 'text',
+      order: 14,
+      content: {
+        html: `<div style="margin-bottom: 20px;">
+          <p style="margin: 0 0 5px; color: #1e293b; font-size: 15px; font-weight: 600;">🖼️ Œuvres d'art</p>
+          <p style="margin: 0; color: #64748b; font-size: 14px;">Des œuvres seront exposées dans les anciennes cabines. Merci d'y accorder une attention particulière.</p>
+        </div>`,
+        fontSize: 'medium',
+        align: 'left',
+        color: '#1e293b',
+        padding: 'small',
       },
     },
     {
       id: 'spacer-5',
       type: 'spacer',
-      order: 10,
-      content: { height: 'small' },
+      order: 15,
+      content: { height: 'large' },
     },
     {
-      id: 'twocolumn-2',
-      type: 'twoColumn',
-      order: 11,
+      id: 'text-rappels',
+      type: 'text',
+      order: 16,
       content: {
-        leftColumn: '<div style="background: #dbeafe; border-radius: 10px; padding: 15px; text-align: center;"><p style="font-size: 20px; margin: 0;">🏊</p><p style="margin: 8px 0 0; color: #1e40af; font-size: 13px; font-weight: 600;">Piscine</p><p style="margin: 4px 0 0; color: #1d4ed8; font-size: 12px;">Disponible - pensez au maillot</p></div>',
-        rightColumn: '<div style="background: #fee2e2; border-radius: 10px; padding: 15px; text-align: center;"><p style="font-size: 20px; margin: 0;">🖼️</p><p style="margin: 8px 0 0; color: #991b1b; font-size: 13px; font-weight: 600;">Œuvres d\'art</p><p style="margin: 4px 0 0; color: #dc2626; font-size: 12px;">Attention aux œuvres exposées</p></div>',
-        leftWidth: 50,
-        rightWidth: 50,
-        gap: 'medium',
+        html: `<div style="background: #f0fdf4; border-radius: 12px; padding: 25px;">
+          <h3 style="margin: 0 0 15px; color: #166534; font-size: 16px; font-weight: 600;">💡 Pour profiter pleinement de la soirée</h3>
+          <ul style="margin: 0; padding: 0 0 0 20px; color: #15803d; font-size: 14px; line-height: 1.8;">
+            <li>Conservez cet email et votre QR code à portée de main</li>
+            <li>En cas d'empêchement, informez-nous directement en répondant à ce message</li>
+          </ul>
+        </div>`,
+        fontSize: 'medium',
+        align: 'left',
+        color: '#166534',
+        padding: 'medium',
       },
     },
     {
       id: 'spacer-6',
       type: 'spacer',
-      order: 12,
-      content: { height: 'medium' },
-    },
-    {
-      id: 'infobox-rappels',
-      type: 'infoBox',
-      order: 13,
-      content: {
-        icon: '💡',
-        title: 'Rappels',
-        description: '• Arrivez 15 minutes avant le début\n• Gardez cet email accessible sur votre téléphone\n• En cas d\'empêchement, prévenez-nous',
-        backgroundColor: '#ecfdf5',
-        borderColor: '#10b981',
-      },
-    },
-    {
-      id: 'spacer-7',
-      type: 'spacer',
-      order: 14,
+      order: 17,
       content: { height: 'large' },
     },
     {
-      id: 'text-footer',
+      id: 'text-conclusion',
       type: 'text',
-      order: 15,
+      order: 18,
       content: {
-        html: '<p style="text-align: center; color: #1e293b; font-size: 16px; font-weight: 600;">À très bientôt ! 🎉</p><p style="text-align: center; color: #64748b; font-size: 13px;">Une question ? Répondez directement à cet email.</p>',
-        fontSize: 'small',
-        align: 'center',
-        color: '#64748b',
+        html: `<p style="font-size: 15px; color: #475569; line-height: 1.7;">Nous avons hâte de célébrer avec vous et de partager une soirée exceptionnelle.</p>
+<p style="font-size: 16px; color: #1e293b; font-weight: 500; margin-top: 15px;">À très bientôt.</p>`,
+        fontSize: 'medium',
+        align: 'left',
+        color: '#475569',
         padding: 'medium',
       },
     },
@@ -178,32 +248,32 @@ const htmlContent = `<!DOCTYPE html>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{{event.name}} - Votre Confirmation</title>
 </head>
-<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f0f4f8;">
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f0f4f8; -webkit-font-smoothing: antialiased;">
   <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #f0f4f8;">
     <tr>
       <td align="center" style="padding: 40px 20px;">
-        <table role="presentation" width="600" cellspacing="0" cellpadding="0" style="background-color: #ffffff; border-radius: 16px; box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08); overflow: hidden;">
+        <table role="presentation" width="600" cellspacing="0" cellpadding="0" style="max-width: 600px; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);">
 
-          <!-- Header with gradient -->
+          <!-- Header -->
           <tr>
-            <td style="background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%); padding: 40px; text-align: center;">
-              <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 700; letter-spacing: -0.5px;">
-                🎫 Confirmation d'accès
+            <td style="background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%); padding: 50px 40px; text-align: center;">
+              <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 700;">
+                Prêt pour la soirée ?
               </h1>
-              <p style="margin: 10px 0 0; color: rgba(255,255,255,0.9); font-size: 16px;">
+              <p style="margin: 15px 0 0; color: rgba(255,255,255,0.9); font-size: 16px;">
                 {{event.name}}
               </p>
             </td>
           </tr>
 
-          <!-- Welcome message -->
+          <!-- Introduction -->
           <tr>
             <td style="padding: 40px 40px 20px;">
-              <p style="margin: 0; color: #1e293b; font-size: 18px; line-height: 1.6;">
+              <p style="margin: 0; color: #1e293b; font-size: 16px; line-height: 1.6;">
                 Bonjour <strong>{{guest.firstName}}</strong>,
               </p>
-              <p style="margin: 15px 0 0; color: #475569; font-size: 16px; line-height: 1.7;">
-                Votre participation est confirmée ! Voici toutes les informations importantes pour le jour J.
+              <p style="margin: 20px 0 0; color: #475569; font-size: 15px; line-height: 1.7;">
+                Nous sommes heureux de vous compter parmi les invités. Vous trouverez ci-dessous votre accès personnel ainsi que les informations essentielles pour préparer votre venue.
               </p>
             </td>
           </tr>
@@ -211,17 +281,61 @@ const htmlContent = `<!DOCTYPE html>
           <!-- QR Code Section -->
           <tr>
             <td style="padding: 20px 40px;">
-              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); border-radius: 12px; border: 2px solid #cbd5e1;">
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0;">
                 <tr>
                   <td style="padding: 30px; text-align: center;">
-                    <p style="margin: 0 0 15px; color: #1e293b; font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">
-                      Votre QR Code d'entrée
+                    <h3 style="margin: 0 0 10px; color: #1e293b; font-size: 18px; font-weight: 600;">
+                      Votre QR code d'accès
+                    </h3>
+                    <p style="margin: 0 0 20px; color: #64748b; font-size: 14px;">
+                      À présenter à l'arrivée, sur votre téléphone ou imprimé.
                     </p>
-                    <div style="background: #ffffff; padding: 15px; border-radius: 12px; display: inline-block; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                    <div style="background: #ffffff; padding: 15px; border-radius: 12px; display: inline-block; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
                       {{qrCode}}
                     </div>
-                    <p style="margin: 15px 0 0; color: #64748b; font-size: 13px;">
-                      Présentez ce code à l'entrée
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Informations pratiques -->
+          <tr>
+            <td style="padding: 30px 40px 20px;">
+              <h2 style="margin: 0 0 20px; color: #1e293b; font-size: 20px; font-weight: 600; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px;">
+                📍 Informations pratiques
+              </h2>
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="font-size: 15px; color: #334155;">
+                <tr>
+                  <td style="padding: 10px 0; color: #64748b; width: 100px; vertical-align: top;">Date</td>
+                  <td style="padding: 10px 0; font-weight: 500;">{{event.date}}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 10px 0; color: #64748b; vertical-align: top;">À partir de</td>
+                  <td style="padding: 10px 0; font-weight: 500;">{{event.time}}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 10px 0; color: #64748b; vertical-align: top;">Lieu</td>
+                  <td style="padding: 10px 0; font-weight: 500;">{{event.location}}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 10px 0; color: #64748b; vertical-align: top;">Adresse</td>
+                  <td style="padding: 10px 0; font-weight: 500;">{{event.address}}</td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Accès -->
+          <tr>
+            <td style="padding: 0 40px 30px;">
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #fffbeb; border-left: 4px solid #f59e0b; border-radius: 0 8px 8px 0;">
+                <tr>
+                  <td style="padding: 15px 20px;">
+                    <p style="margin: 0 0 5px; color: #92400e; font-size: 14px; font-weight: 600;">🚪 Accès</p>
+                    <p style="margin: 0; color: #a16207; font-size: 14px; line-height: 1.6;">
+                      L'entrée se fait par la piscine intérieure, à l'adresse indiquée.<br/>
+                      Veuillez ne pas passer par l'entrée principale de l'hôtel.
                     </p>
                   </td>
                 </tr>
@@ -229,95 +343,51 @@ const htmlContent = `<!DOCTYPE html>
             </td>
           </tr>
 
-          <!-- Event Details -->
+          <!-- Préparez votre venue -->
           <tr>
             <td style="padding: 20px 40px;">
-              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #f1f5f9; border-radius: 12px;">
+              <h2 style="margin: 0 0 25px; color: #1e293b; font-size: 20px; font-weight: 600; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px;">
+                ✨ Préparez votre venue
+              </h2>
+
+              <!-- Dress Code -->
+              <div style="margin-bottom: 25px;">
+                <p style="margin: 0 0 5px; color: #1e293b; font-size: 15px; font-weight: 600;">👔 Dress Code</p>
+                <p style="margin: 0; color: #64748b; font-size: 14px; line-height: 1.6;">Tenue de soirée élégante recommandée.</p>
+              </div>
+
+              <!-- Cadeau -->
+              <div style="margin-bottom: 25px;">
+                <p style="margin: 0 0 5px; color: #1e293b; font-size: 15px; font-weight: 600;">🎁 Cadeau</p>
+                <p style="margin: 0; color: #64748b; font-size: 14px; line-height: 1.6;">Vous êtes invité à apporter un cadeau pour l'association Elise Princesse Courageuse.</p>
+              </div>
+
+              <!-- Piscine -->
+              <div style="margin-bottom: 25px;">
+                <p style="margin: 0 0 5px; color: #1e293b; font-size: 15px; font-weight: 600;">🏊 Piscine</p>
+                <p style="margin: 0; color: #64748b; font-size: 14px; line-height: 1.6;">La piscine sera accessible. Si vous souhaitez en profiter, prévoyez votre maillot.</p>
+              </div>
+
+              <!-- Œuvres d'art -->
+              <div style="margin-bottom: 10px;">
+                <p style="margin: 0 0 5px; color: #1e293b; font-size: 15px; font-weight: 600;">🖼️ Œuvres d'art</p>
+                <p style="margin: 0; color: #64748b; font-size: 14px; line-height: 1.6;">Des œuvres seront exposées dans les anciennes cabines. Merci d'y accorder une attention particulière.</p>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Rappels -->
+          <tr>
+            <td style="padding: 20px 40px;">
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #f0fdf4; border-radius: 12px;">
                 <tr>
                   <td style="padding: 25px;">
-                    <h3 style="margin: 0 0 20px; color: #1e293b; font-size: 16px; font-weight: 600;">
-                      📅 Détails de l'événement
+                    <h3 style="margin: 0 0 15px; color: #166534; font-size: 16px; font-weight: 600;">
+                      💡 Pour profiter pleinement de la soirée
                     </h3>
-                    <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
-                      <tr>
-                        <td style="padding: 8px 0; color: #64748b; font-size: 14px; width: 100px;">Date</td>
-                        <td style="padding: 8px 0; color: #1e293b; font-size: 14px; font-weight: 500;">{{event.date}}</td>
-                      </tr>
-                      <tr>
-                        <td style="padding: 8px 0; color: #64748b; font-size: 14px;">Heure</td>
-                        <td style="padding: 8px 0; color: #1e293b; font-size: 14px; font-weight: 500;">{{event.time}}</td>
-                      </tr>
-                      <tr>
-                        <td style="padding: 8px 0; color: #64748b; font-size: 14px;">Lieu</td>
-                        <td style="padding: 8px 0; color: #1e293b; font-size: 14px; font-weight: 500;">{{event.location}}</td>
-                      </tr>
-                      <tr>
-                        <td style="padding: 8px 0; color: #64748b; font-size: 14px;">Adresse</td>
-                        <td style="padding: 8px 0; color: #1e293b; font-size: 14px; font-weight: 500;">{{event.address}}</td>
-                      </tr>
-                    </table>
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>
-
-          <!-- Important Info Cards -->
-          <tr>
-            <td style="padding: 20px 40px;">
-              <h3 style="margin: 0 0 15px; color: #1e293b; font-size: 16px; font-weight: 600;">
-                ⚠️ Informations importantes
-              </h3>
-              <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
-                <tr>
-                  <td width="50%" style="padding: 8px 8px 8px 0; vertical-align: top;">
-                    <div style="background: #fef3c7; border-radius: 10px; padding: 15px; height: 100%;">
-                      <p style="margin: 0; font-size: 20px;">👔</p>
-                      <p style="margin: 8px 0 0; color: #92400e; font-size: 13px; font-weight: 600;">Dress code</p>
-                      <p style="margin: 4px 0 0; color: #a16207; font-size: 12px;">Tenue de soirée élégante</p>
-                    </div>
-                  </td>
-                  <td width="50%" style="padding: 8px 0 8px 8px; vertical-align: top;">
-                    <div style="background: #fce7f3; border-radius: 10px; padding: 15px; height: 100%;">
-                      <p style="margin: 0; font-size: 20px;">🎁</p>
-                      <p style="margin: 8px 0 0; color: #9d174d; font-size: 13px; font-weight: 600;">Cadeau</p>
-                      <p style="margin: 4px 0 0; color: #be185d; font-size: 12px;">N'oubliez pas d'apporter un cadeau</p>
-                    </div>
-                  </td>
-                </tr>
-                <tr>
-                  <td width="50%" style="padding: 8px 8px 8px 0; vertical-align: top;">
-                    <div style="background: #dbeafe; border-radius: 10px; padding: 15px; height: 100%;">
-                      <p style="margin: 0; font-size: 20px;">🏊</p>
-                      <p style="margin: 8px 0 0; color: #1e40af; font-size: 13px; font-weight: 600;">Piscine</p>
-                      <p style="margin: 4px 0 0; color: #1d4ed8; font-size: 12px;">Disponible - pensez au maillot</p>
-                    </div>
-                  </td>
-                  <td width="50%" style="padding: 8px 0 8px 8px; vertical-align: top;">
-                    <div style="background: #fee2e2; border-radius: 10px; padding: 15px; height: 100%;">
-                      <p style="margin: 0; font-size: 20px;">🖼️</p>
-                      <p style="margin: 8px 0 0; color: #991b1b; font-size: 13px; font-weight: 600;">Œuvres d'art</p>
-                      <p style="margin: 4px 0 0; color: #dc2626; font-size: 12px;">Attention aux œuvres exposées</p>
-                    </div>
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>
-
-          <!-- Reminders -->
-          <tr>
-            <td style="padding: 20px 40px 30px;">
-              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #ecfdf5; border-radius: 10px; border-left: 4px solid #10b981;">
-                <tr>
-                  <td style="padding: 20px;">
-                    <p style="margin: 0 0 10px; color: #047857; font-size: 14px; font-weight: 600;">
-                      💡 Rappels
-                    </p>
-                    <ul style="margin: 0; padding: 0 0 0 20px; color: #047857; font-size: 14px; line-height: 1.8;">
-                      <li>Arrivez <strong>15 minutes avant</strong> le début</li>
-                      <li>Gardez cet email accessible sur votre téléphone</li>
-                      <li>En cas d'empêchement, prévenez-nous</li>
+                    <ul style="margin: 0; padding: 0 0 0 20px; color: #15803d; font-size: 14px; line-height: 1.8;">
+                      <li>Conservez cet email et votre QR code à portée de main</li>
+                      <li>En cas d'empêchement, informez-nous directement en répondant à ce message</li>
                     </ul>
                   </td>
                 </tr>
@@ -325,29 +395,23 @@ const htmlContent = `<!DOCTYPE html>
             </td>
           </tr>
 
-          <!-- Footer -->
+          <!-- Conclusion -->
           <tr>
-            <td style="background-color: #f8fafc; padding: 30px 40px; border-top: 1px solid #e2e8f0;">
-              <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
-                <tr>
-                  <td align="center">
-                    <p style="margin: 0 0 10px; color: #1e293b; font-size: 16px; font-weight: 600;">
-                      À très bientôt ! 🎉
-                    </p>
-                    <p style="margin: 0; color: #64748b; font-size: 13px; line-height: 1.6;">
-                      Une question ? Répondez directement à cet email.
-                    </p>
-                  </td>
-                </tr>
-              </table>
+            <td style="padding: 30px 40px 20px;">
+              <p style="margin: 0; color: #475569; font-size: 15px; line-height: 1.7;">
+                Nous avons hâte de célébrer avec vous et de partager une soirée exceptionnelle.
+              </p>
+              <p style="margin: 20px 0 0; color: #1e293b; font-size: 16px; font-weight: 500;">
+                À très bientôt.
+              </p>
             </td>
           </tr>
 
-          <!-- Copyright -->
+          <!-- Footer -->
           <tr>
-            <td style="background-color: #1e293b; padding: 20px 40px; text-align: center;">
-              <p style="margin: 0; color: #94a3b8; font-size: 12px;">
-                © ${new Date().getFullYear()} - Généré par Weevup
+            <td style="background-color: #f8fafc; padding: 25px 40px; border-top: 1px solid #e2e8f0; text-align: center;">
+              <p style="margin: 0; color: #64748b; font-size: 13px;">
+                Une question ? Répondez directement à cet email.
               </p>
             </td>
           </tr>
@@ -359,29 +423,44 @@ const htmlContent = `<!DOCTYPE html>
 </body>
 </html>`
 
-const textContent = `🎫 CONFIRMATION - {{event.name}}
+const textContent = `Prêt pour la soirée ?
+{{event.name}}
 
 Bonjour {{guest.firstName}},
 
-Votre participation est confirmée ! Voici les informations importantes.
+Nous sommes heureux de vous compter parmi les invités. Vous trouverez ci-dessous votre accès personnel ainsi que les informations essentielles pour préparer votre venue.
 
-📅 DATE : {{event.date}}
-🕐 HEURE : {{event.time}}
-📍 LIEU : {{event.location}}
-{{event.address}}
+📍 INFORMATIONS PRATIQUES
+Date : {{event.date}}
+À partir de : {{event.time}}
+Lieu : {{event.location}}
+Adresse : {{event.address}}
 
-⚠️ INFORMATIONS IMPORTANTES :
-- 👔 Dress code : Tenue de soirée élégante
-- 🎁 N'oubliez pas d'apporter un cadeau
-- 🏊 Piscine disponible - pensez au maillot
-- 🖼️ Attention aux œuvres d'art
+🚪 ACCÈS
+L'entrée se fait par la piscine intérieure, à l'adresse indiquée.
+Veuillez ne pas passer par l'entrée principale de l'hôtel.
 
-💡 RAPPELS :
-- Arrivez 15 minutes en avance
-- Gardez cet email sur votre téléphone
-- Présentez le QR code à l'entrée
+✨ PRÉPAREZ VOTRE VENUE
 
-À très bientôt !`
+👔 Dress Code
+Tenue de soirée élégante recommandée.
+
+🎁 Cadeau
+Vous êtes invité à apporter un cadeau pour l'association Elise Princesse Courageuse.
+
+🏊 Piscine
+La piscine sera accessible. Si vous souhaitez en profiter, prévoyez votre maillot.
+
+🖼️ Œuvres d'art
+Des œuvres seront exposées dans les anciennes cabines. Merci d'y accorder une attention particulière.
+
+💡 POUR PROFITER PLEINEMENT DE LA SOIRÉE
+- Conservez cet email et votre QR code à portée de main
+- En cas d'empêchement, informez-nous directement en répondant à ce message
+
+Nous avons hâte de célébrer avec vous et de partager une soirée exceptionnelle.
+
+À très bientôt.`
 
 // POST - Create the Final Access template (one-time use)
 export async function POST() {
@@ -392,7 +471,7 @@ export async function POST() {
       name: 'Confirmation & Accès (avec QR Code)',
       description: 'Email final avec QR code d\'entrée pour les invités confirmés',
       type: 'INFO' as const,
-      subject: '🎫 Votre confirmation : {{event.name}}',
+      subject: '🎫 Bienvenue - {{event.name}}',
       isDefault: true,
       htmlContent,
       textContent,
