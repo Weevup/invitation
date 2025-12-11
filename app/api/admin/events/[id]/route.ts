@@ -166,13 +166,13 @@ export async function GET(
             emailLogs: {
               where: {
                 type: {
-                  in: ['INVITATION', 'INVITE', 'REMINDER', 'SAVE_THE_DATE'],
+                  in: ['INVITATION', 'INVITE', 'REMINDER', 'SAVE_THE_DATE', 'INFO'],
                 },
               },
               orderBy: {
                 createdAt: 'desc',
               },
-              take: 3, // Show up to 3 most recent emails (for better status tracking)
+              take: 5, // Show up to 5 most recent emails (for better status tracking)
             },
           },
           orderBy: {

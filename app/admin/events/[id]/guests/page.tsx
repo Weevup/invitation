@@ -257,6 +257,22 @@ export default function GuestsPage() {
     return 'not-sent'
   }
 
+  // Helper function to check if confirmation email was sent
+  const hasConfirmationSent = (guest: Guest): boolean => {
+    return guest.emailLogs?.some(log => log.type === 'INFO') || false
+  }
+
+  // Helper function to get confirmation email status
+  const getConfirmationStatus = (guest: Guest): { sent: boolean; opened: boolean; date?: string } => {
+    const confirmationEmail = guest.emailLogs?.find(log => log.type === 'INFO')
+    if (!confirmationEmail) return { sent: false, opened: false }
+    return {
+      sent: true,
+      opened: !!confirmationEmail.openedAt,
+      date: confirmationEmail.sentAt || undefined
+    }
+  }
+
   const filteredGuests = event.guests
     .filter((guest) => {
       const searchLower = search.toLowerCase()
@@ -1082,6 +1098,18 @@ export default function GuestsPage() {
                                 )
                             }
                           })()}
+                          {/* QR Code confirmation indicator */}
+                          {guest.rsvp?.attending === true && (
+                            hasConfirmationSent(guest) ? (
+                              <Badge variant="outline" className="text-xs bg-purple-50 text-purple-700 border-purple-300" title={`QR code envoyé${getConfirmationStatus(guest).opened ? ' et ouvert' : ''}`}>
+                                {getConfirmationStatus(guest).opened ? '🎫✓' : '🎫'} QR
+                              </Badge>
+                            ) : (
+                              <Badge variant="outline" className="text-xs bg-yellow-50 text-yellow-700 border-yellow-300" title="QR code pas encore envoyé">
+                                🎫⏳
+                              </Badge>
+                            )
+                          )}
                         </div>
                       </td>
                       <td className="py-3">
