@@ -91,12 +91,13 @@ export default function KioskModePage() {
     return () => clearInterval(interval)
   }, [fetchGuests])
 
-  // QR Code Scanner
-  const startScanner = async () => {
+  // QR Code Scanner - Initialize camera
+  const initializeCamera = useCallback(async () => {
     try {
       // First check if getUserMedia is supported
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
         toast.error("Votre navigateur ne supporte pas l'accès à la caméra")
+        setScannerActive(false)
         return
       }
 
@@ -120,11 +121,11 @@ export default function KioskModePage() {
           }
         })
         await videoRef.current.play()
-        setScannerActive(true)
         scanQRCode()
       }
     } catch (error) {
       logger.error(error, { action: 'accessingCamera' })
+      setScannerActive(false)
       if (error instanceof DOMException) {
         if (error.name === 'NotAllowedError') {
           toast.error("Accès à la caméra refusé. Veuillez autoriser l'accès dans les paramètres de votre navigateur.")
@@ -137,6 +138,18 @@ export default function KioskModePage() {
         toast.error("Impossible d'accéder à la caméra")
       }
     }
+  }, [])
+
+  // Effect to initialize camera when scanner becomes active
+  useEffect(() => {
+    if (scannerActive && videoRef.current && !videoRef.current.srcObject) {
+      initializeCamera()
+    }
+  }, [scannerActive, initializeCamera])
+
+  const startScanner = () => {
+    // Just set the state - the useEffect will handle camera initialization
+    setScannerActive(true)
   }
 
   const stopScanner = () => {
@@ -490,10 +503,10 @@ export default function KioskModePage() {
               </div>
 
               <div className="relative bg-black rounded-lg overflow-hidden" style={{ aspectRatio: '4/3' }}>
-                {/* Video element always rendered but hidden when not active */}
+                {/* Video element - using absolute positioning so it's always in DOM but layered */}
                 <video
                   ref={videoRef}
-                  className={`w-full h-full object-cover ${scannerActive ? '' : 'hidden'}`}
+                  className={`absolute inset-0 w-full h-full object-cover ${scannerActive ? 'z-10' : 'z-0 opacity-0'}`}
                   playsInline
                   muted
                   autoPlay
@@ -501,11 +514,11 @@ export default function KioskModePage() {
                 <canvas ref={canvasRef} className="hidden" />
                 {scannerActive ? (
                   <>
-                    <div className="absolute inset-0 border-4 border-green-500 animate-pulse pointer-events-none" />
-                    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-40 h-40 sm:w-64 sm:h-64 border-4 border-white/50 pointer-events-none" />
+                    <div className="absolute inset-0 border-4 border-green-500 animate-pulse pointer-events-none z-20" />
+                    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-40 h-40 sm:w-64 sm:h-64 border-4 border-white/50 pointer-events-none z-20" />
                   </>
                 ) : (
-                  <div className="flex items-center justify-center h-full min-h-[200px] sm:min-h-[300px]">
+                  <div className="relative flex items-center justify-center h-full min-h-[200px] sm:min-h-[300px] z-10">
                     <div className="text-center text-white/70 px-4">
                       <Camera className="h-16 w-16 sm:h-24 sm:w-24 mx-auto mb-3 sm:mb-4 opacity-50" />
                       <p className="text-sm sm:text-lg">Appuyez sur le bouton pour activer la caméra</p>
