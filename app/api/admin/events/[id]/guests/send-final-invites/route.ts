@@ -170,7 +170,7 @@ export async function POST(
             'guest.email': guest.email,
             'event.name': event.name,
             'event.date': formatDate(event.startsAt),
-            'event.time': new Date(event.startsAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+            'event.time': new Date(event.startsAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Paris' }),
             'event.location': eventVenue,
             'event.address': event.address || '',
             'event.description': event.description || '',
