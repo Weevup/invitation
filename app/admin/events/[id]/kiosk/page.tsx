@@ -490,16 +490,17 @@ export default function KioskModePage() {
               </div>
 
               <div className="relative bg-black rounded-lg overflow-hidden" style={{ aspectRatio: '4/3' }}>
+                {/* Video element always rendered but hidden when not active */}
+                <video
+                  ref={videoRef}
+                  className={`w-full h-full object-cover ${scannerActive ? '' : 'hidden'}`}
+                  playsInline
+                  muted
+                  autoPlay
+                />
+                <canvas ref={canvasRef} className="hidden" />
                 {scannerActive ? (
                   <>
-                    <video
-                      ref={videoRef}
-                      className="w-full h-full object-cover"
-                      playsInline
-                      muted
-                      autoPlay
-                    />
-                    <canvas ref={canvasRef} className="hidden" />
                     <div className="absolute inset-0 border-4 border-green-500 animate-pulse pointer-events-none" />
                     <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-40 h-40 sm:w-64 sm:h-64 border-4 border-white/50 pointer-events-none" />
                   </>
