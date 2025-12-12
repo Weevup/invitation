@@ -174,6 +174,7 @@ export default function GuestsPage() {
       Nom: guest.lastName || '',
       Email: guest.email,
       'Lien RSVP': `${baseUrl}/guest/${guest.token}`,
+      'Lien QR Code Check-in': guest.rsvp?.qrCodeId ? `${baseUrl}/api/checkin/${guest.rsvp.qrCodeId}` : '',
       Entreprise: guest.company || '',
       Tags: guest.tags.join(', '),
       'Accompagnants Admin': guest.adminPlusOnes || 0,
