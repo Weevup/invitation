@@ -93,19 +93,48 @@ export default function KioskModePage() {
   // QR Code Scanner
   const startScanner = async () => {
     try {
+      // First check if getUserMedia is supported
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        toast.error("Votre navigateur ne supporte pas l'accès à la caméra")
+        return
+      }
+
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'environment', width: 1280, height: 720 }
+        video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
       })
 
       if (videoRef.current) {
         videoRef.current.srcObject = stream
-        videoRef.current.play()
+        // Wait for video to be ready
+        await new Promise<void>((resolve, reject) => {
+          if (!videoRef.current) {
+            reject(new Error('Video ref not available'))
+            return
+          }
+          videoRef.current.onloadedmetadata = () => {
+            resolve()
+          }
+          videoRef.current.onerror = () => {
+            reject(new Error('Video loading error'))
+          }
+        })
+        await videoRef.current.play()
         setScannerActive(true)
         scanQRCode()
       }
     } catch (error) {
       logger.error(error, { action: 'accessingCamera' })
-      toast.error("Impossible d'accéder à la caméra")
+      if (error instanceof DOMException) {
+        if (error.name === 'NotAllowedError') {
+          toast.error("Accès à la caméra refusé. Veuillez autoriser l'accès dans les paramètres de votre navigateur.")
+        } else if (error.name === 'NotFoundError') {
+          toast.error("Aucune caméra trouvée sur cet appareil")
+        } else {
+          toast.error(`Erreur caméra: ${error.message}`)
+        }
+      } else {
+        toast.error("Impossible d'accéder à la caméra")
+      }
     }
   }
 
@@ -223,10 +252,10 @@ export default function KioskModePage() {
     if (!search) return false
     const searchLower = search.toLowerCase()
     return (
-      guest.firstName.toLowerCase().includes(searchLower) ||
-      guest.lastName.toLowerCase().includes(searchLower) ||
-      guest.email.toLowerCase().includes(searchLower) ||
-      (guest.company && guest.company.toLowerCase().includes(searchLower))
+      (guest.firstName || '').toLowerCase().includes(searchLower) ||
+      (guest.lastName || '').toLowerCase().includes(searchLower) ||
+      (guest.email || '').toLowerCase().includes(searchLower) ||
+      (guest.company || '').toLowerCase().includes(searchLower)
     )
   })
 
@@ -432,6 +461,7 @@ export default function KioskModePage() {
                     className="w-full h-full object-cover"
                     playsInline
                     muted
+                    autoPlay
                   />
                   <canvas ref={canvasRef} className="hidden" />
                   <div className="absolute inset-0 border-4 border-green-500 animate-pulse pointer-events-none" />
