@@ -87,12 +87,13 @@ export default function CheckinPage() {
     fetchGuests()
   }, [fetchGuests])
 
-  // QR Code Scanner
-  const startScanner = async () => {
+  // QR Code Scanner - Initialize camera
+  const initializeCamera = useCallback(async () => {
     try {
       // First check if getUserMedia is supported
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
         toast.error("Votre navigateur ne supporte pas l'accès à la caméra")
+        setScannerActive(false)
         return
       }
 
@@ -116,11 +117,11 @@ export default function CheckinPage() {
           }
         })
         await videoRef.current.play()
-        setScannerActive(true)
         scanQRCode()
       }
     } catch (error) {
       logger.error(error, { action: 'accessingCamera' })
+      setScannerActive(false)
       if (error instanceof DOMException) {
         if (error.name === 'NotAllowedError') {
           toast.error("Accès à la caméra refusé. Veuillez autoriser l'accès dans les paramètres de votre navigateur.")
@@ -133,6 +134,18 @@ export default function CheckinPage() {
         toast.error("Impossible d'accéder à la caméra")
       }
     }
+  }, [])
+
+  // Effect to initialize camera when scanner becomes active
+  useEffect(() => {
+    if (scannerActive && videoRef.current && !videoRef.current.srcObject) {
+      initializeCamera()
+    }
+  }, [scannerActive, initializeCamera])
+
+  const startScanner = () => {
+    // Just set the state - the useEffect will handle camera initialization
+    setScannerActive(true)
   }
 
   const stopScanner = () => {
@@ -464,19 +477,21 @@ export default function CheckinPage() {
               )}
             </div>
 
-            {/* Video preview - video element always rendered but container hidden when not active */}
-            <div className={`relative rounded-lg overflow-hidden bg-black ${scannerActive ? '' : 'hidden'}`}>
+            {/* Video preview - video element always rendered, container visibility controlled */}
+            <div className={`relative rounded-lg overflow-hidden bg-black max-w-2xl ${scannerActive ? '' : 'h-0 overflow-hidden'}`} style={scannerActive ? { aspectRatio: '4/3' } : {}}>
               <video
                 ref={videoRef}
-                className="w-full max-w-2xl mx-auto"
+                className="w-full h-full object-cover"
                 playsInline
                 muted
                 autoPlay
               />
               <canvas ref={canvasRef} className="hidden" />
-              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                <div className="w-64 h-64 border-4 border-[#FF4713] rounded-lg" />
-              </div>
+              {scannerActive && (
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  <div className="w-64 h-64 border-4 border-[#FF4713] rounded-lg" />
+                </div>
+              )}
             </div>
           </div>
         </CardContent>
