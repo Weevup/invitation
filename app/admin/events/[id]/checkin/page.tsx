@@ -464,22 +464,20 @@ export default function CheckinPage() {
               )}
             </div>
 
-            {/* Video preview */}
-            {scannerActive && (
-              <div className="relative rounded-lg overflow-hidden bg-black">
-                <video
-                  ref={videoRef}
-                  className="w-full max-w-2xl mx-auto"
-                  playsInline
-                  muted
-                  autoPlay
-                />
-                <canvas ref={canvasRef} className="hidden" />
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                  <div className="w-64 h-64 border-4 border-[#FF4713] rounded-lg" />
-                </div>
+            {/* Video preview - video element always rendered but container hidden when not active */}
+            <div className={`relative rounded-lg overflow-hidden bg-black ${scannerActive ? '' : 'hidden'}`}>
+              <video
+                ref={videoRef}
+                className="w-full max-w-2xl mx-auto"
+                playsInline
+                muted
+                autoPlay
+              />
+              <canvas ref={canvasRef} className="hidden" />
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <div className="w-64 h-64 border-4 border-[#FF4713] rounded-lg" />
               </div>
-            )}
+            </div>
           </div>
         </CardContent>
       </Card>
