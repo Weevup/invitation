@@ -174,7 +174,7 @@ export default function GuestsPage() {
       Nom: guest.lastName || '',
       Email: guest.email,
       'Lien RSVP': `${baseUrl}/guest/${guest.token}`,
-      'Lien QR Code Check-in': guest.rsvp?.qrCodeId ? `${baseUrl}/api/checkin/${guest.rsvp.qrCodeId}` : '',
+      'Image QR Code': guest.rsvp?.qrCodeId ? `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(`${baseUrl}/api/checkin/${guest.rsvp.qrCodeId}`)}&format=png&margin=10` : '',
       Entreprise: guest.company || '',
       Tags: guest.tags.join(', '),
       'Accompagnants Admin': guest.adminPlusOnes || 0,
