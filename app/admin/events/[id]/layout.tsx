@@ -295,6 +295,14 @@ export default function EventLayout({
     return pathname?.startsWith(item.href)
   }
 
+  // Check if we're on a kiosk page - these should be full-screen without sidebar
+  const isKioskPage = pathname?.includes('/kiosk')
+
+  // For kiosk pages, render children without layout
+  if (isKioskPage) {
+    return <>{children}</>
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#9CD9F6] via-white to-[#9CD9F6]">
       {/* Lignes graphiques décoratives */}

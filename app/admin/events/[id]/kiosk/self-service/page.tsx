@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { useParams } from 'next/navigation'
-import { CheckCircle2, Camera, CameraOff, Users, Sparkles } from 'lucide-react'
+import { CheckCircle2, Camera, Users, Sparkles, AlertCircle } from 'lucide-react'
 import { toast } from 'sonner'
 import jsQR from 'jsqr'
 
@@ -29,6 +29,7 @@ export default function SelfServiceKioskPage() {
   const [scannerActive, setScannerActive] = useState(false)
   const [checkinResult, setCheckinResult] = useState<CheckinResult | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
+  const [cameraError, setCameraError] = useState<string | null>(null)
 
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -54,20 +55,26 @@ export default function SelfServiceKioskPage() {
   useEffect(() => {
     const timer = setTimeout(() => {
       startScanner()
-    }, 500)
+    }, 300)
     return () => clearTimeout(timer)
   }, [])
 
   const initializeCamera = useCallback(async () => {
     try {
+      setCameraError(null)
+
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        toast.error("Caméra non supportée")
+        setCameraError("Caméra non supportée sur cet appareil")
         setScannerActive(false)
         return
       }
 
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
+        video: {
+          facingMode: 'environment',
+          width: { ideal: 1920 },
+          height: { ideal: 1080 }
+        }
       })
 
       if (videoRef.current) {
@@ -86,7 +93,17 @@ export default function SelfServiceKioskPage() {
     } catch (error) {
       console.error('Camera error:', error)
       setScannerActive(false)
-      toast.error("Impossible d'accéder à la caméra")
+      if (error instanceof DOMException) {
+        if (error.name === 'NotAllowedError') {
+          setCameraError("Autorisez l'accès à la caméra dans les réglages")
+        } else if (error.name === 'NotFoundError') {
+          setCameraError("Aucune caméra trouvée")
+        } else {
+          setCameraError("Erreur caméra")
+        }
+      } else {
+        setCameraError("Impossible d'accéder à la caméra")
+      }
     }
   }, [])
 
@@ -98,6 +115,7 @@ export default function SelfServiceKioskPage() {
 
   const startScanner = () => {
     setCheckinResult(null)
+    setCameraError(null)
     setScannerActive(true)
   }
 
@@ -139,6 +157,12 @@ export default function SelfServiceKioskPage() {
     animationFrameRef.current = requestAnimationFrame(scanQRCode)
   }
 
+  const vibrate = () => {
+    if (navigator.vibrate) {
+      navigator.vibrate(200)
+    }
+  }
+
   const handleQRCodeDetected = async (data: string) => {
     const match = data.match(/\/api\/checkin\/([^\/]+)/)
     if (!match) {
@@ -147,6 +171,7 @@ export default function SelfServiceKioskPage() {
       return
     }
 
+    vibrate()
     const qrCodeId = match[1]
     setIsProcessing(true)
     stopScanner()
@@ -161,7 +186,6 @@ export default function SelfServiceKioskPage() {
       const result = await response.json()
 
       if (response.ok) {
-        // Get plus ones info
         const verifyResponse = await fetch(`/api/checkin/${qrCodeId}`)
         const verifyData = await verifyResponse.json()
 
@@ -177,7 +201,7 @@ export default function SelfServiceKioskPage() {
           alreadyCheckedIn: true
         })
       } else {
-        toast.error(result.error || 'Erreur lors du check-in')
+        toast.error(result.error || 'Erreur')
         setTimeout(startScanner, 2000)
       }
     } catch (error) {
@@ -195,7 +219,7 @@ export default function SelfServiceKioskPage() {
       const timer = setTimeout(() => {
         setCheckinResult(null)
         startScanner()
-      }, 5000)
+      }, 4000)
       return () => clearTimeout(timer)
     }
   }, [checkinResult])
@@ -206,165 +230,185 @@ export default function SelfServiceKioskPage() {
   }, [])
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#004645] via-[#009197] to-[#004645] flex flex-col">
-      {/* Header */}
-      <div className="text-center pt-6 pb-4 px-4">
-        <h1 className="text-2xl sm:text-3xl font-bold text-white mb-1">Check-in</h1>
-        <p className="text-white/80 text-sm sm:text-base">{eventName}</p>
+    <div className="fixed inset-0 bg-[#004645] flex flex-col overflow-hidden">
+      {/* Safe area padding for iPhone notch */}
+      <div className="flex-shrink-0 h-[env(safe-area-inset-top)]" />
+
+      {/* Minimal Header */}
+      <div className="flex-shrink-0 text-center py-3 px-4">
+        <p className="text-white/90 text-sm font-medium truncate">{eventName || 'Check-in'}</p>
       </div>
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col items-center justify-center px-4 pb-8">
+      {/* Main Scanner Area - Takes all available space */}
+      <div className="flex-1 flex flex-col min-h-0">
         {checkinResult ? (
-          // Success Screen
-          <div className="w-full max-w-sm animate-in zoom-in-95 duration-300">
-            <div className="bg-white rounded-3xl shadow-2xl overflow-hidden">
-              {/* Success Header */}
-              <div className={`py-8 px-6 text-center ${checkinResult.alreadyCheckedIn ? 'bg-orange-500' : 'bg-green-500'}`}>
-                <div className="w-20 h-20 mx-auto bg-white/20 rounded-full flex items-center justify-center mb-4">
-                  <CheckCircle2 className="h-12 w-12 text-white" />
+          // Success Screen - Full screen takeover
+          <div className="flex-1 flex items-center justify-center p-4">
+            <div className="w-full max-w-sm animate-in zoom-in-95 duration-200">
+              <div className={`rounded-3xl shadow-2xl overflow-hidden ${
+                checkinResult.alreadyCheckedIn ? 'bg-orange-500' : 'bg-green-500'
+              }`}>
+                {/* Success Icon */}
+                <div className="pt-10 pb-6 text-center">
+                  <div className="w-24 h-24 mx-auto bg-white/20 rounded-full flex items-center justify-center mb-4 animate-in zoom-in duration-300">
+                    <CheckCircle2 className="h-14 w-14 text-white" />
+                  </div>
+                  <h2 className="text-2xl font-bold text-white">
+                    {checkinResult.alreadyCheckedIn ? 'Déjà enregistré' : 'Bienvenue !'}
+                  </h2>
                 </div>
-                <h2 className="text-2xl font-bold text-white">
-                  {checkinResult.alreadyCheckedIn ? 'Déjà enregistré' : 'Bienvenue !'}
-                </h2>
-              </div>
 
-              {/* Guest Info */}
-              <div className="p-6 text-center">
-                <p className="text-3xl font-bold text-[#004645] mb-2">
-                  {checkinResult.guest.firstName}
-                </p>
-                <p className="text-xl text-[#004645]/70 mb-4">
-                  {checkinResult.guest.lastName}
-                </p>
-
-                {checkinResult.guest.company && (
-                  <p className="text-sm text-[#004645]/60 mb-4">
-                    {checkinResult.guest.company}
+                {/* Guest Info - White card */}
+                <div className="bg-white p-6 text-center">
+                  <p className="text-4xl font-bold text-[#004645]">
+                    {checkinResult.guest.firstName}
                   </p>
-                )}
+                  <p className="text-2xl text-[#004645]/70 mt-1">
+                    {checkinResult.guest.lastName}
+                  </p>
 
-                {/* Plus Ones */}
-                {checkinResult.plusOnes && checkinResult.plusOnes > 0 && (
-                  <div className="mt-4 p-4 bg-[#9CD9F6]/20 rounded-2xl">
-                    <div className="flex items-center justify-center gap-2">
-                      <Users className="h-6 w-6 text-[#009197]" />
-                      <span className="text-lg font-semibold text-[#004645]">
-                        +{checkinResult.plusOnes} accompagnant{checkinResult.plusOnes > 1 ? 's' : ''}
-                      </span>
+                  {checkinResult.guest.company && (
+                    <p className="text-base text-[#004645]/50 mt-2">
+                      {checkinResult.guest.company}
+                    </p>
+                  )}
+
+                  {/* Plus Ones - Prominent display */}
+                  {checkinResult.plusOnes !== undefined && checkinResult.plusOnes > 0 && (
+                    <div className="mt-6 p-5 bg-gradient-to-r from-[#009197]/10 to-[#004645]/10 rounded-2xl">
+                      <div className="flex items-center justify-center gap-3">
+                        <div className="w-12 h-12 rounded-full bg-[#009197] flex items-center justify-center">
+                          <Users className="h-6 w-6 text-white" />
+                        </div>
+                        <div className="text-left">
+                          <p className="text-3xl font-bold text-[#004645]">
+                            +{checkinResult.plusOnes}
+                          </p>
+                          <p className="text-sm text-[#004645]/60">
+                            accompagnant{checkinResult.plusOnes > 1 ? 's' : ''}
+                          </p>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
 
-                {!checkinResult.alreadyCheckedIn && (
-                  <div className="mt-6 flex items-center justify-center gap-2 text-green-600">
-                    <Sparkles className="h-5 w-5" />
-                    <span className="font-medium">Bonne soirée !</span>
-                  </div>
-                )}
-              </div>
+                  {!checkinResult.alreadyCheckedIn && (
+                    <div className="mt-6 flex items-center justify-center gap-2 text-green-600">
+                      <Sparkles className="h-5 w-5" />
+                      <span className="font-semibold text-lg">Bonne soirée !</span>
+                    </div>
+                  )}
+                </div>
 
-              {/* Progress bar for auto-dismiss */}
-              <div className="h-1 bg-gray-200">
-                <div className="h-full bg-[#009197] animate-shrink-width" style={{ animationDuration: '5s' }} />
+                {/* Progress bar */}
+                <div className="h-1.5 bg-black/10">
+                  <div
+                    className="h-full bg-white/50 transition-all duration-100 ease-linear"
+                    style={{
+                      animation: 'shrink-width 4s linear forwards'
+                    }}
+                  />
+                </div>
               </div>
             </div>
           </div>
         ) : (
-          // Scanner Screen
-          <div className="w-full max-w-sm">
-            <div className="bg-white/10 backdrop-blur-md rounded-3xl p-4 shadow-2xl">
-              {/* Scanner Area */}
-              <div className="relative aspect-square rounded-2xl overflow-hidden bg-black">
-                <video
-                  ref={videoRef}
-                  className={`absolute inset-0 w-full h-full object-cover ${scannerActive ? 'opacity-100' : 'opacity-0'}`}
-                  playsInline
-                  muted
-                  autoPlay
-                />
-                <canvas ref={canvasRef} className="hidden" />
+          // Scanner View
+          <div className="flex-1 flex flex-col">
+            {/* Video fills most of the screen */}
+            <div className="flex-1 relative bg-black">
+              <video
+                ref={videoRef}
+                className="absolute inset-0 w-full h-full object-cover"
+                playsInline
+                muted
+                autoPlay
+              />
+              <canvas ref={canvasRef} className="hidden" />
 
-                {scannerActive ? (
-                  <>
-                    {/* Scanning overlay */}
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="w-48 h-48 sm:w-56 sm:h-56 border-4 border-white/80 rounded-2xl relative">
-                        <div className="absolute inset-0 border-4 border-[#FF4713] rounded-2xl animate-pulse" />
-                        {/* Corner accents */}
-                        <div className="absolute -top-1 -left-1 w-8 h-8 border-t-4 border-l-4 border-[#FF4713] rounded-tl-lg" />
-                        <div className="absolute -top-1 -right-1 w-8 h-8 border-t-4 border-r-4 border-[#FF4713] rounded-tr-lg" />
-                        <div className="absolute -bottom-1 -left-1 w-8 h-8 border-b-4 border-l-4 border-[#FF4713] rounded-bl-lg" />
-                        <div className="absolute -bottom-1 -right-1 w-8 h-8 border-b-4 border-r-4 border-[#FF4713] rounded-br-lg" />
-                      </div>
-                    </div>
-                    {/* Scanning line animation */}
-                    <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-0.5 bg-gradient-to-r from-transparent via-[#FF4713] to-transparent animate-scan" />
-                  </>
-                ) : (
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="text-center text-white/70">
-                      <Camera className="h-16 w-16 mx-auto mb-4 opacity-50" />
-                      <p>Chargement de la caméra...</p>
-                    </div>
+              {/* Scan overlay */}
+              {scannerActive && !cameraError && (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  {/* Darkened corners */}
+                  <div className="absolute inset-0 bg-black/40" style={{
+                    maskImage: 'radial-gradient(circle at center, transparent 35%, black 35%)',
+                    WebkitMaskImage: 'radial-gradient(circle at center, transparent 35%, black 35%)'
+                  }} />
+
+                  {/* Scan frame */}
+                  <div className="w-64 h-64 relative">
+                    {/* Animated border */}
+                    <div className="absolute inset-0 border-4 border-white/30 rounded-3xl" />
+
+                    {/* Corners */}
+                    <div className="absolute -top-1 -left-1 w-12 h-12 border-t-4 border-l-4 border-[#FF4713] rounded-tl-2xl" />
+                    <div className="absolute -top-1 -right-1 w-12 h-12 border-t-4 border-r-4 border-[#FF4713] rounded-tr-2xl" />
+                    <div className="absolute -bottom-1 -left-1 w-12 h-12 border-b-4 border-l-4 border-[#FF4713] rounded-bl-2xl" />
+                    <div className="absolute -bottom-1 -right-1 w-12 h-12 border-b-4 border-r-4 border-[#FF4713] rounded-br-2xl" />
+
+                    {/* Scanning line */}
+                    <div className="absolute inset-x-4 top-1/2 h-0.5 bg-[#FF4713] shadow-lg shadow-[#FF4713]/50 animate-scan-line" />
                   </div>
-                )}
-              </div>
+                </div>
+              )}
 
-              {/* Instructions */}
-              <div className="mt-4 text-center">
-                <p className="text-white text-lg font-medium">
-                  Scannez votre QR code
-                </p>
-                <p className="text-white/70 text-sm mt-1">
-                  Placez le QR code dans le cadre
-                </p>
-              </div>
+              {/* Camera error state */}
+              {cameraError && (
+                <div className="absolute inset-0 flex items-center justify-center bg-[#004645]">
+                  <div className="text-center p-6">
+                    <AlertCircle className="h-16 w-16 text-[#FF4713] mx-auto mb-4" />
+                    <p className="text-white text-lg font-medium mb-4">{cameraError}</p>
+                    <button
+                      onClick={startScanner}
+                      className="px-6 py-3 bg-[#FF4713] text-white rounded-full font-semibold"
+                    >
+                      Réessayer
+                    </button>
+                  </div>
+                </div>
+              )}
 
-              {/* Manual toggle */}
-              <button
-                onClick={scannerActive ? stopScanner : startScanner}
-                className="mt-4 w-full py-3 rounded-xl bg-white/20 hover:bg-white/30 transition-colors text-white font-medium flex items-center justify-center gap-2"
-              >
-                {scannerActive ? (
-                  <>
-                    <CameraOff className="h-5 w-5" />
-                    Arrêter la caméra
-                  </>
-                ) : (
-                  <>
-                    <Camera className="h-5 w-5" />
-                    Activer la caméra
-                  </>
-                )}
-              </button>
+              {/* Loading state */}
+              {!scannerActive && !cameraError && (
+                <div className="absolute inset-0 flex items-center justify-center bg-[#004645]">
+                  <div className="text-center">
+                    <Camera className="h-16 w-16 text-white/50 mx-auto mb-4 animate-pulse" />
+                    <p className="text-white/70">Activation de la caméra...</p>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Bottom instruction bar */}
+            <div className="flex-shrink-0 bg-[#004645] py-5 px-4 text-center">
+              <p className="text-white text-lg font-semibold">
+                Présentez votre QR code
+              </p>
             </div>
           </div>
         )}
       </div>
 
-      {/* Footer */}
-      <div className="text-center pb-6 px-4">
-        <p className="text-white/50 text-xs">
-          Powered by Weevup
-        </p>
-      </div>
+      {/* Safe area padding for iPhone home indicator */}
+      <div className="flex-shrink-0 h-[env(safe-area-inset-bottom)] bg-[#004645]" />
 
-      {/* Custom animations */}
       <style jsx global>{`
         @keyframes shrink-width {
           from { width: 100%; }
           to { width: 0%; }
         }
-        .animate-shrink-width {
-          animation: shrink-width linear forwards;
+        @keyframes scan-line {
+          0%, 100% {
+            transform: translateY(-60px);
+            opacity: 0.5;
+          }
+          50% {
+            transform: translateY(60px);
+            opacity: 1;
+          }
         }
-        @keyframes scan {
-          0%, 100% { transform: translateY(-100px); opacity: 0; }
-          50% { transform: translateY(100px); opacity: 1; }
-        }
-        .animate-scan {
-          animation: scan 2s ease-in-out infinite;
+        .animate-scan-line {
+          animation: scan-line 1.5s ease-in-out infinite;
         }
       `}</style>
     </div>
