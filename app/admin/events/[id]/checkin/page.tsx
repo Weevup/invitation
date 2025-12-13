@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import {
-  QrCode, CheckCircle2, Users, Clock, Search, X, Camera, CameraOff, UserCheck, Maximize
+  QrCode, CheckCircle2, Users, Clock, Search, X, Camera, CameraOff, UserCheck, Maximize, Smartphone, MonitorPlay
 } from 'lucide-react'
 import { toast } from 'sonner'
 import jsQR from 'jsqr'
@@ -316,14 +316,31 @@ export default function CheckinPage() {
             <span className="text-4xl font-bold text-white">{selectedDesk}</span>
           </div>
         </div>
-        <Button
-          onClick={() => router.push(`/admin/events/${eventId}/kiosk`)}
-          className="bg-gradient-to-r from-[#FF4713] to-[#FF6B3D] hover:from-[#FF5520] hover:to-[#FF7D4A] text-white shadow-lg"
-          size="lg"
-        >
-          <Maximize className="h-5 w-5 mr-2" />
-          Mode Kiosque
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button
+            onClick={() => router.push(`/admin/events/${eventId}/kiosk/self-service`)}
+            variant="outline"
+            className="border-[#009197] text-[#009197] hover:bg-[#009197] hover:text-white"
+          >
+            <Smartphone className="h-4 w-4 mr-2" />
+            Self-Service
+          </Button>
+          <Button
+            onClick={() => router.push(`/admin/events/${eventId}/kiosk/display`)}
+            variant="outline"
+            className="border-[#004645] text-[#004645] hover:bg-[#004645] hover:text-white"
+          >
+            <MonitorPlay className="h-4 w-4 mr-2" />
+            Affichage
+          </Button>
+          <Button
+            onClick={() => router.push(`/admin/events/${eventId}/kiosk`)}
+            className="bg-gradient-to-r from-[#FF4713] to-[#FF6B3D] hover:from-[#FF5520] hover:to-[#FF7D4A] text-white shadow-lg"
+          >
+            <Maximize className="h-4 w-4 mr-2" />
+            Mode Kiosque
+          </Button>
+        </div>
       </div>
 
       {/* Stats */}
