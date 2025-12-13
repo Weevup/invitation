@@ -618,7 +618,7 @@ export default function CheckinPage() {
                   return (
                     <div
                       key={guest.id}
-                      className="flex items-center justify-between p-3 rounded-lg border border-green-200 bg-green-50/50 group"
+                      className="flex items-center justify-between p-3 rounded-lg border border-green-200 bg-green-50/50"
                     >
                       <div>
                         <p className="font-medium text-[#004645]">
@@ -637,7 +637,7 @@ export default function CheckinPage() {
                           size="sm"
                           variant="ghost"
                           onClick={() => cancelCheckin(guest)}
-                          className="opacity-0 group-hover:opacity-100 transition-opacity text-red-500 hover:text-red-700 hover:bg-red-50"
+                          className="text-red-500 hover:text-red-700 hover:bg-red-50"
                           title="Annuler le check-in"
                         >
                           <Undo2 className="h-4 w-4" />
