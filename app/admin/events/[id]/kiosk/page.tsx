@@ -205,10 +205,10 @@ export default function KioskModePage() {
 
   const performCheckin = async (qrCodeId: string) => {
     try {
-      const response = await fetch(`/api/admin/events/${eventId}/checkin`, {
+      const response = await fetch(`/api/checkin/${qrCodeId}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ qrCodeId, desk: selectedDesk }),
+        body: JSON.stringify({ desk: selectedDesk }),
       })
 
       if (response.ok) {
