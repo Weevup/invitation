@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import {
-  QrCode, CheckCircle2, Users, Clock, Search, X, Camera, CameraOff, UserCheck, Maximize, Smartphone, MonitorPlay
+  QrCode, CheckCircle2, Users, Clock, Search, X, Camera, CameraOff, UserCheck, Maximize, Smartphone, MonitorPlay, Undo2
 } from 'lucide-react'
 import { toast } from 'sonner'
 import jsQR from 'jsqr'
@@ -272,6 +272,29 @@ export default function CheckinPage() {
       setSelectedDesk(availableDesks[0])
     }
     toast.success(`Kiosque ${desk} supprimé`)
+  }
+
+  const cancelCheckin = async (guest: Guest) => {
+    if (!guest.checkins || guest.checkins.length === 0) return
+
+    const checkinId = guest.checkins[0].id
+
+    try {
+      const response = await fetch(`/api/admin/events/${eventId}/checkin/${checkinId}`, {
+        method: 'DELETE'
+      })
+
+      if (response.ok) {
+        toast.success(`Check-in de ${guest.firstName} ${guest.lastName} annulé`)
+        fetchGuests()
+      } else {
+        const data = await response.json()
+        toast.error(data.error || 'Erreur lors de l\'annulation')
+      }
+    } catch (error) {
+      logger.error(error, { action: 'cancelCheckin' })
+      toast.error('Erreur lors de l\'annulation')
+    }
   }
 
   const filteredGuests = guests.filter((guest) => {
@@ -595,7 +618,7 @@ export default function CheckinPage() {
                   return (
                     <div
                       key={guest.id}
-                      className="flex items-center justify-between p-3 rounded-lg border border-green-200 bg-green-50/50"
+                      className="flex items-center justify-between p-3 rounded-lg border border-green-200 bg-green-50/50 group"
                     >
                       <div>
                         <p className="font-medium text-[#004645]">
@@ -609,7 +632,18 @@ export default function CheckinPage() {
                           {latestCheckin.desk && ` • Desk ${latestCheckin.desk}`}
                         </p>
                       </div>
-                      <CheckCircle2 className="h-5 w-5 text-green-600" />
+                      <div className="flex items-center gap-2">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => cancelCheckin(guest)}
+                          className="opacity-0 group-hover:opacity-100 transition-opacity text-red-500 hover:text-red-700 hover:bg-red-50"
+                          title="Annuler le check-in"
+                        >
+                          <Undo2 className="h-4 w-4" />
+                        </Button>
+                        <CheckCircle2 className="h-5 w-5 text-green-600" />
+                      </div>
                     </div>
                   )
                 })
