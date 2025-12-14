@@ -1,8 +1,11 @@
 "use client"
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef, Suspense } from 'react'
 import { useParams } from 'next/navigation'
 import { Users, CheckCircle2, Clock } from 'lucide-react'
+import { Canvas, useFrame, useThree } from '@react-three/fiber'
+import { OrbitControls, Environment, Float, Text3D, Center, RoundedBox, MeshReflectorMaterial } from '@react-three/drei'
+import * as THREE from 'three'
 
 interface Event {
   id: string
@@ -28,23 +31,14 @@ interface AnimatedGuest {
   id: string
   initials: string
   x: number
-  y: number
+  z: number
   targetX: number
-  targetY: number
+  targetZ: number
   speed: number
   color: string
   skinTone: string
-  zone: 'pool' | 'lounge-left' | 'lounge-right' | 'terrace'
   isWalking: boolean
-  direction: 'left' | 'right'
-}
-
-// Isometric zones (adjusted for isometric projection)
-const ZONES = {
-  'pool': { x: 35, y: 35, width: 30, height: 25 },
-  'lounge-left': { x: 10, y: 25, width: 20, height: 35 },
-  'lounge-right': { x: 70, y: 25, width: 20, height: 35 },
-  'terrace': { x: 25, y: 65, width: 50, height: 15 },
+  rotation: number
 }
 
 const GUEST_COLORS = [
@@ -53,6 +47,310 @@ const GUEST_COLORS = [
 ]
 
 const SKIN_TONES = ['#FFDFC4', '#F0C8A0', '#D4A574', '#8D5524', '#5C3836']
+
+// 3D Water component with animated shader
+function Water() {
+  const meshRef = useRef<THREE.Mesh>(null)
+
+  useFrame((state) => {
+    if (meshRef.current) {
+      const material = meshRef.current.material as THREE.MeshStandardMaterial
+      material.opacity = 0.85 + Math.sin(state.clock.elapsedTime * 2) * 0.05
+    }
+  })
+
+  return (
+    <mesh ref={meshRef} position={[0, 0.05, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+      <planeGeometry args={[8, 12]} />
+      <meshStandardMaterial
+        color="#40E0D0"
+        transparent
+        opacity={0.85}
+        roughness={0.1}
+        metalness={0.3}
+      />
+    </mesh>
+  )
+}
+
+// Pool lane lines
+function PoolLanes() {
+  return (
+    <group position={[0, 0.06, 0]}>
+      {[-2.5, 0, 2.5].map((x, i) => (
+        <mesh key={i} position={[x, 0, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <planeGeometry args={[0.05, 11]} />
+          <meshBasicMaterial color="#00BFFF" transparent opacity={0.6} />
+        </mesh>
+      ))}
+    </group>
+  )
+}
+
+// 3D Character component - cute low-poly style
+function Character3D({ guest, position }: { guest: AnimatedGuest; position: [number, number, number] }) {
+  const groupRef = useRef<THREE.Group>(null)
+  const [bobOffset, setBobOffset] = useState(0)
+
+  useFrame((state) => {
+    if (groupRef.current) {
+      // Smooth movement towards target
+      const dx = guest.targetX - guest.x
+      const dz = guest.targetZ - guest.z
+
+      // Bob animation when walking
+      if (guest.isWalking) {
+        setBobOffset(Math.sin(state.clock.elapsedTime * 8) * 0.05)
+      } else {
+        setBobOffset(Math.sin(state.clock.elapsedTime * 2) * 0.02)
+      }
+
+      // Look direction
+      if (Math.abs(dx) > 0.01 || Math.abs(dz) > 0.01) {
+        groupRef.current.rotation.y = Math.atan2(dx, dz)
+      }
+    }
+  })
+
+  const bodyColor = new THREE.Color(guest.color)
+  const skinColor = new THREE.Color(guest.skinTone)
+
+  return (
+    <group ref={groupRef} position={[position[0], position[1] + bobOffset, position[2]]}>
+      {/* Shadow */}
+      <mesh position={[0, 0.01, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <circleGeometry args={[0.25, 16]} />
+        <meshBasicMaterial color="black" transparent opacity={0.2} />
+      </mesh>
+
+      {/* Body */}
+      <mesh position={[0, 0.35, 0]}>
+        <capsuleGeometry args={[0.18, 0.3, 8, 16]} />
+        <meshStandardMaterial color={bodyColor} roughness={0.8} />
+      </mesh>
+
+      {/* Head */}
+      <mesh position={[0, 0.75, 0]}>
+        <sphereGeometry args={[0.18, 16, 16]} />
+        <meshStandardMaterial color={skinColor} roughness={0.6} />
+      </mesh>
+
+      {/* Hair */}
+      <mesh position={[0, 0.85, 0]}>
+        <sphereGeometry args={[0.15, 16, 8]} />
+        <meshStandardMaterial color={bodyColor} roughness={0.9} />
+      </mesh>
+
+      {/* Eyes */}
+      <mesh position={[0.06, 0.77, 0.14]}>
+        <sphereGeometry args={[0.03, 8, 8]} />
+        <meshBasicMaterial color="#333333" />
+      </mesh>
+      <mesh position={[-0.06, 0.77, 0.14]}>
+        <sphereGeometry args={[0.03, 8, 8]} />
+        <meshBasicMaterial color="#333333" />
+      </mesh>
+
+      {/* Blush */}
+      <mesh position={[0.12, 0.72, 0.12]}>
+        <sphereGeometry args={[0.04, 8, 8]} />
+        <meshBasicMaterial color="#FFB6C1" transparent opacity={0.5} />
+      </mesh>
+      <mesh position={[-0.12, 0.72, 0.12]}>
+        <sphereGeometry args={[0.04, 8, 8]} />
+        <meshBasicMaterial color="#FFB6C1" transparent opacity={0.5} />
+      </mesh>
+    </group>
+  )
+}
+
+// Lounge chair
+function LoungeChair({ position, color }: { position: [number, number, number]; color: string }) {
+  return (
+    <group position={position}>
+      {/* Base */}
+      <RoundedBox args={[0.8, 0.15, 1.8]} radius={0.05} position={[0, 0.15, 0]}>
+        <meshStandardMaterial color={color} roughness={0.7} />
+      </RoundedBox>
+      {/* Back rest */}
+      <RoundedBox args={[0.7, 0.1, 0.6]} radius={0.03} position={[0, 0.35, -0.5]} rotation={[0.5, 0, 0]}>
+        <meshStandardMaterial color={color} roughness={0.7} />
+      </RoundedBox>
+      {/* Legs */}
+      {[[-0.3, 0, -0.7], [0.3, 0, -0.7], [-0.3, 0, 0.7], [0.3, 0, 0.7]].map((pos, i) => (
+        <mesh key={i} position={pos as [number, number, number]}>
+          <cylinderGeometry args={[0.03, 0.03, 0.15, 8]} />
+          <meshStandardMaterial color="#8B4513" roughness={0.8} />
+        </mesh>
+      ))}
+    </group>
+  )
+}
+
+// Parasol / Umbrella
+function Parasol({ position, color }: { position: [number, number, number]; color: string }) {
+  const ref = useRef<THREE.Group>(null)
+
+  useFrame((state) => {
+    if (ref.current) {
+      ref.current.rotation.y = Math.sin(state.clock.elapsedTime * 0.5) * 0.05
+    }
+  })
+
+  return (
+    <group ref={ref} position={position}>
+      {/* Pole */}
+      <mesh position={[0, 1, 0]}>
+        <cylinderGeometry args={[0.04, 0.04, 2, 8]} />
+        <meshStandardMaterial color="#8B4513" roughness={0.7} />
+      </mesh>
+      {/* Canopy */}
+      <mesh position={[0, 2.1, 0]}>
+        <coneGeometry args={[1.2, 0.4, 8]} />
+        <meshStandardMaterial color={color} roughness={0.6} side={THREE.DoubleSide} />
+      </mesh>
+      {/* Top */}
+      <mesh position={[0, 2.35, 0]}>
+        <sphereGeometry args={[0.08, 8, 8]} />
+        <meshStandardMaterial color={color} roughness={0.6} />
+      </mesh>
+    </group>
+  )
+}
+
+// Palm tree / Plant
+function Plant({ position }: { position: [number, number, number] }) {
+  const ref = useRef<THREE.Group>(null)
+
+  useFrame((state) => {
+    if (ref.current) {
+      ref.current.rotation.z = Math.sin(state.clock.elapsedTime) * 0.02
+    }
+  })
+
+  return (
+    <group ref={ref} position={position}>
+      {/* Pot */}
+      <mesh position={[0, 0.15, 0]}>
+        <cylinderGeometry args={[0.25, 0.2, 0.3, 8]} />
+        <meshStandardMaterial color="#D2691E" roughness={0.9} />
+      </mesh>
+      {/* Leaves */}
+      {[0, 60, 120, 180, 240, 300].map((angle, i) => (
+        <mesh key={i} position={[0, 0.5, 0]} rotation={[0.3, THREE.MathUtils.degToRad(angle), 0]}>
+          <coneGeometry args={[0.15, 0.6, 4]} />
+          <meshStandardMaterial color="#228B22" roughness={0.8} />
+        </mesh>
+      ))}
+    </group>
+  )
+}
+
+// Pool structure
+function PoolStructure() {
+  return (
+    <group>
+      {/* Pool border / deck */}
+      <mesh position={[0, -0.05, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <planeGeometry args={[20, 20]} />
+        <meshStandardMaterial color="#FFE4EC" roughness={0.8} />
+      </mesh>
+
+      {/* Pool walls */}
+      <RoundedBox args={[9, 0.5, 13]} radius={0.1} position={[0, -0.2, 0]}>
+        <meshStandardMaterial color="#E8E8E8" roughness={0.5} />
+      </RoundedBox>
+
+      {/* Inner pool (water container) */}
+      <mesh position={[0, 0, 0]}>
+        <boxGeometry args={[8.2, 0.4, 12.2]} />
+        <meshStandardMaterial color="#87CEEB" roughness={0.3} />
+      </mesh>
+    </group>
+  )
+}
+
+// Animated scene with characters
+function PoolScene({ guests }: { guests: AnimatedGuest[] }) {
+  return (
+    <>
+      {/* Lighting */}
+      <ambientLight intensity={0.6} />
+      <directionalLight
+        position={[10, 15, 10]}
+        intensity={1.2}
+        castShadow
+        shadow-mapSize={[2048, 2048]}
+      />
+      <directionalLight position={[-5, 10, -5]} intensity={0.4} color="#FFB6C1" />
+
+      {/* Pool */}
+      <PoolStructure />
+      <Water />
+      <PoolLanes />
+
+      {/* Lounge chairs - Left side */}
+      <LoungeChair position={[-6, 0, -3]} color="#FF69B4" />
+      <LoungeChair position={[-6, 0, 0]} color="#FF69B4" />
+      <LoungeChair position={[-6, 0, 3]} color="#FF69B4" />
+
+      {/* Lounge chairs - Right side */}
+      <LoungeChair position={[6, 0, -3]} color="#87CEEB" />
+      <LoungeChair position={[6, 0, 0]} color="#87CEEB" />
+      <LoungeChair position={[6, 0, 3]} color="#87CEEB" />
+
+      {/* Parasols */}
+      <Parasol position={[-6.5, 0, -4.5]} color="#FF6B9D" />
+      <Parasol position={[-6.5, 0, 4.5]} color="#C084FC" />
+      <Parasol position={[6.5, 0, -4.5]} color="#60A5FA" />
+      <Parasol position={[6.5, 0, 4.5]} color="#34D399" />
+
+      {/* Plants */}
+      <Plant position={[-8, 0, -7]} />
+      <Plant position={[8, 0, -7]} />
+      <Plant position={[-8, 0, 7]} />
+      <Plant position={[8, 0, 7]} />
+      <Plant position={[0, 0, 8]} />
+      <Plant position={[0, 0, -8]} />
+
+      {/* Characters */}
+      {guests.map((guest) => (
+        <Float key={guest.id} speed={2} floatIntensity={0.1}>
+          <Character3D
+            guest={guest}
+            position={[guest.x, 0, guest.z]}
+          />
+        </Float>
+      ))}
+
+      {/* Environment */}
+      <Environment preset="sunset" />
+    </>
+  )
+}
+
+// Camera controller for smooth isometric view
+function CameraController() {
+  const { camera } = useThree()
+
+  useEffect(() => {
+    camera.position.set(15, 15, 15)
+    camera.lookAt(0, 0, 0)
+  }, [camera])
+
+  return (
+    <OrbitControls
+      enablePan={false}
+      enableZoom={true}
+      minDistance={10}
+      maxDistance={30}
+      minPolarAngle={Math.PI / 6}
+      maxPolarAngle={Math.PI / 3}
+      autoRotate
+      autoRotateSpeed={0.3}
+    />
+  )
+}
 
 export default function DisplayPage() {
   const params = useParams()
@@ -69,7 +367,6 @@ export default function DisplayPage() {
   const [animatedGuests, setAnimatedGuests] = useState<AnimatedGuest[]>([])
   const [countdown, setCountdown] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 })
   const [isEventStarted, setIsEventStarted] = useState(false)
-  const [time, setTime] = useState(0)
 
   const fetchData = useCallback(async () => {
     try {
@@ -94,69 +391,62 @@ export default function DisplayPage() {
     }
   }, [eventId])
 
-  // Initialize animated guests
+  // Initialize and animate guests
   useEffect(() => {
     const newAnimatedGuests: AnimatedGuest[] = guests.map((guest, index) => {
       const existing = animatedGuests.find(ag => ag.id === guest.id)
       if (existing) return existing
 
-      const zones = Object.keys(ZONES) as Array<keyof typeof ZONES>
-      const zone = zones[index % zones.length]
-      const zoneData = ZONES[zone]
-
-      const x = zoneData.x + Math.random() * zoneData.width
-      const y = zoneData.y + Math.random() * zoneData.height
+      // Random position around the pool area
+      const angle = (index / Math.max(guests.length, 1)) * Math.PI * 2
+      const radius = 4 + Math.random() * 3
+      const x = Math.cos(angle) * radius
+      const z = Math.sin(angle) * radius
 
       return {
         id: guest.id,
         initials: `${guest.firstName.charAt(0)}${guest.lastName.charAt(0)}`,
         x,
-        y,
+        z,
         targetX: x,
-        targetY: y,
-        speed: 0.15 + Math.random() * 0.2,
+        targetZ: z,
+        speed: 0.02 + Math.random() * 0.02,
         color: GUEST_COLORS[index % GUEST_COLORS.length],
         skinTone: SKIN_TONES[index % SKIN_TONES.length],
-        zone,
         isWalking: false,
-        direction: Math.random() > 0.5 ? 'left' : 'right'
+        rotation: Math.random() * Math.PI * 2
       }
     })
 
     setAnimatedGuests(newAnimatedGuests)
   }, [guests])
 
-  // Animation loop
+  // Animation loop for guest movement
   useEffect(() => {
     const moveGuests = () => {
-      setTime(t => t + 1)
       setAnimatedGuests(prev => prev.map(guest => {
         const dx = guest.targetX - guest.x
-        const dy = guest.targetY - guest.y
-        const distance = Math.sqrt(dx * dx + dy * dy)
+        const dz = guest.targetZ - guest.z
+        const distance = Math.sqrt(dx * dx + dz * dz)
 
-        if (distance < 0.5) {
-          const zoneData = ZONES[guest.zone]
-          // Small chance to change zones
-          const zones = Object.keys(ZONES) as Array<keyof typeof ZONES>
-          const newZone = Math.random() > 0.9 ? zones[Math.floor(Math.random() * zones.length)] : guest.zone
-          const newZoneData = ZONES[newZone]
-
+        if (distance < 0.1) {
+          // Pick new random target around pool
+          const angle = Math.random() * Math.PI * 2
+          const radius = 3 + Math.random() * 4
           return {
             ...guest,
-            targetX: newZoneData.x + Math.random() * newZoneData.width,
-            targetY: newZoneData.y + Math.random() * newZoneData.height,
-            isWalking: false,
-            zone: newZone
+            targetX: Math.cos(angle) * radius,
+            targetZ: Math.sin(angle) * radius,
+            isWalking: false
           }
         }
 
         return {
           ...guest,
           x: guest.x + (dx / distance) * guest.speed,
-          y: guest.y + (dy / distance) * guest.speed,
+          z: guest.z + (dz / distance) * guest.speed,
           isWalking: true,
-          direction: dx > 0 ? 'right' : 'left'
+          rotation: Math.atan2(dx, dz)
         }
       }))
     }
@@ -199,50 +489,16 @@ export default function DisplayPage() {
     return () => clearInterval(interval)
   }, [event?.startsAt])
 
-  // Cute character component
-  const Character = ({ guest }: { guest: AnimatedGuest }) => {
-    const bobOffset = guest.isWalking ? Math.sin(time * 0.3) * 0.5 : 0
-    const scale = guest.direction === 'left' ? -1 : 1
-
-    return (
-      <g transform={`translate(${guest.x}, ${guest.y + bobOffset})`}>
-        {/* Shadow */}
-        <ellipse cx="0" cy="3" rx="2.5" ry="1" fill="rgba(0,0,0,0.2)" />
-
-        {/* Body */}
-        <ellipse cx="0" cy="0" rx="2" ry="2.5" fill={guest.color} />
-
-        {/* Head */}
-        <circle cx="0" cy="-3" r="2" fill={guest.skinTone} />
-
-        {/* Hair */}
-        <ellipse cx="0" cy="-4" rx="2.2" ry="1.2" fill={guest.color} />
-
-        {/* Eyes */}
-        <g transform={`scale(${scale}, 1)`}>
-          <circle cx="-0.6" cy="-3" r="0.4" fill="#333" />
-          <circle cx="0.6" cy="-3" r="0.4" fill="#333" />
-          {/* Blush */}
-          <ellipse cx="-1.2" cy="-2.5" rx="0.4" ry="0.2" fill="#FFB6C1" opacity="0.6" />
-          <ellipse cx="1.2" cy="-2.5" rx="0.4" ry="0.2" fill="#FFB6C1" opacity="0.6" />
-        </g>
-
-        {/* Cute smile */}
-        <path d="M -0.5 -2.3 Q 0 -1.8 0.5 -2.3" stroke="#333" strokeWidth="0.3" fill="none" />
-      </g>
-    )
-  }
-
   return (
-    <div className="fixed inset-0 bg-gradient-to-b from-[#87CEEB] via-[#B0E0E6] to-[#E0F7FF] flex flex-col overflow-hidden">
+    <div className="fixed inset-0 bg-gradient-to-b from-[#1a1a2e] via-[#16213e] to-[#0f0f23] flex flex-col overflow-hidden">
       {/* Header */}
-      <div className="flex-shrink-0 bg-white/80 backdrop-blur-md border-b border-white/50 p-4 z-20">
+      <div className="flex-shrink-0 bg-black/30 backdrop-blur-md border-b border-white/10 p-4 z-20">
         <div className="flex items-center justify-between max-w-7xl mx-auto">
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-[#FF6B9D] to-[#C084FC] bg-clip-text text-transparent">
               {event?.name || 'Chargement...'}
             </h1>
-            <p className="text-gray-500 text-sm">Piscine Molitor • Live</p>
+            <p className="text-gray-400 text-sm">Piscine Molitor • Live 3D</p>
           </div>
 
           {!isEventStarted && (
@@ -258,212 +514,86 @@ export default function DisplayPage() {
         </div>
       </div>
 
-      {/* Main visualization */}
-      <div className="flex-1 relative overflow-hidden">
-        {/* Animated clouds */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          {[...Array(5)].map((_, i) => (
-            <div
-              key={i}
-              className="absolute bg-white rounded-full opacity-80"
-              style={{
-                width: `${80 + i * 40}px`,
-                height: `${40 + i * 20}px`,
-                top: `${5 + i * 8}%`,
-                left: `${(time * 0.02 + i * 25) % 120 - 20}%`,
-                filter: 'blur(2px)'
-              }}
-            />
-          ))}
-        </div>
-
-        {/* Isometric Pool Scene */}
-        <svg
-          viewBox="0 0 100 100"
-          className="absolute inset-0 w-full h-full"
-          preserveAspectRatio="xMidYMid meet"
-          style={{ transform: 'rotateX(60deg) rotateZ(-45deg) scale(1.2)', transformOrigin: 'center center' }}
-        >
-          <defs>
-            {/* Water gradient */}
-            <linearGradient id="waterGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#40E0D0" />
-              <stop offset="50%" stopColor="#00CED1" />
-              <stop offset="100%" stopColor="#48D1CC" />
-            </linearGradient>
-
-            {/* Pool tile pattern */}
-            <pattern id="tiles" width="5" height="5" patternUnits="userSpaceOnUse">
-              <rect width="5" height="5" fill="#F0F8FF" />
-              <rect width="4.8" height="4.8" x="0.1" y="0.1" fill="#E6F3FF" rx="0.2" />
-            </pattern>
-
-            {/* Pink tile pattern for deck */}
-            <pattern id="pinkTiles" width="4" height="4" patternUnits="userSpaceOnUse">
-              <rect width="4" height="4" fill="#FFE4EC" />
-              <rect width="3.8" height="3.8" x="0.1" y="0.1" fill="#FFD4E5" rx="0.1" />
-            </pattern>
-
-            {/* Shadow filter */}
-            <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
-              <feDropShadow dx="1" dy="1" stdDeviation="1" floodOpacity="0.3" />
-            </filter>
-          </defs>
-
-          {/* Ground/Deck */}
-          <rect x="5" y="5" width="90" height="90" fill="url(#pinkTiles)" rx="3" />
-
-          {/* Pool border */}
-          <rect x="30" y="25" width="40" height="45" fill="#E8E8E8" rx="2" filter="url(#shadow)" />
-
-          {/* Pool water */}
-          <rect x="32" y="27" width="36" height="41" fill="url(#waterGradient)" rx="1">
-            <animate attributeName="opacity" values="0.9;1;0.9" dur="2s" repeatCount="indefinite" />
-          </rect>
-
-          {/* Pool lane lines */}
-          {[...Array(5)].map((_, i) => (
-            <line
-              key={`lane-${i}`}
-              x1={32 + (i + 1) * 6}
-              y1="28"
-              x2={32 + (i + 1) * 6}
-              y2="67"
-              stroke="#00BFFF"
-              strokeWidth="0.3"
-              strokeDasharray="2,1"
-              opacity="0.5"
-            />
-          ))}
-
-          {/* Water reflections */}
-          {[...Array(3)].map((_, i) => (
-            <ellipse
-              key={`reflection-${i}`}
-              cx={40 + i * 12}
-              cy={40 + i * 8}
-              rx="8"
-              ry="3"
-              fill="white"
-              opacity="0.3"
-            >
-              <animate attributeName="opacity" values="0.2;0.4;0.2" dur={`${2 + i}s`} repeatCount="indefinite" />
-            </ellipse>
-          ))}
-
-          {/* Decorative plants */}
-          {[[8, 15], [85, 15], [8, 80], [85, 80]].map(([x, y], i) => (
-            <g key={`plant-${i}`} transform={`translate(${x}, ${y})`}>
-              <ellipse cx="0" cy="2" rx="3" ry="1" fill="#8B4513" />
-              <ellipse cx="0" cy="0" rx="4" ry="3" fill="#228B22" />
-              <ellipse cx="-1" cy="-1" rx="2" ry="2" fill="#32CD32" />
-              <ellipse cx="1" cy="0" rx="2" ry="2" fill="#3CB371" />
-            </g>
-          ))}
-
-          {/* Lounge chairs - Left */}
-          {[...Array(3)].map((_, i) => (
-            <g key={`chair-left-${i}`} transform={`translate(15, ${30 + i * 12})`}>
-              <rect x="-4" y="-2" width="8" height="6" fill="#FF69B4" rx="1" filter="url(#shadow)" />
-              <rect x="-3" y="-1" width="6" height="4" fill="#FFB6C1" rx="0.5" />
-              <ellipse cx="0" cy="-3" rx="3" ry="1" fill="#FF69B4" />
-            </g>
-          ))}
-
-          {/* Lounge chairs - Right */}
-          {[...Array(3)].map((_, i) => (
-            <g key={`chair-right-${i}`} transform={`translate(85, ${30 + i * 12})`}>
-              <rect x="-4" y="-2" width="8" height="6" fill="#87CEEB" rx="1" filter="url(#shadow)" />
-              <rect x="-3" y="-1" width="6" height="4" fill="#B0E0E6" rx="0.5" />
-              <ellipse cx="0" cy="-3" rx="3" ry="1" fill="#87CEEB" />
-            </g>
-          ))}
-
-          {/* Umbrella */}
-          <g transform="translate(20, 75)">
-            <line x1="0" y1="0" x2="0" y2="-8" stroke="#8B4513" strokeWidth="0.8" />
-            <ellipse cx="0" cy="-8" rx="6" ry="2" fill="#FF6B9D" />
-            <ellipse cx="0" cy="-8.5" rx="5" ry="1.5" fill="#FF8FAB" />
-          </g>
-
-          <g transform="translate(80, 75)">
-            <line x1="0" y1="0" x2="0" y2="-8" stroke="#8B4513" strokeWidth="0.8" />
-            <ellipse cx="0" cy="-8" rx="6" ry="2" fill="#C084FC" />
-            <ellipse cx="0" cy="-8.5" rx="5" ry="1.5" fill="#D4A5FF" />
-          </g>
-
-          {/* Animated guests */}
-          {animatedGuests.map((guest) => (
-            <Character key={guest.id} guest={guest} />
-          ))}
-        </svg>
+      {/* 3D Canvas */}
+      <div className="flex-1 relative">
+        <Canvas shadows camera={{ position: [15, 15, 15], fov: 35 }}>
+          <Suspense fallback={null}>
+            <PoolScene guests={animatedGuests} />
+            <CameraController />
+          </Suspense>
+        </Canvas>
 
         {/* Stats panel */}
         <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-10">
-          <div className="bg-white/90 backdrop-blur-md rounded-3xl px-8 py-5 shadow-2xl border border-white/50 flex items-center gap-8">
+          <div className="bg-black/60 backdrop-blur-xl rounded-3xl px-8 py-5 shadow-2xl border border-white/20 flex items-center gap-8">
             <div className="flex items-center gap-3">
               <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center shadow-lg">
                 <CheckCircle2 className="h-7 w-7 text-white" />
               </div>
               <div>
-                <p className="text-4xl font-bold text-gray-800">{stats.checkedIn}</p>
-                <p className="text-gray-500 text-sm font-medium">Arrivés</p>
+                <p className="text-4xl font-bold text-white">{stats.checkedIn}</p>
+                <p className="text-gray-400 text-sm font-medium">Arrivés</p>
               </div>
             </div>
 
-            <div className="w-px h-16 bg-gray-200" />
+            <div className="w-px h-16 bg-white/20" />
 
             <div className="flex items-center gap-3">
               <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center shadow-lg">
                 <Users className="h-7 w-7 text-white" />
               </div>
               <div>
-                <p className="text-4xl font-bold text-gray-800">{stats.total}</p>
-                <p className="text-gray-500 text-sm font-medium">Attendus</p>
+                <p className="text-4xl font-bold text-white">{stats.total}</p>
+                <p className="text-gray-400 text-sm font-medium">Attendus</p>
               </div>
             </div>
 
-            <div className="w-px h-16 bg-gray-200" />
+            <div className="w-px h-16 bg-white/20" />
 
             <div className="text-center">
               <p className="text-4xl font-bold bg-gradient-to-r from-[#FF6B9D] to-[#C084FC] bg-clip-text text-transparent">
                 {stats.percentageCheckedIn}%
               </p>
-              <p className="text-gray-500 text-sm font-medium">Présence</p>
+              <p className="text-gray-400 text-sm font-medium">Présence</p>
             </div>
           </div>
         </div>
 
         {/* Live badge */}
-        <div className="absolute top-4 right-4 flex items-center gap-2 bg-white/90 backdrop-blur-md rounded-full px-4 py-2 shadow-lg z-10">
+        <div className="absolute top-4 right-4 flex items-center gap-2 bg-black/60 backdrop-blur-md rounded-full px-4 py-2 shadow-lg z-10 border border-white/20">
           <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse" />
-          <span className="text-gray-700 text-sm font-bold">EN DIRECT</span>
+          <span className="text-white text-sm font-bold">EN DIRECT</span>
         </div>
 
         {/* Guest count bubble */}
         {animatedGuests.length > 0 && (
-          <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-md rounded-2xl px-4 py-2 shadow-lg z-10">
+          <div className="absolute top-4 left-4 bg-black/60 backdrop-blur-md rounded-2xl px-4 py-2 shadow-lg z-10 border border-white/20">
             <div className="flex items-center gap-2">
               <div className="flex -space-x-2">
                 {animatedGuests.slice(0, 4).map((g, i) => (
                   <div
                     key={g.id}
-                    className="w-8 h-8 rounded-full border-2 border-white flex items-center justify-center text-white text-xs font-bold"
+                    className="w-8 h-8 rounded-full border-2 border-black/50 flex items-center justify-center text-white text-xs font-bold"
                     style={{ backgroundColor: g.color, zIndex: 4 - i }}
                   >
                     {g.initials}
                   </div>
                 ))}
                 {animatedGuests.length > 4 && (
-                  <div className="w-8 h-8 rounded-full bg-gray-200 border-2 border-white flex items-center justify-center text-gray-600 text-xs font-bold">
+                  <div className="w-8 h-8 rounded-full bg-gray-600 border-2 border-black/50 flex items-center justify-center text-white text-xs font-bold">
                     +{animatedGuests.length - 4}
                   </div>
                 )}
               </div>
-              <span className="text-gray-600 text-sm">sur place</span>
+              <span className="text-gray-300 text-sm">sur place</span>
             </div>
           </div>
         )}
+
+        {/* Instruction hint */}
+        <div className="absolute bottom-24 left-1/2 -translate-x-1/2 text-white/50 text-sm">
+          Glissez pour pivoter la caméra • Pincez pour zoomer
+        </div>
       </div>
     </div>
   )

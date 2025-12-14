@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { useParams } from 'next/navigation'
-import { CheckCircle2, Camera, Users, Sparkles, AlertCircle } from 'lucide-react'
+import { CheckCircle2, Camera, Users, Sparkles, AlertCircle, Search, X, UserPlus, ChevronDown } from 'lucide-react'
 import { toast } from 'sonner'
 import jsQR from 'jsqr'
 
@@ -12,6 +12,12 @@ interface Guest {
   lastName: string
   email: string
   company?: string
+  checkins?: { id: string }[]
+  rsvp?: {
+    id: string
+    qrCodeId: string
+    plusOnes?: number
+  }
 }
 
 interface CheckinResult {
@@ -31,9 +37,22 @@ export default function SelfServiceKioskPage() {
   const [isProcessing, setIsProcessing] = useState(false)
   const [cameraError, setCameraError] = useState<string | null>(null)
 
+  // Search state
+  const [showSearch, setShowSearch] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [guests, setGuests] = useState<Guest[]>([])
+  const [filteredGuests, setFilteredGuests] = useState<Guest[]>([])
+  const [isLoadingGuests, setIsLoadingGuests] = useState(false)
+
+  // Add guest state
+  const [showAddGuest, setShowAddGuest] = useState(false)
+  const [newGuest, setNewGuest] = useState({ firstName: '', lastName: '', email: '', company: '' })
+  const [isAddingGuest, setIsAddingGuest] = useState(false)
+
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const animationFrameRef = useRef<number | undefined>(undefined)
+  const searchInputRef = useRef<HTMLInputElement>(null)
 
   // Fetch event info
   useEffect(() => {
@@ -50,6 +69,49 @@ export default function SelfServiceKioskPage() {
     }
     fetchEvent()
   }, [eventId])
+
+  // Fetch guests for search
+  const fetchGuests = useCallback(async () => {
+    if (guests.length > 0) return // Already loaded
+
+    setIsLoadingGuests(true)
+    try {
+      const response = await fetch(`/api/admin/events/${eventId}/checkin-guests`)
+      if (response.ok) {
+        const data = await response.json()
+        setGuests(data.guests || [])
+      }
+    } catch (error) {
+      console.error('Error fetching guests:', error)
+    } finally {
+      setIsLoadingGuests(false)
+    }
+  }, [eventId, guests.length])
+
+  // Filter guests based on search
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setFilteredGuests([])
+      return
+    }
+
+    const query = searchQuery.toLowerCase()
+    const filtered = guests.filter(guest => {
+      const firstName = (guest.firstName || '').toLowerCase()
+      const lastName = (guest.lastName || '').toLowerCase()
+      const email = (guest.email || '').toLowerCase()
+      const company = (guest.company || '').toLowerCase()
+      const fullName = `${firstName} ${lastName}`
+
+      return fullName.includes(query) ||
+             firstName.includes(query) ||
+             lastName.includes(query) ||
+             email.includes(query) ||
+             company.includes(query)
+    }).slice(0, 10) // Limit to 10 results for performance
+
+    setFilteredGuests(filtered)
+  }, [searchQuery, guests])
 
   // Auto-start scanner on mount
   useEffect(() => {
@@ -211,6 +273,129 @@ export default function SelfServiceKioskPage() {
     } finally {
       setIsProcessing(false)
     }
+  }
+
+  // Manual check-in from search
+  const handleManualCheckin = async (guest: Guest) => {
+    if (!guest.rsvp?.qrCodeId) {
+      toast.error('Ce guest n\'a pas de QR code')
+      return
+    }
+
+    vibrate()
+    setIsProcessing(true)
+    setShowSearch(false)
+    stopScanner()
+
+    try {
+      const response = await fetch(`/api/checkin/${guest.rsvp.qrCodeId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ desk: 'Self-Service (Manual)' }),
+      })
+
+      const result = await response.json()
+
+      if (response.ok) {
+        setCheckinResult({
+          success: true,
+          guest: result.guest,
+          plusOnes: guest.rsvp?.plusOnes || 0
+        })
+      } else if (result.alreadyCheckedIn) {
+        setCheckinResult({
+          success: true,
+          guest: result.guest,
+          alreadyCheckedIn: true
+        })
+      } else {
+        toast.error(result.error || 'Erreur')
+        setTimeout(startScanner, 2000)
+      }
+    } catch (error) {
+      console.error('Checkin error:', error)
+      toast.error('Erreur de connexion')
+      setTimeout(startScanner, 2000)
+    } finally {
+      setIsProcessing(false)
+      setSearchQuery('')
+    }
+  }
+
+  // Add new guest and check-in
+  const handleAddGuest = async () => {
+    if (!newGuest.firstName.trim() || !newGuest.lastName.trim()) {
+      toast.error('Prénom et nom requis')
+      return
+    }
+
+    setIsAddingGuest(true)
+    vibrate()
+
+    try {
+      // First, create the guest
+      const createResponse = await fetch(`/api/admin/events/${eventId}/guests`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          firstName: newGuest.firstName.trim(),
+          lastName: newGuest.lastName.trim(),
+          email: newGuest.email.trim() || `walkin-${Date.now()}@event.local`,
+          company: newGuest.company.trim() || undefined,
+          status: 'CONFIRMED'
+        }),
+      })
+
+      if (!createResponse.ok) {
+        const error = await createResponse.json()
+        throw new Error(error.error || 'Erreur création')
+      }
+
+      const createdGuest = await createResponse.json()
+
+      // Then check-in if guest has RSVP with QR code
+      if (createdGuest.rsvp?.qrCodeId) {
+        const checkinResponse = await fetch(`/api/checkin/${createdGuest.rsvp.qrCodeId}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ desk: 'Self-Service (Walk-in)' }),
+        })
+
+        if (checkinResponse.ok) {
+          setShowAddGuest(false)
+          setShowSearch(false)
+          stopScanner()
+
+          setCheckinResult({
+            success: true,
+            guest: createdGuest,
+            plusOnes: 0
+          })
+
+          // Refresh guest list
+          setGuests([])
+        }
+      } else {
+        toast.success(`${newGuest.firstName} ${newGuest.lastName} ajouté`)
+        setShowAddGuest(false)
+        setGuests([])
+      }
+
+      setNewGuest({ firstName: '', lastName: '', email: '', company: '' })
+    } catch (error) {
+      console.error('Add guest error:', error)
+      toast.error('Erreur lors de l\'ajout')
+    } finally {
+      setIsAddingGuest(false)
+    }
+  }
+
+  // Open search panel
+  const openSearch = () => {
+    fetchGuests()
+    setShowSearch(true)
+    setSearchQuery('')
+    setTimeout(() => searchInputRef.current?.focus(), 100)
   }
 
   // Auto restart after showing result
@@ -379,11 +564,18 @@ export default function SelfServiceKioskPage() {
               )}
             </div>
 
-            {/* Bottom instruction bar */}
-            <div className="flex-shrink-0 bg-[#004645] py-5 px-4 text-center">
-              <p className="text-white text-lg font-semibold">
+            {/* Bottom bar with search button */}
+            <div className="flex-shrink-0 bg-[#004645] py-4 px-4">
+              <p className="text-white text-lg font-semibold text-center mb-3">
                 Présentez votre QR code
               </p>
+              <button
+                onClick={openSearch}
+                className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-white/10 hover:bg-white/20 rounded-xl text-white transition-colors"
+              >
+                <Search className="h-5 w-5" />
+                <span>Pas de QR code ? Rechercher</span>
+              </button>
             </div>
           </div>
         )}
@@ -391,6 +583,221 @@ export default function SelfServiceKioskPage() {
 
       {/* Safe area padding for iPhone home indicator */}
       <div className="flex-shrink-0 h-[env(safe-area-inset-bottom)] bg-[#004645]" />
+
+      {/* Search Modal */}
+      {showSearch && (
+        <div className="fixed inset-0 z-50 flex flex-col bg-[#004645]">
+          <div className="flex-shrink-0 h-[env(safe-area-inset-top)]" />
+
+          {/* Search Header */}
+          <div className="flex-shrink-0 p-4 border-b border-white/10">
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => {
+                  setShowSearch(false)
+                  setSearchQuery('')
+                  startScanner()
+                }}
+                className="p-2 -ml-2 text-white/70 hover:text-white"
+              >
+                <X className="h-6 w-6" />
+              </button>
+              <div className="flex-1 relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-white/40" />
+                <input
+                  ref={searchInputRef}
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Nom, prénom, email..."
+                  className="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-[#FF4713]"
+                  autoFocus
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Search Results */}
+          <div className="flex-1 overflow-y-auto">
+            {isLoadingGuests ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="animate-spin h-8 w-8 border-2 border-white/30 border-t-white rounded-full" />
+              </div>
+            ) : searchQuery.trim() === '' ? (
+              <div className="text-center py-12 px-4">
+                <Search className="h-12 w-12 text-white/30 mx-auto mb-3" />
+                <p className="text-white/50">Tapez pour rechercher un invité</p>
+              </div>
+            ) : filteredGuests.length === 0 ? (
+              <div className="text-center py-12 px-4">
+                <p className="text-white/50 mb-6">Aucun résultat pour &ldquo;{searchQuery}&rdquo;</p>
+                <button
+                  onClick={() => setShowAddGuest(true)}
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-[#FF4713] text-white rounded-xl font-semibold"
+                >
+                  <UserPlus className="h-5 w-5" />
+                  Ajouter cette personne
+                </button>
+              </div>
+            ) : (
+              <div className="p-4 space-y-2">
+                {filteredGuests.map((guest) => {
+                  const isCheckedIn = guest.checkins && guest.checkins.length > 0
+                  return (
+                    <button
+                      key={guest.id}
+                      onClick={() => handleManualCheckin(guest)}
+                      disabled={isProcessing}
+                      className={`w-full p-4 rounded-xl text-left transition-colors ${
+                        isCheckedIn
+                          ? 'bg-orange-500/20 border border-orange-500/30'
+                          : 'bg-white/10 hover:bg-white/20 border border-transparent'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-white font-semibold text-lg">
+                            {guest.firstName} {guest.lastName}
+                          </p>
+                          {guest.company && (
+                            <p className="text-white/50 text-sm">{guest.company}</p>
+                          )}
+                          {guest.email && (
+                            <p className="text-white/40 text-xs mt-1">{guest.email}</p>
+                          )}
+                        </div>
+                        {isCheckedIn ? (
+                          <span className="px-3 py-1 bg-orange-500/30 text-orange-200 text-xs rounded-full">
+                            Déjà arrivé
+                          </span>
+                        ) : (
+                          <ChevronDown className="h-5 w-5 text-white/30 rotate-[-90deg]" />
+                        )}
+                      </div>
+                    </button>
+                  )
+                })}
+
+                {/* Add new guest button at bottom of results */}
+                <button
+                  onClick={() => setShowAddGuest(true)}
+                  className="w-full p-4 rounded-xl bg-white/5 hover:bg-white/10 border border-dashed border-white/20 text-white/70 hover:text-white transition-colors flex items-center justify-center gap-2"
+                >
+                  <UserPlus className="h-5 w-5" />
+                  <span>Ajouter un nouvel invité</span>
+                </button>
+              </div>
+            )}
+          </div>
+
+          <div className="flex-shrink-0 h-[env(safe-area-inset-bottom)]" />
+        </div>
+      )}
+
+      {/* Add Guest Modal */}
+      {showAddGuest && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden">
+            {/* Header */}
+            <div className="flex items-center justify-between p-4 border-b">
+              <h3 className="text-lg font-bold text-gray-900">Nouvel invité</h3>
+              <button
+                onClick={() => {
+                  setShowAddGuest(false)
+                  setNewGuest({ firstName: '', lastName: '', email: '', company: '' })
+                }}
+                className="p-1 text-gray-400 hover:text-gray-600"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            {/* Form */}
+            <div className="p-4 space-y-4">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Prénom *
+                  </label>
+                  <input
+                    type="text"
+                    value={newGuest.firstName}
+                    onChange={(e) => setNewGuest({ ...newGuest, firstName: e.target.value })}
+                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#004645]"
+                    placeholder="Jean"
+                    autoFocus
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Nom *
+                  </label>
+                  <input
+                    type="text"
+                    value={newGuest.lastName}
+                    onChange={(e) => setNewGuest({ ...newGuest, lastName: e.target.value })}
+                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#004645]"
+                    placeholder="Dupont"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Email
+                </label>
+                <input
+                  type="email"
+                  value={newGuest.email}
+                  onChange={(e) => setNewGuest({ ...newGuest, email: e.target.value })}
+                  className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#004645]"
+                  placeholder="jean.dupont@email.com"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Société
+                </label>
+                <input
+                  type="text"
+                  value={newGuest.company}
+                  onChange={(e) => setNewGuest({ ...newGuest, company: e.target.value })}
+                  className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#004645]"
+                  placeholder="Entreprise"
+                />
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="p-4 bg-gray-50 flex gap-3">
+              <button
+                onClick={() => {
+                  setShowAddGuest(false)
+                  setNewGuest({ firstName: '', lastName: '', email: '', company: '' })
+                }}
+                className="flex-1 px-4 py-3 border border-gray-300 rounded-xl text-gray-700 font-medium hover:bg-gray-100"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={handleAddGuest}
+                disabled={isAddingGuest || !newGuest.firstName.trim() || !newGuest.lastName.trim()}
+                className="flex-1 px-4 py-3 bg-[#004645] text-white rounded-xl font-medium hover:bg-[#003635] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                {isAddingGuest ? (
+                  <div className="animate-spin h-5 w-5 border-2 border-white/30 border-t-white rounded-full" />
+                ) : (
+                  <>
+                    <UserPlus className="h-5 w-5" />
+                    Ajouter & Check-in
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <style jsx global>{`
         @keyframes shrink-width {
