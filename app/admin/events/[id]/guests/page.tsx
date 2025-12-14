@@ -861,6 +861,24 @@ export default function GuestsPage() {
               <Button
                 variant="outline"
                 size="sm"
+                onClick={() => {
+                  const noQrSentIds = filteredGuests
+                    .filter(g => g.rsvp?.attending === true && !hasConfirmationSent(g))
+                    .map(g => g.id)
+                  setSelectedGuestIds(new Set(noQrSentIds))
+                  if (noQrSentIds.length > 0) {
+                    toast.success(`${noQrSentIds.length} invité${noQrSentIds.length > 1 ? 's' : ''} confirmé${noQrSentIds.length > 1 ? 's' : ''} sans QR code`)
+                  } else {
+                    toast.info('Tous les confirmés ont reçu leur QR code')
+                  }
+                }}
+                className="border-purple-600 text-purple-600 hover:bg-purple-600 hover:text-white"
+              >
+                🎫 QR non envoyé ({filteredGuests.filter(g => g.rsvp?.attending === true && !hasConfirmationSent(g)).length})
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={() => setSelectedGuestIds(new Set(filteredGuests.map(g => g.id)))}
                 className="border-[#004645] text-[#004645] hover:bg-[#004645] hover:text-white"
               >
