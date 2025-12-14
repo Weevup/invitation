@@ -630,7 +630,7 @@ export default function SelfServiceKioskPage() {
               </div>
             ) : filteredGuests.length === 0 ? (
               <div className="text-center py-12 px-4">
-                <p className="text-white/50 mb-6">Aucun résultat pour "{searchQuery}"</p>
+                <p className="text-white/50 mb-6">Aucun résultat pour &ldquo;{searchQuery}&rdquo;</p>
                 <button
                   onClick={() => setShowAddGuest(true)}
                   className="inline-flex items-center gap-2 px-6 py-3 bg-[#FF4713] text-white rounded-xl font-semibold"
