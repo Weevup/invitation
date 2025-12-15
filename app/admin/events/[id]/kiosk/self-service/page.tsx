@@ -12,6 +12,7 @@ interface Guest {
   lastName: string
   email: string
   company?: string
+  adminPlusOnes?: number
   checkins?: { id: string }[]
   rsvp?: {
     id: string
@@ -24,6 +25,7 @@ interface CheckinResult {
   success: boolean
   guest: Guest
   plusOnes?: number
+  adminPlusOnes?: number
   alreadyCheckedIn?: boolean
 }
 
@@ -255,7 +257,8 @@ export default function SelfServiceKioskPage() {
         setCheckinResult({
           success: true,
           guest: result.guest,
-          plusOnes: verifyData.rsvp?.plusOnes || 0
+          plusOnes: verifyData.rsvp?.plusOnes || 0,
+          adminPlusOnes: verifyData.guest?.adminPlusOnes || 0
         })
       } else if (result.alreadyCheckedIn) {
         setCheckinResult({
@@ -312,7 +315,8 @@ export default function SelfServiceKioskPage() {
         setCheckinResult({
           success: true,
           guest: result.guest,
-          plusOnes: guest.rsvp?.plusOnes || 0
+          plusOnes: guest.rsvp?.plusOnes || 0,
+          adminPlusOnes: guest.adminPlusOnes || 0
         })
         // Refresh guest list to get updated data
         setGuests([])
@@ -472,24 +476,38 @@ export default function SelfServiceKioskPage() {
                     </p>
                   )}
 
-                  {/* Plus Ones - Prominent display */}
-                  {checkinResult.plusOnes !== undefined && checkinResult.plusOnes > 0 && (
-                    <div className="mt-6 p-5 bg-gradient-to-r from-[#009197]/10 to-[#004645]/10 rounded-2xl">
-                      <div className="flex items-center justify-center gap-3">
-                        <div className="w-12 h-12 rounded-full bg-[#009197] flex items-center justify-center">
-                          <Users className="h-6 w-6 text-white" />
+                  {/* Plus Ones - VERY Prominent display */}
+                  {(() => {
+                    const totalPlusOnes = (checkinResult.plusOnes || 0) + (checkinResult.adminPlusOnes || 0)
+                    const totalPersons = 1 + totalPlusOnes
+                    if (totalPlusOnes <= 0) return null
+                    return (
+                      <div className="mt-6">
+                        {/* Big orange banner for +1 */}
+                        <div className="p-5 bg-gradient-to-r from-[#FF4713] to-[#e53e00] rounded-2xl shadow-lg">
+                          <div className="flex items-center justify-center gap-4">
+                            <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center animate-pulse">
+                              <Users className="h-9 w-9 text-white" />
+                            </div>
+                            <div className="text-left">
+                              <p className="text-5xl font-black text-white">
+                                +{totalPlusOnes}
+                              </p>
+                              <p className="text-base text-white/80 font-medium">
+                                accompagnant{totalPlusOnes > 1 ? 's' : ''}
+                              </p>
+                            </div>
+                          </div>
                         </div>
-                        <div className="text-left">
-                          <p className="text-3xl font-bold text-[#004645]">
-                            +{checkinResult.plusOnes}
-                          </p>
-                          <p className="text-sm text-[#004645]/60">
-                            accompagnant{checkinResult.plusOnes > 1 ? 's' : ''}
+                        {/* Total persons count */}
+                        <div className="mt-3 p-3 bg-[#004645]/10 rounded-xl">
+                          <p className="text-center text-lg font-bold text-[#004645]">
+                            👥 {totalPersons} personne{totalPersons > 1 ? 's' : ''} au total
                           </p>
                         </div>
                       </div>
-                    </div>
-                  )}
+                    )
+                  })()}
 
                   {!checkinResult.alreadyCheckedIn && (
                     <div className="mt-6 flex items-center justify-center gap-2 text-green-600">
@@ -657,6 +675,8 @@ export default function SelfServiceKioskPage() {
               <div className="p-4 space-y-2">
                 {filteredGuests.map((guest) => {
                   const isCheckedIn = guest.checkins && guest.checkins.length > 0
+                  const totalPlusOnes = (guest.rsvp?.plusOnes || 0) + (guest.adminPlusOnes || 0)
+                  const totalPersons = 1 + totalPlusOnes
                   return (
                     <button
                       key={guest.id}
@@ -668,25 +688,39 @@ export default function SelfServiceKioskPage() {
                           : 'bg-white/10 hover:bg-white/20 border border-transparent'
                       }`}
                     >
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-white font-semibold text-lg">
-                            {guest.firstName} {guest.lastName}
-                          </p>
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <p className="text-white font-semibold text-lg truncate">
+                              {guest.firstName} {guest.lastName}
+                            </p>
+                            {/* Plus Ones Badge - Prominent display */}
+                            {totalPlusOnes > 0 && (
+                              <span className="flex-shrink-0 inline-flex items-center gap-1 px-2.5 py-1 bg-[#FF4713] text-white text-sm font-bold rounded-full">
+                                <Users className="h-3.5 w-3.5" />
+                                +{totalPlusOnes}
+                              </span>
+                            )}
+                          </div>
                           {guest.company && (
-                            <p className="text-white/50 text-sm">{guest.company}</p>
+                            <p className="text-white/50 text-sm truncate">{guest.company}</p>
                           )}
-                          {guest.email && (
-                            <p className="text-white/40 text-xs mt-1">{guest.email}</p>
+                          {/* Total persons indicator */}
+                          {totalPlusOnes > 0 && (
+                            <p className="text-[#FF4713]/80 text-xs mt-1 font-medium">
+                              {totalPersons} personne{totalPersons > 1 ? 's' : ''} au total
+                            </p>
                           )}
                         </div>
-                        {isCheckedIn ? (
-                          <span className="px-3 py-1 bg-orange-500/30 text-orange-200 text-xs rounded-full">
-                            Déjà arrivé
-                          </span>
-                        ) : (
-                          <ChevronDown className="h-5 w-5 text-white/30 rotate-[-90deg]" />
-                        )}
+                        <div className="flex-shrink-0 flex items-center gap-2">
+                          {isCheckedIn ? (
+                            <span className="px-3 py-1 bg-orange-500/30 text-orange-200 text-xs rounded-full">
+                              Déjà arrivé
+                            </span>
+                          ) : (
+                            <ChevronDown className="h-5 w-5 text-white/30 rotate-[-90deg]" />
+                          )}
+                        </div>
                       </div>
                     </button>
                   )
