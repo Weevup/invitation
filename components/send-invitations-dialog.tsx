@@ -115,13 +115,13 @@ export function SendInvitationsDialog({
 
         if (response.ok) {
           setResults({
-            total: data.results.total,
-            success: data.results.sent,
-            failed: data.results.failed,
-            errors: data.results.errors || [],
+            total: data.sent + data.failed,
+            success: data.sent,
+            failed: data.failed,
+            errors: data.errors || [],
           });
-          if (data.results.sent > 0) {
-            toast.success(`${data.results.sent} convocation(s) avec QR code envoyée(s)`);
+          if (data.sent > 0) {
+            toast.success(`${data.sent} convocation(s) avec QR code envoyée(s)`);
             if (onComplete) {
               onComplete();
             }
