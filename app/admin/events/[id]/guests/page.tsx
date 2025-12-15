@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import {
-  Users, Download, Search, Link as LinkIcon, UserPlus, Upload, Eye, Filter, CreditCard, CheckSquare, Square, X, RefreshCw, Edit, Trash2, Mail, CheckCircle, XCircle
+  Users, Download, Search, Link as LinkIcon, UserPlus, Upload, Eye, Filter, CreditCard, CheckSquare, Square, X, RefreshCw, Edit, Trash2, Mail, CheckCircle, XCircle, FileText
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { AddGuestDialog } from '@/components/add-guest-dialog'
@@ -629,6 +629,15 @@ export default function GuestsPage() {
           >
             <Download className="h-4 w-4 mr-2" />
             Exporter CSV
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => window.open(`/api/admin/events/${eventId}/export/checkin-list`, '_blank')}
+            disabled={!hasGuests}
+            className="border-[#FF4713] text-[#FF4713] hover:bg-[#FF4713] hover:text-white"
+          >
+            <FileText className="h-4 w-4 mr-2" />
+            PDF Entrée
           </Button>
           <Button
             variant="outline"
