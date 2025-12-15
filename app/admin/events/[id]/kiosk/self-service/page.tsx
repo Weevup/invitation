@@ -70,13 +70,14 @@ export default function SelfServiceKioskPage() {
     fetchEvent()
   }, [eventId])
 
-  // Fetch guests for search
+  // Fetch guests for search (all guests, not just confirmed)
   const fetchGuests = useCallback(async () => {
     if (guests.length > 0) return // Already loaded
 
     setIsLoadingGuests(true)
     try {
-      const response = await fetch(`/api/admin/events/${eventId}/checkin-guests`)
+      // Use full guests endpoint to include guests without RSVP
+      const response = await fetch(`/api/admin/events/${eventId}?includeGuests=true`)
       if (response.ok) {
         const data = await response.json()
         setGuests(data.guests || [])
@@ -277,24 +278,35 @@ export default function SelfServiceKioskPage() {
 
   // Manual check-in from search
   const handleManualCheckin = async (guest: Guest) => {
-    if (!guest.rsvp?.qrCodeId) {
-      toast.error('Ce guest n\'a pas de QR code')
-      return
-    }
-
     vibrate()
     setIsProcessing(true)
     setShowSearch(false)
     stopScanner()
 
     try {
-      const response = await fetch(`/api/checkin/${guest.rsvp.qrCodeId}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ desk: 'Self-Service (Manual)' }),
-      })
+      let response
+      let result
 
-      const result = await response.json()
+      // If guest has QR code, use the standard checkin endpoint
+      if (guest.rsvp?.qrCodeId) {
+        response = await fetch(`/api/checkin/${guest.rsvp.qrCodeId}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ desk: 'Self-Service (Manual)' }),
+        })
+        result = await response.json()
+      } else {
+        // No QR code - use manual checkin endpoint (creates RSVP if needed)
+        response = await fetch(`/api/admin/events/${eventId}/checkin/manual`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            guestId: guest.id,
+            desk: 'Self-Service (Manual - No QR)'
+          }),
+        })
+        result = await response.json()
+      }
 
       if (response.ok) {
         setCheckinResult({
@@ -302,6 +314,8 @@ export default function SelfServiceKioskPage() {
           guest: result.guest,
           plusOnes: guest.rsvp?.plusOnes || 0
         })
+        // Refresh guest list to get updated data
+        setGuests([])
       } else if (result.alreadyCheckedIn) {
         setCheckinResult({
           success: true,
